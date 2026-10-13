@@ -67,3 +67,29 @@ describe('validateParam', () => {
     expect(validateParam(name, 'VOZ IP')).toBe('Sin espacios, hasta 32 caracteres.')
   })
 })
+
+describe('validateParam with a value that must differ from another one', () => {
+  const target = param({
+    type: 'choice',
+    options: ['primary', 'secondary'],
+    differentFrom: { param: 'fallback', hint: 'No puede ser la misma imagen que la de reserva.' },
+  })
+
+  it('rejects the same value as the related param', () => {
+    expect(validateParam(target, 'primary', { fallback: 'primary' })).toBe(
+      'No puede ser la misma imagen que la de reserva.',
+    )
+  })
+
+  it('accepts a different value, or any value while the related param is still empty', () => {
+    expect(validateParam(target, 'primary', { fallback: 'secondary' })).toBeNull()
+    expect(validateParam(target, 'primary', { fallback: '  ' })).toBeNull()
+    expect(validateParam(target, 'primary', {})).toBeNull()
+  })
+
+  it('compares ignoring surrounding spaces', () => {
+    expect(validateParam(target, ' primary ', { fallback: 'primary ' })).toBe(
+      'No puede ser la misma imagen que la de reserva.',
+    )
+  })
+})

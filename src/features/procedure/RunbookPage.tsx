@@ -54,7 +54,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
 
   const errors = Object.fromEntries(
-    procedure.params.map((param) => [param.id, validateParam(param, values[param.id] ?? '')]),
+    procedure.params.map((param) => [param.id, validateParam(param, values[param.id] ?? '', values)]),
   )
   // Invalid values are treated as unfilled so a wrong command is never shown as runnable.
   const validValues: ParamValues = Object.fromEntries(

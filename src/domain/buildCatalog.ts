@@ -78,6 +78,12 @@ export function buildCatalog(files: Record<string, string>): Catalog {
     const expectedPath = `procedures/${procedure.platform}/${procedure.task}.yaml`
     if (!path.endsWith(`/content/${expectedPath}`)) fail(`expected path ${expectedPath}`)
 
+    const paramIds = new Set(procedure.params.map((param) => param.id))
+    for (const param of procedure.params) {
+      const other = param.differentFrom?.param
+      if (other && !paramIds.has(other)) fail(`param "${param.id}" must differ from undeclared param "${other}"`)
+    }
+
     const undeclared = findUndeclaredParams(procedure)
     if (undeclared.length > 0) fail(`undeclared params: ${undeclared.join(', ')}`)
 

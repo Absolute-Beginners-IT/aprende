@@ -24,7 +24,7 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
       onClose()
     } else if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setActive(Math.min(active + 1, results.length - 1))
+      setActive(Math.max(0, Math.min(active + 1, results.length - 1)))
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setActive(Math.max(active - 1, 0))

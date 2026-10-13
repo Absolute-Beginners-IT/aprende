@@ -91,6 +91,15 @@ describe('content catalog', () => {
     expect(offenders).toEqual([])
   })
 
+  it('does not let the Aruba firmware runbook install over the image kept as fallback', () => {
+    const upgrade = catalog.procedures.find(
+      (item) => item.platform === 'aruba-aoscx' && item.task === 'firmware-upgrade',
+    )
+    const target = upgrade?.params.find((param) => param.id === 'targetImage')
+
+    expect(target?.differentFrom?.param).toBe('fallbackImage')
+  })
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

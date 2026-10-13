@@ -19,11 +19,7 @@ function isCidr(value: string): boolean {
   return isIpv4(address) && isIntegerInRange(prefix, 0, 32)
 }
 
-/** Returns the message to show the user, or null when the value is acceptable. */
-export function validateParam(param: Param, rawValue: string): string | null {
-  const value = rawValue.trim()
-  if (value === '') return param.required ? 'Este dato es obligatorio.' : null
-
+function validateFormat(param: Param, value: string): string | null {
   switch (param.type) {
     case 'vlan-id':
       return isIntegerInRange(value, 1, 4094) ? null : 'Debe ser un número entero entre 1 y 4094.'
@@ -47,4 +43,23 @@ export function validateParam(param: Param, rawValue: string): string | null {
       }
       return null
   }
+}
+
+/**
+ * Returns the message to show the user, or null when the value is acceptable.
+ * `values` holds the other params of the runbook, for rules that relate two of them.
+ */
+export function validateParam(
+  param: Param,
+  rawValue: string,
+  values: Record<string, string | undefined> = {},
+): string | null {
+  const value = rawValue.trim()
+  if (value === '') return param.required ? 'Este dato es obligatorio.' : null
+
+  const formatError = validateFormat(param, value)
+  if (formatError) return formatError
+
+  const other = param.differentFrom && values[param.differentFrom.param]?.trim()
+  return param.differentFrom && other === value ? param.differentFrom.hint : null
 }

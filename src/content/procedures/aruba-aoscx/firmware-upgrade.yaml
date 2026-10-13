@@ -29,6 +29,9 @@ params:
       - primary
       - secondary
     help: Mirá Active Image en show images y elegí la otra.
+    differentFrom:
+      param: fallbackImage
+      hint: No puede ser la misma que la imagen activa; se sobrescribiría la que está en uso.
   - id: fallbackImage
     label: Imagen actual (la que está activa ahora)
     type: choice

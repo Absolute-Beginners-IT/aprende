@@ -11,7 +11,7 @@ export interface RunbookHit {
   groupLabel: string
 }
 
-const DIACRITICS = /[̀-ͯ]/g
+const DIACRITICS = /\p{Diacritic}/gu
 // Lets "gestion" find "gestión": people type fast and without accents when they are working.
 const normalize = (term: string) => term.toLowerCase().normalize('NFD').replace(DIACRITICS, '')
 

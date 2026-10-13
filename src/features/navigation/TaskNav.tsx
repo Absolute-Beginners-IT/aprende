@@ -31,7 +31,7 @@ export function TaskNav({ catalog, platform, task, onSheet }: TaskNavProps) {
         return (
           <div key={group} className="task-nav__group">
             <p id={headingId}>{GROUP_LABELS[group]}</p>
-            <ul aria-labelledby={headingId}>
+            <ul role="list" aria-labelledby={headingId}>
               {inGroup(group).map(({ concept, procedure }) => (
                 <li key={concept.id}>
                   <a href={runbookHref(platform, concept.id)} aria-current={concept.id === task ? 'page' : undefined}>

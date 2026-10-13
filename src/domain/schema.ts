@@ -30,6 +30,8 @@ export const ParamSchema = z
     max: z.number().int().optional(),
     pattern: text.optional(),
     patternHint: text.optional(),
+    // For pairs that must not coincide, such as the image to overwrite and the one kept as fallback.
+    differentFrom: z.object({ param: z.string(), hint: text }).optional(),
   })
   .refine((param) => param.type !== 'choice' || param.options !== undefined, {
     message: 'A choice param needs options',

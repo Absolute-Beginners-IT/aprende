@@ -239,6 +239,41 @@ describe('RunbookPage', () => {
     expect(within(section('Paso a paso')).getByRole('button', { name: 'Copiar todos los pasos' })).toBeEnabled()
   })
 
+  it('blocks the commands while two values that must differ are the same', async () => {
+    const user = userEvent.setup()
+    const images = ProcedureSchema.parse({
+      ...procedure,
+      params: [
+        {
+          id: 'target',
+          label: 'Imagen de destino',
+          type: 'choice',
+          example: 'secondary',
+          options: ['primary', 'secondary'],
+          differentFrom: { param: 'fallback', hint: 'No puede ser la misma imagen que la de reserva.' },
+        },
+        { id: 'fallback', label: 'Imagen de reserva', type: 'choice', example: 'primary', options: ['primary', 'secondary'] },
+      ],
+      preflight: [{ text: 'Mirá las imágenes.' }],
+      steps: [{ title: 'Descargar', commands: ['copy file {{target}}'], explanation: 'Descarga.' }],
+      verification: [{ command: 'show images', expect: 'Aparece la versión nueva.' }],
+      rollback: { summary: 'Volver.', steps: [{ commands: ['boot system {{fallback}}'], explanation: 'Reinicia.' }] },
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={images} />)
+
+    await user.selectOptions(screen.getByLabelText('Imagen de destino'), 'primary')
+    await user.selectOptions(screen.getByLabelText('Imagen de reserva'), 'primary')
+
+    expect(screen.getByText('No puede ser la misma imagen que la de reserva.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Copiar: Descargar' })).toBeDisabled()
+    expect(within(section('Paso a paso')).getByText('copy file <target>')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Imagen de reserva'), 'secondary')
+
+    expect(screen.getByRole('button', { name: 'Copiar: Descargar' })).toBeEnabled()
+    expect(within(section('Paso a paso')).getByText('copy file primary')).toBeInTheDocument()
+  })
+
   it('links to the official sources', () => {
     renderPage()
 

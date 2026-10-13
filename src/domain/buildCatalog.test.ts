@@ -109,6 +109,18 @@ describe('buildCatalog', () => {
     )
   })
 
+  it('rejects a param that must differ from a param the procedure does not declare', () => {
+    const broken = {
+      ...files(),
+      '/src/content/procedures/aruba-aoscx/vlan-create.yaml': procedure.replace(
+        "example: '20' }",
+        "example: '20', differentFrom: { param: other, hint: Tiene que ser distinto. } }",
+      ),
+    }
+
+    expect(() => buildCatalog(broken)).toThrow('param "vlanId" must differ from undeclared param "other"')
+  })
+
   it('rejects a platform or concept whose id does not match its file name', () => {
     const { '/src/content/concepts/vlan-create.yaml': moved, ...rest } = files()
 

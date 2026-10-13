@@ -26,10 +26,10 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
   const [searchOpen, setSearchOpen] = useState(false)
   const search = useMemo(() => buildSearchIndex(catalog), [catalog])
   const task = route.name === 'runbook' ? route.task : undefined
-  const location = route.name === 'runbook' ? `${route.platform}/${route.task}` : route.name
+  const pageKey = route.name === 'runbook' ? `${route.platform}/${route.task}` : route.name
 
   // On narrow screens the sidebar covers the page, so it closes once the user has picked something.
-  useEffect(() => setSidebarOpen(false), [location, activePlatform])
+  useEffect(() => setSidebarOpen(false), [pageKey, activePlatform])
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
