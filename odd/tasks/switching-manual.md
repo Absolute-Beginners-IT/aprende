@@ -24,8 +24,8 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - [x] T2 · S3 S6 · inline · Domain: content schema, command rendering, param validation · commit: e2be784
 - [x] T3 · S4 S5 S6 S7 · inline · Content loader, integrity test, first runbook (VLANs on Aruba 6100) · commit: b6f8009
 - [x] T4 · S2 S3 S4 S5 · inline · UI: catalog, runbook view, param form, copy, step progress · commit: 95db245
-- [ ] T5 · S4 S7 · inline · Platform sheets and config backup/restore on the 3 platforms · commit:
-- [ ] T6 · S8 · inline · VLANs and ports on the 3 platforms · commit:
+- [x] T5 · S4 S7 · inline · Platform sheets and config backup/restore on the 3 platforms · commit: 10b37b1
+- [ ] T6 · S8 · inline · VLANs and ports on the 3 platforms · partial: `vlan-create` done on the 3 platforms; pending access port, trunk port, LAG/LACP, PoE · commit:
 - [ ] T7 · S8 · inline · Initial setup and access · commit:
 - [ ] T8 · S8 · inline · Monitoring · commit:
 - [ ] T9 · S8 · inline · Security and resilience · commit:
@@ -42,3 +42,9 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - **L7** (2026-10-13) AOS-CX content checked against the 10.15 Layer-2 Bridging and Fundamentals guides. There is no `checkpoint create` command; checkpoints are created with `copy running-config checkpoint <name>`. `end` and the default VLAN name were not confirmed in the docs and are flagged in the runbook notes.
 - **L8** (2026-10-13) Native assess over 60ac252..95db245: risk medium (`.claude/launch.json` configuration change), `review_due` false, reason `under_budget`. `npm audit`: 3 high in `braces` (dev-only build tooling, not shipped).
 - **L9** (2026-10-13) Next: T5. Paused for the user to review the first runbook format before it is replicated across platforms.
+- **L10** (2026-10-13) User, verbatim: "sí, seguí con MikroTik y Cisco". Format accepted as is.
+- **L11** (2026-10-13) T5 done. Steps may now have no commands (manual actions such as pressing Ctrl+X or downloading a file); the UI renders them without a command block. Restore runbooks are rated high risk on every platform and a test pins that.
+- **L12** (2026-10-13) Vitest 5 `fsModuleCache` served a stale content glob after new YAML files were added, so the integrity test ran against the old catalog. Disabled it in `vite.config.ts`.
+- **L13** (2026-10-13) Sources: Cisco Catalyst 1300 CLI Guide (edition 2026-04-28, firmware version not stated); MikroTik help.mikrotik.com (frozen by the vendor in favor of a new manual; the CRS3xx page returned 404). On C1300, `copy <url> running-config` merges instead of replacing, so restore uses `boot config <url>` plus `reload`. MikroTik `vlan-create` is marked `unverified` because its rollback command (`remove [find ...]`) could not be confirmed in the docs.
+- **L14** (2026-10-13) Evidence: `npm test` 59 passed (7 files); `tsc --noEmit` clean; build emits a single `dist/index.html`; home lists 3 platforms and the Cisco restore runbook renders in the browser with no console errors.
+- **L15** (2026-10-13) Next: rest of T6 (access port, trunk port, LAG/LACP, PoE), then T7-T10.

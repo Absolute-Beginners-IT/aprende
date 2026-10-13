@@ -8,12 +8,6 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('includes the VLAN creation runbook for Aruba AOS-CX', () => {
-    const runbook = catalog.procedures.find((item) => item.platform === 'aruba-aoscx' && item.task === 'vlan-create')
-
-    expect(runbook).toBeDefined()
-  })
-
   it('covers the three platforms used at the company', () => {
     expect(catalog.platforms.map((item) => item.id)).toEqual(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])
   })
@@ -33,8 +27,8 @@ describe('content catalog', () => {
     expect(restores.map((item) => item.risk.level)).toEqual(restores.map(() => 'high'))
   })
 
-  it('includes the VLAN creation runbook for Cisco C1300', () => {
-    const runbook = catalog.procedures.find((item) => item.platform === 'cisco-c1300' && item.task === 'vlan-create')
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])('includes the VLAN creation runbook for %s', (platform) => {
+    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'vlan-create')
 
     expect(runbook).toBeDefined()
   })
