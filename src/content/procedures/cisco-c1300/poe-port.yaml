@@ -36,7 +36,9 @@ params:
 preflight:
   - text: >-
       Mirá el estado PoE del puerto: estado administrativo y operativo, potencia,
-      clase y prioridad. Anotá la prioridad actual.
+      clase y prioridad. Anotá la prioridad actual. Si el estado administrativo es
+      never, detenete: ese puerto tiene PoE desactivado a propósito y esta guía lo
+      dejaría entregando potencia.
     command: show power inline {{interfaceId}}
   - text: Comprobá la potencia asignada del switch; si queda poca, el equipo puede no volver a encender.
     command: show power inline

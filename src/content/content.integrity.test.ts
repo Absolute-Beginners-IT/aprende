@@ -56,6 +56,15 @@ describe('content catalog', () => {
     expect(new Set(platforms)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300']))
   })
 
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+    'has a management IP runbook for %s, rated high risk because it can cut the session in use',
+    (platform) => {
+      const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'mgmt-ip')
+
+      expect(runbook?.risk.level).toBe('high')
+    },
+  )
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

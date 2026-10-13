@@ -36,7 +36,9 @@ params:
 preflight:
   - text: >-
       Mirá el estado PoE del puerto: si entrega potencia, cuánta y con qué
-      prioridad. Anotá la prioridad actual.
+      prioridad. Anotá la prioridad actual. Si PoE aparece deshabilitado en el
+      puerto, detenete: está desactivado a propósito y esta guía lo dejaría
+      entregando potencia.
     command: show power-over-ethernet {{interfaceId}} brief
   - text: Comprobá la potencia disponible del switch; si queda poca, el equipo puede no volver a encender.
     command: show power-over-ethernet
