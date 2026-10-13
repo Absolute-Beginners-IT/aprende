@@ -512,6 +512,47 @@ button {
   color: var(--danger);
 }
 
+.alternatives {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.section-index {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  background: var(--bg);
+}
+
+.section-index button {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.section-index button:hover,
+.section-index button:focus-visible {
+  border-color: var(--accent);
+}
+
+/* Keeps a section's heading clear of the sticky header and index when scrolled to. */
+.section {
+  scroll-margin-top: calc(var(--header-height) + 3.5rem);
+}
+
 .manual-tag {
   display: inline-block;
   margin: 0.4rem 0 0;

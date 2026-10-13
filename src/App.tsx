@@ -4,7 +4,7 @@ import { HomePage } from './features/catalog/HomePage'
 import { PlatformPage } from './features/catalog/PlatformPage'
 import { AppShell } from './features/navigation/AppShell'
 import { RunbookPage } from './features/procedure/RunbookPage'
-import { type Route, useHashRoute } from './lib/useHashRoute'
+import { type Route, runbookHref, useHashRoute } from './lib/useHashRoute'
 import { useStoredState } from './lib/useStoredState'
 
 const findPlatform = (id: string | undefined) => catalog.platforms.find((item) => item.id === id)
@@ -30,9 +30,22 @@ function Page({ route }: { route: Route }) {
   const procedure = catalog.procedures.find((item) => item.platform === platform.id && item.task === route.task)
   if (!concept || !procedure) return <NotFound />
 
+  const alternatives = catalog.procedures
+    .filter((item) => item.task === concept.id && item.platform !== platform.id)
+    .flatMap((item) => {
+      const other = findPlatform(item.platform)
+      return other ? [{ name: other.name, href: runbookHref(other.id, concept.id) }] : []
+    })
+
   // The key resets per-runbook state when the user moves between runbooks.
   return (
-    <RunbookPage key={`${platform.id}/${concept.id}`} platform={platform} concept={concept} procedure={procedure} />
+    <RunbookPage
+      key={`${platform.id}/${concept.id}`}
+      platform={platform}
+      concept={concept}
+      procedure={procedure}
+      alternatives={alternatives}
+    />
   )
 }
 

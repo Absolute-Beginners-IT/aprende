@@ -186,6 +186,44 @@ describe('RunbookPage', () => {
     expect(within(section('Vuelta atrás')).queryByRole('button')).not.toBeInTheDocument()
   })
 
+  it('links to the same task on the other brands', () => {
+    const alternatives = [{ name: 'Cisco Catalyst 1300', href: '#/p/cisco-c1300/vlan-create' }]
+    render(<RunbookPage platform={platform} concept={concept} procedure={procedure} alternatives={alternatives} />)
+
+    const nav = screen.getByRole('navigation', { name: 'Misma tarea en otra marca' })
+
+    expect(within(nav).getByRole('link', { name: 'Cisco Catalyst 1300' })).toHaveAttribute(
+      'href',
+      '#/p/cisco-c1300/vlan-create',
+    )
+  })
+
+  it('does not offer other brands when none has the task', () => {
+    renderPage()
+
+    expect(screen.queryByRole('navigation', { name: 'Misma tarea en otra marca' })).not.toBeInTheDocument()
+  })
+
+  it('offers an index that scrolls to each working section', async () => {
+    const user = userEvent.setup()
+    const scrollIntoView = vi.fn()
+    Element.prototype.scrollIntoView = scrollIntoView
+    renderPage()
+    const index = screen.getByRole('navigation', { name: 'Secciones de la guía' })
+
+    expect(within(index).getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Tus datos',
+      'Antes de empezar',
+      'Paso a paso',
+      'Verificación',
+      'Vuelta atrás',
+    ])
+
+    await user.click(within(index).getByRole('button', { name: 'Vuelta atrás' }))
+
+    expect(scrollIntoView.mock.instances[0]).toBe(section('Vuelta atrás'))
+  })
+
   it('links to the official sources', () => {
     renderPage()
 

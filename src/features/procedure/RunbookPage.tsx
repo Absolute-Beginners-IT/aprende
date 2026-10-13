@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { extractParamIds, type ParamValues, renderCommand } from '../../domain/renderCommand'
 import type { Concept, Platform, Procedure, RiskLevel, StatusLevel } from '../../domain/schema'
 import { validateParam } from '../../domain/validateParam'
@@ -12,6 +13,8 @@ interface RunbookPageProps {
   platform: Platform
   concept: Concept
   procedure: Procedure
+  /** Runbooks for this same task on the other brands. */
+  alternatives?: { name: string; href: string }[]
 }
 
 const RISK_TONES: Record<RiskLevel, 'ok' | 'warn' | 'danger'> = { low: 'ok', medium: 'warn', high: 'danger' }
@@ -34,7 +37,18 @@ function StepCommands({ manual, lines, copyLabel, ready }: StepCommandsProps) {
   return <CommandBlock lines={lines} copyLabel={copyLabel} ready={ready} />
 }
 
-export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) {
+// Sections the user jumps between while working; "Fuentes" is reference material and stays out.
+const WORKING_SECTIONS = [
+  { key: 'data', title: 'Tus datos' },
+  { key: 'preflight', title: 'Antes de empezar' },
+  { key: 'steps', title: 'Paso a paso' },
+  { key: 'verification', title: 'Verificación' },
+  { key: 'rollback', title: 'Vuelta atrás' },
+] as const
+
+export function RunbookPage({ platform, concept, procedure, alternatives = [] }: RunbookPageProps) {
+  const baseId = useId()
+  const sectionId = (key: (typeof WORKING_SECTIONS)[number]['key']) => `${baseId}-${key}`
   const storageKey = `switching-manual:${procedure.platform}/${procedure.task}`
   const [values, setValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
@@ -76,6 +90,16 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
           </span>
         </div>
         {procedure.status.notes && <p className="muted">{procedure.status.notes}</p>}
+        {alternatives.length > 0 && (
+          <nav className="alternatives" aria-label="Misma tarea en otra marca">
+            <span>Misma tarea en:</span>
+            {alternatives.map((alternative) => (
+              <a key={alternative.href} href={alternative.href}>
+                {alternative.name}
+              </a>
+            ))}
+          </nav>
+        )}
       </header>
 
       <aside className={`risk risk--${procedure.risk.level}`}>
@@ -100,7 +124,21 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
         )}
       </details>
 
+      {/* Buttons instead of #anchors: the hash is the route, so an anchor would navigate away. */}
+      <nav className="section-index" aria-label="Secciones de la guía">
+        {WORKING_SECTIONS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            onClick={() => document.getElementById(sectionId(item.key))?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            {item.title}
+          </button>
+        ))}
+      </nav>
+
       <Section
+        id={sectionId('data')}
         title="Tus datos"
         actions={
           <button type="button" className="link-button" onClick={reset}>
@@ -148,7 +186,7 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
         </form>
       </Section>
 
-      <Section title="Antes de empezar">
+      <Section id={sectionId('preflight')} title="Antes de empezar">
         <ol className="checks">
           {procedure.preflight.map((check, index) => (
             <li key={index}>
@@ -166,6 +204,7 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
       </Section>
 
       <Section
+        id={sectionId('steps')}
         title="Paso a paso"
         actions={
           <CopyButton
@@ -214,7 +253,7 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
         </ol>
       </Section>
 
-      <Section title="Verificación">
+      <Section id={sectionId('verification')} title="Verificación">
         <ol className="checks">
           {procedure.verification.map((check, index) => (
             <li key={index}>
@@ -231,7 +270,7 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
         </ol>
       </Section>
 
-      <Section title="Vuelta atrás">
+      <Section id={sectionId('rollback')} title="Vuelta atrás">
         <p>{fill(procedure.rollback.summary)}</p>
         <ol className="steps">
           {procedure.rollback.steps.map((step, index) => {

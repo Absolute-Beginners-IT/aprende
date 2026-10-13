@@ -74,6 +74,15 @@ describe('App', () => {
     expect(within(tasks()).getByRole('link', { name: 'Ficha del equipo' })).toHaveAttribute('aria-current', 'page')
   })
 
+  it('offers, inside a runbook, only the other brands that have that task', () => {
+    openAt('#/p/aruba-aoscx/poe-port')
+
+    const nav = screen.getByRole('navigation', { name: 'Misma tarea en otra marca' })
+
+    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['Cisco Catalyst 1300'])
+    expect(within(nav).getByRole('link')).toHaveAttribute('href', '#/p/cisco-c1300/poe-port')
+  })
+
   it('remembers the last brand used when returning to the home page', async () => {
     const user = userEvent.setup()
     openAt('#/p/cisco-c1300')

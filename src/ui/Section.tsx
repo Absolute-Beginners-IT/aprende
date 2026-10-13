@@ -4,13 +4,15 @@ interface SectionProps {
   title: string
   children: ReactNode
   actions?: ReactNode
+  /** Set when something else on the page needs to scroll to this section. */
+  id?: string
 }
 
-export function Section({ title, children, actions }: SectionProps) {
+export function Section({ title, children, actions, id }: SectionProps) {
   const headingId = useId()
 
   return (
-    <section className="section" aria-labelledby={headingId}>
+    <section id={id} className="section" aria-labelledby={headingId}>
       <div className="section__header">
         <h2 id={headingId}>{title}</h2>
         {actions}
