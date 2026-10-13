@@ -35,6 +35,21 @@ describe('content catalog', () => {
     expect(runbook).toBeDefined()
   })
 
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+    'has access port and trunk port runbooks for %s',
+    (platform) => {
+      const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
+
+      expect(tasks).toEqual(expect.arrayContaining(['port-access', 'port-trunk']))
+    },
+  )
+
+  it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
+    const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
+
+    expect(trunks.filter((item) => item.risk.level === 'low')).toEqual([])
+  })
+
   it('never marks a runbook as lab-tested without a note saying where it was tested', () => {
     const untraceable = catalog.procedures.filter((item) => item.status.level === 'lab-tested' && !item.status.notes)
 
