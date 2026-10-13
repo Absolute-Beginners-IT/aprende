@@ -3,7 +3,7 @@ vendor: MikroTik
 name: MikroTik CRS317
 os: RouterOS
 models:
-  - CRS317-1G-16S+RM (apuntado al principio como CRS317-1G-17S+RM; confirmar en la etiqueta del equipo)
+  - CRS317-1G-16S+RM
 summary: >-
   Switch de 16 puertos SFP+ y un puerto de cobre con sistema operativo RouterOS. La
   consola no tiene modos como los de Cisco o Aruba: se organiza en menús (por
@@ -70,6 +70,9 @@ status:
   reviewed: '2026-10-13'
   firmware: RouterOS 7
   notes: >-
+    El modelo se apuntó al principio como CRS317-1G-17S+RM; la tabla oficial de
+    MikroTik lo lista como CRS317-1G-16S+RM, sin PoE de salida. Confirmalo en la
+    etiqueta del equipo.
     Contrastado con la documentación oficial de help.mikrotik.com, que MikroTik ha
     congelado en favor de un manual nuevo; conviene revisar la versión vigente. Que
     los cambios se guardan al instante es el comportamiento conocido de RouterOS,

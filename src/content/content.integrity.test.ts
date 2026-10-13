@@ -50,6 +50,12 @@ describe('content catalog', () => {
     expect(runbook?.risk.level).toBe('high')
   })
 
+  it('has a PoE runbook only for the platforms that supply PoE', () => {
+    const platforms = catalog.procedures.filter((item) => item.task === 'poe-port').map((item) => item.platform)
+
+    expect(new Set(platforms)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300']))
+  })
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

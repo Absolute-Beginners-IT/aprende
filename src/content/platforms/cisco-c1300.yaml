@@ -3,7 +3,7 @@ vendor: Cisco
 name: Cisco Catalyst 1300
 os: Firmware Catalyst 1300
 models:
-  - C1300-48 (variante exacta por confirmar)
+  - C1300-48 con PoE (variante exacta por confirmar en la etiqueta)
 summary: >-
   Switch gestionable de la línea Catalyst 1300. Su CLI se parece a la de Cisco IOS,
   pero no es IOS: varios comandos cambian, así que las guías de Catalyst con IOS o

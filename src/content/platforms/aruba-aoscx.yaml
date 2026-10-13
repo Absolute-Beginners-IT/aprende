@@ -3,7 +3,7 @@ vendor: HPE Aruba Networking
 name: Aruba CX 6100
 os: AOS-CX
 models:
-  - 6100 48G 4SFP+
+  - 6100 48G 4SFP+ con PoE (variante exacta por confirmar en la etiqueta)
 summary: >-
   Switch de acceso de capa 2 con sistema operativo AOS-CX. Los puertos se nombran
   con el formato miembro/slot/puerto, por ejemplo 1/1/5.
