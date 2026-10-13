@@ -59,6 +59,7 @@ steps:
       confirmación antes de cortar la sesión.
     warning: Al confirmar se corta el tráfico del switch hasta que termina de arrancar.
   - title: Esperar el reinicio y volver a entrar
+    manual: true
     explanation: >-
       Conectate de nuevo cuando el equipo termine de arrancar. La IP de gestión y
       los usuarios son ahora los del archivo restaurado.

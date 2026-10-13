@@ -40,6 +40,7 @@ steps:
       - token: tftp://{{serverIp}}/{{fileName}}
         meaning: Destino; servidor TFTP y nombre con el que queda el archivo.
   - title: Comprobar el archivo en el servidor
+    manual: true
     explanation: >-
       Abrí {{fileName}} en el servidor y confirmá que no está vacío y que contiene
       la configuración del switch. Después movelo al repositorio de copias de la
@@ -53,6 +54,7 @@ rollback:
   summary: No hay nada que deshacer en el switch; la copia vive en el servidor.
   steps:
     - title: Si la copia no hace falta
+      manual: true
       explanation: Borrá el archivo {{fileName}} en el servidor TFTP.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — File System Commands (copy)

@@ -21,6 +21,19 @@ const STATUS_TONES: Record<StatusLevel, 'ok' | 'warn' | 'danger'> = {
   'lab-tested': 'ok',
 }
 
+interface StepCommandsProps {
+  manual: boolean
+  lines: string[]
+  copyLabel: string
+  ready: boolean
+}
+
+/** A step either runs commands or is done by hand; this is the single place that tells them apart. */
+function StepCommands({ manual, lines, copyLabel, ready }: StepCommandsProps) {
+  if (manual) return <p className="manual-tag">Acción manual</p>
+  return <CommandBlock lines={lines} copyLabel={copyLabel} ready={ready} />
+}
+
 export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) {
   const storageKey = `switching-manual:${procedure.platform}/${procedure.task}`
   const [values, setValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
@@ -177,13 +190,12 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
                 <h3>{step.title}</h3>
               </div>
               {step.warning && <p className="warning">{fill(step.warning)}</p>}
-              {step.commands.length > 0 && (
-                <CommandBlock
-                  lines={step.commands.map(fill)}
-                  copyLabel={`Copiar: ${step.title}`}
-                  ready={isReady(step.commands)}
-                />
-              )}
+              <StepCommands
+                manual={step.manual}
+                lines={step.commands.map(fill)}
+                copyLabel={`Copiar: ${step.title}`}
+                ready={isReady(step.commands)}
+              />
               <p>{fill(step.explanation)}</p>
               {step.breakdown && (
                 <dl className="breakdown">
@@ -228,13 +240,12 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
               <li key={index} className="step">
                 <h3>{title}</h3>
                 {step.warning && <p className="warning">{fill(step.warning)}</p>}
-                {step.commands.length > 0 && (
-                  <CommandBlock
-                    lines={step.commands.map(fill)}
-                    copyLabel={`Copiar vuelta atrás: ${title}`}
-                    ready={isReady(step.commands)}
-                  />
-                )}
+                <StepCommands
+                  manual={step.manual}
+                  lines={step.commands.map(fill)}
+                  copyLabel={`Copiar vuelta atrás: ${title}`}
+                  ready={isReady(step.commands)}
+                />
                 <p>{fill(step.explanation)}</p>
               </li>
             )

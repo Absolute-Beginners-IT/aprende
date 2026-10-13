@@ -9,7 +9,9 @@ describe('content catalog', () => {
   })
 
   it('covers the three platforms used at the company', () => {
-    expect(catalog.platforms.map((item) => item.id)).toEqual(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])
+    const ids = catalog.platforms.map((item) => item.id)
+
+    expect(new Set(ids)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros']))
   })
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(

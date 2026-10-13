@@ -55,6 +55,7 @@ steps:
       - token: file={{backupName}}
         meaning: Escribe el resultado en un archivo en vez de mostrarlo en pantalla.
   - title: Sacar los archivos del switch
+    manual: true
     explanation: >-
       Descargá {{backupName}}.backup y {{backupName}}.rsc con WinBox (menú Files) o
       por SFTP y guardalos en el repositorio de copias de la empresa. Una copia que

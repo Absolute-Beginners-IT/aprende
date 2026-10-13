@@ -53,6 +53,7 @@ steps:
       - token: name={{backupName}}
         meaning: Archivo .backup de origen, tal como aparece en /file print.
   - title: Esperar el reinicio y volver a entrar
+    manual: true
     explanation: >-
       Conectate de nuevo cuando el equipo termine de arrancar. Tené en cuenta que la
       IP de gestión y los usuarios son ahora los de la copia.

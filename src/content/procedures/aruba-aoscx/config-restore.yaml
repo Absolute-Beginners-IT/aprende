@@ -64,6 +64,7 @@ steps:
       - token: '{{checkpointName}}'
         meaning: Checkpoint de origen. También admite startup-config para volver a la configuración de arranque.
   - title: Comprobar que todo funciona
+    manual: true
     explanation: >-
       Antes de confirmar, verificá que seguís teniendo acceso de gestión y que la
       red responde como esperabas (sección Verificación). Hacelo dentro de la
@@ -90,6 +91,7 @@ rollback:
     confirmaste, volvé al checkpoint que guardaste antes de empezar.
   steps:
     - title: Si todavía no confirmaste
+      manual: true
       explanation: >-
         No ejecutes checkpoint auto confirm. Cuando venza la ventana, el switch
         restaura solo la configuración que tenía antes de la restauración.

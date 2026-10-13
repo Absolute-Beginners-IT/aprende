@@ -61,6 +61,7 @@ preflight:
     command: /system backup save name={{backupName}}
 steps:
   - title: Activar Safe Mode
+    manual: true
     explanation: >-
       Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Mientras esté activo, si
       tu sesión se corta, los cambios se deshacen solos al vencer el tiempo de
@@ -87,10 +88,12 @@ steps:
       - token: comment={{vlanName}}
         meaning: Texto libre para reconocer la entrada; no tiene efecto en el tráfico.
   - title: Verificar antes de salir de Safe Mode
+    manual: true
     explanation: >-
       Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
       confirmá que seguís teniendo acceso de gestión.
   - title: Salir de Safe Mode conservando el cambio
+    manual: true
     explanation: >-
       Pulsá Ctrl+X de nuevo. El cambio queda guardado; en RouterOS no hay un comando
       equivalente a write memory. Si algo no está bien, pulsá Ctrl+D en su lugar
@@ -109,6 +112,7 @@ rollback:
     entrada creada.
   steps:
     - title: Si seguís en Safe Mode
+      manual: true
       explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:

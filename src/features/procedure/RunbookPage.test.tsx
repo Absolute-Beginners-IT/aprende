@@ -160,13 +160,29 @@ describe('RunbookPage', () => {
   it('shows a manual step without a command block or copy button', () => {
     const manual = ProcedureSchema.parse({
       ...procedure,
-      steps: [{ title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
+      steps: [{ title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.', manual: true }],
     })
     render(<RunbookPage platform={platform} concept={concept} procedure={manual} />)
 
     expect(within(section('Paso a paso')).getByText('Copialo a tu equipo.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copiar: Descargar el archivo' })).not.toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Hecho: Descargar el archivo' })).toBeInTheDocument()
+    expect(within(section('Paso a paso')).getByText('Acción manual')).toBeInTheDocument()
+  })
+
+  it('shows a manual rollback step without a command block or copy button', () => {
+    const manual = ProcedureSchema.parse({
+      ...procedure,
+      rollback: {
+        summary: 'No confirmes el cambio.',
+        steps: [{ title: 'Dejar vencer el temporizador', explanation: 'El switch vuelve solo.', manual: true }],
+      },
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={manual} />)
+
+    expect(within(section('Vuelta atrás')).getByText('El switch vuelve solo.')).toBeInTheDocument()
+    expect(within(section('Vuelta atrás')).getByText('Acción manual')).toBeInTheDocument()
+    expect(within(section('Vuelta atrás')).queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('links to the official sources', () => {

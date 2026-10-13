@@ -35,14 +35,23 @@ export const ParamSchema = z
     message: 'A choice param needs options',
   })
 
-const CommandStepSchema = z.object({
+const stepFields = {
   title: text.optional(),
-  // Empty for manual actions, such as downloading a file or checking a console cable.
   commands: z.array(text).default([]),
+  // Marks an action done by hand, such as pressing a key or downloading a file. Declaring it
+  // explicitly keeps a step that merely forgot its commands from passing as valid.
+  manual: z.boolean().default(false),
   explanation: text,
   breakdown: z.array(z.object({ token: text, meaning: text })).optional(),
   warning: text.optional(),
-})
+}
+
+const hasCommandsUnlessManual = (step: { manual: boolean; commands: string[] }) =>
+  step.manual ? step.commands.length === 0 : step.commands.length > 0
+const manualRule = { message: 'A step needs commands, or manual: true and no commands' }
+
+const RollbackStepSchema = z.object(stepFields).refine(hasCommandsUnlessManual, manualRule)
+const StepSchema = z.object({ ...stepFields, title: text }).refine(hasCommandsUnlessManual, manualRule)
 
 export const ProcedureSchema = z.object({
   platform: id,
@@ -51,11 +60,11 @@ export const ProcedureSchema = z.object({
   risk: z.object({ level: z.enum(RISK_LEVELS), reason: text }),
   params: z.array(ParamSchema).default([]),
   preflight: z.array(z.object({ text, command: text.optional() })).min(1),
-  steps: z.array(CommandStepSchema.extend({ title: text })).min(1),
+  steps: z.array(StepSchema).min(1),
   verification: z.array(z.object({ command: text, expect: text })).min(1),
   rollback: z.object({
     summary: text,
-    steps: z.array(CommandStepSchema).min(1),
+    steps: z.array(RollbackStepSchema).min(1),
     lockoutRecovery: text.optional(),
   }),
   sources: z.array(SourceSchema).min(1),

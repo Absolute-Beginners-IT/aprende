@@ -45,14 +45,30 @@ describe('ProcedureSchema', () => {
     ).toBe(false)
   })
 
-  it('accepts a manual step that has no commands', () => {
+  it('accepts a step without commands only when it is declared manual', () => {
     const base = validProcedure()
-    const procedure = ProcedureSchema.parse({
-      ...base,
-      steps: [...base.steps, { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
-    })
+    const manualStep = { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }
+    const withSteps = (steps: unknown[]) => ProcedureSchema.safeParse({ ...base, steps })
 
-    expect(procedure.steps[1]?.commands).toEqual([])
+    expect(withSteps([{ ...manualStep, manual: true }]).success).toBe(true)
+    expect(withSteps([manualStep]).success).toBe(false)
+    expect(withSteps([{ ...manualStep, commands: [] }]).success).toBe(false)
+  })
+
+  it('rejects a manual step that also carries commands', () => {
+    const base = validProcedure()
+    const step = { title: 'Crear', commands: ['vlan {{vlanId}}'], explanation: 'x', manual: true }
+
+    expect(ProcedureSchema.safeParse({ ...base, steps: [step] }).success).toBe(false)
+  })
+
+  it('applies the same manual rule to rollback steps', () => {
+    const base = validProcedure()
+    const withRollback = (step: unknown) =>
+      ProcedureSchema.safeParse({ ...base, rollback: { summary: 'x', steps: [step] } })
+
+    expect(withRollback({ explanation: 'Esperá a que venza el temporizador.', manual: true }).success).toBe(true)
+    expect(withRollback({ explanation: 'Esperá a que venza el temporizador.' }).success).toBe(false)
   })
 
   it('rejects an unknown verification status', () => {
