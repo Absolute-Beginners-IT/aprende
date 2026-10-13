@@ -20,10 +20,10 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 
 ## Tasks
 
-- [ ] T1 · S1 · inline · Project scaffold: Vite + React + TS, Vitest, single-file build · commit:
-- [ ] T2 · S3 S6 · inline · Domain: content schema, command rendering, param validation · commit:
-- [ ] T3 · S4 S5 S6 S7 · inline · Content loader, integrity test, first runbook (VLANs on Aruba 6100) · commit:
-- [ ] T4 · S2 S3 S4 S5 · inline · UI: catalog, runbook view, param form, copy, step progress · commit:
+- [x] T1 · S1 · inline · Project scaffold: Vite + React + TS, Vitest, single-file build · commit: c4468a1
+- [x] T2 · S3 S6 · inline · Domain: content schema, command rendering, param validation · commit: e2be784
+- [x] T3 · S4 S5 S6 S7 · inline · Content loader, integrity test, first runbook (VLANs on Aruba 6100) · commit: b6f8009
+- [x] T4 · S2 S3 S4 S5 · inline · UI: catalog, runbook view, param form, copy, step progress · commit: 95db245
 - [ ] T5 · S4 S7 · inline · Platform sheets and config backup/restore on the 3 platforms · commit:
 - [ ] T6 · S8 · inline · VLANs and ports on the 3 platforms · commit:
 - [ ] T7 · S8 · inline · Initial setup and access · commit:
@@ -38,3 +38,7 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - **L3** (2026-10-13) Route: all tasks inline; no Writer trigger reason (units are sequential and share the schema).
 - **L4** (2026-10-13) Git had no identity configured; set repo-local `user.name`/`user.email`. Baseline commit `60ac252`.
 - **L5** (2026-10-13) Assumption: "VPN" in the VLAN example of L1 is read as "VLAN".
+- **L6** (2026-10-13) T1-T4 done. Evidence: `npm test` 50 passed (7 files); `tsc --noEmit` clean; `npm run build` emits a single `dist/index.html` with no external script or stylesheet references; runbook exercised in the browser through `vite preview` (invalid value flagged, commands filled, copy disabled while values are missing, no console errors). Opening from disk was only checked as a static snapshot in the preview pane; a double-click test on `file://` by the user is pending.
+- **L7** (2026-10-13) AOS-CX content checked against the 10.15 Layer-2 Bridging and Fundamentals guides. There is no `checkpoint create` command; checkpoints are created with `copy running-config checkpoint <name>`. `end` and the default VLAN name were not confirmed in the docs and are flagged in the runbook notes.
+- **L8** (2026-10-13) Native assess over 60ac252..95db245: risk medium (`.claude/launch.json` configuration change), `review_due` false, reason `under_budget`. `npm audit`: 3 high in `braces` (dev-only build tooling, not shipped).
+- **L9** (2026-10-13) Next: T5. Paused for the user to review the first runbook format before it is replicated across platforms.
