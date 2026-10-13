@@ -45,6 +45,16 @@ describe('ProcedureSchema', () => {
     ).toBe(false)
   })
 
+  it('accepts a manual step that has no commands', () => {
+    const base = validProcedure()
+    const procedure = ProcedureSchema.parse({
+      ...base,
+      steps: [...base.steps, { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
+    })
+
+    expect(procedure.steps[1]?.commands).toEqual([])
+  })
+
   it('rejects an unknown verification status', () => {
     const procedure = { ...validProcedure(), status: { level: 'trusted', reviewed: '2026-10-13', firmware: '10.13' } }
 

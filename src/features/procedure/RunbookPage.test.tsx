@@ -157,6 +157,18 @@ describe('RunbookPage', () => {
     expect(screen.getByText('Reiniciá el switch para volver a la configuración de arranque.')).toBeInTheDocument()
   })
 
+  it('shows a manual step without a command block or copy button', () => {
+    const manual = ProcedureSchema.parse({
+      ...procedure,
+      steps: [{ title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={manual} />)
+
+    expect(within(section('Paso a paso')).getByText('Copialo a tu equipo.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copiar: Descargar el archivo' })).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: 'Hecho: Descargar el archivo' })).toBeInTheDocument()
+  })
+
   it('links to the official sources', () => {
     renderPage()
 

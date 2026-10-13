@@ -37,7 +37,8 @@ export const ParamSchema = z
 
 const CommandStepSchema = z.object({
   title: text.optional(),
-  commands: z.array(text).min(1),
+  // Empty for manual actions, such as downloading a file or checking a console cable.
+  commands: z.array(text).default([]),
   explanation: text,
   breakdown: z.array(z.object({ token: text, meaning: text })).optional(),
   warning: text.optional(),

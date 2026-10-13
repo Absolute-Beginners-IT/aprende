@@ -10,5 +10,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // The on-disk module cache does not notice YAML files added to the content glob,
+    // which would let the integrity test pass against a stale catalog.
+    fsModuleCache: false,
   },
 })

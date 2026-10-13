@@ -177,11 +177,13 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
                 <h3>{step.title}</h3>
               </div>
               {step.warning && <p className="warning">{fill(step.warning)}</p>}
-              <CommandBlock
-                lines={step.commands.map(fill)}
-                copyLabel={`Copiar: ${step.title}`}
-                ready={isReady(step.commands)}
-              />
+              {step.commands.length > 0 && (
+                <CommandBlock
+                  lines={step.commands.map(fill)}
+                  copyLabel={`Copiar: ${step.title}`}
+                  ready={isReady(step.commands)}
+                />
+              )}
               <p>{fill(step.explanation)}</p>
               {step.breakdown && (
                 <dl className="breakdown">
@@ -226,11 +228,13 @@ export function RunbookPage({ platform, concept, procedure }: RunbookPageProps) 
               <li key={index} className="step">
                 <h3>{title}</h3>
                 {step.warning && <p className="warning">{fill(step.warning)}</p>}
-                <CommandBlock
-                  lines={step.commands.map(fill)}
-                  copyLabel={`Copiar vuelta atrás: ${title}`}
-                  ready={isReady(step.commands)}
-                />
+                {step.commands.length > 0 && (
+                  <CommandBlock
+                    lines={step.commands.map(fill)}
+                    copyLabel={`Copiar vuelta atrás: ${title}`}
+                    ready={isReady(step.commands)}
+                  />
+                )}
                 <p>{fill(step.explanation)}</p>
               </li>
             )
