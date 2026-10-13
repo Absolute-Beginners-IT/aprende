@@ -44,6 +44,12 @@ describe('content catalog', () => {
     },
   )
 
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])('has a link aggregation runbook for %s', (platform) => {
+    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'lag-create')
+
+    expect(runbook?.risk.level).toBe('high')
+  })
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

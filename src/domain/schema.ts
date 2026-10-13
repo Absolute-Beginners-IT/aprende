@@ -48,7 +48,7 @@ const stepFields = {
 
 const hasCommandsUnlessManual = (step: { manual: boolean; commands: string[] }) =>
   step.manual ? step.commands.length === 0 : step.commands.length > 0
-const manualRule = { message: 'A step needs commands, or manual: true and no commands' }
+const manualRule = { message: 'A step needs commands, or manual: true and no commands', path: ['commands'] }
 
 const RollbackStepSchema = z.object(stepFields).refine(hasCommandsUnlessManual, manualRule)
 const StepSchema = z.object({ ...stepFields, title: text }).refine(hasCommandsUnlessManual, manualRule)

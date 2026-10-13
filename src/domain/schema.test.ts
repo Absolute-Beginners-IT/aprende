@@ -62,6 +62,16 @@ describe('ProcedureSchema', () => {
     expect(ProcedureSchema.safeParse({ ...base, steps: [step] }).success).toBe(false)
   })
 
+  it('points at the offending step and field when the manual rule is broken', () => {
+    const base = validProcedure()
+    const result = ProcedureSchema.safeParse({
+      ...base,
+      steps: [...base.steps, { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
+    })
+
+    expect(result.error?.issues.map((issue) => issue.path.join('.'))).toEqual(['steps.1.commands'])
+  })
+
   it('applies the same manual rule to rollback steps', () => {
     const base = validProcedure()
     const withRollback = (step: unknown) =>

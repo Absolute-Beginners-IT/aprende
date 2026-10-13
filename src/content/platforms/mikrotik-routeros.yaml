@@ -3,7 +3,7 @@ vendor: MikroTik
 name: MikroTik CRS317
 os: RouterOS
 models:
-  - CRS317-1G-17S+RM
+  - CRS317-1G-16S+RM (apuntado al principio como CRS317-1G-17S+RM; confirmar en la etiqueta del equipo)
 summary: >-
   Switch de 16 puertos SFP+ y un puerto de cobre con sistema operativo RouterOS. La
   consola no tiene modos como los de Cisco o Aruba: se organiza en menús (por
