@@ -1,0 +1,40 @@
+# switching-manual
+
+Objective: offline interactive switching runbooks, selected by platform and task.
+Branch: `feat/switching-manual` · Delivery strategy: `ask-on-risk` · Test runner: `npm test` (Vitest).
+Test-first policy: RED before implementation for domain and UI behavior; content is checked by the integrity test.
+
+## Specs
+
+- **S1** Static web app built to a single `index.html` that opens from disk with no server and no internet ("En mi portátil, sin depender de internet").
+- **S2** The user selects a platform, then a task, and gets a step-by-step runbook: "seleccionar la marca seleccionar creacion y gestion de VPN y que paso a paso me ponga los comandos, cuales usar que hacen en terminos generales y especificamente los parametros".
+- **S3** Commands are generated from the user's own values (VLAN ID, name, port, IP) and can be copied per step and as a whole block.
+- **S4** Every runbook explains risk and recovery: "que me explique los riesgos de lo que estoy haciendo, si algo falla como poder volver atrás". Fixed sections: before you start, step by step, verification, rollback.
+- **S5** Each runbook shows its risk level and its verification status (`unverified` | `docs-checked` | `lab-tested`), with the official source and firmware version it was written against.
+- **S6** Content lives in YAML, separate from code. An automated test fails when a runbook lacks rollback, sources or risk, or uses an undeclared `{{param}}`.
+- **S7** Platforms: "Mikrotik Route OS, CRS317-1G-17S+RM, Cisco C1300-48, 6100 48G 4SFP+ Swch,Aruba AOS-CX".
+- **S8** Task groups: "Puesta en marcha y acceso,VLANs y puertos,Monitorización,Seguridad y resiliencia".
+- **S9** Fundamentals section: "que son para que sirven que potencial tienen y las diferentes marcas que hay".
+- **S10** Content and UI in Spanish (neutral); code, file names and identifiers in English. Assumption stated in the approved plan.
+- **S11** Global search across runbooks.
+
+## Tasks
+
+- [ ] T1 · S1 · inline · Project scaffold: Vite + React + TS, Vitest, single-file build · commit:
+- [ ] T2 · S3 S6 · inline · Domain: content schema, command rendering, param validation · commit:
+- [ ] T3 · S4 S5 S6 S7 · inline · Content loader, integrity test, first runbook (VLANs on Aruba 6100) · commit:
+- [ ] T4 · S2 S3 S4 S5 · inline · UI: catalog, runbook view, param form, copy, step progress · commit:
+- [ ] T5 · S4 S7 · inline · Platform sheets and config backup/restore on the 3 platforms · commit:
+- [ ] T6 · S8 · inline · VLANs and ports on the 3 platforms · commit:
+- [ ] T7 · S8 · inline · Initial setup and access · commit:
+- [ ] T8 · S8 · inline · Monitoring · commit:
+- [ ] T9 · S8 · inline · Security and resilience · commit:
+- [ ] T10 · S9 S11 · inline · Fundamentals and search · commit:
+
+## Log
+
+- **L1** (2026-10-13) Original request, verbatim: "El proyecto trata de unos manuales interactivos de Switching. Estoy aprendiendo en gestionar switches de forma profesional, que son para que sirven que potencial tienen y las diferentes marcas que hay, etc. Pero sobre todo quiero guías practicas. Ejemplo: Hay que crear VLANs en switch aruba 6100, pues seleccionar la marca seleccionar creacion y gestion de VPN y que paso a paso me ponga los comandos, cuales usar que hacen en terminos generales y especificamente los parametros, etc Comoactivar SNMP? pues lo mismos seleccionar SNMP y que muestre los comandos de creacion, si hay que habilitar, crear ACL, etc. Quiero que la guia sea interactiva para cuando haya que hacer algo en la empresa pueda acudir a un manual de forma agil y ponerme a trabajar de una forma segura con confianza. Tambien quiero que me explique los riesgos de lo que estoy haciendo, si algo falla como poder volver atrás etc."
+- **L2** (2026-10-13) Plan approved. Stack: Vite, React, TypeScript, Zod, Vitest, vite-plugin-singlefile, hash routing, MiniSearch.
+- **L3** (2026-10-13) Route: all tasks inline; no Writer trigger reason (units are sequential and share the schema).
+- **L4** (2026-10-13) Git had no identity configured; set repo-local `user.name`/`user.email`. Baseline commit `60ac252`.
+- **L5** (2026-10-13) Assumption: "VPN" in the VLAN example of L1 is read as "VLAN".
