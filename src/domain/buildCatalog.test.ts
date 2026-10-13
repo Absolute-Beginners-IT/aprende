@@ -1,0 +1,104 @@
+import { buildCatalog } from './buildCatalog'
+
+const platform = `
+id: aruba-aoscx
+vendor: HPE Aruba Networking
+name: Aruba 6100
+os: AOS-CX
+models: [6100 48G 4SFP+]
+summary: Switch de acceso de capa 2.
+cliModes:
+  - { name: Manager, prompt: 'switch#', enter: Al iniciar sesión, description: Comandos de consulta. }
+configPersistence: La configuración en ejecución se guarda con write memory.
+safetyNets:
+  - { name: Checkpoints, description: Copias con nombre de la configuración. }
+sources:
+  - { title: Guía, url: 'https://example.com/guide' }
+status: { level: docs-checked, reviewed: '2026-10-13', firmware: '10.15' }
+`
+
+const concept = `
+id: vlan-create
+title: Crear una VLAN
+group: vlans-ports
+summary: Crea una VLAN.
+explanation: Una VLAN separa el tráfico.
+risks: [Usar un ID ya existente.]
+`
+
+const procedure = `
+platform: aruba-aoscx
+task: vlan-create
+summary: Crea una VLAN.
+risk: { level: low, reason: No afecta al tráfico existente. }
+params:
+  - { id: vlanId, label: ID de VLAN, type: vlan-id, example: '20' }
+preflight:
+  - { text: Revisá las VLAN existentes., command: show vlan }
+steps:
+  - { title: Crear, commands: ['vlan {{vlanId}}'], explanation: Crea la VLAN. }
+verification:
+  - { command: 'show vlan {{vlanId}}', expect: Aparece la VLAN. }
+rollback:
+  summary: Borrá la VLAN.
+  steps:
+    - { commands: ['no vlan {{vlanId}}'], explanation: Elimina la VLAN. }
+sources:
+  - { title: Guía, url: 'https://example.com/guide' }
+status: { level: docs-checked, reviewed: '2026-10-13', firmware: '10.15' }
+`
+
+const files = () => ({
+  '/src/content/platforms/aruba-aoscx.yaml': platform,
+  '/src/content/concepts/vlan-create.yaml': concept,
+  '/src/content/procedures/aruba-aoscx/vlan-create.yaml': procedure,
+})
+
+describe('buildCatalog', () => {
+  it('parses platforms, concepts and procedures', () => {
+    const catalog = buildCatalog(files())
+
+    expect(catalog.platforms.map((item) => item.id)).toEqual(['aruba-aoscx'])
+    expect(catalog.concepts.map((item) => item.id)).toEqual(['vlan-create'])
+    expect(catalog.procedures[0]?.steps[0]?.commands).toEqual(['vlan {{vlanId}}'])
+  })
+
+  it('names the file when its content does not match the schema', () => {
+    const broken = { ...files(), '/src/content/concepts/vlan-create.yaml': concept.replace('group: vlans-ports', '') }
+
+    expect(() => buildCatalog(broken)).toThrow('/src/content/concepts/vlan-create.yaml')
+  })
+
+  it('rejects a procedure whose platform or task does not exist', () => {
+    const { '/src/content/platforms/aruba-aoscx.yaml': _platform, ...withoutPlatform } = files()
+    const { '/src/content/concepts/vlan-create.yaml': _concept, ...withoutConcept } = files()
+
+    expect(() => buildCatalog(withoutPlatform)).toThrow('unknown platform "aruba-aoscx"')
+    expect(() => buildCatalog(withoutConcept)).toThrow('unknown task "vlan-create"')
+  })
+
+  it('rejects a procedure stored under a path that does not match its platform and task', () => {
+    const { '/src/content/procedures/aruba-aoscx/vlan-create.yaml': moved, ...rest } = files()
+
+    expect(() => buildCatalog({ ...rest, '/src/content/procedures/aruba-aoscx/vlans.yaml': moved })).toThrow(
+      'expected path procedures/aruba-aoscx/vlan-create.yaml',
+    )
+  })
+
+  it('rejects a procedure that uses an undeclared param', () => {
+    const broken = {
+      ...files(),
+      '/src/content/procedures/aruba-aoscx/vlan-create.yaml': procedure.replace('no vlan {{vlanId}}', 'no vlan {{id}}'),
+    }
+
+    expect(() => buildCatalog(broken)).toThrow('undeclared params: id')
+  })
+
+  it('rejects a platform or concept whose id does not match its file name', () => {
+    const { '/src/content/concepts/vlan-create.yaml': moved, ...rest } = files()
+
+    expect(() => buildCatalog({ ...rest, '/src/content/concepts/vlans.yaml': moved })).toThrow(
+      'id "vlan-create" does not match the file name',
+    )
+  })
+})
