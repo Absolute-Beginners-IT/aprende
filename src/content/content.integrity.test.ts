@@ -65,6 +65,32 @@ describe('content catalog', () => {
     },
   )
 
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+    'has admin user, SSH access and firmware upgrade runbooks for %s',
+    (platform) => {
+      const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
+
+      expect(tasks).toEqual(expect.arrayContaining(['user-admin', 'ssh-access', 'firmware-upgrade']))
+    },
+  )
+
+  it('rates every firmware upgrade as high risk, since it reboots the switch', () => {
+    const upgrades = catalog.procedures.filter((item) => item.task === 'firmware-upgrade')
+
+    expect(upgrades.map((item) => item.risk.level)).toEqual(upgrades.map(() => 'high'))
+  })
+
+  it('never asks for a password as a runbook value, because values are stored in the browser', () => {
+    const secretLike = /pass|contrase|secret|clave/i
+    const offenders = catalog.procedures.flatMap((item) =>
+      item.params
+        .filter((param) => secretLike.test(param.id) || secretLike.test(param.label))
+        .map((param) => `${item.platform}/${item.task}: ${param.id}`),
+    )
+
+    expect(offenders).toEqual([])
+  })
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

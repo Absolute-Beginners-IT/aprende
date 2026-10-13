@@ -146,6 +146,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
           </button>
         }
       >
+        {procedure.params.length === 0 && <p className="muted">Esta guía no necesita datos tuyos.</p>}
         <form className="params" onSubmit={(event) => event.preventDefault()}>
           {procedure.params.map((param) => {
             const value = values[param.id] ?? ''

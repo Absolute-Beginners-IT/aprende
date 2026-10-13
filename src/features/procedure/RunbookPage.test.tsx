@@ -224,6 +224,21 @@ describe('RunbookPage', () => {
     expect(scrollIntoView.mock.instances[0]).toBe(section('Vuelta atrás'))
   })
 
+  it('says so when a runbook needs no values from the user', () => {
+    const fixed = ProcedureSchema.parse({
+      ...procedure,
+      params: [],
+      preflight: [{ text: 'Revisá las VLAN.', command: 'show vlan' }],
+      steps: [{ title: 'Entrar en configuración', commands: ['config'], explanation: 'Cambia de modo.' }],
+      verification: [{ command: 'show vlan', expect: 'Aparecen las VLAN.' }],
+      rollback: { summary: 'Nada que deshacer.', steps: [{ commands: ['end'], explanation: 'Sale.' }] },
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={fixed} />)
+
+    expect(within(section('Tus datos')).getByText('Esta guía no necesita datos tuyos.')).toBeInTheDocument()
+    expect(within(section('Paso a paso')).getByRole('button', { name: 'Copiar todos los pasos' })).toBeEnabled()
+  })
+
   it('links to the official sources', () => {
     renderPage()
 
