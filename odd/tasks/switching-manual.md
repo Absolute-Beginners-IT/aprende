@@ -17,6 +17,7 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - **S9** Fundamentals section: "que son para que sirven que potencial tienen y las diferentes marcas que hay".
 - **S10** Content and UI in Spanish (neutral); code, file names and identifiers in English. Assumption stated in the approved plan.
 - **S11** Global search across runbooks.
+- **S12** Fast navigation, as decided with the user ("Marcas arriba, tareas al lado"): the 3 brands as a selector in the header; a sidebar listing every task of the selected brand, grouped and in working order; the runbook in the main area. Switching brand keeps the open task when the other brand has it, otherwise opens that brand's sheet. Inside a runbook: links to the same task on the other brands and an index of its sections. Quick search opens with Ctrl+K or `/`, ignores accents, and lists recent runbooks when empty. Routes stay `#/`, `#/p/<platform>`, `#/p/<platform>/<task>`.
 
 ## Tasks
 
@@ -29,7 +30,8 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - [ ] T7 · S8 · inline · Initial setup and access · partial: `mgmt-ip` done on the 3 platforms; pending local users, SSH access, firmware upgrade · commit:
 - [ ] T8 · S8 · inline · Monitoring · commit:
 - [ ] T9 · S8 · inline · Security and resilience · commit:
-- [ ] T10 · S9 S11 · inline · Fundamentals and search · commit:
+- [ ] T10 · S9 · inline · Fundamentals (search moved to T11) · commit:
+- [ ] T11 · S11 S12 · inline · Navigation shell: task order, brand tabs, task sidebar, cross-brand links, section index, quick search, recents · commit:
 
 ## Log
 
@@ -65,4 +67,7 @@ Test-first policy: RED before implementation for domain and UI behavior; content
 - **L31** (2026-10-13) User, verbatim: "sí, seguí con puesta en marcha y acceso".
 - **L32** (2026-10-13) `mgmt-ip` added for the 3 platforms, all high risk (test-pinned). Aruba: `interface vlan`, `no ip dhcp`, `ip address`, `ip route 0.0.0.0/0`, under `checkpoint auto`. Cisco: `ip address <ip> <mask>` on `interface vlan` (stops the DHCP client and drops its address), `ip default-gateway`, under `reload in`. MikroTik: `/ip address add` and `/ip route add gateway=` add alongside the existing address, so the session survives; marked `unverified` because the rollback `remove [find ...]` forms are not in the docs read. Passwords are never runbook params: user runbooks will use the vendors' interactive prompts.
 - **L33** (2026-10-13) Evidence: `npm test` 74 passed (7 files); `tsc --noEmit` clean.
-- **L15** (2026-10-13) Next: rest of T7 (local users, SSH access, firmware upgrade), then T8-T10.
+- **L34** (2026-10-13) Native review of c8dfd53..3ed0f31 (8 files, 491 lines): consent granted, `approved` with no correction, acknowledged, authority burned (lineage `review-83cd73c47bbb7df5`). Reviewed boundary is now 3ed0f31. Advisory findings left as later work: the mgmt-ip test only pins the risk level; PoE and mgmt-ip safety guidance is prose a test cannot enforce; the Cisco mask param reuses the `ipv4` type; MikroTik mgmt-ip rollback is unverified (already flagged in its status).
+- **L35** (2026-10-13) User, verbatim: "Antes de seguir con usuarios, SSH y firmware, el estílo de la web me gusta pero me parece un poco tedioso la forma de navegación que tiene. Habia pensaso com un menu lateral con por ejemplo las marcas, y unas tipos pestañas con las diferentes configuraciones de Vlan, puesta en marcha etc.. Que te parece? que interfaces actuales pueden servir para agilizar el acceso a la informacion?" Offered two layouts; the user chose "Marcas arriba, tareas al lado (Recomendado)" and approved the navigation plan. Added S12 and T11; T7 is paused until T11 is done.
+- **L36** (2026-10-13) T11 units 1 and 2 done: concepts carry a required `order` (unique per group, catalog sorted by group then order); `AppShell` with `PlatformTabs` and `TaskNav`; brand sheet no longer lists tasks; breadcrumb removed. Section index uses buttons and `scrollIntoView` because the hash is the route. Evidence: `npm test` 81 passed (7 files); `tsc --noEmit` clean; build OK; checked in the browser at 1280 px and 800 px (sidebar collapses behind a "Tareas" button), no console errors.
+- **L15** (2026-10-13) Next: T11 units 3 and 4 (cross-brand links, section index, quick search, recents), then rest of T7 (local users, SSH access, firmware upgrade), then T8-T10.

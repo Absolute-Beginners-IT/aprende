@@ -1,22 +1,9 @@
-import type { Catalog } from '../../domain/buildCatalog'
-import { type Platform, TASK_GROUPS } from '../../domain/schema'
-import { runbookHref } from '../../lib/useHashRoute'
+import type { Platform } from '../../domain/schema'
 import { Section } from '../../ui/Section'
-import { GROUP_LABELS, STATUS_LABELS } from '../labels'
+import { STATUS_LABELS } from '../labels'
 
-interface PlatformPageProps {
-  catalog: Catalog
-  platform: Platform
-}
-
-export function PlatformPage({ catalog, platform }: PlatformPageProps) {
-  const runbooks = catalog.procedures
-    .filter((procedure) => procedure.platform === platform.id)
-    .flatMap((procedure) => {
-      const concept = catalog.concepts.find((item) => item.id === procedure.task)
-      return concept ? [{ procedure, concept }] : []
-    })
-
+/** The brand sheet: how this system behaves and what it offers to undo a change. */
+export function PlatformPage({ platform }: { platform: Platform }) {
   return (
     <div>
       <header className="page-header">
@@ -27,27 +14,6 @@ export function PlatformPage({ catalog, platform }: PlatformPageProps) {
         <p className="lead">{platform.summary}</p>
         <p className="muted">Modelos: {platform.models.join(', ')}</p>
       </header>
-
-      {TASK_GROUPS.map((group) => {
-        const inGroup = runbooks.filter(({ concept }) => concept.group === group)
-        if (inGroup.length === 0) return null
-
-        return (
-          <Section key={group} title={GROUP_LABELS[group]}>
-            <ul className="cards">
-              {inGroup.map(({ procedure, concept }) => (
-                <li key={concept.id}>
-                  <a className="card" href={runbookHref(platform.id, concept.id)}>
-                    <strong>{concept.title}</strong>
-                    <span>{concept.summary}</span>
-                    <span className="muted">{STATUS_LABELS[procedure.status.level]}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )
-      })}
 
       <Section title="Redes de seguridad">
         <p>Mecanismos propios de este sistema para deshacer un cambio. Conviene conocerlos antes de tocar nada.</p>

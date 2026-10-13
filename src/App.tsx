@@ -1,8 +1,13 @@
+import { useEffect } from 'react'
 import { catalog } from './content/catalog'
 import { HomePage } from './features/catalog/HomePage'
 import { PlatformPage } from './features/catalog/PlatformPage'
+import { AppShell } from './features/navigation/AppShell'
 import { RunbookPage } from './features/procedure/RunbookPage'
-import { platformHref, type Route, useHashRoute } from './lib/useHashRoute'
+import { type Route, useHashRoute } from './lib/useHashRoute'
+import { useStoredState } from './lib/useStoredState'
+
+const findPlatform = (id: string | undefined) => catalog.platforms.find((item) => item.id === id)
 
 function NotFound() {
   return (
@@ -14,12 +19,12 @@ function NotFound() {
 }
 
 function Page({ route }: { route: Route }) {
-  if (route.name === 'home') return <HomePage catalog={catalog} />
+  if (route.name === 'home') return <HomePage />
   if (route.name === 'not-found') return <NotFound />
 
-  const platform = catalog.platforms.find((item) => item.id === route.platform)
+  const platform = findPlatform(route.platform)
   if (!platform) return <NotFound />
-  if (route.name === 'platform') return <PlatformPage catalog={catalog} platform={platform} />
+  if (route.name === 'platform') return <PlatformPage platform={platform} />
 
   const concept = catalog.concepts.find((item) => item.id === route.task)
   const procedure = catalog.procedures.find((item) => item.platform === platform.id && item.task === route.task)
@@ -33,19 +38,19 @@ function Page({ route }: { route: Route }) {
 
 export function App() {
   const route = useHashRoute()
-  const platform = 'platform' in route ? catalog.platforms.find((item) => item.id === route.platform) : undefined
+  const [lastPlatform, setLastPlatform] = useStoredState('switching-manual:last-platform', '')
+
+  const routePlatform = 'platform' in route ? findPlatform(route.platform)?.id : undefined
+  const activePlatform = routePlatform ?? findPlatform(lastPlatform)?.id ?? catalog.platforms[0]?.id ?? ''
+
+  // Pages without a brand in the address, such as the home page, keep showing the last one used.
+  useEffect(() => {
+    if (routePlatform && routePlatform !== lastPlatform) setLastPlatform(routePlatform)
+  }, [routePlatform, lastPlatform, setLastPlatform])
 
   return (
-    <div className="app">
-      {route.name !== 'home' && (
-        <nav className="breadcrumb" aria-label="Ruta">
-          <a href="#/">Inicio</a>
-          {platform && route.name === 'runbook' && <a href={platformHref(platform.id)}>{platform.name}</a>}
-        </nav>
-      )}
-      <main>
-        <Page route={route} />
-      </main>
-    </div>
+    <AppShell catalog={catalog} route={route} activePlatform={activePlatform}>
+      <Page route={route} />
+    </AppShell>
   )
 }
