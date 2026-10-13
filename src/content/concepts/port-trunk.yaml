@@ -1,6 +1,7 @@
 id: port-trunk
 title: Configurar un puerto trunk
 group: vlans-ports
+order: 3
 summary: Hace que un puerto transporte varias VLAN etiquetadas hacia otro switch, un router o un servidor.
 explanation: >-
   Un trunk lleva varias VLAN por el mismo enlace; cada trama viaja con una etiqueta

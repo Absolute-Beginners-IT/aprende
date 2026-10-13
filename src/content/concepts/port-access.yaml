@@ -1,6 +1,7 @@
 id: port-access
 title: Asignar un puerto de acceso a una VLAN
 group: vlans-ports
+order: 2
 summary: Deja un puerto en una sola VLAN, sin etiquetas, para conectar un equipo final.
 explanation: >-
   Un puerto de acceso pertenece a una única VLAN y entrega el tráfico sin etiqueta

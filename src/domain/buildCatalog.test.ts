@@ -24,6 +24,7 @@ group: vlans-ports
 summary: Crea una VLAN.
 explanation: Una VLAN separa el tráfico.
 risks: [Usar un ID ya existente.]
+order: 1
 `
 
 const procedure = `
@@ -92,6 +93,20 @@ describe('buildCatalog', () => {
     }
 
     expect(() => buildCatalog(broken)).toThrow('undeclared params: id')
+  })
+
+  it('requires every concept to declare its position inside its group', () => {
+    const broken = { ...files(), '/src/content/concepts/vlan-create.yaml': concept.replace('order: 1', '') }
+
+    expect(() => buildCatalog(broken)).toThrow('order')
+  })
+
+  it('rejects two concepts that claim the same position in a group', () => {
+    const second = concept.replace('id: vlan-create', 'id: port-access')
+
+    expect(() => buildCatalog({ ...files(), '/src/content/concepts/port-access.yaml': second })).toThrow(
+      'order 1 is already used by "port-access" in group vlans-ports',
+    )
   })
 
   it('rejects a platform or concept whose id does not match its file name', () => {

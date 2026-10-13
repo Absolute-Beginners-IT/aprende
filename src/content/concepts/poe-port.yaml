@@ -1,6 +1,7 @@
 id: poe-port
 title: Reiniciar un dispositivo PoE y fijar su prioridad
 group: vlans-ports
+order: 5
 summary: Corta y devuelve la alimentación PoE de un puerto para reiniciar el equipo conectado, y define su prioridad de alimentación.
 explanation: >-
   PoE (Power over Ethernet) alimenta por el mismo cable de red a teléfonos, cámaras

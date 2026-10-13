@@ -75,6 +75,8 @@ export const ConceptSchema = z.object({
   id,
   title: text,
   group: z.enum(TASK_GROUPS),
+  // Position inside the group, so tasks read in the order they are usually done.
+  order: z.number().int().min(1),
   summary: text,
   explanation: text,
   risks: z.array(text).min(1),

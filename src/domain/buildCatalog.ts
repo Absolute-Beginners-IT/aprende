@@ -8,6 +8,7 @@ import {
   PlatformSchema,
   type Procedure,
   ProcedureSchema,
+  TASK_GROUPS,
 } from './schema'
 
 export interface Catalog {
@@ -42,11 +43,25 @@ export function buildCatalog(files: Record<string, string>): Catalog {
     return platform
   })
 
-  const concepts = inFolder('concepts').map(([path, source]) => {
-    const concept = parseFile(path, source, ConceptSchema)
-    assertIdMatchesFileName(path, concept.id)
-    return concept
-  })
+  const positions = new Map<string, string>()
+  const concepts = inFolder('concepts')
+    .map(([path, source]) => {
+      const concept = parseFile(path, source, ConceptSchema)
+      assertIdMatchesFileName(path, concept.id)
+
+      const position = `${concept.group}/${concept.order}`
+      const taken = positions.get(position)
+      if (taken) {
+        throw new Error(
+          `Invalid content in ${path}: order ${concept.order} is already used by "${taken}" in group ${concept.group}`,
+        )
+      }
+      positions.set(position, concept.id)
+      return concept
+    })
+    .sort(
+      (a, b) => TASK_GROUPS.indexOf(a.group) - TASK_GROUPS.indexOf(b.group) || a.order - b.order,
+    )
 
   const platformIds = new Set(platforms.map((platform) => platform.id))
   const conceptIds = new Set(concepts.map((concept) => concept.id))

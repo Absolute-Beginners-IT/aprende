@@ -1,6 +1,7 @@
 id: lag-create
 title: Crear una agregación de enlaces (LAG con LACP)
 group: vlans-ports
+order: 4
 summary: Une dos puertos libres en un solo enlace lógico hacia otro switch o un servidor, con negociación LACP.
 explanation: >-
   Una agregación de enlaces (LAG, port-channel o bonding según la marca) hace que

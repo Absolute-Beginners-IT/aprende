@@ -27,6 +27,7 @@ const concept = ConceptSchema.parse({
   summary: 'Da de alta una VLAN.',
   explanation: 'Una VLAN separa el tráfico.',
   risks: ['Usar un ID que ya existe.'],
+  order: 1,
 })
 
 const procedure = ProcedureSchema.parse({

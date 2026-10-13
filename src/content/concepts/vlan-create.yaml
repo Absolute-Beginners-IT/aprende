@@ -1,6 +1,7 @@
 id: vlan-create
 title: Crear una VLAN
 group: vlans-ports
+order: 1
 summary: Da de alta una VLAN nueva en el switch y le pone un nombre reconocible.
 explanation: >-
   Una VLAN divide un switch en varias redes de capa 2 independientes: los equipos de
