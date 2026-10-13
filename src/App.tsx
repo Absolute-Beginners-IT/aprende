@@ -3,6 +3,8 @@ import { catalog } from './content/catalog'
 import { HomePage } from './features/catalog/HomePage'
 import { PlatformPage } from './features/catalog/PlatformPage'
 import { AppShell } from './features/navigation/AppShell'
+import { describeRunbook, type RunbookHit } from './features/navigation/searchIndex'
+import { useRecents } from './features/navigation/useRecents'
 import { RunbookPage } from './features/procedure/RunbookPage'
 import { type Route, runbookHref, useHashRoute } from './lib/useHashRoute'
 import { useStoredState } from './lib/useStoredState'
@@ -18,8 +20,8 @@ function NotFound() {
   )
 }
 
-function Page({ route }: { route: Route }) {
-  if (route.name === 'home') return <HomePage />
+function Page({ route, recents }: { route: Route; recents: RunbookHit[] }) {
+  if (route.name === 'home') return <HomePage recents={recents} />
   if (route.name === 'not-found') return <NotFound />
 
   const platform = findPlatform(route.platform)
@@ -61,9 +63,24 @@ export function App() {
     if (routePlatform && routePlatform !== lastPlatform) setLastPlatform(routePlatform)
   }, [routePlatform, lastPlatform, setLastPlatform])
 
+  const [recentKeys, rememberRunbook] = useRecents()
+  const openRunbook =
+    route.name === 'runbook' && describeRunbook(catalog, route.platform, route.task)
+      ? `${route.platform}/${route.task}`
+      : undefined
+
+  useEffect(() => {
+    if (openRunbook) rememberRunbook(openRunbook)
+  }, [openRunbook, rememberRunbook])
+
+  const recents = recentKeys.flatMap((key) => {
+    const [platform = '', task = ''] = key.split('/')
+    return describeRunbook(catalog, platform, task) ?? []
+  })
+
   return (
-    <AppShell catalog={catalog} route={route} activePlatform={activePlatform}>
-      <Page route={route} />
+    <AppShell catalog={catalog} route={route} activePlatform={activePlatform} recents={recents}>
+      <Page route={route} recents={recents} />
     </AppShell>
   )
 }

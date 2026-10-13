@@ -121,3 +121,84 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Volver al inicio' })).toHaveAttribute('href', '#/')
   })
 })
+
+describe('quick search', () => {
+  const dialog = () => screen.getByRole('dialog', { name: 'Buscar guías' })
+
+  it('opens with Ctrl+K, finds a runbook without accents and opens it with Enter', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.keyboard('{Control>}k{/Control}')
+    await user.type(within(dialog()).getByRole('searchbox', { name: 'Buscar' }), 'gestion cisco')
+
+    expect(within(dialog()).getByRole('link', { name: /Configurar la IP de gestión.*Cisco Catalyst 1300/ })).toBeInTheDocument()
+
+    await user.keyboard('{Enter}')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Configurar la IP de gestión' })).toBeInTheDocument()
+    expect(screen.getByText(/Cisco · Cisco Catalyst 1300/)).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('opens from its button and with the slash key, but not while typing in a field', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx/vlan-create')
+
+    await user.type(screen.getByLabelText('Nombre de la VLAN'), '/')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Buscar/ }))
+    expect(dialog()).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Buscar/ })).toHaveFocus()
+
+    await user.keyboard('/')
+    expect(dialog()).toBeInTheDocument()
+  })
+
+  it('moves through the results with the arrow keys', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.keyboard('{Control>}k{/Control}')
+    await user.type(within(dialog()).getByRole('searchbox', { name: 'Buscar' }), 'trunk')
+    const results = within(dialog()).getAllByRole('link')
+
+    expect(results[0]).toHaveAttribute('aria-current', 'true')
+
+    await user.keyboard('{ArrowDown}')
+
+    expect(results[0]).not.toHaveAttribute('aria-current')
+    expect(results[1]).toHaveAttribute('aria-current', 'true')
+  })
+
+  it('says so when nothing matches', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.keyboard('{Control>}k{/Control}')
+    await user.type(within(dialog()).getByRole('searchbox', { name: 'Buscar' }), 'zzzz')
+
+    expect(within(dialog()).getByText('Sin resultados.')).toBeInTheDocument()
+  })
+
+  it('lists the runbooks opened recently, both in the search and on the home page', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx/port-trunk')
+
+    await user.keyboard('{Control>}k{/Control}')
+    expect(within(dialog()).getByRole('link', { name: /Configurar un puerto trunk.*Aruba CX 6100/ })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    await user.click(screen.getByRole('link', { name: 'Manual de Switching' }))
+    const recents = await screen.findByRole('list', { name: 'Recientes' })
+
+    expect(within(recents).getByRole('link', { name: /Configurar un puerto trunk.*Aruba CX 6100/ })).toHaveAttribute(
+      'href',
+      '#/p/aruba-aoscx/port-trunk',
+    )
+  })
+})
