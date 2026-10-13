@@ -47,8 +47,10 @@ preflight:
       Confirmá que los dos puertos están libres y sin enlace. Si alguno está en uso,
       detenete.
     command: show interfaces status
-  - text: Guardá la configuración actual de los dos puertos por si hay que rehacerla.
+  - text: Guardá la configuración actual del primer puerto por si hay que rehacerla.
     command: show running-config interface {{port1}}
+  - text: Guardá también la del segundo puerto.
+    command: show running-config interface {{port2}}
   - text: Confirmá que todas las VLAN de la lista existen.
     command: show vlan
   - text: >-
