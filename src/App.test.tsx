@@ -23,6 +23,7 @@ describe('App', () => {
       'Aruba CX 6100',
       'Cisco Catalyst 1300',
       'MikroTik CRS317',
+      'Ruijie NBS3200',
     ])
   })
 
@@ -79,8 +80,14 @@ describe('App', () => {
 
     const nav = screen.getByRole('navigation', { name: 'Misma tarea en otra marca' })
 
-    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual(['Cisco Catalyst 1300'])
-    expect(within(nav).getByRole('link')).toHaveAttribute('href', '#/p/cisco-c1300/poe-port')
+    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual([
+      'Cisco Catalyst 1300',
+      'Ruijie NBS3200',
+    ])
+    expect(within(nav).getByRole('link', { name: 'Cisco Catalyst 1300' })).toHaveAttribute(
+      'href',
+      '#/p/cisco-c1300/poe-port',
+    )
   })
 
   it('remembers the last brand used when returning to the home page', async () => {

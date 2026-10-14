@@ -8,13 +8,13 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('covers the three platforms used at the company', () => {
+  it('covers the four platforms used at the company', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
-    expect(new Set(ids)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros']))
+    expect(new Set(ids)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee']))
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has config backup and restore runbooks for %s, since every rollback relies on them',
     (platform) => {
       const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
@@ -29,13 +29,13 @@ describe('content catalog', () => {
     expect(restores.map((item) => item.risk.level)).toEqual(restores.map(() => 'high'))
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])('includes the VLAN creation runbook for %s', (platform) => {
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])('includes the VLAN creation runbook for %s', (platform) => {
     const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'vlan-create')
 
     expect(runbook).toBeDefined()
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has access port and trunk port runbooks for %s',
     (platform) => {
       const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
@@ -44,7 +44,7 @@ describe('content catalog', () => {
     },
   )
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])('has a link aggregation runbook for %s', (platform) => {
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])('has a link aggregation runbook for %s', (platform) => {
     const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'lag-create')
 
     expect(runbook?.risk.level).toBe('high')
@@ -53,10 +53,10 @@ describe('content catalog', () => {
   it('has a PoE runbook only for the platforms that supply PoE', () => {
     const platforms = catalog.procedures.filter((item) => item.task === 'poe-port').map((item) => item.platform)
 
-    expect(new Set(platforms)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300']))
+    expect(new Set(platforms)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'ruijie-reyee']))
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has a management IP runbook for %s, rated high risk because it can cut the session in use',
     (platform) => {
       const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'mgmt-ip')
@@ -73,6 +73,28 @@ describe('content catalog', () => {
       expect(tasks).toEqual(expect.arrayContaining(['user-admin', 'ssh-access', 'firmware-upgrade']))
     },
   )
+
+  it('has a firmware upgrade runbook for the web-managed Ruijie, which has no CLI users or SSH to configure', () => {
+    const tasks = catalog.procedures.filter((item) => item.platform === 'ruijie-reyee').map((item) => item.task)
+
+    expect(tasks).toContain('firmware-upgrade')
+  })
+
+  it('only offers screen steps, never commands, on platforms managed from their web interface', () => {
+    const webPlatforms = new Set(catalog.platforms.filter((item) => item.management === 'web').map((item) => item.id))
+    const withCommands = catalog.procedures
+      .filter((item) => webPlatforms.has(item.platform))
+      .filter(
+        (item) =>
+          item.steps.some((step) => step.commands.length > 0) ||
+          item.rollback.steps.some((step) => step.commands.length > 0) ||
+          item.verification.some((check) => check.command) ||
+          item.preflight.some((check) => check.command),
+      )
+      .map((item) => `${item.platform}/${item.task}`)
+
+    expect(withCommands).toEqual([])
+  })
 
   it('rates every firmware upgrade as high risk, since it reboots the switch', () => {
     const upgrades = catalog.procedures.filter((item) => item.task === 'firmware-upgrade')
@@ -100,7 +122,7 @@ describe('content catalog', () => {
     expect(target?.differentFrom?.param).toBe('fallbackImage')
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has NTP, remote syslog, SNMP and LLDP runbooks for %s',
     (platform) => {
       const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
