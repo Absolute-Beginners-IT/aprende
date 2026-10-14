@@ -26,14 +26,16 @@ const STATUS_TONES: Record<StatusLevel, 'ok' | 'warn' | 'danger'> = {
 
 interface StepCommandsProps {
   manual: boolean
+  /** How a manual step is announced: a web-managed switch is configured by hand on every step. */
+  manualLabel: string
   lines: string[]
   copyLabel: string
   ready: boolean
 }
 
 /** A step either runs commands or is done by hand; this is the single place that tells them apart. */
-function StepCommands({ manual, lines, copyLabel, ready }: StepCommandsProps) {
-  if (manual) return <p className="manual-tag">Acción manual</p>
+function StepCommands({ manual, manualLabel, lines, copyLabel, ready }: StepCommandsProps) {
+  if (manual) return <p className="manual-tag">{manualLabel}</p>
   return <CommandBlock lines={lines} copyLabel={copyLabel} ready={ready} />
 }
 
@@ -66,6 +68,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
     templates.flatMap(extractParamIds).every((id) => Boolean(validValues[id]?.trim()))
 
   const allStepCommands = procedure.steps.flatMap((step) => step.commands)
+  const manualLabel = platform.management === 'web' ? 'Paso en la interfaz web' : 'Acción manual'
 
   const toggleStep = (index: number) =>
     setDoneSteps(doneSteps.includes(index) ? doneSteps.filter((step) => step !== index) : [...doneSteps, index])
@@ -208,13 +211,15 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
         id={sectionId('steps')}
         title="Paso a paso"
         actions={
-          <CopyButton
-            text={allStepCommands.map(fill).join('\n')}
-            label="Copiar todos los pasos"
-            disabled={!isReady(allStepCommands)}
-          >
-            Copiar todo
-          </CopyButton>
+          allStepCommands.length > 0 && (
+            <CopyButton
+              text={allStepCommands.map(fill).join('\n')}
+              label="Copiar todos los pasos"
+              disabled={!isReady(allStepCommands)}
+            >
+              Copiar todo
+            </CopyButton>
+          )
         }
       >
         <ol className="steps">
@@ -232,6 +237,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
               {step.warning && <p className="warning">{fill(step.warning)}</p>}
               <StepCommands
                 manual={step.manual}
+                manualLabel={manualLabel}
                 lines={step.commands.map(fill)}
                 copyLabel={`Copiar: ${step.title}`}
                 ready={isReady(step.commands)}
@@ -258,11 +264,13 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
         <ol className="checks">
           {procedure.verification.map((check, index) => (
             <li key={index}>
-              <CommandBlock
-                lines={[fill(check.command)]}
-                copyLabel={`Copiar verificación ${index + 1}`}
-                ready={isReady([check.command])}
-              />
+              {check.command && (
+                <CommandBlock
+                  lines={[fill(check.command)]}
+                  copyLabel={`Copiar verificación ${index + 1}`}
+                  ready={isReady([check.command])}
+                />
+              )}
               <p>
                 <strong>Qué deberías ver:</strong> {fill(check.expect)}
               </p>
@@ -282,6 +290,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
                 {step.warning && <p className="warning">{fill(step.warning)}</p>}
                 <StepCommands
                   manual={step.manual}
+                  manualLabel={manualLabel}
                   lines={step.commands.map(fill)}
                   copyLabel={`Copiar vuelta atrás: ${title}`}
                   ready={isReady(step.commands)}

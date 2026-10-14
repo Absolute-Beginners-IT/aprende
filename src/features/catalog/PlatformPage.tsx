@@ -38,30 +38,32 @@ export function PlatformPage({ platform }: { platform: Platform }) {
         <p>{platform.configPersistence}</p>
       </Section>
 
-      <Section title="Modos de la CLI">
-        <table>
-          <thead>
-            <tr>
-              <th>Modo</th>
-              <th>Prompt</th>
-              <th>Cómo se entra</th>
-              <th>Para qué sirve</th>
-            </tr>
-          </thead>
-          <tbody>
-            {platform.cliModes.map((mode) => (
-              <tr key={mode.name}>
-                <td>{mode.name}</td>
-                <td>
-                  <code>{mode.prompt}</code>
-                </td>
-                <td>{mode.enter}</td>
-                <td>{mode.description}</td>
+      {platform.cliModes.length > 0 && (
+        <Section title="Modos de la CLI">
+          <table>
+            <thead>
+              <tr>
+                <th>Modo</th>
+                <th>Prompt</th>
+                <th>Cómo se entra</th>
+                <th>Para qué sirve</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </Section>
+            </thead>
+            <tbody>
+              {platform.cliModes.map((mode) => (
+                <tr key={mode.name}>
+                  <td>{mode.name}</td>
+                  <td>
+                    <code>{mode.prompt}</code>
+                  </td>
+                  <td>{mode.enter}</td>
+                  <td>{mode.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Section>
+      )}
 
       <Section title="Fuentes">
         <ul>

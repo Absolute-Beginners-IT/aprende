@@ -1,4 +1,35 @@
-import { findUndeclaredParams, ProcedureSchema } from './schema'
+import { findUndeclaredParams, PlatformSchema, ProcedureSchema } from './schema'
+
+const basePlatform = () => ({
+  id: 'ruijie-reyee',
+  vendor: 'Ruijie',
+  name: 'Ruijie NBS3200',
+  os: 'ReyeeOS',
+  models: ['RG-NBS3200-48GT4XS-P'],
+  summary: 'Switch gestionado por web.',
+  configPersistence: 'Cada cambio se guarda al pulsar Save.',
+  safetyNets: [{ name: 'Copia de configuración', description: 'Backup desde la web.' }],
+  sources: [{ title: 'Guía', url: 'https://example.com/guide' }],
+  status: { level: 'docs-checked', reviewed: '2026-10-14', firmware: 'ReyeeOS 2.341' },
+})
+
+describe('PlatformSchema', () => {
+  it('requires CLI modes for a platform managed from the command line', () => {
+    expect(PlatformSchema.safeParse({ ...basePlatform(), management: 'cli', cliModes: [] }).success).toBe(false)
+  })
+
+  it('accepts a platform managed from its web interface without CLI modes', () => {
+    const platform = PlatformSchema.parse({ ...basePlatform(), management: 'web' })
+
+    expect(platform.cliModes).toEqual([])
+  })
+
+  it('treats a platform as managed from the command line unless stated otherwise', () => {
+    const modes = [{ name: 'Manager', prompt: 'switch#', enter: 'Al iniciar sesión', description: 'Consultas.' }]
+
+    expect(PlatformSchema.parse({ ...basePlatform(), cliModes: modes }).management).toBe('cli')
+  })
+})
 
 const validProcedure = () => ({
   platform: 'aruba-aoscx',
@@ -79,6 +110,15 @@ describe('ProcedureSchema', () => {
 
     expect(withRollback({ explanation: 'Esperá a que venza el temporizador.', manual: true }).success).toBe(true)
     expect(withRollback({ explanation: 'Esperá a que venza el temporizador.' }).success).toBe(false)
+  })
+
+  it('accepts a check that is read on screen instead of with a command', () => {
+    const procedure = ProcedureSchema.parse({
+      ...validProcedure(),
+      verification: [{ expect: 'En VLAN List aparece la VLAN 20.' }],
+    })
+
+    expect(procedure.verification[0]?.command).toBeUndefined()
   })
 
   it('rejects an unknown verification status', () => {

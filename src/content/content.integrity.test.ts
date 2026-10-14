@@ -115,6 +115,15 @@ describe('content catalog', () => {
     expect(snmp.filter((item) => item.risk.level === 'low')).toEqual([])
   })
 
+  it.each([
+    ['aruba-aoscx', 'priv aes'],
+    ['mikrotik-routeros', 'security=private'],
+  ])('configures SNMPv3 with authentication and encryption on %s', (platform, authPrivMarker) => {
+    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
+
+    expect(JSON.stringify(runbook?.steps)).toContain(authPrivMarker)
+  })
+
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
     const trunks = catalog.procedures.filter((item) => item.task === 'port-trunk')
 

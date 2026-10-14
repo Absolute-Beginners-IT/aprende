@@ -63,7 +63,8 @@ export const ProcedureSchema = z.object({
   params: z.array(ParamSchema).default([]),
   preflight: z.array(z.object({ text, command: text.optional() })).min(1),
   steps: z.array(StepSchema).min(1),
-  verification: z.array(z.object({ command: text, expect: text })).min(1),
+  // Without a command, the check is read on screen, as in a web-managed switch.
+  verification: z.array(z.object({ command: text.optional(), expect: text })).min(1),
   rollback: z.object({
     summary: text,
     steps: z.array(RollbackStepSchema).min(1),
@@ -92,11 +93,16 @@ export const PlatformSchema = z.object({
   os: text,
   models: z.array(text).min(1),
   summary: text,
-  cliModes: z.array(z.object({ name: text, prompt: text, enter: text, description: text })).min(1),
+  // How the runbooks of this platform are carried out: typed commands or steps in its web interface.
+  management: z.enum(['cli', 'web']).default('cli'),
+  cliModes: z.array(z.object({ name: text, prompt: text, enter: text, description: text })).default([]),
   configPersistence: text,
   safetyNets: z.array(z.object({ name: text, description: text, commands: z.array(text).optional() })).min(1),
   sources: z.array(SourceSchema).min(1),
   status: StatusSchema,
+}).refine((platform) => platform.management === 'web' || platform.cliModes.length > 0, {
+  message: 'A platform managed from the command line needs its CLI modes',
+  path: ['cliModes'],
 })
 
 export type Param = z.infer<typeof ParamSchema>
@@ -113,7 +119,7 @@ export function findUndeclaredParams(procedure: Procedure): string[] {
   const templates = [
     ...procedure.preflight.flatMap((check) => (check.command ? [check.command] : [])),
     ...procedure.steps.flatMap((step) => step.commands),
-    ...procedure.verification.map((check) => check.command),
+    ...procedure.verification.flatMap((check) => (check.command ? [check.command] : [])),
     ...procedure.rollback.steps.flatMap((step) => step.commands),
   ]
   const used = new Set(templates.flatMap(extractParamIds))

@@ -274,6 +274,24 @@ describe('RunbookPage', () => {
     expect(within(section('Paso a paso')).getByText('copy file primary')).toBeInTheDocument()
   })
 
+  it('presents a web-managed runbook as screen steps, without command blocks to copy', () => {
+    const webPlatform = PlatformSchema.parse({ ...platform, management: 'web', cliModes: [] })
+    const web = ProcedureSchema.parse({
+      ...procedure,
+      params: [{ id: 'vlanId', label: 'ID de la VLAN', type: 'vlan-id', example: '20' }],
+      preflight: [{ text: 'Abrí Local Device > VLAN > VLAN List.' }],
+      steps: [{ title: 'Añadir la VLAN', explanation: 'Pulsá Add e introducí {{vlanId}}.', manual: true }],
+      verification: [{ expect: 'La VLAN {{vlanId}} aparece en VLAN List.' }],
+      rollback: { summary: 'Borrala.', steps: [{ title: 'Borrar', explanation: 'Pulsá Delete.', manual: true }] },
+    })
+    render(<RunbookPage platform={webPlatform} concept={concept} procedure={web} />)
+
+    expect(within(section('Paso a paso')).getByText('Paso en la interfaz web')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copiar todos los pasos' })).not.toBeInTheDocument()
+    expect(within(section('Verificación')).getByText('La VLAN <vlanId> aparece en VLAN List.')).toBeInTheDocument()
+    expect(within(section('Verificación')).queryByRole('button')).not.toBeInTheDocument()
+  })
+
   it('links to the official sources', () => {
     renderPage()
 
