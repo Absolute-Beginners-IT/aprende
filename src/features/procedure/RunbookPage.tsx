@@ -162,7 +162,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
                 <label htmlFor={fieldId}>{param.label}</label>
                 {param.type === 'choice' ? (
                   <select id={fieldId} value={value} onChange={(event) => update(event.target.value)}>
-                    <option value="">Elegí…</option>
+                    <option value="">Elige…</option>
                     {param.options?.map((option) => (
                       <option key={option}>{option}</option>
                     ))}
@@ -302,7 +302,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
         </ol>
         {procedure.rollback.lockoutRecovery && (
           <div className="lockout">
-            <h3>Si perdés el acceso al switch</h3>
+            <h3>Si pierdes el acceso al switch</h3>
             <p>{fill(procedure.rollback.lockoutRecovery)}</p>
           </div>
         )}

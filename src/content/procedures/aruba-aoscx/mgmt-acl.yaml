@@ -8,7 +8,7 @@ risk:
   level: high
   reason: >-
     La ACL de control plane filtra todo el tráfico dirigido al propio switch. Si la
-    red desde la que trabajás no está en la regla de permiso, al aplicarla perdés el
+    red desde la que trabajas no está en la regla de permiso, al aplicarla pierdes el
     SSH y la web. Un error en el orden de las reglas puede cortar además SNMP, DHCP u
     otros protocolos del switch. Solo puede haber una ACL de control plane por VRF:
     aplicar otra con distinto nombre reemplaza la que ya hubiera, por ejemplo la del
@@ -27,8 +27,8 @@ params:
     patternHint: Hasta 64 caracteres; letras, números, guion y guion bajo.
     help: >-
       Si el switch ya tiene una ACL de control plane, por ejemplo la del runbook de
-      SNMP, poné exactamente su nombre: las reglas se añaden a ella. Si no tiene
-      ninguna, elegí un nombre nuevo.
+      SNMP, pon exactamente su nombre: las reglas se añaden a ella. Si no tiene
+      ninguna, elige un nombre nuevo.
   - id: checkpointName
     label: Nombre del checkpoint de respaldo
     type: text
@@ -41,31 +41,31 @@ params:
     min: 1
     max: 60
     example: '10'
-    help: Tiempo para comprobar que seguís teniendo acceso antes de que el switch deshaga el cambio solo.
+    help: Tiempo para comprobar que sigues teniendo acceso antes de que el switch deshaga el cambio solo.
 preflight:
   - text: >-
-      Mirá si ya hay una ACL aplicada al control plane y cómo se llama. Solo puede
-      haber una por VRF: si existe, usá su nombre en este runbook para añadirle las
+      Mira si ya hay una ACL aplicada al control plane y cómo se llama. Solo puede
+      haber una por VRF: si existe, usa su nombre en este runbook para añadirle las
       reglas en lugar de reemplazarla.
     command: show running-config | include control-plane
   - text: >-
-      Si la ACL ya existe, revisá sus reglas. Los números 21 a 24 tienen que estar
+      Si la ACL ya existe, revisa sus reglas. Los números 21 a 24 tienen que estar
       libres y la regla final permit any any any tiene que tener un número mayor que
       24, como la 30 del runbook de SNMP. Si no es así, no sigas: las reglas nuevas
       quedarían detrás del permiso general y no filtrarían nada.
     command: show access-list ip {{aclName}} commands
   - text: >-
-      Comprobá que la IP del equipo desde el que trabajás está dentro de
-      {{adminNetwork}}. Si no, te quedás fuera al aplicar la ACL.
-  - text: Guardá un checkpoint con la configuración actual.
+      Comprueba que la IP del equipo desde el que trabajas está dentro de
+      {{adminNetwork}}. Si no, te quedas fuera al aplicar la ACL.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
-  - text: Tené a mano el acceso por consola.
+  - text: Ten a mano el acceso por consola.
 steps:
   - title: Activar el modo checkpoint auto
     commands:
       - checkpoint auto {{minutes}}
     explanation: >-
-      Abre una ventana de {{minutes}} minutos. Si no confirmás antes de que venza, el
+      Abre una ventana de {{minutes}} minutos. Si no confirmas antes de que venza, el
       switch restaura la configuración que tenía en este momento. Te protege si la ACL
       te deja sin acceso.
   - title: Entrar en modo configuración
@@ -121,16 +121,16 @@ steps:
   - title: Comprobar el acceso
     manual: true
     explanation: >-
-      Dentro de la ventana de {{minutes}} minutos, abrí una sesión SSH nueva y la web
-      de gestión desde tu equipo de la red {{adminNetwork}} y confirmá que entrás. Si
-      podés, probá desde un equipo fuera de esa red: no tiene que poder conectar. Si
-      usás el runbook de SNMP, comprobá también que la monitorización sigue
+      Dentro de la ventana de {{minutes}} minutos, abre una sesión SSH nueva y la web
+      de gestión desde tu equipo de la red {{adminNetwork}} y confirma que entras. Si
+      puedes, prueba desde un equipo fuera de esa red: no tiene que poder conectar. Si
+      usas el runbook de SNMP, comprueba también que la monitorización sigue
       respondiendo.
   - title: Confirmar el cambio
     commands:
       - checkpoint auto confirm
     explanation: Termina el modo auto y deja el cambio como definitivo en ejecución.
-    warning: Si no ejecutás este comando a tiempo, el switch vuelve solo al estado anterior.
+    warning: Si no ejecutas este comando a tiempo, el switch vuelve solo al estado anterior.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -145,7 +145,7 @@ verification:
 rollback:
   summary: >-
     Mientras el modo auto esté activo, la vuelta atrás es no confirmar. Si ya
-    confirmaste, quitá las reglas de gestión de la ACL, o volvé al checkpoint.
+    confirmaste, quita las reglas de gestión de la ACL, o vuelve al checkpoint.
   steps:
     - title: Si todavía no confirmaste
       manual: true
@@ -173,10 +173,10 @@ rollback:
         - write memory
       explanation: Vuelve al estado guardado antes de empezar y lo deja también en la configuración de arranque.
   lockoutRecovery: >-
-    Si perdés el acceso con el modo auto activo, esperá: al vencer la ventana el switch
-    recupera la configuración anterior. Si ya habías confirmado, entrá por el puerto de
-    consola, que la ACL no filtra, y borrá las reglas 21 a 24 de la ACL {{aclName}}, o
-    quitá la ACL entera con no apply access-list ip {{aclName}} control-plane vrf
+    Si pierdes el acceso con el modo auto activo, espera: al vencer la ventana el switch
+    recupera la configuración anterior. Si ya habías confirmado, entra por el puerto de
+    consola, que la ACL no filtra, y borra las reglas 21 a 24 de la ACL {{aclName}}, o
+    quita la ACL entera con no apply access-list ip {{aclName}} control-plane vrf
     default.
 sources:
   - title: AOS-CX 10.15 ACLs and Classifier Policies Guide (4100i, 6000, 6100) — apply access-list control-plane

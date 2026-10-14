@@ -16,14 +16,14 @@ params:
     pattern: '^[A-Za-z][A-Za-z0-9._-]{0,19}$'
     patternHint: Empieza por letra; hasta 20 caracteres; letras, números, punto, guion y guion bajo.
 preflight:
-  - text: Mirá qué usuarios existen ya y con qué nivel de privilegio.
+  - text: Mira qué usuarios existen ya y con qué nivel de privilegio.
     command: show users accounts
   - text: >-
-      Tené la contraseña decidida y guardada en el gestor de contraseñas. Con los
+      Ten la contraseña decidida y guardada en el gestor de contraseñas. Con los
       valores de fábrica necesita al menos 8 caracteres de 3 clases distintas
       (mayúsculas, minúsculas, números, símbolos), sin repetir un carácter más de 3
       veces seguidas, y no puede contener el nombre del usuario.
-  - text: Asegurate de que nadie ve tu pantalla; no cierres tu sesión actual hasta comprobar que la cuenta nueva entra.
+  - text: Asegúrate de que nadie ve tu pantalla; no cierres tu sesión actual hasta comprobar que la cuenta nueva entra.
 steps:
   - title: Entrar en modo configuración
     commands:
@@ -32,8 +32,8 @@ steps:
   - title: Crear el usuario escribiendo el comando a mano
     manual: true
     explanation: >-
-      Escribí el comando username {{userName}} seguido del nivel de privilegio 15 y
-      de la contraseña. Antes de pulsar Enter, escribí username {{userName}} ? para
+      Escribe el comando username {{userName}} seguido del nivel de privilegio 15 y
+      de la contraseña. Antes de pulsar Enter, escribe username {{userName}} ? para
       que el switch te muestre el orden exacto de las palabras privilege y password
       en tu versión de firmware. El nivel 15 es el de administrador; si no se
       indica, la cuenta queda en nivel 1, de solo consulta.
@@ -47,31 +47,31 @@ steps:
   - title: Probar la cuenta nueva
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí otra y entrá con {{userName}}. Comprobá que
-      llegás al prompt terminado en # y que podés ejecutar configure terminal.
+      Sin cerrar esta sesión, abre otra y entra con {{userName}}. Comprueba que
+      llegas al prompt terminado en # y que puedes ejecutar configure terminal.
   - title: Guardar el cambio
     commands:
       - write memory
     explanation: >-
       Copia la configuración en ejecución a la de arranque. La contraseña se guarda
       cifrada. El switch pide confirmación.
-    warning: Guardá solo después de comprobar que la cuenta nueva entra.
+    warning: Guarda solo después de comprobar que la cuenta nueva entra.
 verification:
   - command: show users accounts
     expect: Una fila con el usuario {{userName}} y privilegio 15.
 rollback:
-  summary: Borrá la cuenta creada. El switch no deja borrar el último usuario de privilegio 15.
+  summary: Borra la cuenta creada. El switch no deja borrar el último usuario de privilegio 15.
   steps:
     - title: Borrar el usuario
       commands:
         - configure terminal
         - no username {{userName}}
         - end
-      explanation: Elimina la cuenta {{userName}}. Hacelo desde otra cuenta de privilegio 15.
+      explanation: Elimina la cuenta {{userName}}. Hazlo desde otra cuenta de privilegio 15.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede sin la cuenta.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede sin la cuenta.
   lockoutRecovery: >-
     Crear una cuenta no quita el acceso a las existentes. Si todavía no guardaste y
     algo salió mal, un reinicio arranca con la configuración de arranque anterior.

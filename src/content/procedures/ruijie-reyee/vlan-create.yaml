@@ -22,27 +22,27 @@ params:
     help: Tiene que ser única en el switch.
 preflight:
   - text: >-
-      En Local Device > VLAN > VLAN List, comprobá que la VLAN {{vlanId}} no existe
+      En Local Device > VLAN > VLAN List, comprueba que la VLAN {{vlanId}} no existe
       ya.
 steps:
   - title: Abrir la lista de VLAN
     manual: true
-    explanation: Andá a Local Device > VLAN > VLAN List.
+    explanation: Ve a Local Device > VLAN > VLAN List.
   - title: Añadir la VLAN
     manual: true
     explanation: >-
-      Pulsá Add, escribí el ID {{vlanId}} y la descripción {{vlanName}}, y pulsá OK.
+      Pulsa Add, escribe el ID {{vlanId}} y la descripción {{vlanName}}, y pulsa OK.
       Para crear varias de una vez está Batch Add, con IDs separados por comas o
       rangos con guion.
 verification:
   - expect: La VLAN {{vlanId}} aparece en VLAN List con la descripción {{vlanName}}.
 rollback:
-  summary: Borrá la VLAN creada.
+  summary: Borra la VLAN creada.
   steps:
     - title: Borrar la VLAN
       manual: true
       explanation: >-
-        En VLAN List, pulsá Delete en la fila de la VLAN {{vlanId}}. No se pueden
+        En VLAN List, pulsa Delete en la fila de la VLAN {{vlanId}}. No se pueden
         borrar la VLAN 1 ni las que estén en uso como VLAN de gestión, nativa o de
         acceso; para esas el botón aparece en gris.
   lockoutRecovery: Crear una VLAN no corta el acceso de gestión.

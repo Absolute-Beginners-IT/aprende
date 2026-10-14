@@ -13,9 +13,9 @@ params:
     example: 192.168.10.5
     pattern: '^[A-Za-z0-9.-]{1,253}$'
     patternHint: Una IP o un nombre de equipo, sin espacios.
-    help: Si usás un nombre, el equipo necesita tener configurado un servidor DNS en /ip dns.
+    help: Si usas un nombre, el equipo necesita tener configurado un servidor DNS en /ip dns.
 preflight:
-  - text: Mirá el estado actual del cliente NTP.
+  - text: Mira el estado actual del cliente NTP.
     command: /system ntp client print
 steps:
   - title: Añadir el servidor de tiempo
@@ -34,7 +34,7 @@ verification:
       El estado (status) pasa a synchronized y aparece {{ntpServer}} como servidor
       sincronizado. Puede tardar unos minutos; mientras tanto puede decir waiting.
 rollback:
-  summary: Desactivá el cliente y quitá el servidor añadido.
+  summary: Desactiva el cliente y quita el servidor añadido.
   steps:
     - title: Desactivar el cliente y quitar el servidor
       commands:

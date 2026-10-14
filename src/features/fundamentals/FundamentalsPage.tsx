@@ -11,7 +11,7 @@ export function FundamentalsPage({ catalog }: { catalog: Catalog }) {
       <header className="page-header">
         <h1>Fundamentos</h1>
         <p className="lead">
-          Qué es un switch, para qué sirve, qué puede hacer y qué marcas hay. Leelos en orden si empezás de cero; cada
+          Qué es un switch, para qué sirve, qué puede hacer y qué marcas hay. Léelos en orden si empiezas de cero; cada
           artículo enlaza con las guías que lo ponen en práctica.
         </p>
       </header>

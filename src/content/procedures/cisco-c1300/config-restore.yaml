@@ -28,10 +28,10 @@ params:
     patternHint: Hasta 60 caracteres; letras, números, punto, guion y guion bajo, sin espacios.
     help: Copia del estado de ahora, para poder volver si la restauración no era lo que querías.
 preflight:
-  - text: Guardá en el servidor el estado actual, aunque esté mal, para poder volver a él.
+  - text: Guarda en el servidor el estado actual, aunque esté mal, para poder volver a él.
     command: copy running-config tftp://{{serverIp}}/{{currentFileName}}
   - text: >-
-      Tené acceso por consola y hacelo en una ventana de mantenimiento: el switch se
+      Ten acceso por consola y hazlo en una ventana de mantenimiento: el switch se
       reinicia.
   - text: >-
       No uses copy desde el servidor hacia running-config para restaurar: ese
@@ -61,7 +61,7 @@ steps:
   - title: Esperar el reinicio y volver a entrar
     manual: true
     explanation: >-
-      Conectate de nuevo cuando el equipo termine de arrancar. La IP de gestión y
+      Conéctate de nuevo cuando el equipo termine de arrancar. La IP de gestión y
       los usuarios son ahora los del archivo restaurado.
 verification:
   - command: show running-config
@@ -88,9 +88,9 @@ rollback:
         última configuración de arranque que estuvo 24 horas sin cambios. Sirve si
         el servidor TFTP no está disponible.
   lockoutRecovery: >-
-    Si después del reinicio no podés entrar por red, comprobá primero que estás
+    Si después del reinicio no puedes entrar por red, comprueba primero que estás
     usando la IP y el usuario del archivo restaurado. Si aun así no hay acceso,
-    conectate por el puerto de consola e instalá desde ahí la configuración espejo
+    conéctate por el puerto de consola e instala desde ahí la configuración espejo
     o la copia del estado anterior.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — File System Commands (boot config, copy, mirror-config)

@@ -8,7 +8,7 @@ summary: >-
 risk:
   level: high
   reason: >-
-    Si tu equipo no está dentro de la red permitida, perdés el acceso de gestión
+    Si tu equipo no está dentro de la red permitida, pierdes el acceso de gestión
     en el momento, y RouterOS guarda cada cambio sin paso de confirmación.
 params:
   - id: mgmtNetwork
@@ -24,25 +24,25 @@ params:
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
 preflight:
   - text: >-
-      Mirá qué servicios están activos, en qué puerto y desde qué direcciones. La
-      marca X indica un servicio desactivado; apuntá cuáles lo están, para poder
+      Mira qué servicios están activos, en qué puerto y desde qué direcciones. La
+      marca X indica un servicio desactivado; apunta cuáles lo están, para poder
       volver atrás.
     command: /ip service print
   - text: >-
-      Confirmá que la IP de tu equipo de administración está dentro de
+      Confirma que la IP de tu equipo de administración está dentro de
       {{mgmtNetwork}} y por qué servicio estás conectado ahora.
   - text: >-
-      Mirá si hay reglas de firewall en la cadena input. Esta guía no las toca, pero
-      si ya hay alguna que bloquea la gestión, tenela en cuenta.
+      Mira si hay reglas de firewall en la cadena input. Esta guía no las toca, pero
+      si ya hay alguna que bloquea la gestión, tenla en cuenta.
     command: /ip firewall filter print
-  - text: Guardá una copia completa de la configuración.
+  - text: Guarda una copia completa de la configuración.
     command: /system backup save name={{backupName}}
-  - text: Tené a mano el cable de consola serie del CRS317 por si te quedás fuera.
+  - text: Ten a mano el cable de consola serie del CRS317 por si te quedas fuera.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Limitar SSH a la red de administración
     commands:
@@ -50,7 +50,7 @@ steps:
     explanation: >-
       El servicio SSH solo acepta conexiones desde {{mgmtNetwork}}. Las demás se
       rechazan, aunque conozcan el usuario y la contraseña.
-    warning: Si tu equipo no está en esa red y estás conectado por SSH, perdés el acceso en este paso.
+    warning: Si tu equipo no está en esa red y estás conectado por SSH, pierdes el acceso en este paso.
     breakdown:
       - token: /ip service set ssh
         meaning: Modifica las propiedades del servicio SSH.
@@ -62,7 +62,7 @@ steps:
     commands:
       - /ip service set winbox address={{mgmtNetwork}}
     explanation: WinBox por IP (puerto 8291) solo acepta conexiones desde {{mgmtNetwork}}.
-    warning: Si estás conectado por WinBox desde fuera de esa red, perdés el acceso en este paso.
+    warning: Si estás conectado por WinBox desde fuera de esa red, pierdes el acceso en este paso.
   - title: Limitar la web a la red de administración
     commands:
       - /ip service set www address={{mgmtNetwork}}
@@ -83,15 +83,15 @@ steps:
   - title: Probar el acceso desde la red de administración
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí otra por SSH y entrá por WinBox y por la web desde
+      Sin cerrar esta sesión, abre otra por SSH y entra por WinBox y por la web desde
       tu equipo de administración. RouterOS avisa de que otra sesión tiene Safe Mode:
-      respondé d para dejar todo como está. Si podés, comprobá desde un equipo fuera
+      responde d para dejar todo como está. Si puedes, comprueba desde un equipo fuera
       de {{mgmtNetwork}} que no puede entrar.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      En la sesión original, pulsá Ctrl+X de nuevo. El cambio queda guardado. Si
-      algo no está bien, pulsá Ctrl+D en su lugar para salir deshaciendo lo hecho.
+      En la sesión original, pulsa Ctrl+X de nuevo. El cambio queda guardado. Si
+      algo no está bien, pulsa Ctrl+D en su lugar para salir deshaciendo lo hecho.
 verification:
   - command: /ip service print
     expect: >-
@@ -102,9 +102,9 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode se quita la
     restricción de origen y se reactivan solo los servicios que estaban activos.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /ip service set ssh address=""
@@ -116,14 +116,14 @@ rollback:
       commands:
         - /ip service enable telnet,ftp,api,api-ssl
       explanation: >-
-        Vuelve a activarlos. Quitá de la lista los que ya estaban desactivados antes
+        Vuelve a activarlos. Quita de la lista los que ya estaban desactivados antes
         de empezar, según lo que apuntaste.
   lockoutRecovery: >-
-    Si la sesión se corta con Safe Mode activo, esperá unos 9 minutos: los cambios
-    se deshacen solos. Si ya habías salido de Safe Mode, probá WinBox por MAC desde
+    Si la sesión se corta con Safe Mode activo, espera unos 9 minutos: los cambios
+    se deshacen solos. Si ya habías salido de Safe Mode, prueba WinBox por MAC desde
     un equipo conectado al mismo segmento de capa 2: va por MAC, no por IP, así que
-    no depende de esta restricción si el servidor MAC sigue activo. Si no, conectate
-    por el puerto de consola serie y quitá la restricción. Como último recurso,
+    no depende de esta restricción si el servidor MAC sigue activo. Si no, conéctate
+    por el puerto de consola serie y quita la restricción. Como último recurso,
     reiniciar la configuración con el botón de reset o reinstalar con Netinstall
     borra toda la configuración; después hay que cargar la copia guardada.
 sources:

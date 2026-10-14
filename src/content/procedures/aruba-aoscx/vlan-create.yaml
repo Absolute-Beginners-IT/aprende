@@ -30,11 +30,11 @@ params:
     help: Es el punto al que vas a poder volver si algo sale mal.
 preflight:
   - text: >-
-      Comprobá que el ID no esté ya en uso. Si aparece en la lista, no sigas: estarías
+      Comprueba que el ID no esté ya en uso. Si aparece en la lista, no sigas: estarías
       modificando una VLAN existente.
     command: show vlan
   - text: >-
-      Guardá un checkpoint con la configuración actual. El switch responde Success.
+      Guarda un checkpoint con la configuración actual. El switch responde Success.
     command: copy running-config checkpoint {{checkpointName}}
   - text: Este modelo admite como máximo 512 VLANs.
 steps:
@@ -75,9 +75,9 @@ steps:
     commands:
       - write memory
     explanation: >-
-      Copia la configuración en ejecución a la de arranque. Hacelo solo después de
+      Copia la configuración en ejecución a la de arranque. Hazlo solo después de
       verificar que todo está bien: hasta este paso, un reinicio deshace el cambio.
-    warning: Verificá primero (sección siguiente) y guardá después.
+    warning: Verifica primero (sección siguiente) y guarda después.
 verification:
   - command: show vlan {{vlanId}}
     expect: >-
@@ -89,7 +89,7 @@ verification:
 rollback:
   summary: >-
     Como la VLAN es nueva y no tiene puertos, basta con borrarla. Si además tocaste
-    otra cosa por error, volvé al checkpoint.
+    otra cosa por error, vuelve al checkpoint.
   steps:
     - title: Borrar la VLAN creada
       commands:
@@ -97,7 +97,7 @@ rollback:
         - no vlan {{vlanId}}
         - end
       explanation: >-
-        Elimina la VLAN. Antes de borrarla confirmá con show vlan {{vlanId}} que la
+        Elimina la VLAN. Antes de borrarla confirma con show vlan {{vlanId}} que la
         columna Interfaces está vacía.
     - title: Volver al estado anterior completo
       commands:
@@ -109,7 +109,7 @@ rollback:
       commands:
         - write memory
       explanation: >-
-        Después de borrar la VLAN o de volver al checkpoint, guardá de nuevo para que
+        Después de borrar la VLAN o de volver al checkpoint, guarda de nuevo para que
         la configuración de arranque también quede sin el cambio.
   lockoutRecovery: >-
     Crear una VLAN no corta el acceso de gestión. Si perdieras la conexión por otro

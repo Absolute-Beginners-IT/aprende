@@ -12,7 +12,7 @@ explanation: >-
 risks:
   - Un trunk suele ser un enlace troncal; un error corta de golpe todas las VLAN que pasan por él.
   - En varias plataformas, indicar la lista de VLAN permitidas sustituye la anterior en vez de ampliarla.
-  - Si la VLAN de gestión no queda permitida en el trunk, perdés el acceso remoto al switch.
+  - Si la VLAN de gestión no queda permitida en el trunk, pierdes el acceso remoto al switch.
   - Una VLAN nativa distinta en cada extremo mezcla el tráfico de dos VLAN.
 prerequisites:
   - Todas las VLAN que va a transportar el trunk ya existen en el switch.

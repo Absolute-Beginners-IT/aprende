@@ -30,7 +30,7 @@ params:
     example: sfp-sfpplus1
     pattern: '^[A-Za-z0-9_.+-]+(,[A-Za-z0-9_.+-]+)*$'
     patternHint: Uno o varios nombres de puerto separados por comas, sin espacios.
-    help: Puertos por los que la VLAN viaja etiquetada hacia otros switches. Usá los nombres que muestra /interface bridge port print.
+    help: Puertos por los que la VLAN viaja etiquetada hacia otros switches. Usa los nombres que muestra /interface bridge port print.
   - id: vlanName
     label: Nombre descriptivo
     type: text
@@ -44,26 +44,26 @@ params:
     example: crs317-antes-vlan-20
     pattern: '^(flash/)?[A-Za-z0-9_-]{1,40}$'
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
-    help: Si el equipo tiene carpeta flash, escribí flash/ delante del nombre.
+    help: Si el equipo tiene carpeta flash, escribe flash/ delante del nombre.
 preflight:
   - text: >-
-      Comprobá el nombre del bridge y que tenga vlan-filtering=yes. Si está en no,
-      detenete: la tabla de VLAN no tiene efecto, y activar el filtrado es una
+      Comprueba el nombre del bridge y que tenga vlan-filtering=yes. Si está en no,
+      detente: la tabla de VLAN no tiene efecto, y activar el filtrado es una
       operación aparte y de riesgo alto que puede dejarte sin acceso de gestión.
     command: /interface bridge print
   - text: >-
-      Comprobá que el ID no esté ya en la tabla. Las entradas marcadas con D son
+      Comprueba que el ID no esté ya en la tabla. Las entradas marcadas con D son
       dinámicas, creadas por el PVID de algún puerto.
     command: /interface bridge vlan print
-  - text: Anotá los nombres exactos de los puertos que forman parte del bridge.
+  - text: Anota los nombres exactos de los puertos que forman parte del bridge.
     command: /interface bridge port print
-  - text: Guardá una copia completa de la configuración antes de tocar nada.
+  - text: Guarda una copia completa de la configuración antes de tocar nada.
     command: /system backup save name={{backupName}}
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Mientras esté activo, si
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Mientras esté activo, si
       tu sesión se corta, los cambios se deshacen solos al vencer el tiempo de
       espera de la conexión.
   - title: Añadir la VLAN a la tabla del bridge
@@ -73,7 +73,7 @@ steps:
       Crea la entrada de la VLAN {{vlanId}} en el bridge {{bridgeName}} y la permite
       etiquetada en {{trunkPorts}}. El cambio se aplica en el momento.
     warning: >-
-      Usá una entrada por VLAN. Agrupar varias VLAN en una misma entrada junto con
+      Usa una entrada por VLAN. Agrupar varias VLAN en una misma entrada junto con
       puertos sin etiquetar puede hacer que el tráfico de una salga por el puerto de
       acceso de otra.
     breakdown:
@@ -90,13 +90,13 @@ steps:
   - title: Verificar antes de salir de Safe Mode
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
-      confirmá que seguís teniendo acceso de gestión.
+      Haz las comprobaciones de la sección Verificación sin salir de Safe Mode y
+      confirma que sigues teniendo acceso de gestión.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      Pulsá Ctrl+X de nuevo. El cambio queda guardado; en RouterOS no hay un comando
-      equivalente a write memory. Si algo no está bien, pulsá Ctrl+D en su lugar
+      Pulsa Ctrl+X de nuevo. El cambio queda guardado; en RouterOS no hay un comando
+      equivalente a write memory. Si algo no está bien, pulsa Ctrl+D en su lugar
       para salir deshaciendo lo hecho.
 verification:
   - command: /interface bridge vlan print
@@ -111,25 +111,25 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode, se quita la
     entrada creada.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /interface bridge vlan remove [find vlan-ids={{vlanId}} dynamic=no]
       explanation: >-
         Quita de la tabla la entrada de la VLAN {{vlanId}}. El tráfico de esa VLAN
         deja de pasar en el momento.
-      warning: Comprobá antes con /interface bridge vlan print que esa entrada es la que creaste.
+      warning: Comprueba antes con /interface bridge vlan print que esa entrada es la que creaste.
     - title: 'Alternativa: deshacer la última acción'
       commands:
         - /undo
-      explanation: Revierte la última acción de configuración. Mirá primero cuál es con /system history print.
+      explanation: Revierte la última acción de configuración. Mira primero cuál es con /system history print.
   lockoutRecovery: >-
     Añadir una VLAN nueva a los trunks no debería cortar la gestión. Si la sesión se
-    corta con Safe Mode activo, esperá unos 9 minutos: los cambios se deshacen
-    solos. Si ya habías salido de Safe Mode, conectate por consola y quitá la
-    entrada o cargá la copia guardada antes de empezar.
+    corta con Safe Mode activo, espera unos 9 minutos: los cambios se deshacen
+    solos. Si ya habías salido de Safe Mode, conéctate por consola y quita la
+    entrada o carga la copia guardada antes de empezar.
 sources:
   - title: RouterOS — Bridge VLAN Table
     url: https://help.mikrotik.com/docs/display/ROS/Bridge+VLAN+Table

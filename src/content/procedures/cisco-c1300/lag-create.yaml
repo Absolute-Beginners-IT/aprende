@@ -16,7 +16,7 @@ params:
     min: 1
     max: 8
     example: '1'
-    help: La guía oficial no indica el máximo; comprobá los disponibles con show interfaces port-channel.
+    help: La guía oficial no indica el máximo; comprueba los disponibles con show interfaces port-channel.
   - id: port1
     label: Primer puerto miembro
     type: text
@@ -39,19 +39,19 @@ params:
     example: 1,20,30-35
     pattern: '^\d{1,4}(-\d{1,4})?(,\d{1,4}(-\d{1,4})?)*$'
     patternHint: IDs separados por comas y rangos con guion, sin espacios; por ejemplo 1,20,30-35.
-    help: Es la lista completa. Incluí la VLAN nativa y la de gestión si tienen que pasar por este enlace.
+    help: Es la lista completa. Incluye la VLAN nativa y la de gestión si tienen que pasar por este enlace.
 preflight:
-  - text: Comprobá qué port-channels existen y que el número elegido está libre.
+  - text: Comprueba qué port-channels existen y que el número elegido está libre.
     command: show interfaces port-channel
   - text: >-
-      Confirmá que los dos puertos están libres y sin enlace. Si alguno está en uso,
-      detenete.
+      Confirma que los dos puertos están libres y sin enlace. Si alguno está en uso,
+      detente.
     command: show interfaces status
-  - text: Guardá la configuración actual del primer puerto por si hay que rehacerla.
+  - text: Guarda la configuración actual del primer puerto por si hay que rehacerla.
     command: show running-config interface {{port1}}
-  - text: Guardá también la del segundo puerto.
+  - text: Guarda también la del segundo puerto.
     command: show running-config interface {{port2}}
-  - text: Confirmá que todas las VLAN de la lista existen.
+  - text: Confirma que todas las VLAN de la lista existen.
     command: show vlan
   - text: >-
       No conectes los dos cables hasta que el otro extremo también tenga su
@@ -93,7 +93,7 @@ steps:
   - title: Conectar los cables y comprobar
     manual: true
     explanation: >-
-      Con el otro extremo ya configurado, conectá los dos cables y hacé las
+      Con el otro extremo ya configurado, conecta los dos cables y haz las
       comprobaciones de la sección Verificación.
   - title: Guardar el cambio
     commands:
@@ -101,7 +101,7 @@ steps:
     explanation: >-
       Copia la configuración en ejecución a la de arranque. El switch pide
       confirmación antes de sobrescribirla.
-    warning: Guardá solo después de verificar que la agregación se formó.
+    warning: Guarda solo después de verificar que la agregación se formó.
 verification:
   - command: show interfaces port-channel
     expect: En la fila Po{{poId}}, los dos puertos aparecen como Active y ninguno como Inactive.
@@ -131,8 +131,8 @@ rollback:
         - no channel-group
         - end
       explanation: >-
-        Quita los dos puertos del port-channel. Después reaplicá la configuración
-        que guardaste en Antes de empezar y habilitá cada puerto con no shutdown
+        Quita los dos puertos del port-channel. Después reaplica la configuración
+        que guardaste en Antes de empezar y habilita cada puerto con no shutdown
         solo cuando ya no haya dos cables hacia el mismo switch.
     - title: 'Alternativa: no guardar y reiniciar'
       commands:
@@ -142,9 +142,9 @@ rollback:
         configuración de arranque, sin la agregación.
       warning: El reinicio corta todo el tráfico del switch durante el arranque.
   lockoutRecovery: >-
-    Si la red se vuelve inestable o perdés el acceso justo después de conectar los
-    cables, sospechá de un bucle: desconectá uno de los dos cables de la agregación.
-    Después entrá por consola y revisá la configuración de los dos extremos.
+    Si la red se vuelve inestable o pierdes el acceso justo después de conectar los
+    cables, sospecha de un bucle: desconecta uno de los dos cables de la agregación.
+    Después entra por consola y revisa la configuración de los dos extremos.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — Port Channel Commands
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/port-channel-commands.html

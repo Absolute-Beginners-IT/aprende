@@ -35,21 +35,21 @@ params:
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
 preflight:
   - text: >-
-      Mirá las direcciones actuales y en qué interfaz están. Con detail se ve la
+      Mira las direcciones actuales y en qué interfaz están. Con detail se ve la
       interfaz real de cada una. La dirección de fábrica es 192.168.88.1/24.
     command: /ip address print detail
   - text: >-
-      Mirá si ya existe una ruta por defecto (destino 0.0.0.0/0). Si existe y es
+      Mira si ya existe una ruta por defecto (destino 0.0.0.0/0). Si existe y es
       correcta, no ejecutes el paso que añade otra.
     command: /ip route print
-  - text: Guardá una copia completa de la configuración.
+  - text: Guarda una copia completa de la configuración.
     command: /system backup save name={{backupName}}
-  - text: Comprobá desde otro equipo que la IP nueva no responde a ping, para no duplicarla.
+  - text: Comprueba desde otro equipo que la IP nueva no responde a ping, para no duplicarla.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Añadir la IP de gestión
     commands:
@@ -70,23 +70,23 @@ steps:
     explanation: >-
       Añade la ruta por defecto hacia {{gateway}}. Al no indicar destino, RouterOS
       usa 0.0.0.0/0.
-    warning: Saltá este paso si ya existe una ruta por defecto correcta; una segunda ruta reparte o desvía el tráfico del propio switch.
+    warning: Salta este paso si ya existe una ruta por defecto correcta; una segunda ruta reparte o desvía el tráfico del propio switch.
   - title: Comprobar el acceso por la IP nueva
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí otra hacia la IP de {{ipCidr}} desde tu equipo de
+      Sin cerrar esta sesión, abre otra hacia la IP de {{ipCidr}} desde tu equipo de
       administración. Al entrar, RouterOS avisa de que otra sesión tiene Safe Mode y
-      pregunta qué hacer: respondé d para dejar todo como está.
+      pregunta qué hacer: responde d para dejar todo como está.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      En la sesión original, pulsá Ctrl+X de nuevo. El cambio queda guardado. Si
-      algo no está bien, pulsá Ctrl+D en su lugar para salir deshaciendo lo hecho.
+      En la sesión original, pulsa Ctrl+X de nuevo. El cambio queda guardado. Si
+      algo no está bien, pulsa Ctrl+D en su lugar para salir deshaciendo lo hecho.
   - title: Retirar la dirección antigua cuando ya no haga falta
     manual: true
     explanation: >-
-      Cuando todo el mundo use la IP nueva, quitá la antigua desde una sesión
-      abierta contra la nueva, en el menú /ip address. Hacelo en otro momento y con
+      Cuando todo el mundo use la IP nueva, quita la antigua desde una sesión
+      abierta contra la nueva, en el menú /ip address. Hazlo en otro momento y con
       Safe Mode: las sesiones abiertas contra la dirección antigua se cortan.
 verification:
   - command: /ip address print
@@ -100,21 +100,21 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode se quitan la
     dirección y la ruta añadidas.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /ip address remove [find where address="{{ipCidr}}"]
         - /ip route remove [find where gateway={{gateway}} dst-address=0.0.0.0/0 static]
       explanation: >-
-        Quita la dirección y la ruta por defecto añadidas. Hacelo desde una sesión
+        Quita la dirección y la ruta por defecto añadidas. Hazlo desde una sesión
         abierta contra la dirección antigua.
       warning: No quites la ruta si ya existía antes de empezar y decidiste no añadir otra.
   lockoutRecovery: >-
     Como la dirección antigua no se toca, el acceso por ella se mantiene. Si aun así
-    lo perdés con Safe Mode activo, esperá unos 9 minutos a que los cambios se
-    deshagan. Si no, conectate por consola o cargá la copia guardada antes de
+    lo pierdes con Safe Mode activo, espera unos 9 minutos a que los cambios se
+    deshagan. Si no, conéctate por consola o carga la copia guardada antes de
     empezar.
 sources:
   - title: RouterOS — First Time Configuration

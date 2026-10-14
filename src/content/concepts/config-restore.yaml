@@ -9,7 +9,7 @@ explanation: >-
   comandos sueltos. Afecta al switch entero, no solo a lo último que tocaste.
 risks:
   - Se pierde todo cambio hecho después de la copia, también los que estaban bien.
-  - Si la copia tiene otra IP de gestión, otras VLAN u otros usuarios, podés quedarte sin acceso remoto.
+  - Si la copia tiene otra IP de gestión, otras VLAN u otros usuarios, puedes quedarte sin acceso remoto.
   - En algunas plataformas la restauración reinicia el switch y corta el tráfico durante unos minutos.
   - Restaurar una copia de otro equipo o de otra versión de firmware puede dejar el switch en un estado inconsistente.
 prerequisites:

@@ -15,7 +15,7 @@ params:
     label: VLAN a proteger
     type: vlan-id
     example: '120'
-    help: Empezá por una sola VLAN, mejor una de pruebas o con pocos equipos.
+    help: Empieza por una sola VLAN, mejor una de pruebas o con pocos equipos.
   - id: trustedPort
     label: Puerto confiable (hacia el servidor DHCP)
     type: text
@@ -24,7 +24,7 @@ params:
     patternHint: Formato miembro/slot/puerto, por ejemplo 1/1/51.
     help: >-
       El uplink por el que llegan las respuestas del servidor DHCP, directamente o a
-      través de otro switch. Si hay dos uplinks, repetí el paso de confianza en el
+      través de otro switch. Si hay dos uplinks, repite el paso de confianza en el
       segundo.
   - id: checkpointName
     label: Nombre del checkpoint de respaldo
@@ -34,20 +34,20 @@ params:
     patternHint: De 1 a 32 caracteres; letras, números, guion y guion bajo; no puede empezar por CPC.
 preflight:
   - text: >-
-      Mirá si DHCP snooping ya está activo, en qué VLAN y qué puertos son confiables.
+      Mira si DHCP snooping ya está activo, en qué VLAN y qué puertos son confiables.
       En la versión 10.14 la palabra dhcpv4-snooping pasó a ser dhcp-snooping; si el
-      switch no acepta el comando, revisá la versión de firmware.
+      switch no acepta el comando, revisa la versión de firmware.
     command: show dhcp-snooping
   - text: >-
-      Identificá el puerto por el que llega el servidor DHCP de la VLAN {{vlanId}}.
-      Mirá en qué puertos está la VLAN y cuál es el uplink.
+      Identifica el puerto por el que llega el servidor DHCP de la VLAN {{vlanId}}.
+      Mira en qué puertos está la VLAN y cuál es el uplink.
     command: show vlan {{vlanId}}
-  - text: Revisá el uplink para confirmar que es el enlace correcto y que lleva la VLAN.
+  - text: Revisa el uplink para confirmar que es el enlace correcto y que lleva la VLAN.
     command: show interface {{trustedPort}}
-  - text: Guardá un checkpoint con la configuración actual.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
   - text: >-
-      Tené a mano un equipo de prueba en la VLAN {{vlanId}} para forzar la renovación
+      Ten a mano un equipo de prueba en la VLAN {{vlanId}} para forzar la renovación
       de su dirección al terminar.
 steps:
   - title: Entrar en modo configuración
@@ -94,9 +94,9 @@ steps:
   - title: Probar con un equipo
     manual: true
     explanation: >-
-      En el equipo de prueba de la VLAN {{vlanId}}, liberá y renová la dirección (en
+      En el equipo de prueba de la VLAN {{vlanId}}, libera y renueva la dirección (en
       Windows, ipconfig /release y después ipconfig /renew). Tiene que recibir una
-      dirección del servidor legítimo. Si no la recibe, aplicá la vuelta atrás antes
+      dirección del servidor legítimo. Si no la recibe, aplica la vuelta atrás antes
       de que otros equipos renueven.
   - title: Guardar el cambio
     commands:
@@ -113,7 +113,7 @@ verification:
       VLAN {{vlanId}} y su puerto.
 rollback:
   summary: >-
-    Desactivá DHCP snooping en la VLAN, o en todo el switch. Al desactivarlo se borra
+    Desactiva DHCP snooping en la VLAN, o en todo el switch. Al desactivarlo se borra
     la tabla de asignaciones aprendidas.
   steps:
     - title: Desactivarlo en la VLAN
@@ -141,8 +141,8 @@ rollback:
       explanation: Vuelve al estado guardado antes de empezar y lo deja también en la configuración de arranque.
   lockoutRecovery: >-
     DHCP snooping no corta el SSH ni la web si el switch tiene IP fija. Si la IP de
-    gestión del switch la da un servidor DHCP por la VLAN {{vlanId}} y la perdés,
-    entrá por la consola y desactivá la función con no dhcp-snooping.
+    gestión del switch la da un servidor DHCP por la VLAN {{vlanId}} y la pierdes,
+    entra por la consola y desactiva la función con no dhcp-snooping.
 sources:
   - title: AOS-CX 10.15 IP Services Guide (4100i, 6000, 6100) — DHCP snooping
     url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/ip_services_4100i-6000-6100/Content/Chp_DHCP_snoop/dhc-sno-fl-ml-xl-10.htm

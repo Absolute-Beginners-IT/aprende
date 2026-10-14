@@ -13,11 +13,11 @@ params:
     example: 192.168.10.5
     pattern: '^[A-Za-z0-9.-]{1,253}$'
     patternHint: Una IP o un nombre de equipo, sin espacios.
-    help: Si usás un nombre, el switch necesita tener configurado un servidor DNS.
+    help: Si usas un nombre, el switch necesita tener configurado un servidor DNS.
 preflight:
-  - text: Mirá la hora y la fecha que tiene ahora el switch.
+  - text: Mira la hora y la fecha que tiene ahora el switch.
     command: show clock
-  - text: Mirá si ya hay servidores de tiempo configurados.
+  - text: Mira si ya hay servidores de tiempo configurados.
     command: show ntp associations
 steps:
   - title: Entrar en modo configuración
@@ -52,7 +52,7 @@ verification:
   - command: show clock
     expect: La hora y la fecha son las correctas.
 rollback:
-  summary: Quitá el servidor añadido y, si antes no se usaba NTP, desactivá el cliente.
+  summary: Quita el servidor añadido y, si antes no se usaba NTP, desactiva el cliente.
   steps:
     - title: Quitar el servidor y desactivar el cliente
       commands:

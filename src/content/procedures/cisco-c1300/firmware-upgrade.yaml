@@ -28,14 +28,14 @@ params:
     patternHint: Hasta 60 caracteres; letras, números, punto, guion y guion bajo, sin espacios.
 preflight:
   - text: >-
-      Mirá qué imagen está activa y cuál inactiva, con sus versiones. La inactiva
+      Mira qué imagen está activa y cuál inactiva, con sus versiones. La inactiva
       actual se va a borrar.
     command: show bootvar
-  - text: Sacá una copia de la configuración fuera del switch.
+  - text: Saca una copia de la configuración fuera del switch.
     command: copy running-config tftp://{{serverIp}}/{{configBackupName}}
-  - text: Guardá la configuración en ejecución, para que el switch arranque con ella después de actualizar.
+  - text: Guarda la configuración en ejecución, para que el switch arranque con ella después de actualizar.
     command: write memory
-  - text: Leé las notas de la versión y confirmá que el salto desde la versión actual está soportado.
+  - text: Lee las notas de la versión y confirma que el salto desde la versión actual está soportado.
 steps:
   - title: Instalar la imagen nueva
     commands:
@@ -65,7 +65,7 @@ steps:
   - title: Esperar el arranque y volver a entrar
     manual: true
     explanation: >-
-      Conectate de nuevo cuando el equipo termine de arrancar y hacé las
+      Conéctate de nuevo cuando el equipo termine de arrancar y haz las
       comprobaciones de la sección Verificación.
 verification:
   - command: show version
@@ -83,12 +83,12 @@ rollback:
         - reload
       explanation: >-
         Hace que la imagen inactiva pase a ser la activa y reinicia. Si la versión
-        nueva cambió el formato de la configuración, restaurá después la copia hecha
+        nueva cambió el formato de la configuración, restaura después la copia hecha
         en Antes de empezar con la guía de restaurar configuración.
       warning: Vuelve a cortar todo el tráfico durante el arranque.
   lockoutRecovery: >-
-    Si después del reinicio no podés entrar por red, conectate por el puerto de
-    consola, revisá la IP de gestión y, si hace falta, volvé a la imagen anterior
+    Si después del reinicio no puedes entrar por red, conéctate por el puerto de
+    consola, revisa la IP de gestión y, si hace falta, vuelve a la imagen anterior
     con la vuelta atrás.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — File System Commands (boot system, show bootvar)

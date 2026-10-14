@@ -52,29 +52,29 @@ params:
     min: 1
     max: 60
     example: '10'
-    help: Tiempo para comprobar que seguís teniendo acceso antes de que el switch deshaga el cambio solo.
+    help: Tiempo para comprobar que sigues teniendo acceso antes de que el switch deshaga el cambio solo.
 preflight:
-  - text: Mirá qué comunidades v2c existen. Si aparece public, el switch está usando la de fábrica.
+  - text: Mira qué comunidades v2c existen. Si aparece public, el switch está usando la de fábrica.
     command: show snmp community
-  - text: Mirá qué usuarios SNMPv3 existen.
+  - text: Mira qué usuarios SNMPv3 existen.
     command: show snmpv3 users
   - text: >-
-      Mirá si ya hay una ACL aplicada al control plane. Solo puede haber una por VRF:
-      si ya existe, no sigas, porque la nueva la reemplazaría. Añadí las reglas de
+      Mira si ya hay una ACL aplicada al control plane. Solo puede haber una por VRF:
+      si ya existe, no sigas, porque la nueva la reemplazaría. Añade las reglas de
       SNMP a la existente.
     command: show running-config | include control-plane
-  - text: Guardá un checkpoint con la configuración actual.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
   - text: >-
-      Tené preparadas en el gestor de contraseñas dos claves distintas, una de
-      autenticación y otra de cifrado, de 8 a 32 caracteres. Evitá espacios, comillas
-      y el signo ?, que la CLI interpreta. Tené a mano el acceso por consola.
+      Ten preparadas en el gestor de contraseñas dos claves distintas, una de
+      autenticación y otra de cifrado, de 8 a 32 caracteres. Evita espacios, comillas
+      y el signo ?, que la CLI interpreta. Ten a mano el acceso por consola.
 steps:
   - title: Activar el modo checkpoint auto
     commands:
       - checkpoint auto {{minutes}}
     explanation: >-
-      Abre una ventana de {{minutes}} minutos. Si no confirmás antes de que venza, el
+      Abre una ventana de {{minutes}} minutos. Si no confirmas antes de que venza, el
       switch restaura la configuración que tenía en este momento. Te protege si la ACL
       de control plane te deja sin acceso.
   - title: Entrar en modo configuración
@@ -116,9 +116,9 @@ steps:
   - title: Reemplazar la comunidad public, escribiendo una a mano
     manual: true
     explanation: >-
-      Escribí snmp-server community seguido de una cadena larga y aleatoria, de hasta
-      32 caracteres, sin espacios ni signo ?, y pulsá Enter. Dentro del contexto de la
-      comunidad escribí access-level ro y después exit. Al crear una comunidad propia,
+      Escribe snmp-server community seguido de una cadena larga y aleatoria, de hasta
+      32 caracteres, sin espacios ni signo ?, y pulsa Enter. Dentro del contexto de la
+      comunidad escribe access-level ro y después exit. Al crear una comunidad propia,
       public se borra. Nadie va a usar esta comunidad, así que no hace falta
       guardarla.
     warning: >-
@@ -127,11 +127,11 @@ steps:
   - title: Crear el usuario SNMPv3, escribiendo las claves a mano
     manual: true
     explanation: >-
-      Escribí snmpv3 user {{snmpUser}} auth sha auth-pass plaintext, tu clave de
+      Escribe snmpv3 user {{snmpUser}} auth sha auth-pass plaintext, tu clave de
       autenticación, priv aes priv-pass plaintext y tu clave de cifrado, en ese orden,
-      y pulsá Enter. El switch guarda las claves cifradas en la configuración.
+      y pulsa Enter. El switch guarda las claves cifradas en la configuración.
     warning: >-
-      Usá aes, no des: con des el switch deshabilita el usuario. Este manual no genera
+      Usa aes, no des: con des el switch deshabilita el usuario. Este manual no genera
       este comando porque incluye las claves, que son secretos.
   - title: Activar el agente SNMP
     commands:
@@ -146,17 +146,17 @@ steps:
   - title: Comprobar el acceso y probar SNMP
     manual: true
     explanation: >-
-      Dentro de la ventana de {{minutes}} minutos, abrí una sesión SSH nueva para
-      confirmar que seguís teniendo acceso. Después, en la herramienta de
-      monitorización configurá SNMPv3 con el usuario {{snmpUser}}, nivel authPriv,
-      autenticación SHA y cifrado AES, con las mismas claves, y comprobá que el switch
-      responde. En NinjaOne, si el descubrimiento de red no lo encuentra, agregalo a
+      Dentro de la ventana de {{minutes}} minutos, abre una sesión SSH nueva para
+      confirmar que sigues teniendo acceso. Después, en la herramienta de
+      monitorización configura SNMPv3 con el usuario {{snmpUser}}, nivel authPriv,
+      autenticación SHA y cifrado AES, con las mismas claves, y comprueba que el switch
+      responde. En NinjaOne, si el descubrimiento de red no lo encuentra, agrégalo a
       mano con su IP.
   - title: Confirmar el cambio
     commands:
       - checkpoint auto confirm
     explanation: Termina el modo auto y deja el cambio como definitivo en ejecución.
-    warning: Si no ejecutás este comando a tiempo, el switch vuelve solo al estado anterior.
+    warning: Si no ejecutas este comando a tiempo, el switch vuelve solo al estado anterior.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -173,7 +173,7 @@ verification:
 rollback:
   summary: >-
     Mientras el modo auto esté activo, la vuelta atrás es no confirmar. Si ya
-    confirmaste, apagá el agente y quitá la ACL del control plane, o volvé al
+    confirmaste, apaga el agente y quita la ACL del control plane, o vuelve al
     checkpoint.
   steps:
     - title: Si todavía no confirmaste
@@ -197,9 +197,9 @@ rollback:
         - write memory
       explanation: Vuelve al estado guardado antes de empezar y lo deja también en la configuración de arranque.
   lockoutRecovery: >-
-    Si perdés el acceso con el modo auto activo, esperá: al vencer la ventana el switch
-    recupera la configuración anterior. Si ya habías confirmado, entrá por el puerto de
-    consola y quitá la ACL con no apply access-list ip {{aclName}} control-plane vrf
+    Si pierdes el acceso con el modo auto activo, espera: al vencer la ventana el switch
+    recupera la configuración anterior. Si ya habías confirmado, entra por el puerto de
+    consola y quita la ACL con no apply access-list ip {{aclName}} control-plane vrf
     default.
 sources:
   - title: AOS-CX 10.15 Fundamentals Guide (4100i, 6000, 6100) — configurar SNMP

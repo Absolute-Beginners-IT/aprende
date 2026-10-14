@@ -57,7 +57,7 @@ describe('validateParam', () => {
     const choice = param({ type: 'choice', options: ['access', 'trunk'] })
 
     expect(validateParam(choice, 'trunk')).toBeNull()
-    expect(validateParam(choice, 'hybrid')).toBe('Elegí una de las opciones disponibles.')
+    expect(validateParam(choice, 'hybrid')).toBe('Elige una de las opciones disponibles.')
   })
 
   it('applies the declared pattern to text and reports its hint', () => {

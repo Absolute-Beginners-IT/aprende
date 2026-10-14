@@ -18,9 +18,9 @@ params:
     pattern: '^[A-Za-z0-9_-]{1,32}$'
     patternHint: Hasta 32 caracteres; letras, números, guion y guion bajo.
 preflight:
-  - text: Comprobá que la hora está sincronizada; si no, los registros llegan con la hora mal.
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
     command: /system ntp client print
-  - text: Mirá las acciones de registro que existen ya.
+  - text: Mira las acciones de registro que existen ya.
     command: /system logging action print
 steps:
   - title: Crear la acción de envío remoto
@@ -46,13 +46,13 @@ steps:
   - title: Comprobar la llegada en el servidor
     manual: true
     explanation: >-
-      Provocá un mensaje inofensivo, por ejemplo entrando y saliendo de una sesión,
-      y buscalo en el servidor syslog filtrando por la IP del equipo.
+      Provoca un mensaje inofensivo, por ejemplo entrando y saliendo de una sesión,
+      y búscalo en el servidor syslog filtrando por la IP del equipo.
 verification:
   - command: /system logging print
     expect: Aparecen las cuatro reglas nuevas con la acción {{actionName}}.
 rollback:
-  summary: Quitá las reglas y la acción creadas.
+  summary: Quita las reglas y la acción creadas.
   steps:
     - title: Quitar reglas y acción
       commands:
@@ -71,6 +71,6 @@ status:
     Marcada sin verificar. La documentación consultada confirma target=remote, el
     puerto 514 por defecto y la forma de crear acciones y reglas, pero describe
     remote-port como dirección y puerto juntos, lo que no coincide con el comando
-    de esta guía; confirmá los nombres de las propiedades con la ayuda del equipo.
+    de esta guía; confirma los nombres de las propiedades con la ayuda del equipo.
     Que varios temas en una regla se combinan es el comportamiento conocido de
     RouterOS, no algo leído en esa página. Falta probarla en un equipo real.

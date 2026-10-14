@@ -20,25 +20,25 @@ preflight:
 steps:
   - title: Abrir la hora del sistema
     manual: true
-    explanation: Andá a Local Device > System > System Time.
+    explanation: Ve a Local Device > System > System Time.
   - title: Comprobar la zona horaria
     manual: true
-    explanation: Si la hora mostrada no es la local, elegí la zona horaria correcta.
+    explanation: Si la hora mostrada no es la local, elige la zona horaria correcta.
   - title: Añadir el servidor de tiempo
     manual: true
     explanation: >-
-      En la lista de servidores NTP, añadí {{ntpServer}} y guardá. Podés borrar los
+      En la lista de servidores NTP, añade {{ntpServer}} y guarda. Puedes borrar los
       servidores públicos si el switch no tiene salida a internet.
 verification:
   - expect: >-
       En System Time, la hora actual coincide con la de tu equipo. En Local Device >
       Home > Basic Info, la hora del sistema también es la correcta.
 rollback:
-  summary: Quitá el servidor añadido.
+  summary: Quita el servidor añadido.
   steps:
     - title: Quitar el servidor de tiempo
       manual: true
-      explanation: En Local Device > System > System Time, borrá {{ntpServer}} de la lista y guardá.
+      explanation: En Local Device > System > System Time, borra {{ntpServer}} de la lista y guarda.
   lockoutRecovery: Este cambio no afecta al acceso de gestión.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado Setting the System Time

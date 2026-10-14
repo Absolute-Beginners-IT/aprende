@@ -10,7 +10,7 @@ explanation: >-
   la VLAN de un puerto mueve al equipo conectado a otra red en el momento.
 risks:
   - El equipo conectado pierde la conexión con su red anterior en cuanto se aplica el cambio.
-  - Si el puerto es por el que estás gestionando el switch, o es un enlace hacia otro switch, podés quedarte sin acceso.
+  - Si el puerto es por el que estás gestionando el switch, o es un enlace hacia otro switch, puedes quedarte sin acceso.
   - Si la VLAN de destino no existe en el switch, el puerto puede quedar sin servicio.
   - Convertir en acceso un puerto que era trunk corta todas las VLAN que pasaban por él.
 prerequisites:

@@ -35,13 +35,13 @@ risk: { level: low, reason: No afecta al tráfico existente. }
 params:
   - { id: vlanId, label: ID de VLAN, type: vlan-id, example: '20' }
 preflight:
-  - { text: Revisá las VLAN existentes., command: show vlan }
+  - { text: Revisa las VLAN existentes., command: show vlan }
 steps:
   - { title: Crear, commands: ['vlan {{vlanId}}'], explanation: Crea la VLAN. }
 verification:
   - { command: 'show vlan {{vlanId}}', expect: Aparece la VLAN. }
 rollback:
-  summary: Borrá la VLAN.
+  summary: Borra la VLAN.
   steps:
     - { commands: ['no vlan {{vlanId}}'], explanation: Elimina la VLAN. }
 sources:

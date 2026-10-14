@@ -40,9 +40,9 @@ safetyNets:
       - show startup-config
   - name: Reinicio programado
     description: >-
-      Antes de un cambio que puede dejarte sin acceso, programá un reinicio. Si
-      perdés la conexión, el switch se reinicia solo y arranca con la configuración
-      de arranque; si todo sale bien, lo cancelás. El reinicio corta el tráfico.
+      Antes de un cambio que puede dejarte sin acceso, programa un reinicio. Si
+      pierdes la conexión, el switch se reinicia solo y arranca con la configuración
+      de arranque; si todo sale bien, lo cancelas. El reinicio corta el tráfico.
     commands:
       - reload in <minutos>
       - show reload

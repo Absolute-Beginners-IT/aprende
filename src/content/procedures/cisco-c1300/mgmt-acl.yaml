@@ -8,7 +8,7 @@ risk:
   level: high
   reason: >-
     Al activar la lista, todo acceso de gestión que no esté permitido queda
-    denegado. Si tu propia red no está en la lista, perdés el acceso por red en el
+    denegado. Si tu propia red no está en la lista, pierdes el acceso por red en el
     acto.
 params:
   - id: aclName
@@ -33,24 +33,24 @@ params:
     min: 5
     max: 60
     example: '15'
-    help: Si perdés el acceso, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
+    help: Si pierdes el acceso, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
 preflight:
   - text: >-
-      Mirá si ya hay una lista de gestión activa. De fábrica no hay ninguna
+      Mira si ya hay una lista de gestión activa. De fábrica no hay ninguna
       restricción.
     command: show management access-class
-  - text: Mirá qué listas de gestión existen, para no reutilizar el nombre {{aclName}}.
+  - text: Mira qué listas de gestión existen, para no reutilizar el nombre {{aclName}}.
     command: show management access-list
   - text: >-
-      Confirmá que la IP de tu equipo está dentro de {{adminNetwork}} con la máscara
-      {{adminMask}}. Si gestionás el switch por SNMP, HTTP o Telnet desde otras
+      Confirma que la IP de tu equipo está dentro de {{adminNetwork}} con la máscara
+      {{adminMask}}. Si gestionas el switch por SNMP, HTTP o Telnet desde otras
       direcciones, ese acceso también quedará bloqueado.
   - text: >-
-      Confirmá que la configuración de arranque es buena, porque es a la que vuelve
+      Confirma que la configuración de arranque es buena, porque es a la que vuelve
       el switch si se reinicia. No tiene que haber cambios sin guardar que quieras
       conservar.
     command: show startup-config
-  - text: Hacelo por el puerto de consola si podés; así no dependés del acceso que vas a restringir.
+  - text: Hazlo por el puerto de consola si puedes; así no dependes del acceso que vas a restringir.
 steps:
   - title: Programar el reinicio de seguridad
     commands:
@@ -60,8 +60,8 @@ steps:
       cambio te deja sin acceso, el switch se reinicia solo y arranca con la
       configuración de arranque, que todavía no tiene la lista.
     warning: >-
-      Si olvidás cancelarlo, el switch se reinicia y corta todo el tráfico. Si hacés
-      el cambio por consola, saltá este paso y el de cancelar.
+      Si olvidas cancelarlo, el switch se reinicia y corta todo el tráfico. Si haces
+      el cambio por consola, salta este paso y el de cancelar.
     breakdown:
       - token: reload in
         meaning: Programa un reinicio diferido en vez de reiniciar ahora.
@@ -83,7 +83,7 @@ steps:
       administración. Todo lo que no coincida con una regla queda denegado, porque
       la lista termina con una denegación implícita.
     warning: >-
-      Si monitorizás el switch por SNMP, añadí antes de salir una regla igual con la
+      Si monitorizas el switch por SNMP, añade antes de salir una regla igual con la
       IP del servidor de monitorización y service snmp, o dejará de responder.
     breakdown:
       - token: permit ip-source {{adminNetwork}}
@@ -102,7 +102,7 @@ steps:
     explanation: >-
       Hace que {{aclName}} sea la lista de gestión activa. Desde aquí, solo se
       aceptan conexiones de gestión que cumplan sus reglas.
-    warning: Si tu equipo no está en la red de administración, perdés el acceso por red en este paso.
+    warning: Si tu equipo no está en la red de administración, pierdes el acceso por red en este paso.
     breakdown:
       - token: management access-class
         meaning: Elige la lista de gestión activa. Con console-only, el switch solo se gestiona por consola.
@@ -113,15 +113,15 @@ steps:
   - title: Entrar desde la red de administración
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí una sesión SSH nueva desde un equipo de
-      {{adminNetwork}} y entrá también por HTTPS. Si podés, comprobá que desde un
-      equipo fuera de esa red no se puede entrar. Hacelo antes de que pasen los
+      Sin cerrar esta sesión, abre una sesión SSH nueva desde un equipo de
+      {{adminNetwork}} y entra también por HTTPS. Si puedes, comprueba que desde un
+      equipo fuera de esa red no se puede entrar. Hazlo antes de que pasen los
       {{minutes}} minutos.
   - title: Cancelar el reinicio de seguridad
     commands:
       - reload cancel
     explanation: Cancela el reinicio programado. El switch responde Reload cancelled.
-    warning: No sigas sin ejecutar este paso; comprobá después con show reload que no queda ningún reinicio pendiente.
+    warning: No sigas sin ejecutar este paso; comprueba después con show reload que no queda ningún reinicio pendiente.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -146,7 +146,7 @@ rollback:
     - title: Si perdiste el acceso y el reinicio sigue programado
       manual: true
       explanation: >-
-        Esperá. Al cumplirse el tiempo el switch se reinicia y arranca con la
+        Espera. Al cumplirse el tiempo el switch se reinicia y arranca con la
         configuración de arranque, sin la lista. El reinicio corta el tráfico
         durante el arranque.
     - title: Desactivar y borrar la lista
@@ -161,11 +161,11 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la vuelta atrás sobreviva a un reinicio.
+      explanation: Guarda de nuevo para que la vuelta atrás sobreviva a un reinicio.
   lockoutRecovery: >-
-    Si perdés el acceso con el reinicio programado, esperá a que el switch se
+    Si pierdes el acceso con el reinicio programado, espera a que el switch se
     reinicie y vuelva sin la lista. Si no lo habías programado o ya lo cancelaste,
-    entrá por el puerto de consola, que no es una conexión de red, y desactivá la
+    entra por el puerto de consola, que no es una conexión de red, y desactiva la
     lista con no management access-class.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — Management ACL Commands

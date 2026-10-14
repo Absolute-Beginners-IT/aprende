@@ -12,7 +12,7 @@ explanation: >-
 risks:
   - Desactivar el servicio por el que estás conectado corta tu sesión.
   - Limitar el acceso a una red equivocada te deja fuera aunque el servicio esté activo.
-  - Activar SSH sin haber comprobado que podés entrar por él, y cerrar Telnet a continuación, puede dejarte sin ninguna vía remota.
+  - Activar SSH sin haber comprobado que puedes entrar por él, y cerrar Telnet a continuación, puede dejarte sin ninguna vía remota.
 prerequisites:
   - El switch ya tiene IP de gestión y un usuario administrador con contraseña.
   - Tener un cliente SSH en el equipo de administración.

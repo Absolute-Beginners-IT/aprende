@@ -23,7 +23,7 @@ export function CopyButton({ text, label, disabled = false, children = 'Copiar' 
       type="button"
       className="copy-button"
       aria-label={label}
-      title={disabled ? 'Completá tus datos para poder copiar' : undefined}
+      title={disabled ? 'Completa tus datos para poder copiar' : undefined}
       disabled={disabled}
       onClick={copy}
     >

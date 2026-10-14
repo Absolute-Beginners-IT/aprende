@@ -42,7 +42,7 @@ verification:
 rollback:
   summary: >-
     Consultar no requiere vuelta atrás. Si activaste LLDP y antes estaba desactivado
-    a propósito, volvé a desactivarlo.
+    a propósito, vuelve a desactivarlo.
   steps:
     - title: Desactivar LLDP de nuevo
       commands:

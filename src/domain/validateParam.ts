@@ -37,7 +37,7 @@ function validateFormat(param: Param, value: string): string | null {
     case 'cidr':
       return isCidr(value) ? null : 'Debe ser una IPv4 con prefijo, por ejemplo 192.168.10.1/24.'
     case 'choice':
-      return param.options?.includes(value) ? null : 'Elegí una de las opciones disponibles.'
+      return param.options?.includes(value) ? null : 'Elige una de las opciones disponibles.'
     case 'text':
       if (param.pattern && !new RegExp(param.pattern).test(value)) {
         return param.patternHint ?? 'El formato no es válido.'

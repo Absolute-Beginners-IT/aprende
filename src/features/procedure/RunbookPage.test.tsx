@@ -39,7 +39,7 @@ const procedure = ProcedureSchema.parse({
     { id: 'vlanId', label: 'ID de la VLAN', type: 'vlan-id', example: '20' },
     { id: 'vlanName', label: 'Nombre de la VLAN', type: 'text', example: 'VOZ' },
   ],
-  preflight: [{ text: 'Revisá las VLAN existentes.', command: 'show vlan' }],
+  preflight: [{ text: 'Revisa las VLAN existentes.', command: 'show vlan' }],
   steps: [
     { title: 'Entrar en configuración', commands: ['config'], explanation: 'Cambia de modo.' },
     {
@@ -47,14 +47,14 @@ const procedure = ProcedureSchema.parse({
       commands: ['vlan {{vlanId}}', 'name {{vlanName}}'],
       explanation: 'Crea la VLAN {{vlanId}}.',
       breakdown: [{ token: 'vlan', meaning: 'Crea la VLAN indicada.' }],
-      warning: 'Comprobá el ID antes de seguir.',
+      warning: 'Comprueba el ID antes de seguir.',
     },
   ],
   verification: [{ command: 'show vlan {{vlanId}}', expect: 'Aparece la VLAN {{vlanId}}.' }],
   rollback: {
-    summary: 'Borrá la VLAN.',
+    summary: 'Borra la VLAN.',
     steps: [{ title: 'Borrar', commands: ['no vlan {{vlanId}}'], explanation: 'Elimina la VLAN.' }],
-    lockoutRecovery: 'Reiniciá el switch para volver a la configuración de arranque.',
+    lockoutRecovery: 'Reinicia el switch para volver a la configuración de arranque.',
   },
   sources,
   status,
@@ -153,19 +153,19 @@ describe('RunbookPage', () => {
   it('shows the warning, the parameter breakdown and the lockout recovery', () => {
     renderPage()
 
-    expect(screen.getByText('Comprobá el ID antes de seguir.')).toBeInTheDocument()
+    expect(screen.getByText('Comprueba el ID antes de seguir.')).toBeInTheDocument()
     expect(screen.getByText('Crea la VLAN indicada.')).toBeInTheDocument()
-    expect(screen.getByText('Reiniciá el switch para volver a la configuración de arranque.')).toBeInTheDocument()
+    expect(screen.getByText('Reinicia el switch para volver a la configuración de arranque.')).toBeInTheDocument()
   })
 
   it('shows a manual step without a command block or copy button', () => {
     const manual = ProcedureSchema.parse({
       ...procedure,
-      steps: [{ title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.', manual: true }],
+      steps: [{ title: 'Descargar el archivo', explanation: 'Cópialo a tu equipo.', manual: true }],
     })
     render(<RunbookPage platform={platform} concept={concept} procedure={manual} />)
 
-    expect(within(section('Paso a paso')).getByText('Copialo a tu equipo.')).toBeInTheDocument()
+    expect(within(section('Paso a paso')).getByText('Cópialo a tu equipo.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copiar: Descargar el archivo' })).not.toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Hecho: Descargar el archivo' })).toBeInTheDocument()
     expect(within(section('Paso a paso')).getByText('Acción manual')).toBeInTheDocument()
@@ -228,7 +228,7 @@ describe('RunbookPage', () => {
     const fixed = ProcedureSchema.parse({
       ...procedure,
       params: [],
-      preflight: [{ text: 'Revisá las VLAN.', command: 'show vlan' }],
+      preflight: [{ text: 'Revisa las VLAN.', command: 'show vlan' }],
       steps: [{ title: 'Entrar en configuración', commands: ['config'], explanation: 'Cambia de modo.' }],
       verification: [{ command: 'show vlan', expect: 'Aparecen las VLAN.' }],
       rollback: { summary: 'Nada que deshacer.', steps: [{ commands: ['end'], explanation: 'Sale.' }] },
@@ -254,7 +254,7 @@ describe('RunbookPage', () => {
         },
         { id: 'fallback', label: 'Imagen de reserva', type: 'choice', example: 'primary', options: ['primary', 'secondary'] },
       ],
-      preflight: [{ text: 'Mirá las imágenes.' }],
+      preflight: [{ text: 'Mira las imágenes.' }],
       steps: [{ title: 'Descargar', commands: ['copy file {{target}}'], explanation: 'Descarga.' }],
       verification: [{ command: 'show images', expect: 'Aparece la versión nueva.' }],
       rollback: { summary: 'Volver.', steps: [{ commands: ['boot system {{fallback}}'], explanation: 'Reinicia.' }] },
@@ -279,10 +279,10 @@ describe('RunbookPage', () => {
     const web = ProcedureSchema.parse({
       ...procedure,
       params: [{ id: 'vlanId', label: 'ID de la VLAN', type: 'vlan-id', example: '20' }],
-      preflight: [{ text: 'Abrí Local Device > VLAN > VLAN List.' }],
-      steps: [{ title: 'Añadir la VLAN', explanation: 'Pulsá Add e introducí {{vlanId}}.', manual: true }],
+      preflight: [{ text: 'Abre Local Device > VLAN > VLAN List.' }],
+      steps: [{ title: 'Añadir la VLAN', explanation: 'Pulsa Add e introduce {{vlanId}}.', manual: true }],
       verification: [{ expect: 'La VLAN {{vlanId}} aparece en VLAN List.' }],
-      rollback: { summary: 'Borrala.', steps: [{ title: 'Borrar', explanation: 'Pulsá Delete.', manual: true }] },
+      rollback: { summary: 'Bórrala.', steps: [{ title: 'Borrar', explanation: 'Pulsa Delete.', manual: true }] },
     })
     render(<RunbookPage platform={webPlatform} concept={concept} procedure={web} />)
 

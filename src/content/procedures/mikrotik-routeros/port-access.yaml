@@ -7,7 +7,7 @@ risk:
   level: medium
   reason: >-
     El equipo conectado cambia de red en el momento y RouterOS guarda el cambio sin
-    paso de confirmación. Si el puerto es tu vía de gestión, perdés el acceso.
+    paso de confirmación. Si el puerto es tu vía de gestión, pierdes el acceso.
 params:
   - id: interfaceName
     label: Puerto
@@ -42,23 +42,23 @@ params:
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
 preflight:
   - text: >-
-      Comprobá que el bridge tiene vlan-filtering=yes. Si está en no, detenete: el
+      Comprueba que el bridge tiene vlan-filtering=yes. Si está en no, detente: el
       PVID no tiene efecto hasta que el filtrado de VLAN está activado.
     command: /interface bridge print
-  - text: Anotá el PVID y el frame-types actuales del puerto.
+  - text: Anota el PVID y el frame-types actuales del puerto.
     command: /interface bridge port print detail
   - text: >-
-      Confirmá que la VLAN de destino tiene su entrada en la tabla y que los trunks
+      Confirma que la VLAN de destino tiene su entrada en la tabla y que los trunks
       la llevan etiquetada.
     command: /interface bridge vlan print
-  - text: Guardá una copia completa de la configuración.
+  - text: Guarda una copia completa de la configuración.
     command: /system backup save name={{backupName}}
-  - text: Comprobá que no es el puerto por el que estás conectado ni un enlace hacia otro switch.
+  - text: Comprueba que no es el puerto por el que estás conectado ni un enlace hacia otro switch.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Cambiar el PVID del puerto
     commands:
@@ -81,12 +81,12 @@ steps:
   - title: Verificar antes de salir de Safe Mode
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
-      confirmá que seguís teniendo acceso de gestión.
+      Haz las comprobaciones de la sección Verificación sin salir de Safe Mode y
+      confirma que sigues teniendo acceso de gestión.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      Pulsá Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsá
+      Pulsa Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsa
       Ctrl+D en su lugar para salir deshaciendo lo hecho.
 verification:
   - command: /interface bridge port print
@@ -101,17 +101,17 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode, se devuelven al
     puerto su PVID y su frame-types anteriores.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /interface bridge port set [find where interface={{interfaceName}}] pvid={{previousPvid}} frame-types={{previousFrameTypes}}
       explanation: Devuelve el puerto al PVID {{previousPvid}} y al frame-types que tenía.
   lockoutRecovery: >-
-    Si la sesión se corta con Safe Mode activo, esperá unos 9 minutos: los cambios
-    se deshacen solos. Si ya habías salido de Safe Mode, conectate por consola y
-    devolvé el puerto a sus valores, o cargá la copia guardada antes de empezar.
+    Si la sesión se corta con Safe Mode activo, espera unos 9 minutos: los cambios
+    se deshacen solos. Si ya habías salido de Safe Mode, conéctate por consola y
+    devuelve el puerto a sus valores, o carga la copia guardada antes de empezar.
 sources:
   - title: RouterOS — Bridge VLAN Table
     url: https://help.mikrotik.com/docs/display/ROS/Bridge+VLAN+Table

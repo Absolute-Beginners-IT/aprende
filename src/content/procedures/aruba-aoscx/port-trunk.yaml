@@ -26,7 +26,7 @@ params:
     example: 1,20,30-35
     pattern: '^\d{1,4}(-\d{1,4})?(,\d{1,4}(-\d{1,4})?)*$'
     patternHint: IDs separados por comas y rangos con guion, sin espacios; por ejemplo 1,20,30-35.
-    help: Incluí la VLAN nativa y la de gestión si tienen que pasar por este enlace.
+    help: Incluye la VLAN nativa y la de gestión si tienen que pasar por este enlace.
   - id: checkpointName
     label: Nombre del checkpoint de respaldo
     type: text
@@ -41,19 +41,19 @@ params:
     example: '10'
     help: Tiempo para comprobar que todo funciona antes de que el switch deshaga el cambio solo.
 preflight:
-  - text: Confirmá que todas las VLAN de la lista existen en el switch.
+  - text: Confirma que todas las VLAN de la lista existen en el switch.
     command: show vlan
-  - text: Mirá cómo está el puerto ahora y qué VLAN transporta.
+  - text: Mira cómo está el puerto ahora y qué VLAN transporta.
     command: show interface {{interfaceId}}
-  - text: Guardá un checkpoint con la configuración actual.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
-  - text: Confirmá con quien administra el otro extremo la VLAN nativa y la lista de VLAN permitidas.
+  - text: Confirma con quien administra el otro extremo la VLAN nativa y la lista de VLAN permitidas.
 steps:
   - title: Activar el modo checkpoint auto
     commands:
       - checkpoint auto {{minutes}}
     explanation: >-
-      Abre una ventana de {{minutes}} minutos. Si no confirmás antes de que venza,
+      Abre una ventana de {{minutes}} minutos. Si no confirmas antes de que venza,
       el switch restaura la configuración que tenía en este momento.
   - title: Entrar en la configuración del puerto
     commands:
@@ -66,7 +66,7 @@ steps:
     explanation: >-
       Asigna la VLAN que viaja sin etiqueta. Al ejecutarlo, el switch permite
       automáticamente todas las VLAN en el trunk; el paso siguiente lo restringe.
-    warning: Entre este paso y el siguiente el trunk deja pasar todas las VLAN del switch. Ejecutalos seguidos.
+    warning: Entre este paso y el siguiente el trunk deja pasar todas las VLAN del switch. Ejecútalos seguidos.
     breakdown:
       - token: vlan trunk native
         meaning: Define la VLAN nativa del trunk. Por defecto es la 1.
@@ -94,14 +94,14 @@ steps:
   - title: Comprobar que todo funciona
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación y confirmá que seguís
+      Haz las comprobaciones de la sección Verificación y confirma que sigues
       teniendo acceso de gestión y que los equipos de cada VLAN se ven a través del
-      enlace. Hacelo dentro de la ventana de {{minutes}} minutos.
+      enlace. Hazlo dentro de la ventana de {{minutes}} minutos.
   - title: Confirmar el cambio
     commands:
       - checkpoint auto confirm
     explanation: Termina el modo auto y deja el cambio como definitivo en ejecución.
-    warning: Si no ejecutás este comando a tiempo, el switch vuelve solo al estado anterior.
+    warning: Si no ejecutas este comando a tiempo, el switch vuelve solo al estado anterior.
   - title: Guardar en la configuración de arranque
     commands:
       - write memory
@@ -116,7 +116,7 @@ verification:
 rollback:
   summary: >-
     Mientras el modo auto esté activo, la vuelta atrás es no confirmar. Si ya
-    confirmaste, volvé al checkpoint.
+    confirmaste, vuelve al checkpoint.
   steps:
     - title: Si todavía no confirmaste
       manual: true
@@ -129,9 +129,9 @@ rollback:
         - write memory
       explanation: Vuelve al estado guardado antes de empezar y lo deja también en la configuración de arranque.
   lockoutRecovery: >-
-    Si perdés el acceso con el modo auto activo, esperá: al vencer la ventana el
-    switch recupera la configuración anterior. Si ya habías confirmado, entrá por el
-    puerto de consola y aplicá el checkpoint.
+    Si pierdes el acceso con el modo auto activo, espera: al vencer la ventana el
+    switch recupera la configuración anterior. Si ya habías confirmado, entra por el
+    puerto de consola y aplica el checkpoint.
 sources:
   - title: AOS-CX 10.15 Layer-2 Bridging Guide (4100i, 6000, 6100, 5420, 6200) — vlan trunk native
     url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/l2_bridging_4100i-6000-6100-5420-6200/Content/Chp_vlans/vlan_cmds/vla-tru-nat.htm
@@ -148,5 +148,5 @@ status:
   notes: >-
     Sintaxis contrastada con la documentación oficial. La documentación no aclara si
     un segundo vlan trunk allowed sobre un trunk que ya tiene lista la amplía o la
-    sustituye: comprobá siempre el resultado con show interface. Falta probar la
+    sustituye: comprueba siempre el resultado con show interface. Falta probar la
     guía en un 6100 real.

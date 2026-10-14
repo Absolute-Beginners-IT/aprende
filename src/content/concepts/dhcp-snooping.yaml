@@ -9,7 +9,7 @@ explanation: >-
   Cuando un equipo se conecta, pide una dirección IP por DHCP y acepta la primera
   respuesta que llega. Si alguien conecta un router doméstico o configura un servidor
   DHCP por error, los equipos reciben direcciones falsas y se quedan sin red, o su
-  tráfico pasa por un equipo que no controlás. DHCP snooping divide los puertos en
+  tráfico pasa por un equipo que no controlas. DHCP snooping divide los puertos en
   confiables y no confiables: las respuestas de servidor DHCP solo se aceptan por los
   confiables, que son el que va hacia el servidor DHCP y los enlaces a otros
   switches. Además, el switch apunta qué IP recibió cada equipo y en qué puerto, una

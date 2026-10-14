@@ -39,13 +39,13 @@ sections:
   - heading: Copias de la configuración
     paragraphs:
       - >-
-        Antes de cualquier cambio importante, guardá una copia de la configuración fuera
+        Antes de cualquier cambio importante, guarda una copia de la configuración fuera
         del switch. Es la única forma segura de volver a un estado conocido si algo
         sale mal, y la que permite reemplazar un switch averiado en minutos.
     points:
-      - Guardala con el nombre del switch y la fecha.
-      - Comprobá que el archivo se puede abrir y no está vacío.
-      - Las copias contienen información sensible; guardalas en un sitio protegido.
+      - Guárdala con el nombre del switch y la fecha.
+      - Comprueba que el archivo se puede abrir y no está vacío.
+      - Las copias contienen información sensible; guárdalas en un sitio protegido.
 related:
   - config-backup
   - config-restore

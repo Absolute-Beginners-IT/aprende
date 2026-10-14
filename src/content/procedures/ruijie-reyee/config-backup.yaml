@@ -9,22 +9,22 @@ risk:
 params: []
 preflight:
   - text: >-
-      Entrá a la interfaz web del switch con su IP de gestión. De fábrica es
+      Entra a la interfaz web del switch con su IP de gestión. De fábrica es
       10.44.77.200, sin usuario y con la contraseña admin.
-  - text: La copia contiene información sensible de la red; tené decidido dónde vas a guardarla.
+  - text: La copia contiene información sensible de la red; ten decidido dónde vas a guardarla.
 steps:
   - title: Abrir la página de copias
     manual: true
-    explanation: Andá a Local Device > System > Backup > Backup & Import.
+    explanation: Ve a Local Device > System > Backup > Backup & Import.
   - title: Generar y descargar la copia
     manual: true
     explanation: >-
-      Pulsá Backup. El switch genera la copia de la configuración y el navegador la
+      Pulsa Backup. El switch genera la copia de la configuración y el navegador la
       descarga a tu equipo.
   - title: Guardar la copia en el repositorio de la empresa
     manual: true
     explanation: >-
-      Renombrá el archivo con el nombre del switch y la fecha, y guardalo en el
+      Renombra el archivo con el nombre del switch y la fecha, y guárdalo en el
       repositorio de copias de la empresa. Una copia que solo está en tu portátil se
       pierde con él.
 verification:
@@ -35,7 +35,7 @@ rollback:
   steps:
     - title: Si la copia no hace falta
       manual: true
-      explanation: Borrá el archivo descargado.
+      explanation: Borra el archivo descargado.
   lockoutRecovery: Hacer una copia no afecta al acceso de gestión.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado Configuration Backup and Import

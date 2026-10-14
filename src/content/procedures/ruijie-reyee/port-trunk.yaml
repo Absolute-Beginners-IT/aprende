@@ -26,43 +26,43 @@ params:
     example: 1,20,30-35
     pattern: '^\d{1,4}(-\d{1,4})?(,\d{1,4}(-\d{1,4})?)*$'
     patternHint: IDs separados por comas y rangos con guion, sin espacios.
-    help: Incluí la VLAN nativa y la de gestión si tienen que pasar por este enlace.
+    help: Incluye la VLAN nativa y la de gestión si tienen que pasar por este enlace.
 preflight:
-  - text: Hacé una copia de la configuración con la guía Guardar una copia de la configuración.
+  - text: Haz una copia de la configuración con la guía Guardar una copia de la configuración.
   - text: >-
-      En Local Device > VLAN > Port List, anotá el modo, la VLAN nativa y las VLAN
+      En Local Device > VLAN > Port List, anota el modo, la VLAN nativa y las VLAN
       permitidas actuales de {{port}}; las vas a necesitar para volver atrás.
-  - text: Confirmá con quien administra el otro extremo la VLAN nativa y las VLAN permitidas.
+  - text: Confirma con quien administra el otro extremo la VLAN nativa y las VLAN permitidas.
 steps:
   - title: Abrir la lista de puertos
     manual: true
-    explanation: Andá a Local Device > VLAN > Port List.
+    explanation: Ve a Local Device > VLAN > Port List.
   - title: Configurar el puerto como trunk
     manual: true
     explanation: >-
-      Pulsá Edit en la fila de {{port}}, elegí el modo Trunk port, seleccioná la
-      Native VLAN {{nativeVlanId}}, escribí el rango de VLAN permitidas
-      {{allowedVlans}} y pulsá OK.
+      Pulsa Edit en la fila de {{port}}, elige el modo Trunk port, selecciona la
+      Native VLAN {{nativeVlanId}}, escribe el rango de VLAN permitidas
+      {{allowedVlans}} y pulsa OK.
     warning: >-
       Un trunk pertenece de fábrica a todas las VLAN; el rango que escribas limita
-      cuáles pasan. Si falta la VLAN de gestión, perdés el acceso por este enlace.
+      cuáles pasan. Si falta la VLAN de gestión, pierdes el acceso por este enlace.
 verification:
   - expect: >-
       En Port List, {{port}} aparece en modo Trunk, con VLAN nativa {{nativeVlanId}}
       y VLAN permitidas {{allowedVlans}}.
   - expect: Los equipos de cada VLAN se ven a través del enlace.
 rollback:
-  summary: Devolvé el puerto al modo y las VLAN que anotaste antes de empezar.
+  summary: Devuelve el puerto al modo y las VLAN que anotaste antes de empezar.
   steps:
     - title: Volver a la configuración anterior del puerto
       manual: true
-      explanation: En Port List, pulsá Edit en {{port}}, poné los valores que anotaste y pulsá OK.
+      explanation: En Port List, pulsa Edit en {{port}}, pon los valores que anotaste y pulsa OK.
     - title: 'Alternativa: importar la copia'
       manual: true
-      explanation: Importá la copia hecha antes de empezar con la guía Restaurar una configuración guardada; el switch se reinicia.
+      explanation: Importa la copia hecha antes de empezar con la guía Restaurar una configuración guardada; el switch se reinicia.
   lockoutRecovery: >-
-    Si perdés el acceso, conectate a un puerto de la VLAN de gestión de este mismo
-    switch y deshacé el cambio. Si no hay forma, el botón Reset mantenido más de 5
+    Si pierdes el acceso, conéctate a un puerto de la VLAN de gestión de este mismo
+    switch y deshaz el cambio. Si no hay forma, el botón Reset mantenido más de 5
     segundos devuelve el switch a fábrica.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado Configuring Port VLAN

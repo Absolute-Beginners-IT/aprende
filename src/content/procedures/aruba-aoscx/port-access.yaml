@@ -7,7 +7,7 @@ risk:
   level: medium
   reason: >-
     El equipo conectado al puerto cambia de red en el momento. Si el puerto es el que
-    usás para gestionar el switch o es un enlace a otro switch, el cambio corta ese
+    usas para gestionar el switch o es un enlace a otro switch, el cambio corta ese
     acceso.
 params:
   - id: interfaceId
@@ -33,17 +33,17 @@ params:
     pattern: '^(?!CPC)[A-Za-z0-9_-]{1,32}$'
     patternHint: De 1 a 32 caracteres; letras, números, guion y guion bajo; no puede empezar por CPC.
 preflight:
-  - text: Confirmá que la VLAN de destino existe.
+  - text: Confirma que la VLAN de destino existe.
     command: show vlan {{vlanId}}
   - text: >-
-      Mirá cómo está el puerto ahora y anotá su VLAN. Si aparece en modo trunk o con
-      varias VLAN, detenete: esta guía lo convertiría en puerto de acceso.
+      Mira cómo está el puerto ahora y anota su VLAN. Si aparece en modo trunk o con
+      varias VLAN, detente: esta guía lo convertiría en puerto de acceso.
     command: show vlan port {{interfaceId}}
   - text: >-
-      Comprobá que no es el puerto por el que estás conectado ni un enlace hacia
+      Comprueba que no es el puerto por el que estás conectado ni un enlace hacia
       otro switch.
     command: show interface {{interfaceId}}
-  - text: Guardá un checkpoint con la configuración actual.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
 steps:
   - title: Entrar en la configuración del puerto
@@ -77,7 +77,7 @@ steps:
     commands:
       - write memory
     explanation: Copia la configuración en ejecución a la de arranque.
-    warning: Verificá primero (sección siguiente) y guardá después.
+    warning: Verifica primero (sección siguiente) y guarda después.
 verification:
   - command: show vlan port {{interfaceId}}
     expect: Una sola fila con la VLAN {{vlanId}} en modo access.
@@ -87,8 +87,8 @@ verification:
       está up si hay un equipo conectado.
 rollback:
   summary: >-
-    Devolvé el puerto a la VLAN que tenía. Si el puerto era otra cosa que un acceso
-    simple, volvé al checkpoint.
+    Devuelve el puerto a la VLAN que tenía. Si el puerto era otra cosa que un acceso
+    simple, vuelve al checkpoint.
   steps:
     - title: Volver a la VLAN anterior
       commands:
@@ -104,12 +104,12 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede como antes.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede como antes.
   lockoutRecovery: >-
-    Si el puerto era tu vía de gestión y perdiste la conexión, entrá por el puerto
-    de consola y aplicá el checkpoint. Si todavía no habías ejecutado write memory,
+    Si el puerto era tu vía de gestión y perdiste la conexión, entra por el puerto
+    de consola y aplica el checkpoint. Si todavía no habías ejecutado write memory,
     un reinicio del switch también recupera la configuración anterior. Para hacer
-    este cambio en remoto con red de seguridad, activá antes checkpoint auto (ver la
+    este cambio en remoto con red de seguridad, activa antes checkpoint auto (ver la
     ficha del equipo).
 sources:
   - title: AOS-CX 10.15 Layer-2 Bridging Guide (4100i, 6000, 6100, 5420, 6200) — vlan access

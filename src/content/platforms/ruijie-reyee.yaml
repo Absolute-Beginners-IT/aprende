@@ -19,14 +19,14 @@ safetyNets:
     description: >-
       Local Device > System > Backup > Backup & Import, botón Backup. Descarga un
       archivo con la configuración a tu equipo. Es la única vuelta atrás completa;
-      hacela antes de cada cambio.
+      hazla antes de cada cambio.
   - name: Importar una copia
     description: >-
       En la misma página, Browse e Import aplican un archivo guardado. El switch se
       reinicia al importarlo.
   - name: Restablecer valores de fábrica
     description: >-
-      Si perdés la IP o la contraseña, mantener pulsado el botón Reset del panel más
+      Si pierdes la IP o la contraseña, mantener pulsado el botón Reset del panel más
       de 5 segundos con el equipo encendido lo devuelve a fábrica (IP 10.44.77.200,
       contraseña admin). Borra toda la configuración.
 sources:

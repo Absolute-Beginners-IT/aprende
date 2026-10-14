@@ -14,7 +14,7 @@ params:
     label: VLAN a proteger
     type: vlan-id
     example: '20'
-    help: La VLAN tiene que existir. Empezá por una sola.
+    help: La VLAN tiene que existir. Empieza por una sola.
   - id: trustedPort
     label: Puerto hacia el servidor DHCP
     type: text
@@ -25,18 +25,18 @@ params:
       El puerto por el que llegan las respuestas del servidor DHCP: el que va al
       servidor o el enlace hacia el switch troncal.
 preflight:
-  - text: Mirá si DHCP snooping ya está activo y qué puertos son confiables. De fábrica está apagado.
+  - text: Mira si DHCP snooping ya está activo y qué puertos son confiables. De fábrica está apagado.
     command: show ip dhcp snooping
-  - text: Confirmá que la VLAN existe y que el puerto {{trustedPort}} pertenece a ella.
+  - text: Confirma que la VLAN existe y que el puerto {{trustedPort}} pertenece a ella.
     command: show vlan
   - text: >-
-      Confirmá por qué puerto llega el servidor DHCP: buscá su MAC (o la del router
+      Confirma por qué puerto llega el servidor DHCP: busca su MAC (o la del router
       que hace de relay) en la tabla de direcciones de la VLAN.
     command: show mac address-table vlan {{vlanId}}
   - text: >-
       Si hay otro enlace a otro switch por el que también puedan llegar respuestas
-      DHCP, anotalo: tiene que quedar confiable igual que {{trustedPort}}.
-  - text: Tené a mano un equipo de prueba en la VLAN {{vlanId}} para forzar la renovación de su dirección.
+      DHCP, anótalo: tiene que quedar confiable igual que {{trustedPort}}.
+  - text: Ten a mano un equipo de prueba en la VLAN {{vlanId}} para forzar la renovación de su dirección.
 steps:
   - title: Entrar en modo configuración
     commands:
@@ -58,7 +58,7 @@ steps:
       resto se descartan. De fábrica todos los puertos son no confiables. Se hace
       antes de activar la VLAN para que no haya un momento sin servidor.
     warning: >-
-      Si hay más enlaces hacia otros switches o servidores DHCP, repetí este paso
+      Si hay más enlaces hacia otros switches o servidores DHCP, repite este paso
       con cada uno. Nunca marques como confiable un puerto de usuario.
     breakdown:
       - token: ip dhcp snooping trust
@@ -82,11 +82,11 @@ steps:
   - title: Forzar la renovación en un equipo de prueba
     manual: true
     explanation: >-
-      En el equipo de prueba de la VLAN {{vlanId}}, liberá y pedí de nuevo la
+      En el equipo de prueba de la VLAN {{vlanId}}, libera y pide de nuevo la
       dirección (en Windows, ipconfig /release y después ipconfig /renew) y
-      comprobá que recibe una IP correcta.
+      comprueba que recibe una IP correcta.
     warning: >-
-      Si no recibe dirección, revisá primero que {{trustedPort}} sea confiable. El
+      Si no recibe dirección, revisa primero que {{trustedPort}} sea confiable. El
       C1300 no añade la opción 82 de fábrica, así que no debería ser la causa salvo
       que otro equipo la inserte.
   - title: Guardar el cambio
@@ -106,8 +106,8 @@ verification:
       el puerto donde está conectado.
 rollback:
   summary: >-
-    Desactivá DHCP snooping en la VLAN, que deja de filtrar en el acto; después
-    quitá la marca de confiable y, si no se usa en otra VLAN, la función global.
+    Desactiva DHCP snooping en la VLAN, que deja de filtrar en el acto; después
+    quita la marca de confiable y, si no se usa en otra VLAN, la función global.
   steps:
     - title: Desactivar DHCP snooping en la VLAN
       commands:
@@ -124,15 +124,15 @@ rollback:
       commands:
         - no ip dhcp snooping
         - end
-      explanation: Vuelve al valor de fábrica. Hacelo solo si ninguna otra VLAN usa DHCP snooping.
+      explanation: Vuelve al valor de fábrica. Hazlo solo si ninguna otra VLAN usa DHCP snooping.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la vuelta atrás sobreviva a un reinicio.
+      explanation: Guarda de nuevo para que la vuelta atrás sobreviva a un reinicio.
   lockoutRecovery: >-
     DHCP snooping no filtra el tráfico de gestión, así que no debería dejarte sin
     acceso salvo que el propio switch tome su IP de gestión por DHCP en esa VLAN. En
-    ese caso entrá por consola y desactivalo en la VLAN.
+    ese caso entra por consola y desactívalo en la VLAN.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — DHCP Snooping Commands
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/dhcp-snooping-commands.html

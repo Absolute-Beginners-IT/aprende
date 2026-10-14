@@ -10,7 +10,7 @@ explanation: >-
   falla o hay que reemplazarlo.
 risks:
   - Hacer la copia no altera el funcionamiento del switch.
-  - El archivo contiene información sensible de la red (usuarios, comunidades SNMP, claves); guardalo en un lugar protegido.
+  - El archivo contiene información sensible de la red (usuarios, comunidades SNMP, claves); guárdalo en un lugar protegido.
   - Una copia que solo está dentro del switch se pierde si el equipo se avería.
 prerequisites:
   - Tener acceso de administrador al switch.

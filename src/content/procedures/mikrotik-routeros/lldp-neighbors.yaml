@@ -22,7 +22,7 @@ verification:
   - command: /ip neighbor print
     expect: >-
       Aparecen los switches, teléfonos y puntos de acceso conectados. Si la lista
-      está vacía, revisá la lista de interfaces de /ip neighbor discovery-settings.
+      está vacía, revisa la lista de interfaces de /ip neighbor discovery-settings.
 rollback:
   summary: Consultar no cambia nada y no requiere vuelta atrás.
   steps:

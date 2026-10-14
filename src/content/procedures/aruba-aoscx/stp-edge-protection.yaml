@@ -27,21 +27,21 @@ params:
     patternHint: De 1 a 32 caracteres; letras, números, guion y guion bajo; no puede empezar por CPC.
 preflight:
   - text: >-
-      Mirá si Spanning Tree está activo y en qué modo. Buscá Spanning tree status:
+      Mira si Spanning Tree está activo y en qué modo. Busca Spanning tree status:
       Enabled y el protocolo, MSTP (el de fábrica en el 6100) o RPVST. Si aparece
-      Disabled, el paso de activarlo lo enciende en modo MSTP; hacelo fuera del
+      Disabled, el paso de activarlo lo enciende en modo MSTP; hazlo fuera del
       horario de trabajo.
     command: show spanning-tree
   - text: >-
-      Mirá qué puertos tienen ya BPDU Guard y si hay un tiempo de reactivación
+      Mira qué puertos tienen ya BPDU Guard y si hay un tiempo de reactivación
       automática (BPDU guard timeout value). None significa que un puerto apagado
       queda así hasta que lo reactives a mano.
     command: show spanning-tree summary port
   - text: >-
-      Confirmá que el puerto es de acceso, con una sola VLAN, y que no es el enlace
+      Confirma que el puerto es de acceso, con una sola VLAN, y que no es el enlace
       hacia otro switch ni el puerto por el que estás conectado.
     command: show interface {{interfaceId}}
-  - text: Guardá un checkpoint con la configuración actual.
+  - text: Guarda un checkpoint con la configuración actual.
     command: copy running-config checkpoint {{checkpointName}}
 steps:
   - title: Entrar en modo configuración
@@ -103,8 +103,8 @@ verification:
     expect: El puerto está up y el equipo conectado tiene red.
 rollback:
   summary: >-
-    Quitá BPDU Guard y el tipo edge del puerto, o volvé al checkpoint. Si el puerto
-    ya se apagó por BPDU Guard, quitá primero el equipo que manda BPDU y reactivalo.
+    Quita BPDU Guard y el tipo edge del puerto, o vuelve al checkpoint. Si el puerto
+    ya se apagó por BPDU Guard, quita primero el equipo que manda BPDU y reactívalo.
   steps:
     - title: Quitar la protección del puerto
       commands:
@@ -125,21 +125,21 @@ rollback:
         - no shutdown
         - end
       explanation: >-
-        Usalo cuando show spanning-tree muestre el puerto en estado Bpdu-Error. Antes,
-        desconectá el switch o el equipo que mandaba BPDU; si sigue conectado, el
+        Úsalo cuando show spanning-tree muestre el puerto en estado Bpdu-Error. Antes,
+        desconecta el switch o el equipo que mandaba BPDU; si sigue conectado, el
         puerto se vuelve a apagar enseguida.
       warning: >-
         La documentación oficial dice que el puerto queda desactivado hasta que se
         reactive a mano, pero no describe con qué comando. Si este no lo recupera,
-        quitá y volvé a poner spanning-tree bpdu-guard en el puerto.
+        quita y vuelve a poner spanning-tree bpdu-guard en el puerto.
     - title: 'Alternativa: volver al checkpoint'
       commands:
         - checkpoint rollback {{checkpointName}}
         - write memory
       explanation: Vuelve al estado guardado antes de empezar y lo deja también en la configuración de arranque.
   lockoutRecovery: >-
-    Si BPDU Guard apagó el puerto por el que gestionabas el switch, entrá por otro
-    puerto o por la consola, desconectá el equipo que manda BPDU y reactivá el puerto
+    Si BPDU Guard apagó el puerto por el que gestionabas el switch, entra por otro
+    puerto o por la consola, desconecta el equipo que manda BPDU y reactiva el puerto
     con shutdown y no shutdown en su interfaz.
 sources:
   - title: AOS-CX 10.15 Layer-2 Bridging Guide (4100i, 6000, 6100, 5420, 6200) — Spanning tree on edge ports

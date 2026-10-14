@@ -31,50 +31,50 @@ params:
     type: ipv4
     example: 192.168.10.5
 preflight:
-  - text: Hacé una copia de la configuración con la guía Guardar una copia de la configuración.
+  - text: Haz una copia de la configuración con la guía Guardar una copia de la configuración.
   - text: >-
-      Comprobá que la VLAN {{vlanId}} existe en Local Device > VLAN > VLAN List y que
-      llega por el puerto de subida (uplink) del switch. Si no, perdés el acceso web.
-  - text: Comprobá desde otro equipo que la IP {{ipAddress}} no responde a ping, para no duplicarla.
+      Comprueba que la VLAN {{vlanId}} existe en Local Device > VLAN > VLAN List y que
+      llega por el puerto de subida (uplink) del switch. Si no, pierdes el acceso web.
+  - text: Comprueba desde otro equipo que la IP {{ipAddress}} no responde a ping, para no duplicarla.
 steps:
   - title: Abrir la página de la IP de gestión
     manual: true
-    explanation: Andá a Local Device > Ports > MGMT IP > MGMT IP.
+    explanation: Ve a Local Device > Ports > MGMT IP > MGMT IP.
   - title: Pasar a IP fija y rellenar los datos
     manual: true
     explanation: >-
-      Elegí Static IP y completá VLAN de gestión {{vlanId}}, IP {{ipAddress}},
+      Elige Static IP y completa VLAN de gestión {{vlanId}}, IP {{ipAddress}},
       máscara {{mask}}, puerta de enlace {{gateway}} y DNS {{dnsServer}}.
   - title: Guardar
     manual: true
-    explanation: Pulsá Save. El switch pasa a la IP nueva y la sesión actual se corta.
+    explanation: Pulsa Save. El switch pasa a la IP nueva y la sesión actual se corta.
     warning: Desde este momento el switch solo responde en {{ipAddress}}.
   - title: Entrar por la IP nueva
     manual: true
-    explanation: Abrí en el navegador http://{{ipAddress}} y volvé a iniciar sesión.
+    explanation: Abre en el navegador http://{{ipAddress}} y vuelve a iniciar sesión.
 verification:
   - expect: >-
       En Local Device > Home > Basic Info, la IP de gestión es {{ipAddress}}, y el
       switch responde a ping desde otra red, lo que confirma la puerta de enlace.
 rollback:
   summary: >-
-    Si podés entrar por la IP nueva, volvé a poner la anterior o DHCP. Si no podés
+    Si puedes entrar por la IP nueva, vuelve a poner la anterior o DHCP. Si no puedes
     entrar, hay que llegar al switch desde la red de la IP nueva o volver a fábrica.
   steps:
     - title: Volver a la configuración anterior
       manual: true
       explanation: >-
-        En Local Device > Ports > MGMT IP > MGMT IP, volvé a poner los datos que tenía
-        o elegí DHCP, y pulsá Save.
-    - title: Si no podés entrar por la IP nueva
+        En Local Device > Ports > MGMT IP > MGMT IP, vuelve a poner los datos que tenía
+        o elige DHCP, y pulsa Save.
+    - title: Si no puedes entrar por la IP nueva
       manual: true
       explanation: >-
-        Conectá un portátil a un puerto de la VLAN {{vlanId}} con una IP de la misma
-        red que {{ipAddress}} y entrá por http://{{ipAddress}} para corregir los datos.
+        Conecta un portátil a un puerto de la VLAN {{vlanId}} con una IP de la misma
+        red que {{ipAddress}} y entra por http://{{ipAddress}} para corregir los datos.
   lockoutRecovery: >-
-    Si no hay forma de llegar, mantené pulsado el botón Reset del panel más de 5
+    Si no hay forma de llegar, mantén pulsado el botón Reset del panel más de 5
     segundos: el switch vuelve a fábrica (10.44.77.200, contraseña admin). Después
-    importá la copia hecha antes de empezar.
+    importa la copia hecha antes de empezar.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado MGMT IP Configuration
     url: https://reyee.ruijie.com/en-global/support/documents/slide_rg-nbs3200-24gt4xs-p-v2-nbs3200-48gt4xs-p-v2-switches-implementation-cookbook/

@@ -13,13 +13,13 @@ steps:
   - title: Ver los vecinos
     manual: true
     explanation: >-
-      Andá a Local Device > Advanced > LLDP > LLDP Info. Aparece la información LLDP
-      del switch y de los vecinos de cada puerto; pulsá el nombre de un puerto para
+      Ve a Local Device > Advanced > LLDP > LLDP Info. Aparece la información LLDP
+      del switch y de los vecinos de cada puerto; pulsa el nombre de un puerto para
       ver el detalle de su vecino.
   - title: 'Si la lista sale vacía: comprobar que LLDP está activo'
     manual: true
     explanation: >-
-      En Local Device > Advanced > LLDP > LLDP Settings, comprobá que LLDP está
+      En Local Device > Advanced > LLDP > LLDP Settings, comprueba que LLDP está
       activado. En LLDP Management se ve, por puerto, si envía y recibe LLDPDU.
 verification:
   - expect: Aparecen los switches, teléfonos y puntos de acceso conectados, cada uno en su puerto.

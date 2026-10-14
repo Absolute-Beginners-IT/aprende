@@ -22,9 +22,9 @@ params:
       - errors
     help: informational es el valor de fábrica y lo habitual. Cuanto más alto el nivel, menos mensajes.
 preflight:
-  - text: Comprobá que la hora está sincronizada; si no, los registros llegan con la hora mal.
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
     command: show clock
-  - text: Comprobá que el registro está activo; la primera línea tiene que decir Logging is enabled.
+  - text: Comprueba que el registro está activo; la primera línea tiene que decir Logging is enabled.
     command: show logging
 steps:
   - title: Entrar en modo configuración
@@ -50,13 +50,13 @@ steps:
   - title: Comprobar la llegada en el servidor
     manual: true
     explanation: >-
-      Provocá un mensaje inofensivo, por ejemplo entrando y saliendo de configure
-      terminal, y buscalo en el servidor syslog filtrando por la IP del switch.
+      Provoca un mensaje inofensivo, por ejemplo entrando y saliendo de configure
+      terminal, y búscalo en el servidor syslog filtrando por la IP del switch.
 verification:
   - command: show running-config
     expect: Aparece la línea logging host {{serverIp}} con la severidad elegida.
 rollback:
-  summary: Quitá el servidor syslog añadido.
+  summary: Quita el servidor syslog añadido.
   steps:
     - title: Dejar de enviar registros a ese servidor
       commands:
@@ -75,6 +75,6 @@ status:
   firmware: CLI Guide Catalyst 1300, edición 2026-04-28
   notes: >-
     Sintaxis y valores de fábrica contrastados con la guía oficial de la CLI. Los
-    nombres de severidad se tomaron de la lista de logging buffered; confirmá que
+    nombres de severidad se tomaron de la lista de logging buffered; confirma que
     logging host los acepta con logging host {{serverIp}} severity ?. Falta probarla
     en un C1300 real.

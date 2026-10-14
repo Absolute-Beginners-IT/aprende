@@ -22,9 +22,9 @@ params:
       - err
     help: info es el valor de fábrica y lo habitual. Cuanto más alto el nivel, menos mensajes.
 preflight:
-  - text: Comprobá que la hora está sincronizada; si no, los registros llegan con la hora mal.
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
     command: show clock
-  - text: Confirmá con quien administra el servidor syslog que acepta mensajes desde la IP de gestión del switch.
+  - text: Confirma con quien administra el servidor syslog que acepta mensajes desde la IP de gestión del switch.
 steps:
   - title: Entrar en modo configuración
     commands:
@@ -49,13 +49,13 @@ steps:
   - title: Comprobar la llegada en el servidor
     manual: true
     explanation: >-
-      Provocá un mensaje inofensivo, por ejemplo entrando y saliendo de config, y
-      buscalo en el servidor syslog filtrando por la IP de gestión del switch.
+      Provoca un mensaje inofensivo, por ejemplo entrando y saliendo de config, y
+      búscalo en el servidor syslog filtrando por la IP de gestión del switch.
 verification:
   - command: show running-config
     expect: Aparece la línea logging {{serverIp}} severity {{severity}}.
 rollback:
-  summary: Quitá el servidor syslog añadido.
+  summary: Quita el servidor syslog añadido.
   steps:
     - title: Dejar de enviar registros a ese servidor
       commands:

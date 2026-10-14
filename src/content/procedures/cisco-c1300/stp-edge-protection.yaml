@@ -20,17 +20,17 @@ params:
     help: Un puerto con un solo equipo final, nunca un enlace a otro switch.
 preflight:
   - text: >-
-      Mirá si Spanning Tree está activo y en qué modo. La primera línea tiene que
+      Mira si Spanning Tree está activo y en qué modo. La primera línea tiene que
       decir Spanning tree enabled; de fábrica el modo es RSTP. Si dice disabled,
-      pará: activarlo recalcula la topología y se planifica aparte.
+      para: activarlo recalcula la topología y se planifica aparte.
     command: show spanning-tree
   - text: >-
-      Si el modo es MSTP, tené en cuenta que la guía de administración indica que
+      Si el modo es MSTP, ten en cuenta que la guía de administración indica que
       el puerto de borde no funciona en ese modo; BPDU Guard sí se puede aplicar.
-  - text: Mirá cómo está el puerto ahora, incluidas las líneas Port Fast y BPDU guard.
+  - text: Mira cómo está el puerto ahora, incluidas las líneas Port Fast y BPDU guard.
     command: show spanning-tree detail
   - text: >-
-      Guardá la configuración actual del puerto y confirmá que es un puerto de
+      Guarda la configuración actual del puerto y confirma que es un puerto de
       acceso, no un trunk hacia otro switch.
     command: show running-config interface {{interfaceId}}
 steps:
@@ -61,7 +61,7 @@ steps:
       bucle.
     warning: >-
       Esta forma del comando no aparece en la guía de la CLI del C1300; viene de la
-      guía de la familia Cisco Business 350. Si el switch la rechaza, activá BPDU
+      guía de la familia Cisco Business 350. Si el switch la rechaza, activa BPDU
       Guard en la web, en Spanning Tree > STP Interface Settings.
     breakdown:
       - token: spanning-tree bpduguard
@@ -75,7 +75,7 @@ steps:
   - title: Comprobar que el equipo conectado funciona
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación y confirmá que el equipo
+      Haz las comprobaciones de la sección Verificación y confirma que el equipo
       del puerto {{interfaceId}} sigue teniendo red.
   - title: Guardar el cambio
     commands:
@@ -92,8 +92,8 @@ verification:
     expect: El puerto no aparece apagado por el sistema.
 rollback:
   summary: >-
-    Quitá BPDU Guard y devolvé PortFast a su valor de fábrica (auto). Si BPDU Guard
-    ya apagó el puerto, primero quitá lo que causó el apagado y después reactivalo.
+    Quita BPDU Guard y devuelve PortFast a su valor de fábrica (auto). Si BPDU Guard
+    ya apagó el puerto, primero quita lo que causó el apagado y después reactívalo.
   steps:
     - title: Reactivar un puerto apagado por BPDU Guard
       commands:
@@ -101,7 +101,7 @@ rollback:
         - errdisable recovery reset interface {{interfaceId}}
       explanation: >-
         La primera orden muestra si el puerto está apagado y por qué (stp-bpdu-guard).
-        La segunda lo vuelve a activar. Antes, desconectá el switch o el equipo que
+        La segunda lo vuelve a activar. Antes, desconecta el switch o el equipo que
         envió los mensajes de Spanning Tree, o se volverá a apagar.
       warning: >-
         La reactivación automática por esta causa está desactivada de fábrica. Se
@@ -120,11 +120,11 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la vuelta atrás sobreviva a un reinicio.
+      explanation: Guarda de nuevo para que la vuelta atrás sobreviva a un reinicio.
   lockoutRecovery: >-
     Este cambio no afecta a la gestión salvo que lo apliques al puerto por el que
-    estás conectado. Si BPDU Guard apagó ese puerto, entrá por consola o por otro
-    puerto y reactivalo con errdisable recovery reset interface.
+    estás conectado. Si BPDU Guard apagó ese puerto, entra por consola o por otro
+    puerto y reactívalo con errdisable recovery reset interface.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — Spanning Tree Commands
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/spanning-tree-commands.html

@@ -10,10 +10,10 @@ risk:
     donde estás conectado.
 params: []
 preflight:
-  - text: Mirá si el servidor SSH ya está activo y qué sesiones hay abiertas.
+  - text: Mira si el servidor SSH ya está activo y qué sesiones hay abiertas.
     command: show ip ssh
   - text: >-
-      Comprobá cómo estás conectado ahora. Si es por Telnet, no ejecutes el paso que
+      Comprueba cómo estás conectado ahora. Si es por Telnet, no ejecutes el paso que
       lo desactiva hasta haber entrado por SSH.
   - text: No ejecutes write memory hasta haber probado el acceso por SSH.
 steps:
@@ -33,14 +33,14 @@ steps:
   - title: Probar el acceso por SSH
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí desde tu equipo una sesión SSH hacia la IP de
-      gestión del switch y entrá con tu usuario. Con los valores de fábrica, el
+      Sin cerrar esta sesión, abre desde tu equipo una sesión SSH hacia la IP de
+      gestión del switch y entra con tu usuario. Con los valores de fábrica, el
       switch pide usuario y contraseña dentro de la propia sesión.
   - title: Desactivar Telnet
     commands:
       - no ip telnet server
     explanation: Deja apagado el servidor Telnet, que envía usuario y contraseña sin cifrar.
-    warning: Si estás conectado por Telnet, la sesión se corta. Ejecutalo solo desde la sesión SSH que acabás de probar o por consola.
+    warning: Si estás conectado por Telnet, la sesión se corta. Ejecútalo solo desde la sesión SSH que acabas de probar o por consola.
   - title: Salir del modo configuración
     commands:
       - end
@@ -57,27 +57,27 @@ verification:
       La primera línea dice SSH server enabled. Port: 22, las claves RSA y DSA
       figuran como generadas, y tu sesión aparece en la lista de sesiones activas.
 rollback:
-  summary: Volvé a activar Telnet o desactivá SSH según lo que haya fallado.
+  summary: Vuelve a activar Telnet o desactiva SSH según lo que haya fallado.
   steps:
     - title: Reactivar Telnet
       commands:
         - configure terminal
         - ip telnet server
         - end
-      explanation: Vuelve a permitir sesiones Telnet. Usalo solo como medida temporal.
+      explanation: Vuelve a permitir sesiones Telnet. Úsalo solo como medida temporal.
     - title: Desactivar SSH
       commands:
         - configure terminal
         - no ip ssh server
         - end
       explanation: Apaga el servidor SSH.
-      warning: Si estás conectado por SSH, la sesión se corta. Hacelo solo por consola.
+      warning: Si estás conectado por SSH, la sesión se corta. Hazlo solo por consola.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede como antes.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede como antes.
   lockoutRecovery: >-
-    Si te quedaste sin SSH ni Telnet, entrá por el puerto de consola y reactivá el
+    Si te quedaste sin SSH ni Telnet, entra por el puerto de consola y reactiva el
     servicio. Si todavía no habías guardado, un reinicio arranca con la
     configuración de arranque anterior.
 sources:

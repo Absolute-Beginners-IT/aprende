@@ -21,26 +21,26 @@ params:
     help: Un puerto con un solo equipo final detrás. Nunca un enlace a otro switch.
 preflight:
   - text: >-
-      Mirá el bridge y su protocol-mode: tiene que ser rstp (el de fábrica) o mstp.
-      Si es none, Spanning Tree está apagado: detenete y activalo en una ventana de
+      Mira el bridge y su protocol-mode: tiene que ser rstp (el de fábrica) o mstp.
+      Si es none, Spanning Tree está apagado: detente y actívalo en una ventana de
       mantenimiento, porque recalcula la topología y corta el tráfico unos segundos.
     command: /interface bridge print
   - text: >-
-      Confirmá el nombre exacto del puerto, que forma parte del bridge y que tiene
+      Confirma el nombre exacto del puerto, que forma parte del bridge y que tiene
       la marca H (aceleración por hardware).
     command: /interface bridge port print
   - text: >-
-      Mirá el estado de Spanning Tree en ese puerto. Su role no debe ser root-port
+      Mira el estado de Spanning Tree en ese puerto. Su role no debe ser root-port
       ni alternate-port, y bpdu-tx-rx no debe mostrar BPDU recibidas (el segundo
-      número): si las hay, detrás hay un switch y no es un puerto de acceso. Salí
+      número): si las hay, detrás hay un switch y no es un puerto de acceso. Sal
       con Ctrl+C.
     command: /interface bridge port monitor [find interface={{interfaceName}}]
-  - text: Confirmá que no estás conectado a la gestión a través de ese puerto.
+  - text: Confirma que no estás conectado a la gestión a través de ese puerto.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Marcar el puerto como de borde con BPDU Guard
     commands:
@@ -67,18 +67,18 @@ steps:
   - title: Verificar antes de salir de Safe Mode
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
-      confirmá que el equipo conectado a {{interfaceName}} sigue teniendo red.
+      Haz las comprobaciones de la sección Verificación sin salir de Safe Mode y
+      confirma que el equipo conectado a {{interfaceName}} sigue teniendo red.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      Pulsá Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsá
+      Pulsa Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsa
       Ctrl+D en su lugar para salir deshaciendo lo hecho.
 verification:
   - command: /interface bridge port monitor [find interface={{interfaceName}}]
     expect: >-
       edge-port muestra yes y role es designated-port. Si role es disabled, BPDU
-      Guard apagó el puerto: mirá la sección Volver atrás. Salí con Ctrl+C.
+      Guard apagó el puerto: mira la sección Volver atrás. Sal con Ctrl+C.
   - command: /interface bridge port print
     expect: >-
       {{interfaceName}} conserva la marca H y no aparece con la marca I (inactivo),
@@ -89,9 +89,9 @@ rollback:
     bpdu-guard a los valores de fábrica. Si BPDU Guard apagó el puerto, se reactiva
     desactivándolo y activándolo, después de quitar el switch que lo provocó.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /interface bridge port set [find where interface={{interfaceName}}] edge=auto bpdu-guard=no
@@ -105,12 +105,12 @@ rollback:
       explanation: >-
         BPDU Guard deja el puerto apagado hasta que se desactiva y se vuelve a activar
         a mano; en el registro aparece "bpdu-guard disabling ... due to received bpdu".
-        Antes, desconectá el switch o el equipo que envió la BPDU: si sigue ahí, el
+        Antes, desconecta el switch o el equipo que envió la BPDU: si sigue ahí, el
         puerto se vuelve a apagar enseguida.
   lockoutRecovery: >-
-    Si la sesión se corta con Safe Mode activo, esperá unos 9 minutos: los cambios
+    Si la sesión se corta con Safe Mode activo, espera unos 9 minutos: los cambios
     se deshacen solos. Si BPDU Guard apagó el puerto por el que gestionabas el
-    switch, entrá por otro puerto, por WinBox o por la consola serie y reactivalo.
+    switch, entra por otro puerto, por WinBox o por la consola serie y reactívalo.
 sources:
   - title: RouterOS — Bridging and Switching (edge, bpdu-guard, protocol-mode)
     url: https://help.mikrotik.com/docs/display/ROS/Bridging+and+Switching

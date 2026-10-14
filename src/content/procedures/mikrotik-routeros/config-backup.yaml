@@ -14,15 +14,15 @@ params:
     example: crs317-antes-vlan-20
     pattern: '^(flash/)?[A-Za-z0-9_-]{1,40}$'
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
-    help: Si en la lista de archivos del equipo aparece una carpeta flash, escribí flash/ delante del nombre.
+    help: Si en la lista de archivos del equipo aparece una carpeta flash, escribe flash/ delante del nombre.
 preflight:
   - text: >-
-      Mirá los archivos del equipo. Si existe una carpeta llamada flash, todo lo que
+      Mira los archivos del equipo. Si existe una carpeta llamada flash, todo lo que
       se guarde fuera de ella está en memoria RAM y se pierde al reiniciar: en ese
       caso el nombre de la copia tiene que empezar por flash/.
     command: /file print
   - text: >-
-      La copia contiene información sensible de la red. Tené decidido dónde vas a
+      La copia contiene información sensible de la red. Ten decidido dónde vas a
       guardarla fuera del switch.
 steps:
   - title: Crear la copia binaria completa
@@ -34,8 +34,8 @@ steps:
       dispositivo, así que está pensada para restaurarse en este mismo equipo.
     warning: >-
       Sin contraseña, el archivo queda sin cifrar (desde RouterOS 6.43). Para
-      cifrarlo añadí password= con una contraseña al final del comando; este manual
-      no la guarda, anotala en el gestor de contraseñas de la empresa.
+      cifrarlo añade password= con una contraseña al final del comando; este manual
+      no la guarda, anótala en el gestor de contraseñas de la empresa.
     breakdown:
       - token: /system backup save
         meaning: Crea una copia binaria de toda la configuración.
@@ -57,8 +57,8 @@ steps:
   - title: Sacar los archivos del switch
     manual: true
     explanation: >-
-      Descargá {{backupName}}.backup y {{backupName}}.rsc con WinBox (menú Files) o
-      por SFTP y guardalos en el repositorio de copias de la empresa. Una copia que
+      Descarga {{backupName}}.backup y {{backupName}}.rsc con WinBox (menú Files) o
+      por SFTP y guárdalos en el repositorio de copias de la empresa. Una copia que
       solo está en el switch no sirve si el equipo se avería.
 verification:
   - command: /file print

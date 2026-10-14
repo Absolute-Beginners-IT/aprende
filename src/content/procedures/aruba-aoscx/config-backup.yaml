@@ -13,9 +13,9 @@ params:
     example: antes-vlan-20
     pattern: '^(?!CPC)[A-Za-z0-9_-]{1,32}$'
     patternHint: De 1 a 32 caracteres; letras, números, guion y guion bajo; no puede empezar por CPC.
-    help: Usá un nombre que diga para qué es; los que empiezan por CPC los reserva el sistema.
+    help: Usa un nombre que diga para qué es; los que empiezan por CPC los reserva el sistema.
 preflight:
-  - text: Revisá los checkpoints que ya existen para no repetir un nombre.
+  - text: Revisa los checkpoints que ya existen para no repetir un nombre.
     command: show checkpoint
 steps:
   - title: Crear el checkpoint

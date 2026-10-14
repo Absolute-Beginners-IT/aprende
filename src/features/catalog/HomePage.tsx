@@ -10,11 +10,11 @@ export function HomePage({ recents }: { recents: RunbookHit[] }) {
       <header className="page-header">
         <h1>Manual de Switching</h1>
         <p className="lead">
-          Elegí la marca arriba y la tarea en el lateral, o buscá con Ctrl K. Cada guía incluye riesgos, verificación y
+          Elige la marca arriba y la tarea en el lateral, o busca con Ctrl K. Cada guía incluye riesgos, verificación y
           vuelta atrás.
         </p>
         <p>
-          ¿Empezás de cero? Leé primero los <a href={fundamentalsHref()}>fundamentos</a>: qué es un switch, cómo se
+          ¿Empiezas de cero? Lee primero los <a href={fundamentalsHref()}>fundamentos</a>: qué es un switch, cómo se
           gestiona y qué marcas hay.
         </p>
       </header>

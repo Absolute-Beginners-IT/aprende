@@ -33,10 +33,10 @@ params:
     pattern: '^[A-Za-z]{1,4}$'
     patternHint: De 1 a 4 letras.
 preflight:
-  - text: Mirá la hora, la fecha y de dónde la toma ahora el switch.
+  - text: Mira la hora, la fecha y de dónde la toma ahora el switch.
     command: show clock detail
   - text: >-
-      Mirá los servidores configurados. De fábrica trae varios servidores públicos de
+      Mira los servidores configurados. De fábrica trae varios servidores públicos de
       internet; si el switch no tiene salida a internet, no le sirven.
     command: show sntp configuration
 steps:
@@ -80,7 +80,7 @@ verification:
   - command: show clock detail
     expect: La hora es la correcta, el origen es SNTP y aparecen la zona {{zoneName}} y el horario de verano {{summerName}}.
 rollback:
-  summary: Quitá el servidor y los ajustes de zona añadidos.
+  summary: Quita el servidor y los ajustes de zona añadidos.
   steps:
     - title: Quitar servidor, zona horaria y horario de verano
       commands:
@@ -102,4 +102,4 @@ status:
   notes: >-
     Sintaxis y valores de fábrica contrastados con la guía oficial de la CLI. La
     guía no confirma de forma literal que el switch sincronice solo con los valores
-    de fábrica; comprobalo con show sntp status. Falta probarla en un C1300 real.
+    de fábrica; compruébalo con show sntp status. Falta probarla en un C1300 real.

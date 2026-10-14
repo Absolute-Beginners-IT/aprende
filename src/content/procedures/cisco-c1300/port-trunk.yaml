@@ -27,29 +27,29 @@ params:
     example: 1,20,30-35
     pattern: '^\d{1,4}(-\d{1,4})?(,\d{1,4}(-\d{1,4})?)*$'
     patternHint: IDs separados por comas y rangos con guion, sin espacios; por ejemplo 1,20,30-35.
-    help: Es la lista completa. Incluí la VLAN nativa y la de gestión si tienen que pasar por este enlace.
+    help: Es la lista completa. Incluye la VLAN nativa y la de gestión si tienen que pasar por este enlace.
   - id: minutes
     label: Minutos hasta el reinicio de seguridad
     type: number
     min: 5
     max: 60
     example: '15'
-    help: Si perdés el acceso, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
+    help: Si pierdes el acceso, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
 preflight:
-  - text: Confirmá que todas las VLAN de la lista existen en el switch.
+  - text: Confirma que todas las VLAN de la lista existen en el switch.
     command: show vlan
-  - text: Mirá cómo está el puerto ahora.
+  - text: Mira cómo está el puerto ahora.
     command: show interfaces switchport {{interfaceId}}
   - text: >-
-      Guardá la configuración actual del puerto: es lo que vas a tener que rehacer
+      Guarda la configuración actual del puerto: es lo que vas a tener que rehacer
       si hay que volver atrás.
     command: show running-config interface {{interfaceId}}
   - text: >-
-      Confirmá que la configuración de arranque es buena, porque es a la que vuelve
+      Confirma que la configuración de arranque es buena, porque es a la que vuelve
       el switch si se reinicia. No tiene que haber cambios sin guardar que quieras
       conservar.
     command: show startup-config
-  - text: Confirmá con quien administra el otro extremo la VLAN nativa y la lista de VLAN permitidas.
+  - text: Confirma con quien administra el otro extremo la VLAN nativa y la lista de VLAN permitidas.
 steps:
   - title: Programar el reinicio de seguridad
     commands:
@@ -59,8 +59,8 @@ steps:
       cambio te deja sin acceso, el switch se reinicia solo y arranca con la
       configuración de arranque, que todavía no tiene el cambio.
     warning: >-
-      Si olvidás cancelarlo, el switch se reinicia y corta todo el tráfico. Si podés
-      hacer el cambio por consola, saltá este paso y el de cancelar.
+      Si olvidas cancelarlo, el switch se reinicia y corta todo el tráfico. Si puedes
+      hacer el cambio por consola, salta este paso y el de cancelar.
     breakdown:
       - token: reload in
         meaning: Programa un reinicio diferido en vez de reiniciar ahora.
@@ -109,14 +109,14 @@ steps:
   - title: Comprobar que todo funciona
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación y confirmá que seguís
+      Haz las comprobaciones de la sección Verificación y confirma que sigues
       teniendo acceso de gestión y que los equipos de cada VLAN se ven a través del
       enlace, antes de que pasen los {{minutes}} minutos.
   - title: Cancelar el reinicio de seguridad
     commands:
       - reload cancel
     explanation: Cancela el reinicio programado. El switch responde Reload cancelled.
-    warning: No sigas sin ejecutar este paso; comprobá después con show reload que no queda ningún reinicio pendiente.
+    warning: No sigas sin ejecutar este paso; comprueba después con show reload que no queda ningún reinicio pendiente.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -139,7 +139,7 @@ rollback:
     - title: Si perdiste el acceso y el reinicio sigue programado
       manual: true
       explanation: >-
-        Esperá. Al cumplirse el tiempo el switch se reinicia y arranca con la
+        Espera. Al cumplirse el tiempo el switch se reinicia y arranca con la
         configuración de arranque, sin el cambio. El reinicio corta el tráfico
         durante el arranque.
     - title: Devolver el puerto a sus valores de fábrica
@@ -152,17 +152,17 @@ rollback:
         - end
       explanation: >-
         Quita la lista de VLAN, la VLAN nativa y el modo, y deja el puerto en modo
-        acceso. Después reaplicá las líneas que guardaste en Antes de empezar con
+        acceso. Después reaplica las líneas que guardaste en Antes de empezar con
         show running-config interface {{interfaceId}}.
       warning: Hasta que reapliques su configuración anterior, el puerto queda como puerto de acceso de fábrica.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Una vez rehecha la configuración anterior del puerto, guardá de nuevo.
+      explanation: Una vez rehecha la configuración anterior del puerto, guarda de nuevo.
   lockoutRecovery: >-
-    Si perdés el acceso con el reinicio programado, esperá a que el switch se
+    Si pierdes el acceso con el reinicio programado, espera a que el switch se
     reinicie y vuelva con la configuración anterior. Si no lo habías programado o ya
-    lo cancelaste, entrá por el puerto de consola y rehacé la configuración del
+    lo cancelaste, entra por el puerto de consola y rehaz la configuración del
     puerto.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — VLAN Commands (switchport)
@@ -179,5 +179,5 @@ status:
     Sintaxis contrastada con la guía oficial de la CLI. La guía no afirma de forma
     literal que un reinicio descarte los cambios sin guardar; el reinicio de
     seguridad se apoya en que el switch arranca con la configuración de arranque.
-    Probá la secuencia completa en un equipo de laboratorio antes de usarla en
+    Prueba la secuencia completa en un equipo de laboratorio antes de usarla en
     producción.

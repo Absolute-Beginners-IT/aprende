@@ -15,7 +15,7 @@ params:
     min: 1
     max: 128
     example: '1'
-    help: El rango exacto lo indica la propia página; si no acepta el número, probá otro.
+    help: El rango exacto lo indica la propia página; si no acepta el número, prueba otro.
   - id: port1
     label: Primer puerto miembro
     type: text
@@ -32,9 +32,9 @@ params:
       param: port1
       hint: Tiene que ser un puerto distinto del primero.
 preflight:
-  - text: Hacé una copia de la configuración con la guía Guardar una copia de la configuración.
+  - text: Haz una copia de la configuración con la guía Guardar una copia de la configuración.
   - text: >-
-      Confirmá que {{port1}} y {{port2}} están libres y son del mismo tipo: no se
+      Confirma que {{port1}} y {{port2}} están libres y son del mismo tipo: no se
       pueden agrupar puertos de cobre con puertos SFP.
   - text: >-
       No conectes los dos cables hasta que el otro extremo tenga también su
@@ -42,23 +42,23 @@ preflight:
 steps:
   - title: Abrir la configuración de agregados
     manual: true
-    explanation: Andá a Local Device > Ports > Aggregate Ports > Aggregate Port Settings.
+    explanation: Ve a Local Device > Ports > Aggregate Ports > Aggregate Port Settings.
   - title: Crear la interfaz agregada con LACP
     manual: true
     explanation: >-
-      Escribí el número {{lagId}}, seleccioná en el panel los puertos {{port1}} y
-      {{port2}}, activá LACP y pulsá Save. La interfaz agregada aparece en el panel.
+      Escribe el número {{lagId}}, selecciona en el panel los puertos {{port1}} y
+      {{port2}}, activa LACP y pulsa Save. La interfaz agregada aparece en el panel.
     warning: >-
-      Activá LACP al crearla; una vez creada como estática no se puede cambiar el
+      Activa LACP al crearla; una vez creada como estática no se puede cambiar el
       modo LACP. Admite hasta ocho puertos miembro.
   - title: Configurar las VLAN de la interfaz agregada
     manual: true
     explanation: >-
-      En Local Device > VLAN > Port List, configurá la interfaz agregada como trunk
+      En Local Device > VLAN > Port List, configura la interfaz agregada como trunk
       con la guía Configurar un puerto trunk, igual que un puerto suelto.
   - title: Conectar los cables y comprobar
     manual: true
-    explanation: Con el otro extremo configurado, conectá los dos cables y hacé las comprobaciones.
+    explanation: Con el otro extremo configurado, conecta los dos cables y haz las comprobaciones.
 verification:
   - expect: >-
       En Local Device > Ports > Aggregate Ports, la interfaz {{lagId}} aparece con
@@ -66,20 +66,20 @@ verification:
       negociados con el otro extremo.
 rollback:
   summary: >-
-    Antes de borrar la agregación, desconectá al menos uno de los dos cables: como
+    Antes de borrar la agregación, desconecta al menos uno de los dos cables: como
     puertos sueltos, dos cables hacia el mismo switch formarían un bucle.
   steps:
     - title: Desconectar un cable de la agregación
       manual: true
-      explanation: Quitá uno de los dos cables antes de seguir.
+      explanation: Quita uno de los dos cables antes de seguir.
     - title: Borrar la interfaz agregada
       manual: true
       explanation: >-
-        En Aggregate Port Settings, seleccioná la interfaz {{lagId}} y pulsá Delete
+        En Aggregate Port Settings, selecciona la interfaz {{lagId}} y pulsa Delete
         Selected. Los puertos quedan libres en el panel.
   lockoutRecovery: >-
-    Si la red se vuelve inestable justo después de conectar los cables, sospechá de
-    un bucle y desconectá uno de los dos. Después revisá la configuración de los dos
+    Si la red se vuelve inestable justo después de conectar los cables, sospecha de
+    un bucle y desconecta uno de los dos. Después revisa la configuración de los dos
     extremos.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado Aggregate Ports

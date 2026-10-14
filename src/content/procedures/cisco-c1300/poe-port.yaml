@@ -23,7 +23,7 @@ params:
       - low
       - high
       - critical
-    help: La de fábrica es low. Reservá critical para lo que no puede apagarse, como un punto de acceso principal.
+    help: La de fábrica es low. Reserva critical para lo que no puede apagarse, como un punto de acceso principal.
   - id: previousPriority
     label: Prioridad PoE que tiene ahora
     type: choice
@@ -35,14 +35,14 @@ params:
     help: La ves en la comprobación previa; hace falta para poder volver atrás.
 preflight:
   - text: >-
-      Mirá el estado PoE del puerto: estado administrativo y operativo, potencia,
-      clase y prioridad. Anotá la prioridad actual. Si el estado administrativo es
-      never, detenete: ese puerto tiene PoE desactivado a propósito y esta guía lo
+      Mira el estado PoE del puerto: estado administrativo y operativo, potencia,
+      clase y prioridad. Anota la prioridad actual. Si el estado administrativo es
+      never, detente: ese puerto tiene PoE desactivado a propósito y esta guía lo
       dejaría entregando potencia.
     command: show power inline {{interfaceId}}
-  - text: Comprobá la potencia asignada del switch; si queda poca, el equipo puede no volver a encender.
+  - text: Comprueba la potencia asignada del switch; si queda poca, el equipo puede no volver a encender.
     command: show power inline
-  - text: Confirmá qué equipo está en ese puerto y avisá a quien lo use.
+  - text: Confirma qué equipo está en ese puerto y avisa a quien lo use.
 steps:
   - title: Entrar en la configuración del puerto
     commands:
@@ -58,7 +58,7 @@ steps:
     warning: El equipo se apaga al ejecutar este comando.
   - title: Esperar unos segundos
     manual: true
-    explanation: Esperá unos 10 segundos para que el equipo se descargue por completo antes de volver a alimentarlo.
+    explanation: Espera unos 10 segundos para que el equipo se descargue por completo antes de volver a alimentarlo.
   - title: Restablecer la alimentación PoE
     commands:
       - power inline auto
@@ -87,7 +87,7 @@ steps:
     explanation: >-
       Copia la configuración en ejecución a la de arranque, para que la prioridad
       sobreviva a un reinicio. El switch pide confirmación.
-    warning: Verificá primero (sección siguiente) y guardá después.
+    warning: Verifica primero (sección siguiente) y guarda después.
 verification:
   - command: show power inline {{interfaceId}}
     expect: >-
@@ -117,11 +117,11 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede como antes.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede como antes.
   lockoutRecovery: >-
     Este cambio no afecta al acceso de gestión del switch, salvo que el equipo
     alimentado por ese puerto sea parte de tu camino hasta él (por ejemplo un punto
-    de acceso o un conversor). En ese caso hacelo desde una conexión cableada.
+    de acceso o un conversor). En ese caso hazlo desde una conexión cableada.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — PoE Commands
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/poe-commands.html

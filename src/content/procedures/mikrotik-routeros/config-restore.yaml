@@ -25,25 +25,25 @@ params:
     help: Copia del estado de ahora, para poder volver si la restauración no era lo que querías.
 preflight:
   - text: >-
-      Confirmá que el archivo {{backupName}}.backup está en el equipo. Si no está,
-      subilo antes con WinBox o SFTP.
+      Confirma que el archivo {{backupName}}.backup está en el equipo. Si no está,
+      súbelo antes con WinBox o SFTP.
     command: /file print
   - text: >-
       La copia tiene que ser de este mismo equipo y de la misma versión de RouterOS:
       restaura también las direcciones MAC.
   - text: >-
-      Guardá el estado actual. Si el equipo tiene carpeta flash, el nombre tiene que
+      Guarda el estado actual. Si el equipo tiene carpeta flash, el nombre tiene que
       empezar por flash/ o el archivo se pierde en el reinicio.
     command: /system backup save name={{currentBackup}}
   - text: >-
-      Safe Mode no protege esta operación, porque el equipo se reinicia. Tené acceso
-      por consola y hacelo en una ventana de mantenimiento.
+      Safe Mode no protege esta operación, porque el equipo se reinicia. Ten acceso
+      por consola y hazlo en una ventana de mantenimiento.
 steps:
   - title: Cargar la copia
     commands:
       - /system backup load name={{backupName}}
     explanation: >-
-      Pide la contraseña de la copia (dejala vacía si se guardó sin contraseña) y
+      Pide la contraseña de la copia (déjala vacía si se guardó sin contraseña) y
       después pregunta Restore and reboot? [y/N]. Al responder y, restaura la
       configuración y reinicia el equipo.
     warning: Al confirmar con y se corta el tráfico del switch hasta que termina de arrancar.
@@ -55,7 +55,7 @@ steps:
   - title: Esperar el reinicio y volver a entrar
     manual: true
     explanation: >-
-      Conectate de nuevo cuando el equipo termine de arrancar. Tené en cuenta que la
+      Conéctate de nuevo cuando el equipo termine de arrancar. Ten en cuenta que la
       IP de gestión y los usuarios son ahora los de la copia.
 verification:
   - command: /export
@@ -74,9 +74,9 @@ rollback:
         Carga la copia hecha en Antes de empezar y reinicia el equipo otra vez.
       warning: Vuelve a cortar el tráfico durante el arranque.
   lockoutRecovery: >-
-    Si después del reinicio no podés entrar por red, comprobá primero que estás
+    Si después del reinicio no puedes entrar por red, comprueba primero que estás
     usando la IP y el usuario de la copia restaurada. Si aun así no hay acceso,
-    conectate por el puerto de consola y cargá desde ahí la copia del estado
+    conéctate por el puerto de consola y carga desde ahí la copia del estado
     anterior.
 sources:
   - title: RouterOS — Backup

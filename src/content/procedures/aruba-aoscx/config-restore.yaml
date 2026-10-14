@@ -3,12 +3,12 @@ task: config-restore
 summary: >-
   Aplica un checkpoint anterior sobre la configuración en ejecución de un Aruba CX
   6100, protegido con el modo checkpoint auto para que el switch se recupere solo si
-  perdés el acceso.
+  pierdes el acceso.
 risk:
   level: high
   reason: >-
     Sustituye toda la configuración en ejecución. Si el checkpoint tiene otra
-    configuración de gestión, podés quedarte sin acceso remoto en el momento.
+    configuración de gestión, puedes quedarte sin acceso remoto en el momento.
 params:
   - id: checkpointName
     label: Checkpoint a restaurar
@@ -30,19 +30,19 @@ params:
     min: 1
     max: 60
     example: '10'
-    help: Tiempo que tenés para comprobar que todo funciona antes de que el switch deshaga el cambio solo.
+    help: Tiempo que tienes para comprobar que todo funciona antes de que el switch deshaga el cambio solo.
 preflight:
-  - text: Confirmá que el checkpoint que vas a restaurar existe y mirá su fecha.
+  - text: Confirma que el checkpoint que vas a restaurar existe y mira su fecha.
     command: show checkpoint
-  - text: Guardá el estado actual, aunque esté mal, para poder volver a él.
+  - text: Guarda el estado actual, aunque esté mal, para poder volver a él.
     command: copy running-config checkpoint {{currentCheckpoint}}
-  - text: Tené a mano acceso por consola y avisá del posible corte.
+  - text: Ten a mano acceso por consola y avisa del posible corte.
 steps:
   - title: Activar el modo checkpoint auto
     commands:
       - checkpoint auto {{minutes}}
     explanation: >-
-      Abre una ventana de {{minutes}} minutos. Si no confirmás antes de que venza, el
+      Abre una ventana de {{minutes}} minutos. Si no confirmas antes de que venza, el
       switch restaura la configuración que tenía en este momento. Es lo que te
       protege si la restauración te deja sin acceso.
     breakdown:
@@ -55,9 +55,9 @@ steps:
       - checkpoint rollback {{checkpointName}}
     explanation: >-
       Aplica la configuración del checkpoint sobre la que está en ejecución. El
-      switch responde Success. A partir de acá la red funciona con la configuración
+      switch responde Success. A partir de aquí la red funciona con la configuración
       restaurada.
-    warning: Si tu sesión se corta en este paso, no toques nada y esperá a que venza el modo auto.
+    warning: Si tu sesión se corta en este paso, no toques nada y espera a que venza el modo auto.
     breakdown:
       - token: checkpoint rollback
         meaning: Sustituye la configuración en ejecución por la de un checkpoint.
@@ -66,8 +66,8 @@ steps:
   - title: Comprobar que todo funciona
     manual: true
     explanation: >-
-      Antes de confirmar, verificá que seguís teniendo acceso de gestión y que la
-      red responde como esperabas (sección Verificación). Hacelo dentro de la
+      Antes de confirmar, verifica que sigues teniendo acceso de gestión y que la
+      red responde como esperabas (sección Verificación). Hazlo dentro de la
       ventana de {{minutes}} minutos.
   - title: Confirmar el cambio
     commands:
@@ -75,7 +75,7 @@ steps:
     explanation: >-
       Termina el modo auto y deja la configuración restaurada como definitiva en
       ejecución. El switch crea además un checkpoint cuyo nombre empieza por AUTO.
-    warning: Si no ejecutás este comando a tiempo, el switch vuelve solo al estado anterior.
+    warning: Si no ejecutas este comando a tiempo, el switch vuelve solo al estado anterior.
   - title: Guardar en la configuración de arranque
     commands:
       - write memory
@@ -88,7 +88,7 @@ verification:
 rollback:
   summary: >-
     Mientras el modo auto esté activo, la vuelta atrás es no confirmar. Si ya
-    confirmaste, volvé al checkpoint que guardaste antes de empezar.
+    confirmaste, vuelve al checkpoint que guardaste antes de empezar.
   steps:
     - title: Si todavía no confirmaste
       manual: true
@@ -103,9 +103,9 @@ rollback:
         Vuelve al estado que guardaste en Antes de empezar y lo deja también en la
         configuración de arranque.
   lockoutRecovery: >-
-    Si perdés el acceso con el modo auto activo, esperá: al vencer la ventana el
+    Si pierdes el acceso con el modo auto activo, espera: al vencer la ventana el
     switch recupera la configuración anterior y vas a poder entrar de nuevo. Si ya
-    habías confirmado, entrá por el puerto de consola y aplicá el checkpoint que
+    habías confirmado, entra por el puerto de consola y aplica el checkpoint que
     guardaste antes de empezar.
 sources:
   - title: AOS-CX 10.15 Fundamentals Guide (4100i, 6000, 6100) — checkpoint rollback
@@ -123,4 +123,4 @@ status:
   notes: >-
     Cada comando está contrastado con la documentación oficial. La documentación no
     describe de forma explícita el uso de checkpoint rollback dentro del modo auto;
-    probá la secuencia completa en un equipo de laboratorio antes de confiar en ella.
+    prueba la secuencia completa en un equipo de laboratorio antes de confiar en ella.

@@ -28,14 +28,14 @@ params:
     example: sfp-sfpplus1
     pattern: '^[A-Za-z0-9_.+-]+(,[A-Za-z0-9_.+-]+)*$'
     patternHint: Uno o varios nombres de puerto separados por comas, sin espacios.
-    help: Copiá la lista tal como está configurada ahora; hace falta para poder volver atrás.
+    help: Copia la lista tal como está configurada ahora; hace falta para poder volver atrás.
   - id: taggedPorts
     label: Lista completa de puertos etiquetados
     type: text
     example: sfp-sfpplus1,sfp-sfpplus2
     pattern: '^[A-Za-z0-9_.+-]+(,[A-Za-z0-9_.+-]+)*$'
     patternHint: Uno o varios nombres de puerto separados por comas, sin espacios.
-    help: Los que ya estaban más el puerto nuevo. Si el bridge figuraba en la lista, mantenelo.
+    help: Los que ya estaban más el puerto nuevo. Si el bridge figuraba en la lista, mantenlo.
   - id: backupName
     label: Nombre de la copia de respaldo
     type: text
@@ -44,23 +44,23 @@ params:
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
 preflight:
   - text: >-
-      Comprobá que el bridge tiene vlan-filtering=yes. Si está en no, detenete: la
+      Comprueba que el bridge tiene vlan-filtering=yes. Si está en no, detente: la
       tabla de VLAN no tiene efecto.
     command: /interface bridge print
   - text: >-
-      Anotá los puertos etiquetados configurados ahora en la entrada de la VLAN. Usá
+      Anota los puertos etiquetados configurados ahora en la entrada de la VLAN. Usa
       detail para ver la lista configurada y no solo los puertos con enlace activo.
     command: /interface bridge vlan print detail
-  - text: Confirmá el nombre exacto del puerto nuevo y que forma parte del bridge.
+  - text: Confirma el nombre exacto del puerto nuevo y que forma parte del bridge.
     command: /interface bridge port print
-  - text: Guardá una copia completa de la configuración.
+  - text: Guarda una copia completa de la configuración.
     command: /system backup save name={{backupName}}
-  - text: Confirmá con quien administra el otro extremo que esa VLAN también va etiquetada allí.
+  - text: Confirma con quien administra el otro extremo que esa VLAN también va etiquetada allí.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Reescribir la lista de puertos etiquetados de la VLAN
     commands:
@@ -69,7 +69,7 @@ steps:
       Deja la VLAN {{vlanId}} etiquetada exactamente en {{taggedPorts}}. El puerto
       {{interfaceName}} tiene que estar en esa lista junto con los que ya estaban.
     warning: >-
-      Este comando reemplaza la lista, no la amplía. Antes de ejecutarlo, comparala
+      Este comando reemplaza la lista, no la amplía. Antes de ejecutarlo, compárala
       con la que anotaste: no puede faltar ningún puerto de {{previousTagged}}.
     breakdown:
       - token: /interface bridge vlan set
@@ -91,12 +91,12 @@ steps:
   - title: Verificar antes de salir de Safe Mode
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
-      confirmá que seguís teniendo acceso de gestión.
+      Haz las comprobaciones de la sección Verificación sin salir de Safe Mode y
+      confirma que sigues teniendo acceso de gestión.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      Pulsá Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsá
+      Pulsa Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsa
       Ctrl+D en su lugar para salir deshaciendo lo hecho.
 verification:
   - command: /interface bridge vlan print
@@ -110,9 +110,9 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode, se devuelve a la
     VLAN su lista anterior de puertos etiquetados.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Si ya saliste de Safe Mode
       commands:
         - /interface bridge vlan set [find vlan-ids={{vlanId}}] tagged={{previousTagged}}
@@ -122,9 +122,9 @@ rollback:
         - /interface bridge port set [find where interface={{interfaceName}}] frame-types=admit-all
       explanation: Devuelve el puerto al valor de fábrica, que acepta tramas con y sin etiqueta.
   lockoutRecovery: >-
-    Si la sesión se corta con Safe Mode activo, esperá unos 9 minutos: los cambios
-    se deshacen solos. Si ya habías salido de Safe Mode, conectate por consola y
-    restaurá la lista anterior, o cargá la copia guardada antes de empezar.
+    Si la sesión se corta con Safe Mode activo, espera unos 9 minutos: los cambios
+    se deshacen solos. Si ya habías salido de Safe Mode, conéctate por consola y
+    restaura la lista anterior, o carga la copia guardada antes de empezar.
 sources:
   - title: RouterOS — Bridge VLAN Table
     url: https://help.mikrotik.com/docs/display/ROS/Bridge+VLAN+Table

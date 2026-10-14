@@ -35,18 +35,18 @@ params:
     min: 5
     max: 60
     example: '15'
-    help: Si no lográs entrar por la IP nueva, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
+    help: Si no logras entrar por la IP nueva, el switch se reinicia pasado este tiempo y arranca con la configuración guardada.
 preflight:
   - text: >-
-      Mirá qué direcciones tiene ahora el switch y de qué tipo son. Sin DHCP ni IP
+      Mira qué direcciones tiene ahora el switch y de qué tipo son. Sin DHCP ni IP
       manual, la VLAN por defecto usa 192.168.1.254.
     command: show ip interface
   - text: >-
-      Confirmá que la configuración de arranque es buena: es a la que vuelve el
+      Confirma que la configuración de arranque es buena: es a la que vuelve el
       switch si se reinicia.
     command: show startup-config
-  - text: Hacelo por el puerto de consola si podés; así no dependés de la IP que vas a cambiar.
-  - text: Comprobá desde otro equipo que la IP nueva no responde a ping, para no duplicarla.
+  - text: Hazlo por el puerto de consola si puedes; así no dependes de la IP que vas a cambiar.
+  - text: Comprueba desde otro equipo que la IP nueva no responde a ping, para no duplicarla.
 steps:
   - title: Programar el reinicio de seguridad
     commands:
@@ -56,8 +56,8 @@ steps:
       cambio te deja sin acceso, el switch se reinicia solo y arranca con la
       configuración de arranque, que todavía no tiene el cambio.
     warning: >-
-      Si olvidás cancelarlo, el switch se reinicia y corta todo el tráfico. Si hacés
-      el cambio por consola, saltá este paso y el de cancelar.
+      Si olvidas cancelarlo, el switch se reinicia y corta todo el tráfico. Si haces
+      el cambio por consola, salta este paso y el de cancelar.
   - title: Entrar en la interfaz de gestión
     commands:
       - configure terminal
@@ -90,14 +90,14 @@ steps:
   - title: Entrar por la IP nueva
     manual: true
     explanation: >-
-      Abrí una sesión nueva hacia {{ipAddress}} desde tu equipo de administración y
-      hacé las comprobaciones de la sección Verificación, antes de que pasen los
+      Abre una sesión nueva hacia {{ipAddress}} desde tu equipo de administración y
+      haz las comprobaciones de la sección Verificación, antes de que pasen los
       {{minutes}} minutos.
   - title: Cancelar el reinicio de seguridad
     commands:
       - reload cancel
     explanation: Cancela el reinicio programado. El switch responde Reload cancelled.
-    warning: No sigas sin ejecutar este paso; comprobá después con show reload que no queda ningún reinicio pendiente.
+    warning: No sigas sin ejecutar este paso; comprueba después con show reload que no queda ningún reinicio pendiente.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -117,13 +117,13 @@ rollback:
     - title: Si no pudiste entrar y el reinicio sigue programado
       manual: true
       explanation: >-
-        Esperá. Al cumplirse el tiempo el switch se reinicia y arranca con la
+        Espera. Al cumplirse el tiempo el switch se reinicia y arranca con la
         configuración de arranque, con la IP de antes. El reinicio corta el tráfico
         durante el arranque.
     - title: Si no programaste el reinicio y todavía no guardaste
       commands:
         - reload
-      explanation: Por consola, reiniciá el switch para que arranque con la configuración de arranque.
+      explanation: Por consola, reinicia el switch para que arranque con la configuración de arranque.
       warning: El reinicio corta todo el tráfico del switch durante el arranque.
     - title: Si ya habías guardado
       commands:
@@ -133,12 +133,12 @@ rollback:
         - end
       explanation: >-
         Por consola, vuelve a activar el cliente DHCP en la interfaz, lo que elimina
-        las direcciones configuradas a mano. Usalo solo si antes la IP venía de
-        DHCP; si era otra IP fija, volvé a configurarla.
+        las direcciones configuradas a mano. Úsalo solo si antes la IP venía de
+        DHCP; si era otra IP fija, vuelve a configurarla.
   lockoutRecovery: >-
-    Si no podés entrar por la IP nueva y el reinicio está programado, esperá a que
-    el switch se reinicie y vuelva con la IP anterior. Si no, entrá por el puerto de
-    consola y corregí la dirección o la puerta de enlace.
+    Si no puedes entrar por la IP nueva y el reinicio está programado, espera a que
+    el switch se reinicie y vuelva con la IP anterior. Si no, entra por el puerto de
+    consola y corrige la dirección o la puerta de enlace.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — IP Addressing Commands
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/ip-addressing-commands.html

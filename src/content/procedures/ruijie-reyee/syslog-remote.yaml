@@ -12,32 +12,32 @@ params:
     type: ipv4
     example: 192.168.10.30
 preflight:
-  - text: Comprobá que la hora del switch está bien; si no, los registros llegan con la hora mal.
-  - text: Confirmá que el servidor syslog acepta mensajes desde la IP de gestión del switch.
+  - text: Comprueba que la hora del switch está bien; si no, los registros llegan con la hora mal.
+  - text: Confirma que el servidor syslog acepta mensajes desde la IP de gestión del switch.
 steps:
   - title: Abrir los ajustes de registro
     manual: true
-    explanation: Andá a Local Device > System > Syslog > Log Settings.
+    explanation: Ve a Local Device > System > Syslog > Log Settings.
   - title: Activar Syslog
     manual: true
-    explanation: Activá SYSLOG para que el switch pueda enviar registros a un servidor remoto.
+    explanation: Activa SYSLOG para que el switch pueda enviar registros a un servidor remoto.
   - title: Añadir el servidor remoto
     manual: true
     explanation: >-
-      Pulsá Add junto a los servidores remotos y completá IP/Domain {{serverIp}},
-      Port 514 y Protocol UDP, el único admitido. Dejá el formato RFC3164, el de
-      fábrica, salvo que el servidor pida RFC5424. Guardá.
+      Pulsa Add junto a los servidores remotos y completa IP/Domain {{serverIp}},
+      Port 514 y Protocol UDP, el único admitido. Deja el formato RFC3164, el de
+      fábrica, salvo que el servidor pida RFC5424. Guarda.
 verification:
   - expect: >-
       El servidor aparece en la lista de servidores remotos y activado. En el
-      servidor syslog llegan mensajes del switch; provocá uno, por ejemplo saliendo
+      servidor syslog llegan mensajes del switch; provoca uno, por ejemplo saliendo
       y entrando en la interfaz web.
 rollback:
-  summary: Quitá el servidor remoto añadido.
+  summary: Quita el servidor remoto añadido.
   steps:
     - title: Quitar el servidor remoto
       manual: true
-      explanation: En Log Settings, borrá o desactivá el servidor {{serverIp}} y guardá.
+      explanation: En Log Settings, borra o desactiva el servidor {{serverIp}} y guarda.
   lockoutRecovery: Este cambio no afecta al acceso de gestión.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado System Logs

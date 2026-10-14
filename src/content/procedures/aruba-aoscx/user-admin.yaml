@@ -17,10 +17,10 @@ params:
     patternHint: Empieza por letra; hasta 32 caracteres; letras, números, punto, guion y guion bajo. No puede ser admin, root ni remote_user.
     help: Distingue mayúsculas de minúsculas.
 preflight:
-  - text: Mirá qué usuarios existen ya y a qué grupo pertenecen.
+  - text: Mira qué usuarios existen ya y a qué grupo pertenecen.
     command: show user-list
   - text: >-
-      Tené la contraseña decidida y guardada en el gestor de contraseñas: hasta 32
+      Ten la contraseña decidida y guardada en el gestor de contraseñas: hasta 32
       caracteres ASCII imprimibles, sin espacios.
   - text: No cierres tu sesión actual hasta comprobar que la cuenta nueva entra.
 steps:
@@ -50,31 +50,31 @@ steps:
   - title: Probar la cuenta nueva
     manual: true
     explanation: >-
-      Sin cerrar esta sesión, abrí otra y entrá con {{userName}}. Comprobá que
-      llegás al prompt terminado en # y que podés ejecutar config.
+      Sin cerrar esta sesión, abre otra y entra con {{userName}}. Comprueba que
+      llegas al prompt terminado en # y que puedes ejecutar config.
   - title: Guardar el cambio
     commands:
       - write memory
     explanation: Copia la configuración en ejecución a la de arranque.
-    warning: Guardá solo después de comprobar que la cuenta nueva entra.
+    warning: Guarda solo después de comprobar que la cuenta nueva entra.
 verification:
   - command: show user-list
     expect: Una fila con el usuario {{userName}} y el grupo administrators.
 rollback:
-  summary: Borrá la cuenta creada. La cuenta admin de fábrica no se puede borrar.
+  summary: Borra la cuenta creada. La cuenta admin de fábrica no se puede borrar.
   steps:
     - title: Borrar el usuario
       commands:
         - config
         - no user {{userName}}
         - end
-      explanation: Elimina la cuenta {{userName}}. Hacelo desde otra cuenta; el switch no deja borrar la cuenta con la que estás conectado.
+      explanation: Elimina la cuenta {{userName}}. Hazlo desde otra cuenta; el switch no deja borrar la cuenta con la que estás conectado.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede sin la cuenta.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede sin la cuenta.
   lockoutRecovery: >-
-    Crear una cuenta no quita el acceso a las existentes. Si no recordás ninguna
+    Crear una cuenta no quita el acceso a las existentes. Si no recuerdas ninguna
     contraseña de administrador, la recuperación se hace por consola desde el sistema
     de servicio del switch, y está fuera de esta guía.
 sources:

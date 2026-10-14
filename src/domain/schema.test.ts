@@ -37,7 +37,7 @@ const validProcedure = () => ({
   summary: 'Crea una VLAN.',
   risk: { level: 'low', reason: 'No afecta al tráfico existente.' },
   params: [{ id: 'vlanId', label: 'ID de VLAN', type: 'vlan-id', example: '20' }],
-  preflight: [{ text: 'Guardá la configuración actual.' }],
+  preflight: [{ text: 'Guarda la configuración actual.' }],
   steps: [
     {
       title: 'Crear la VLAN',
@@ -47,7 +47,7 @@ const validProcedure = () => ({
   ],
   verification: [{ command: 'show vlan {{vlanId}}', expect: 'La VLAN aparece como up.' }],
   rollback: {
-    summary: 'Eliminá la VLAN creada.',
+    summary: 'Elimina la VLAN creada.',
     steps: [{ commands: ['no vlan {{vlanId}}'], explanation: 'Borra la VLAN.' }],
   },
   sources: [{ title: 'Guía oficial', url: 'https://example.com/guide' }],
@@ -78,7 +78,7 @@ describe('ProcedureSchema', () => {
 
   it('accepts a step without commands only when it is declared manual', () => {
     const base = validProcedure()
-    const manualStep = { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }
+    const manualStep = { title: 'Descargar el archivo', explanation: 'Cópialo a tu equipo.' }
     const withSteps = (steps: unknown[]) => ProcedureSchema.safeParse({ ...base, steps })
 
     expect(withSteps([{ ...manualStep, manual: true }]).success).toBe(true)
@@ -97,7 +97,7 @@ describe('ProcedureSchema', () => {
     const base = validProcedure()
     const result = ProcedureSchema.safeParse({
       ...base,
-      steps: [...base.steps, { title: 'Descargar el archivo', explanation: 'Copialo a tu equipo.' }],
+      steps: [...base.steps, { title: 'Descargar el archivo', explanation: 'Cópialo a tu equipo.' }],
     })
 
     expect(result.error?.issues.map((issue) => issue.path.join('.'))).toEqual(['steps.1.commands'])
@@ -108,8 +108,8 @@ describe('ProcedureSchema', () => {
     const withRollback = (step: unknown) =>
       ProcedureSchema.safeParse({ ...base, rollback: { summary: 'x', steps: [step] } })
 
-    expect(withRollback({ explanation: 'Esperá a que venza el temporizador.', manual: true }).success).toBe(true)
-    expect(withRollback({ explanation: 'Esperá a que venza el temporizador.' }).success).toBe(false)
+    expect(withRollback({ explanation: 'Espera a que venza el temporizador.', manual: true }).success).toBe(true)
+    expect(withRollback({ explanation: 'Espera a que venza el temporizador.' }).success).toBe(false)
   })
 
   it('accepts a check that is read on screen instead of with a command', () => {
@@ -146,7 +146,7 @@ describe('findUndeclaredParams', () => {
     const base = validProcedure()
     const procedure = ProcedureSchema.parse({
       ...base,
-      preflight: [{ text: 'Revisá el puerto.', command: 'show interface {{port}}' }],
+      preflight: [{ text: 'Revisa el puerto.', command: 'show interface {{port}}' }],
       steps: [{ ...base.steps[0], commands: ['vlan {{vlanId}}', 'name {{name}}'] }],
       verification: [{ command: 'show vlan {{vlan}}', expect: 'x' }],
       rollback: { summary: 'x', steps: [{ commands: ['no vlan {{old}}'], explanation: 'x' }] },

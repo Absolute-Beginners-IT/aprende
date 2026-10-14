@@ -26,30 +26,30 @@ params:
     example: '1'
 preflight:
   - text: >-
-      En Local Device > VLAN > Port List, mirá el modo y la VLAN actuales de
-      {{port}}. Si está en modo Trunk, detenete: esta guía lo convertiría en acceso.
-  - text: Comprobá que {{port}} no es el puerto por el que llegás al switch ni un enlace hacia otro switch.
+      En Local Device > VLAN > Port List, mira el modo y la VLAN actuales de
+      {{port}}. Si está en modo Trunk, detente: esta guía lo convertiría en acceso.
+  - text: Comprueba que {{port}} no es el puerto por el que llegas al switch ni un enlace hacia otro switch.
 steps:
   - title: Abrir la lista de puertos
     manual: true
-    explanation: Andá a Local Device > VLAN > Port List.
+    explanation: Ve a Local Device > VLAN > Port List.
   - title: Configurar el puerto como acceso
     manual: true
     explanation: >-
-      Pulsá Edit en la fila de {{port}}, elegí el modo Access port, seleccioná la
-      Access VLAN {{vlanId}} y pulsá OK. Para varios puertos a la vez está Batch Edit.
+      Pulsa Edit en la fila de {{port}}, elige el modo Access port, selecciona la
+      Access VLAN {{vlanId}} y pulsa OK. Para varios puertos a la vez está Batch Edit.
     warning: El equipo conectado cambia de red al pulsar OK.
 verification:
   - expect: En Port List, {{port}} aparece en modo Access con la VLAN {{vlanId}}.
 rollback:
-  summary: Devolvé el puerto a la VLAN que tenía.
+  summary: Devuelve el puerto a la VLAN que tenía.
   steps:
     - title: Volver a la VLAN anterior
       manual: true
-      explanation: En Port List, pulsá Edit en {{port}}, elegí la Access VLAN {{previousVlanId}} y pulsá OK.
+      explanation: En Port List, pulsa Edit en {{port}}, elige la Access VLAN {{previousVlanId}} y pulsa OK.
   lockoutRecovery: >-
-    Si el puerto era tu vía de gestión y perdiste el acceso, conectate por otro
-    puerto de la VLAN de gestión y deshacé el cambio. Si no hay forma, el botón Reset
+    Si el puerto era tu vía de gestión y perdiste el acceso, conéctate por otro
+    puerto de la VLAN de gestión y deshaz el cambio. Si no hay forma, el botón Reset
     mantenido más de 5 segundos devuelve el switch a fábrica.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado Configuring Port VLAN

@@ -71,7 +71,7 @@ status:
   firmware: RouterOS 7
   notes: >-
     El modelo se apuntó al principio como CRS317-1G-17S+RM; la tabla oficial de
-    MikroTik lo lista como CRS317-1G-16S+RM, sin PoE de salida. Confirmalo en la
+    MikroTik lo lista como CRS317-1G-16S+RM, sin PoE de salida. Confírmalo en la
     etiqueta del equipo.
     Contrastado con la documentación oficial de help.mikrotik.com, que MikroTik ha
     congelado en favor de un manual nuevo; conviene revisar la versión vigente. Que

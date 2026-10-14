@@ -39,25 +39,25 @@ params:
     pattern: '^[A-Za-z0-9_.-]{1,32}$'
     patternHint: Nombre tal como aparece en /interface bridge print, sin espacios.
 preflight:
-  - text: Confirmá el nombre del chip de conmutación.
+  - text: Confirma el nombre del chip de conmutación.
     command: /interface ethernet switch print
   - text: >-
-      Mirá las reglas del chip. Esta guía supone que ninguna regla usa ya
-      {{interfaceName}}; si hay alguna, detenete, porque se procesan en orden y la
+      Mira las reglas del chip. Esta guía supone que ninguna regla usa ya
+      {{interfaceName}}; si hay alguna, detente, porque se procesan en orden y la
       primera que coincide gana.
     command: /interface ethernet switch rule print
   - text: >-
-      Mirá qué MAC hay ahora detrás de {{interfaceName}}. Tienen que ser solo los
-      equipos previstos; apuntalas todas.
+      Mira qué MAC hay ahora detrás de {{interfaceName}}. Tienen que ser solo los
+      equipos previstos; apúntalas todas.
     command: /interface bridge host print
-  - text: Confirmá que el puerto forma parte del bridge, con la marca H.
+  - text: Confirma que el puerto forma parte del bridge, con la marca H.
     command: /interface bridge port print
-  - text: Confirmá que no estás conectado a la gestión a través de ese puerto.
+  - text: Confirma que no estás conectado a la gestión a través de ese puerto.
 steps:
   - title: Activar Safe Mode
     manual: true
     explanation: >-
-      Pulsá Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
+      Pulsa Ctrl+X (o F4). El prompt pasa a mostrar SAFE. Si tu sesión se corta, los
       cambios se deshacen solos al vencer el tiempo de espera de la conexión.
   - title: Permitir la MAC del equipo
     commands:
@@ -65,7 +65,7 @@ steps:
     explanation: >-
       Crea una regla en el chip que deja pasar sin cambios el tráfico que entra por
       {{interfaceName}} con origen {{allowedMac}}. Si detrás hay más de un equipo,
-      repetí este paso con cada MAC antes de pasar al siguiente: la regla de
+      repite este paso con cada MAC antes de pasar al siguiente: la regla de
       descarte tiene que quedar la última.
     breakdown:
       - token: /interface ethernet switch rule add
@@ -105,16 +105,16 @@ steps:
     explanation: >-
       Sin aprendizaje, el switch no sabe que {{allowedMac}} está en {{interfaceName}}.
       Esta entrada estática se lo dice, para que el tráfico hacia el equipo salga por
-      ese puerto. Repetila con cada MAC que permitiste.
+      ese puerto. Repítela con cada MAC que permitiste.
   - title: Verificar antes de salir de Safe Mode
     manual: true
     explanation: >-
-      Hacé las comprobaciones de la sección Verificación sin salir de Safe Mode y
-      confirmá que el equipo permitido sigue teniendo red.
+      Haz las comprobaciones de la sección Verificación sin salir de Safe Mode y
+      confirma que el equipo permitido sigue teniendo red.
   - title: Salir de Safe Mode conservando el cambio
     manual: true
     explanation: >-
-      Pulsá Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsá
+      Pulsa Ctrl+X de nuevo. El cambio queda guardado. Si algo no está bien, pulsa
       Ctrl+D en su lugar para salir deshaciendo lo hecho.
 verification:
   - command: /interface ethernet switch rule print
@@ -131,15 +131,15 @@ rollback:
     Dentro de Safe Mode, Ctrl+D deshace todo. Fuera de Safe Mode se borran las reglas
     del puerto, se vuelve a activar el aprendizaje y se quita la entrada estática.
   steps:
-    - title: Si seguís en Safe Mode
+    - title: Si sigues en Safe Mode
       manual: true
-      explanation: Pulsá Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
+      explanation: Pulsa Ctrl+D. Sale de Safe Mode deshaciendo los cambios hechos en él.
     - title: Borrar las reglas del puerto
       commands:
         - /interface ethernet switch rule remove [find where ports={{interfaceName}}]
       explanation: >-
         Borra todas las reglas del chip que usan {{interfaceName}}. Es exacto porque
-        antes de empezar no había ninguna; si había alguna, borrá solo las que creaste,
+        antes de empezar no había ninguna; si había alguna, borra solo las que creaste,
         por su número en /interface ethernet switch rule print.
     - title: Volver a activar el aprendizaje
       commands:
@@ -150,9 +150,9 @@ rollback:
         - /interface bridge host remove [find where mac-address={{allowedMac}} and !dynamic]
       explanation: Borra la entrada estática de {{allowedMac}}; el switch la vuelve a aprender sola.
   lockoutRecovery: >-
-    Si la sesión se corta con Safe Mode activo, esperá unos 9 minutos: los cambios
+    Si la sesión se corta con Safe Mode activo, espera unos 9 minutos: los cambios
     se deshacen solos. Si te quedaste sin acceso porque gestionabas el switch a
-    través de ese puerto, entrá por otro puerto o por la consola serie y borrá las
+    través de ese puerto, entra por otro puerto o por la consola serie y borra las
     reglas del puerto.
 sources:
   - title: RouterOS Manual 7.25 — Marvell Prestera switch chip features (Port Security)

@@ -32,23 +32,23 @@ params:
       - High
 preflight:
   - text: >-
-      En Local Device > Ports > PoE > PoE Overview, mirá la potencia disponible; si
+      En Local Device > Ports > PoE > PoE Overview, mira la potencia disponible; si
       queda poca, el equipo puede no volver a encender.
   - text: >-
-      En Local Device > Ports > PoE > Port List, mirá el estado y la prioridad de
-      {{port}}. Si la alimentación del puerto está desactivada a propósito, detenete.
-  - text: Confirmá qué equipo hay en {{port}} y avisá a quien lo use.
+      En Local Device > Ports > PoE > Port List, mira el estado y la prioridad de
+      {{port}}. Si la alimentación del puerto está desactivada a propósito, detente.
+  - text: Confirma qué equipo hay en {{port}} y avisa a quien lo use.
 steps:
   - title: Reiniciar el equipo conectado
     manual: true
     explanation: >-
-      En Port List, pulsá Repower en la fila de {{port}}. El puerto corta la
+      En Port List, pulsa Repower en la fila de {{port}}. El puerto corta la
       alimentación un momento y la devuelve, y el equipo conectado arranca de nuevo.
     warning: El equipo se apaga al pulsar Repower.
   - title: Fijar la prioridad
     manual: true
     explanation: >-
-      Pulsá Edit en la fila de {{port}}, elegí la prioridad {{priority}} y pulsá OK.
+      Pulsa Edit en la fila de {{port}}, elige la prioridad {{priority}} y pulsa OK.
       Para varios puertos a la vez está Batch Edit.
 verification:
   - expect: >-
@@ -59,10 +59,10 @@ rollback:
   steps:
     - title: Volver a la prioridad anterior
       manual: true
-      explanation: En Port List, pulsá Edit en {{port}}, elegí {{previousPriority}} y pulsá OK.
+      explanation: En Port List, pulsa Edit en {{port}}, elige {{previousPriority}} y pulsa OK.
   lockoutRecovery: >-
     No afecta al acceso de gestión, salvo que el equipo alimentado sea parte de tu
-    camino hasta el switch, por ejemplo un punto de acceso. En ese caso hacelo desde
+    camino hasta el switch, por ejemplo un punto de acceso. En ese caso hazlo desde
     una conexión cableada.
 sources:
   - title: Ruijie Reyee NBS3200 V2 — ReyeeOS 2.341 Configuration Guide, apartado PoE Configuration
@@ -74,5 +74,5 @@ status:
   notes: >-
     Pasos contrastados con la guía oficial, que documenta el botón Repower para
     reiniciar el equipo conectado. La guía escribe la ruta de la lista de puertos
-    PoE de dos formas, con y sin Ports; si no la encontrás, buscala dentro de PoE.
+    PoE de dos formas, con y sin Ports; si no la encuentras, búscala dentro de PoE.
     Falta probarla en un NBS3200 real.

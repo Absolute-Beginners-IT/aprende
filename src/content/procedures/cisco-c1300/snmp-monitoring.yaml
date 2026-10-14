@@ -27,7 +27,7 @@ params:
     pattern: '^[A-Za-z0-9_.@-]{1,160}$'
     patternHint: Sin espacios; letras, números, punto, guion, guion bajo y arroba.
 preflight:
-  - text: Mirá si el agente ya está activo y qué comunidades existen.
+  - text: Mira si el agente ya está activo y qué comunidades existen.
     command: show snmp
   - text: No ejecutes write memory hasta haber probado la consulta desde el servidor.
 steps:
@@ -43,8 +43,8 @@ steps:
   - title: Crear la comunidad escribiéndola a mano
     manual: true
     explanation: >-
-      Escribí snmp-server community, tu comunidad, la palabra ro y la IP
-      {{nmsIp}}, en ese orden, y pulsá Enter. La comunidad admite de 1 a 20
+      Escribe snmp-server community, tu comunidad, la palabra ro y la IP
+      {{nmsIp}}, en ese orden, y pulsa Enter. La comunidad admite de 1 a 20
       caracteres. Sin máscara, solo se aceptan consultas que vengan exactamente de
       {{nmsIp}}.
     warning: Este manual no genera este comando porque incluye la comunidad, que es un secreto. No uses rw ni su.
@@ -59,8 +59,8 @@ steps:
   - title: Probar desde el servidor de monitorización
     manual: true
     explanation: >-
-      Desde {{nmsIp}}, consultá el switch con tu comunidad (por ejemplo, añadiéndolo
-      en la herramienta de monitorización o con snmpwalk) y comprobá que responde.
+      Desde {{nmsIp}}, consulta el switch con tu comunidad (por ejemplo, añadiéndolo
+      en la herramienta de monitorización o con snmpwalk) y comprueba que responde.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -71,7 +71,7 @@ verification:
       Dice SNMP is enabled, la comunidad aparece con acceso de solo lectura y
       asociada a {{nmsIp}}, y la ubicación y el contacto son los configurados.
 rollback:
-  summary: Apagá el agente y borrá la comunidad.
+  summary: Apaga el agente y borra la comunidad.
   steps:
     - title: Apagar el agente SNMP
       commands:
@@ -80,7 +80,7 @@ rollback:
       explanation: Nadie puede consultar el switch por SNMP.
     - title: Borrar la comunidad escribiéndola a mano
       manual: true
-      explanation: Escribí no snmp-server community, tu comunidad y la IP {{nmsIp}}, y pulsá Enter.
+      explanation: Escribe no snmp-server community, tu comunidad y la IP {{nmsIp}}, y pulsa Enter.
     - title: Salir y guardar
       commands:
         - end

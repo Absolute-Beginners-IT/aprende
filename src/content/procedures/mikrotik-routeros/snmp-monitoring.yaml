@@ -34,15 +34,15 @@ params:
     pattern: '^[A-Za-z0-9_.@-]{1,64}$'
     patternHint: Sin espacios; letras, números, punto, guion, guion bajo y arroba.
 preflight:
-  - text: Mirá si SNMP está activo.
+  - text: Mira si SNMP está activo.
     command: /snmp print
   - text: >-
-      Mirá las comunidades. De fábrica existe public, marcada como predeterminada:
+      Mira las comunidades. De fábrica existe public, marcada como predeterminada:
       acepta cualquier dirección, da lectura y no tiene seguridad.
     command: /snmp community print
   - text: >-
-      Tené preparadas en el gestor de contraseñas dos claves distintas, una de
-      autenticación y otra de cifrado, de al menos 8 caracteres. Evitá espacios,
+      Ten preparadas en el gestor de contraseñas dos claves distintas, una de
+      autenticación y otra de cifrado, de al menos 8 caracteres. Evita espacios,
       comillas, el signo $ y el signo ?, que la consola de RouterOS interpreta.
 steps:
   - title: Dejar sin acceso la comunidad de fábrica
@@ -61,10 +61,10 @@ steps:
     commands:
       - /snmp community add name={{snmpUser}} addresses={{nmsIp}}/32 security=private authentication-protocol=SHA1 encryption-protocol=AES read-access=yes write-access=no authentication-password=
     explanation: >-
-      En RouterOS 7 el usuario SNMPv3 se crea como una comunidad. Pegá el comando y,
-      sin pulsar Enter todavía, escribí tu clave de autenticación justo después de
+      En RouterOS 7 el usuario SNMPv3 se crea como una comunidad. Pega el comando y,
+      sin pulsar Enter todavía, escribe tu clave de autenticación justo después de
       authentication-password=, un espacio, encryption-password= y tu clave de
-      cifrado. Después pulsá Enter.
+      cifrado. Después pulsa Enter.
     warning: >-
       Las dos claves tienen que ser distintas y no pueden quedar vacías. Este manual no
       las genera porque son secretos.
@@ -90,10 +90,10 @@ steps:
   - title: Probar desde el servidor de monitorización
     manual: true
     explanation: >-
-      En la herramienta de monitorización configurá SNMPv3 con el usuario {{snmpUser}},
+      En la herramienta de monitorización configura SNMPv3 con el usuario {{snmpUser}},
       nivel authPriv, autenticación SHA1 y cifrado AES, con las mismas claves, y
-      comprobá que el equipo responde. En NinjaOne, si el descubrimiento de red no lo
-      encuentra, agregalo a mano con su IP.
+      comprueba que el equipo responde. En NinjaOne, si el descubrimiento de red no lo
+      encuentra, agrégalo a mano con su IP.
 verification:
   - command: /snmp print
     expect: SNMP aparece activo, con la ubicación y el contacto configurados.
@@ -104,7 +104,7 @@ verification:
       escritura no. Las claves no se muestran.
 rollback:
   summary: >-
-    Apagá SNMP: así nadie puede consultar el equipo. El usuario SNMPv3 y la comunidad
+    Apaga SNMP: así nadie puede consultar el equipo. El usuario SNMPv3 y la comunidad
     de fábrica pueden quedarse como están, porque sin SNMP activo no se usan.
   steps:
     - title: Apagar SNMP

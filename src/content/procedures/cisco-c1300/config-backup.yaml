@@ -20,7 +20,7 @@ params:
     patternHint: Hasta 60 caracteres; letras, números, punto, guion y guion bajo, sin espacios.
 preflight:
   - text: >-
-      TFTP envía el archivo sin cifrar y sin autenticación. Usalo solo dentro de la
+      TFTP envía el archivo sin cifrar y sin autenticación. Úsalo solo dentro de la
       red de gestión; la guía oficial admite también destinos scp:// y usb://.
   - text: >-
       Este switch no tiene checkpoints con nombre. Su punto de retorno interno es la
@@ -42,8 +42,8 @@ steps:
   - title: Comprobar el archivo en el servidor
     manual: true
     explanation: >-
-      Abrí {{fileName}} en el servidor y confirmá que no está vacío y que contiene
-      la configuración del switch. Después movelo al repositorio de copias de la
+      Abre {{fileName}} en el servidor y confirma que no está vacío y que contiene
+      la configuración del switch. Después muévelo al repositorio de copias de la
       empresa.
 verification:
   - command: show running-config
@@ -55,7 +55,7 @@ rollback:
   steps:
     - title: Si la copia no hace falta
       manual: true
-      explanation: Borrá el archivo {{fileName}} en el servidor TFTP.
+      explanation: Borra el archivo {{fileName}} en el servidor TFTP.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — File System Commands (copy)
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/file-system-commands.html

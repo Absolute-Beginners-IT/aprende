@@ -24,7 +24,7 @@ params:
     min: 1
     max: 256
     example: '2'
-    help: Contá todos los equipos del puerto, por ejemplo el teléfono IP y el ordenador conectado detrás.
+    help: Cuenta todos los equipos del puerto, por ejemplo el teléfono IP y el ordenador conectado detrás.
   - id: violationAction
     label: Acción ante un equipo de más
     type: choice
@@ -35,16 +35,16 @@ params:
     help: discard descarta el tráfico del equipo de más; discard-shutdown además apaga el puerto.
 preflight:
   - text: >-
-      Mirá cuántas direcciones MAC hay ahora en el puerto. El máximo tiene que
+      Mira cuántas direcciones MAC hay ahora en el puerto. El máximo tiene que
       cubrir a todos los equipos legítimos.
     command: show mac address-table interface {{interfaceId}}
   - text: >-
-      Mirá el estado de port security del puerto. Tiene que estar en Disabled: los
+      Mira el estado de port security del puerto. Tiene que estar en Disabled: los
       comandos de este manual solo se aceptan con el puerto en modo normal, sin
       límite.
     command: show ports security {{interfaceId}}
   - text: >-
-      Guardá la configuración actual del puerto. Si tiene 802.1X activo, port
+      Guarda la configuración actual del puerto. Si tiene 802.1X activo, port
       security no se puede activar.
     command: show running-config interface {{interfaceId}}
 steps:
@@ -104,8 +104,8 @@ steps:
   - title: Comprobar que los equipos del puerto funcionan
     manual: true
     explanation: >-
-      Confirmá que todos los equipos legítimos del puerto {{interfaceId}} tienen
-      red y hacé las comprobaciones de la sección Verificación.
+      Confirma que todos los equipos legítimos del puerto {{interfaceId}} tienen
+      red y haz las comprobaciones de la sección Verificación.
   - title: Guardar el cambio
     commands:
       - write memory
@@ -123,9 +123,9 @@ verification:
     expect: El puerto no aparece apagado por el sistema.
 rollback:
   summary: >-
-    Desactivá la protección y devolvé el modo y el máximo a sus valores de fábrica.
-    Si el puerto se apagó por un equipo de más, primero quitá ese equipo y después
-    reactivalo.
+    Desactiva la protección y devuelve el modo y el máximo a sus valores de fábrica.
+    Si el puerto se apagó por un equipo de más, primero quita ese equipo y después
+    reactívalo.
   steps:
     - title: Reactivar un puerto apagado por port security
       commands:
@@ -133,7 +133,7 @@ rollback:
         - errdisable recovery reset interface {{interfaceId}}
       explanation: >-
         La primera orden muestra si el puerto está apagado y por qué (port-security).
-        La segunda lo vuelve a activar. Antes, desconectá el equipo de más, o se
+        La segunda lo vuelve a activar. Antes, desconecta el equipo de más, o se
         volverá a apagar.
       warning: >-
         La reactivación automática por esta causa está desactivada de fábrica. Se
@@ -154,11 +154,11 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la vuelta atrás sobreviva a un reinicio.
+      explanation: Guarda de nuevo para que la vuelta atrás sobreviva a un reinicio.
   lockoutRecovery: >-
     Este cambio no afecta a la gestión salvo que lo apliques al puerto por el que
-    estás conectado. Si ese puerto se apagó o descarta tu tráfico, entrá por consola
-    o por otro puerto y quitá port security del puerto.
+    estás conectado. Si ese puerto se apagó o descarta tu tráfico, entra por consola
+    o por otro puerto y quita port security del puerto.
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — Address Table Commands (port security)
     url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/address-table-commands.html

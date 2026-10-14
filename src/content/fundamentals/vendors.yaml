@@ -11,7 +11,7 @@ sections:
         Los conceptos son los mismos en todas las marcas porque siguen los mismos
         estándares: VLAN 802.1Q, LACP 802.3ad, Spanning Tree 802.1D/w/s, PoE 802.3af/at/bt,
         LLDP, SNMP, syslog, NTP. Lo que cambia es la forma de pedírselo al switch: los
-        comandos, los menús y cómo se guarda la configuración. Si entendés el
+        comandos, los menús y cómo se guarda la configuración. Si entiendes el
         concepto, cambiar de marca es aprender otro vocabulario.
   - heading: Las marcas de este manual
     paragraphs:
@@ -49,7 +49,7 @@ sections:
         todas: los mismos números de VLAN, la misma VLAN de gestión, nombres de puertos
         documentados, los mismos servidores de hora, syslog y monitorización. Este
         manual sigue esa idea: cada tarea tiene la misma estructura en cada marca, y
-        desde cualquier guía podés saltar a la misma tarea en otra.
+        desde cualquier guía puedes saltar a la misma tarea en otra.
 related:
   - config-backup
   - snmp-monitoring

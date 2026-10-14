@@ -7,7 +7,7 @@ risk:
   level: medium
   reason: >-
     El equipo conectado al puerto cambia de red en el momento. Si el puerto es el que
-    usás para gestionar el switch o es un enlace a otro switch, el cambio corta ese
+    usas para gestionar el switch o es un enlace a otro switch, el cambio corta ese
     acceso.
 params:
   - id: interfaceId
@@ -28,17 +28,17 @@ params:
     help: La ves en la comprobación previa; hace falta para poder volver atrás.
 preflight:
   - text: >-
-      Confirmá que la VLAN de destino existe. Si asignás una VLAN que no existe, el
+      Confirma que la VLAN de destino existe. Si asignas una VLAN que no existe, el
       puerto queda sin pertenecer a ninguna.
     command: show vlan tag {{vlanId}}
   - text: >-
-      Mirá cómo está el puerto ahora y anotá su modo y su VLAN de acceso. Si está en
-      modo trunk, detenete: esta guía lo convertiría en puerto de acceso.
+      Mira cómo está el puerto ahora y anota su modo y su VLAN de acceso. Si está en
+      modo trunk, detente: esta guía lo convertiría en puerto de acceso.
     command: show interfaces switchport {{interfaceId}}
-  - text: Guardá la configuración actual del puerto por si hay que rehacerla.
+  - text: Guarda la configuración actual del puerto por si hay que rehacerla.
     command: show running-config interface {{interfaceId}}
   - text: >-
-      Comprobá que no es el puerto por el que estás conectado ni un enlace hacia
+      Comprueba que no es el puerto por el que estás conectado ni un enlace hacia
       otro switch. No ejecutes write memory hasta verificar el cambio.
 steps:
   - title: Entrar en la configuración del puerto
@@ -72,14 +72,14 @@ steps:
     explanation: >-
       Copia la configuración en ejecución a la de arranque. El switch pide
       confirmación antes de sobrescribirla.
-    warning: Verificá primero (sección siguiente) y guardá después.
+    warning: Verifica primero (sección siguiente) y guarda después.
 verification:
   - command: show interfaces switchport {{interfaceId}}
     expect: Modo administrativo y operativo access, y VLAN de acceso {{vlanId}}.
   - command: show vlan tag {{vlanId}}
     expect: El puerto {{interfaceId}} aparece entre los puertos sin etiqueta de la VLAN {{vlanId}}.
 rollback:
-  summary: Devolvé el puerto a la VLAN que tenía.
+  summary: Devuelve el puerto a la VLAN que tenía.
   steps:
     - title: Volver a la VLAN anterior
       commands:
@@ -91,12 +91,12 @@ rollback:
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
-      explanation: Guardá de nuevo para que la configuración de arranque también quede como antes.
+      explanation: Guarda de nuevo para que la configuración de arranque también quede como antes.
   lockoutRecovery: >-
-    Si el puerto era tu vía de gestión y perdiste la conexión, entrá por el puerto
-    de consola y deshacé el cambio. Si todavía no habías ejecutado write memory, un
+    Si el puerto era tu vía de gestión y perdiste la conexión, entra por el puerto
+    de consola y deshaz el cambio. Si todavía no habías ejecutado write memory, un
     reinicio del switch arranca con la configuración anterior. Para hacer este
-    cambio en remoto con red de seguridad, programá antes un reinicio con reload in
+    cambio en remoto con red de seguridad, programa antes un reinicio con reload in
     (ver la ficha del equipo).
 sources:
   - title: Cisco Catalyst 1300 CLI Guide — VLAN Commands (switchport)

@@ -25,7 +25,7 @@ params:
     help: Tiene que ser único en el switch.
 preflight:
   - text: >-
-      Comprobá que el ID no esté ya en uso. Si aparece en la lista, no sigas:
+      Comprueba que el ID no esté ya en uso. Si aparece en la lista, no sigas:
       estarías modificando una VLAN existente.
     command: show vlan
   - text: >-
@@ -60,8 +60,8 @@ steps:
       - write memory
     explanation: >-
       Copia la configuración en ejecución a la de arranque. El switch pregunta si
-      querés sobrescribir startup-config; al aceptar muestra Copy succeeded.
-    warning: Verificá primero (sección siguiente) y guardá después.
+      quieres sobrescribir startup-config; al aceptar muestra Copy succeeded.
+    warning: Verifica primero (sección siguiente) y guarda después.
 verification:
   - command: show vlan tag {{vlanId}}
     expect: >-
@@ -77,13 +77,13 @@ rollback:
         - no vlan {{vlanId}}
         - end
       explanation: >-
-        Elimina la VLAN. Antes de borrarla confirmá con show vlan tag {{vlanId}} que
+        Elimina la VLAN. Antes de borrarla confirma con show vlan tag {{vlanId}} que
         no tiene puertos asignados.
     - title: Si ya habías guardado con write memory
       commands:
         - write memory
       explanation: >-
-        Después de borrar la VLAN, guardá de nuevo para que la configuración de
+        Después de borrar la VLAN, guarda de nuevo para que la configuración de
         arranque también quede sin el cambio.
   lockoutRecovery: >-
     Crear una VLAN no corta el acceso de gestión. Si perdieras la conexión por otro

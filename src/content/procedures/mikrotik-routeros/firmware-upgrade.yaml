@@ -17,19 +17,19 @@ params:
     example: crs317-antes-firmware
     pattern: '^(flash/)?[A-Za-z0-9_-]{1,40}$'
     patternHint: Hasta 40 caracteres; letras, números, guion y guion bajo, sin extensión. Puede empezar por flash/.
-    help: Si el equipo tiene carpeta flash, escribí flash/ delante del nombre para que sobreviva al reinicio.
+    help: Si el equipo tiene carpeta flash, escribe flash/ delante del nombre para que sobreviva al reinicio.
 preflight:
-  - text: Anotá la versión instalada de cada paquete.
+  - text: Anota la versión instalada de cada paquete.
     command: /system package print
   - text: >-
-      Guardá una copia completa de la configuración y descargala fuera del equipo
+      Guarda una copia completa de la configuración y descárgala fuera del equipo
       antes de seguir.
     command: /system backup save name={{backupName}}
-  - text: Guardá también la exportación en texto, que sirve aunque cambie la versión.
+  - text: Guarda también la exportación en texto, que sirve aunque cambie la versión.
     command: /export file={{backupName}}
   - text: >-
       Si el equipo está en RouterOS 6, no se puede saltar directo a la última
-      versión 7: hay que pasar primero por la 7.12.1. Leé las notas de la versión.
+      versión 7: hay que pasar primero por la 7.12.1. Lee las notas de la versión.
   - text: >-
       El equipo necesita salida a internet por HTTPS (TCP 443) hacia los servidores
       de MikroTik. Si no la tiene, la actualización se hace subiendo el paquete a
@@ -59,8 +59,8 @@ steps:
     commands:
       - /system package print
     explanation: >-
-      Volvé a entrar cuando termine de arrancar y confirmá que los paquetes muestran
-      la versión nueva. Si no cambió, revisá el registro con /log print.
+      Vuelve a entrar cuando termine de arrancar y confirma que los paquetes muestran
+      la versión nueva. Si no cambió, revisa el registro con /log print.
   - title: Actualizar el cargador de arranque
     commands:
       - /system routerboard upgrade
@@ -89,8 +89,8 @@ rollback:
     - title: Reinstalar la versión anterior
       manual: true
       explanation: >-
-        Descargá de la web de MikroTik el paquete de la versión anterior para la
-        arquitectura del equipo, subilo con WinBox o SFTP y seguí el procedimiento
+        Descarga de la web de MikroTik el paquete de la versión anterior para la
+        arquitectura del equipo, súbelo con WinBox o SFTP y sigue el procedimiento
         de bajada de versión del fabricante. Ese procedimiento no está contrastado
         en esta guía.
     - title: Restaurar la configuración anterior
@@ -102,8 +102,8 @@ rollback:
         que se creó.
       warning: Vuelve a cortar todo el tráfico durante el reinicio.
   lockoutRecovery: >-
-    Si después de actualizar no podés entrar por red, conectate por consola y
-    revisá la configuración. Si el equipo no arranca, la recuperación se hace con la
+    Si después de actualizar no puedes entrar por red, conéctate por consola y
+    revisa la configuración. Si el equipo no arranca, la recuperación se hace con la
     herramienta Netinstall del fabricante, y está fuera de esta guía.
 sources:
   - title: RouterOS — Upgrading and installation
