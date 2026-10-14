@@ -45,6 +45,30 @@ body {
   font: 16px/1.55 system-ui, 'Segoe UI', sans-serif;
 }
 
+a {
+  color: var(--accent);
+}
+
+h1 {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 1.9rem;
+  line-height: 1.2;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+p {
+  margin: 0.5rem 0;
+}
+
 .shell {
   --header-height: 3.4rem;
   min-height: 100vh;
@@ -305,30 +329,6 @@ kbd {
   .shell__main {
     padding: 1rem 1rem 3rem;
   }
-}
-
-a {
-  color: var(--accent);
-}
-
-h1 {
-  margin: 0.2rem 0 0.5rem;
-  font-size: 1.9rem;
-  line-height: 1.2;
-}
-
-h2 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-h3 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-p {
-  margin: 0.5rem 0;
 }
 
 .eyebrow,

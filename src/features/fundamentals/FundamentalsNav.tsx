@@ -16,6 +16,7 @@ export function FundamentalsNav({ articles, article }: FundamentalsNavProps) {
       </a>
       <div className="task-nav__group">
         <p>Fundamentos</p>
+        {/* biome-ignore lint/a11y/noRedundantRoles: Safari drops list semantics when list-style is none. */}
         <ol role="list">
           {articles.map((item) => (
             <li key={item.id}>

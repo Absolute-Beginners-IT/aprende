@@ -38,6 +38,7 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: clicking outside is a mouse shortcut; the keyboard closes with Esc on the dialog.
     <div className="palette__backdrop" onClick={onClose}>
       <div
         className="palette"
@@ -53,6 +54,7 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
           placeholder="Tarea, marca, comando o tema…"
           autoComplete="off"
           spellCheck={false}
+          // biome-ignore lint/a11y/noAutofocus: the dialog exists to type a query, so focus goes straight to it.
           autoFocus
           value={query}
           onChange={(event) => {

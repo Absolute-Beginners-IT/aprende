@@ -33,6 +33,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
     route.name === 'runbook' ? `${route.platform}/${route.task}` : article ? `f/${article}` : route.name
 
   // On narrow screens the sidebar covers the page, so it closes once the user has picked something.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the page and brand are the triggers, not inputs.
   useEffect(() => setSidebarOpen(false), [pageKey, activePlatform])
 
   useEffect(() => {
