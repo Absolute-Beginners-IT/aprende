@@ -1,11 +1,10 @@
 import { type KeyboardEvent, useState } from 'react'
-import { runbookHref } from '../../lib/useHashRoute'
-import type { RunbookHit } from './searchIndex'
+import type { SearchHit } from './searchIndex'
 
 interface CommandPaletteProps {
-  search: (query: string) => RunbookHit[]
+  search: (query: string) => SearchHit[]
   /** Shown while the query is empty. */
-  recents: RunbookHit[]
+  recents: SearchHit[]
   onClose: () => void
 }
 
@@ -33,7 +32,7 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
       event.preventDefault()
       const hit = results[active]
       if (!hit) return
-      window.location.hash = runbookHref(hit.platform, hit.task)
+      window.location.hash = hit.href
       onClose()
     }
   }
@@ -51,7 +50,7 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
         <input
           type="search"
           aria-label="Buscar"
-          placeholder="Tarea, marca o comando…"
+          placeholder="Tarea, marca, comando o tema…"
           autoComplete="off"
           spellCheck={false}
           autoFocus
@@ -65,16 +64,14 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
         {!searching && results.length > 0 && <p className="palette__note">Recientes</p>}
         <ul>
           {results.map((hit, index) => (
-            <li key={`${hit.platform}/${hit.task}`}>
+            <li key={hit.href}>
               <a
-                href={runbookHref(hit.platform, hit.task)}
+                href={hit.href}
                 aria-current={index === active ? 'true' : undefined}
                 onClick={onClose}
               >
                 <strong>{hit.title}</strong>{' '}
-                <span>
-                  {hit.platformName} · {hit.groupLabel}
-                </span>
+                <span>{hit.detail}</span>
               </a>
             </li>
           ))}

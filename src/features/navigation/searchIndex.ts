@@ -1,5 +1,6 @@
 import MiniSearch from 'minisearch'
 import type { Catalog } from '../../domain/buildCatalog'
+import { fundamentalsHref, runbookHref } from '../../lib/useHashRoute'
 import { GROUP_LABELS } from '../labels'
 
 /** What the user needs to recognise a runbook in a list. */
@@ -10,6 +11,20 @@ export interface RunbookHit {
   platformName: string
   groupLabel: string
 }
+
+/** One result of the quick search: a runbook or a fundamentals article. */
+export interface SearchHit {
+  href: string
+  title: string
+  /** Second line, such as the brand and group of a runbook. */
+  detail: string
+}
+
+export const runbookSearchHit = (hit: RunbookHit): SearchHit => ({
+  href: runbookHref(hit.platform, hit.task),
+  title: hit.title,
+  detail: `${hit.platformName} · ${hit.groupLabel}`,
+})
 
 const DIACRITICS = /\p{Diacritic}/gu
 // Lets "gestion" find "gestión": people type fast and without accents when they are working.
@@ -30,28 +45,42 @@ export function describeRunbook(catalog: Catalog, platformId: string, taskId: st
   }
 }
 
-export function buildSearchIndex(catalog: Catalog): (query: string) => RunbookHit[] {
-  const hits = new Map<string, RunbookHit>()
+export function buildSearchIndex(catalog: Catalog): (query: string) => SearchHit[] {
+  const hits = new Map<string, SearchHit>()
   const index = new MiniSearch({
-    fields: ['title', 'platform', 'group', 'summary', 'commands'],
+    fields: ['title', 'platform', 'group', 'summary', 'commands', 'body'],
     processTerm: normalize,
     searchOptions: { prefix: true, combineWith: 'AND', boost: { title: 3, platform: 2 } },
   })
 
   for (const procedure of catalog.procedures) {
-    const hit = describeRunbook(catalog, procedure.platform, procedure.task)
+    const runbook = describeRunbook(catalog, procedure.platform, procedure.task)
     const platform = catalog.platforms.find((item) => item.id === procedure.platform)
-    if (!hit || !platform) continue
+    if (!runbook || !platform) continue
 
-    const id = `${hit.platform}/${hit.task}`
-    hits.set(id, hit)
+    const hit = runbookSearchHit(runbook)
+    hits.set(hit.href, hit)
     index.add({
-      id,
-      title: hit.title,
+      id: hit.href,
+      title: runbook.title,
       platform: `${platform.vendor} ${platform.name} ${platform.os}`,
-      group: hit.groupLabel,
+      group: runbook.groupLabel,
       summary: procedure.summary,
       commands: [...procedure.steps, ...procedure.rollback.steps].flatMap((step) => step.commands).join(' '),
+    })
+  }
+
+  for (const article of catalog.fundamentals) {
+    const hit = { href: fundamentalsHref(article.id), title: article.title, detail: 'Fundamentos' }
+    hits.set(hit.href, hit)
+    index.add({
+      id: hit.href,
+      title: article.title,
+      group: hit.detail,
+      summary: article.summary,
+      body: article.sections
+        .flatMap((section) => [section.heading, ...section.paragraphs, ...section.points])
+        .join(' '),
     })
   }
 

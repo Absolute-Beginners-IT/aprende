@@ -4,7 +4,7 @@ import { fundamentalsHref, type Route } from '../../lib/useHashRoute'
 import { FundamentalsNav } from '../fundamentals/FundamentalsNav'
 import { CommandPalette } from './CommandPalette'
 import { PlatformTabs } from './PlatformTabs'
-import { buildSearchIndex, type RunbookHit } from './searchIndex'
+import { buildSearchIndex, type RunbookHit, runbookSearchHit } from './searchIndex'
 import { TaskNav } from './TaskNav'
 
 interface AppShellProps {
@@ -89,7 +89,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         </aside>
         <main className="shell__main">{children}</main>
       </div>
-      {searchOpen && <CommandPalette search={search} recents={recents} onClose={closeSearch} />}
+      {searchOpen && <CommandPalette search={search} recents={recents.map(runbookSearchHit)} onClose={closeSearch} />}
     </div>
   )
 }

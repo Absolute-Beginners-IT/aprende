@@ -2,7 +2,8 @@ import { catalog } from '../../content/catalog'
 import { buildSearchIndex } from './searchIndex'
 
 const search = buildSearchIndex(catalog)
-const keys = (query: string) => search(query).map((hit) => `${hit.platform}/${hit.task}`)
+// Runbooks are reported as platform/task, articles as f/<article>, both taken from where the hit leads.
+const keys = (query: string) => search(query).map((hit) => hit.href.replace(/^#\/(p\/)?/, ''))
 
 describe('search index', () => {
   it('returns nothing for a blank query', () => {
@@ -40,11 +41,25 @@ describe('search index', () => {
     const hit = search('poe aruba')[0]
 
     expect(hit).toEqual({
-      platform: 'aruba-aoscx',
-      task: 'poe-port',
+      href: '#/p/aruba-aoscx/poe-port',
       title: 'Reiniciar un dispositivo PoE y fijar su prioridad',
-      platformName: 'Aruba CX 6100',
-      groupLabel: 'VLANs y puertos',
+      detail: 'Aruba CX 6100 · VLANs y puertos',
+    })
+  })
+
+  it('finds fundamentals articles by their title, ignoring accents', () => {
+    expect(keys('que es un switch')[0]).toBe('f/what-is-a-switch')
+  })
+
+  it('finds fundamentals articles by words in their text', () => {
+    expect(keys('broadcast')).toEqual(['f/what-is-a-switch'])
+  })
+
+  it('describes a fundamentals article as such', () => {
+    expect(search('marcas y sus sistemas')[0]).toEqual({
+      href: '#/f/vendors',
+      title: 'Las marcas y sus sistemas',
+      detail: 'Fundamentos',
     })
   })
 })
