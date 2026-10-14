@@ -152,6 +152,33 @@ describe('content catalog', () => {
     expect(trunks.filter((item) => item.risk.level === 'low')).toEqual([])
   })
 
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
+    'has Spanning Tree, DHCP snooping and management ACL runbooks for %s',
+    (platform) => {
+      const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
+
+      expect(tasks).toEqual(expect.arrayContaining(['stp-edge-protection', 'dhcp-snooping', 'mgmt-acl']))
+    },
+  )
+
+  it('has a port security runbook only for the platforms that can limit MAC addresses per port', () => {
+    const platforms = catalog.procedures.filter((item) => item.task === 'port-security').map((item) => item.platform)
+
+    expect(new Set(platforms)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros']))
+  })
+
+  it('rates every management ACL as high risk, since a missing rule locks the administrator out', () => {
+    const acls = catalog.procedures.filter((item) => item.task === 'mgmt-acl')
+
+    expect(acls.filter((item) => item.risk.level !== 'high')).toEqual([])
+  })
+
+  it('never rates DHCP snooping as low risk, since a wrong trusted port leaves a whole VLAN without addresses', () => {
+    const snooping = catalog.procedures.filter((item) => item.task === 'dhcp-snooping')
+
+    expect(snooping.filter((item) => item.risk.level === 'low')).toEqual([])
+  })
+
   it('never marks a runbook as lab-tested without a note saying where it was tested', () => {
     const untraceable = catalog.procedures.filter((item) => item.status.level === 'lab-tested' && !item.status.notes)
 

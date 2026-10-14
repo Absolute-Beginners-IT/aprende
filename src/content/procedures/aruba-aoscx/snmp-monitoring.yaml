@@ -224,8 +224,10 @@ status:
     El comando snmpv3 user y la ACL de control plane siguen la guía interna de la
     empresa, probada en un 6100 real, y coinciden con lo que se ve en la comunidad de
     HPE: los switches CX no admiten ACL por usuario SNMPv3, DES deshabilita el usuario
-    y la ACL de control plane necesita un permit any any any al final. La
-    documentación oficial consultada no confirma para el 6100 el comando apply
-    access-list ... control-plane ni que el usuario SNMPv3 sea de solo lectura. El
+    y la ACL de control plane necesita un permit any any any al final. La guía de
+    ACL 10.15 para el 6100 confirma apply access-list ip ... control-plane vrf y que
+    cada VRF admite una sola ACL de control plane; la guía de ACL de gestión añade
+    sus reglas a esta misma ACL. La documentación oficial consultada no confirma que
+    el usuario SNMPv3 sea de solo lectura. El
     filtro show running-config | include control-plane puede no mostrar la ACL en
     algunas versiones. Falta probar este runbook completo en un 6100.
