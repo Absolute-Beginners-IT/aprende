@@ -98,7 +98,7 @@ verification:
     expect: >-
       {{trustedPort}} y los demás puertos hacia servidores DHCP muestran
       trusted=yes; los puertos de usuario, trusted=no.
-  - command: /interface/bridge/host/print where dhcpv4-status
+  - command: /interface bridge host print where dhcpv4-status
     expect: >-
       En las versiones que tienen tabla de asignaciones DHCP, aparece el equipo de
       prueba con la IP que acaba de recibir y su puerto.

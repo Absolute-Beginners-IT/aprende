@@ -173,10 +173,14 @@ describe('content catalog', () => {
     expect(acls.filter((item) => item.risk.level !== 'high')).toEqual([])
   })
 
-  it('never rates DHCP snooping as low risk, since a wrong trusted port leaves a whole VLAN without addresses', () => {
-    const snooping = catalog.procedures.filter((item) => item.task === 'dhcp-snooping')
+  it.each([
+    ['dhcp-snooping', 'a wrong trusted port leaves a whole VLAN without addresses'],
+    ['port-security', 'a limit too low or a wrong port cuts legitimate devices'],
+    ['stp-edge-protection', 'an edge port on a switch link removes loop protection'],
+  ])('never rates %s as low risk, since %s', (task) => {
+    const runbooks = catalog.procedures.filter((item) => item.task === task)
 
-    expect(snooping.filter((item) => item.risk.level === 'low')).toEqual([])
+    expect(runbooks.filter((item) => item.risk.level === 'low')).toEqual([])
   })
 
   it('never marks a runbook as lab-tested without a note saying where it was tested', () => {

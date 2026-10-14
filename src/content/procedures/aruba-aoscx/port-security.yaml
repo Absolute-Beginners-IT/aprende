@@ -25,7 +25,10 @@ params:
     min: 1
     max: 32
     example: '2'
-    help: Contá el teléfono IP, el ordenador de detrás y las máquinas virtuales. En el 6100 el máximo es 32.
+    help: >-
+      Contá el teléfono IP, el ordenador de detrás y las máquinas virtuales. En el 6100
+      el máximo es 32. El switch admite 0, que bloquea el puerto entero; para eso es
+      más claro apagar el puerto, así que esta guía empieza en 1.
   - id: violationAction
     label: Acción ante una MAC de más
     type: choice
