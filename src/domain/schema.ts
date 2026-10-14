@@ -105,10 +105,24 @@ export const PlatformSchema = z.object({
   path: ['cliModes'],
 })
 
+// Background reading that is not tied to a brand: what a switch is, how it is managed, who makes them.
+export const FundamentalSchema = z.object({
+  id,
+  title: text,
+  order: z.number().int().min(1),
+  summary: text,
+  sections: z
+    .array(z.object({ heading: text, paragraphs: z.array(text).min(1), points: z.array(text).default([]) }))
+    .min(1),
+  // Tasks whose runbooks put the article into practice.
+  related: z.array(id).default([]),
+})
+
 export type Param = z.infer<typeof ParamSchema>
 export type Procedure = z.infer<typeof ProcedureSchema>
 export type Concept = z.infer<typeof ConceptSchema>
 export type Platform = z.infer<typeof PlatformSchema>
+export type Fundamental = z.infer<typeof FundamentalSchema>
 export type TaskGroup = (typeof TASK_GROUPS)[number]
 export type RiskLevel = (typeof RISK_LEVELS)[number]
 export type StatusLevel = (typeof STATUS_LEVELS)[number]

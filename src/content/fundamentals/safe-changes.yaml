@@ -1,0 +1,47 @@
+id: safe-changes
+title: Cómo trabajar sin romper la red
+order: 6
+summary: >-
+  El método que siguen todas las guías de este manual: preparar, tener una red de
+  seguridad, cambiar poco, verificar y saber volver atrás.
+sections:
+  - heading: Antes de tocar nada
+    paragraphs:
+      - >-
+        La mayoría de los cortes de red no los causa una avería sino un cambio. Un
+        cambio pequeño en un switch puede dejar sin servicio a una planta entera, o
+        dejarte a vos sin acceso para arreglarlo.
+    points:
+      - Sabé qué vas a cambiar y por qué; si no podés explicarlo en una frase, todavía no estás listo.
+      - Mirá cómo está ahora y apuntalo, con los comandos o pantallas de "Antes de empezar".
+      - Hacé una copia de la configuración.
+      - Asegurate de tener otra forma de entrar si perdés la conexión, normalmente la consola.
+      - Elegí el momento; lo que puede cortar el servicio se hace fuera de horario y avisando.
+  - heading: Mientras cambiás
+    paragraphs:
+      - >-
+        Usá la red de seguridad de la marca cuando la guía la indica: un mecanismo que
+        deshace el cambio solo si no confirmás a tiempo. Si el cambio te deja sin
+        acceso, en unos minutos el switch vuelve a como estaba.
+    points:
+      - Cambiá una cosa cada vez y comprobá antes de seguir.
+      - No trabajes sobre el puerto o la VLAN por la que estás conectado sin una red de seguridad.
+      - Copiá los comandos de la guía en lugar de escribirlos de memoria.
+  - heading: Después
+    paragraphs:
+      - >-
+        Verificá con las comprobaciones de la guía, no solo con que "parece que va".
+        Cuando todo funciona, confirmá el cambio, guardá la configuración y apuntá qué
+        hiciste, cuándo y por qué. Si algo no sale como esperabas, aplicá la vuelta atrás
+        de la guía en lugar de improvisar.
+  - heading: Cómo leer el nivel de riesgo y el estado de cada guía
+    paragraphs:
+      - >-
+        Cada guía indica su riesgo (bajo, medio o alto) según lo que puede pasar si sale
+        mal, y su estado: sin verificar, contrastada con documentación o probada en
+        laboratorio. Una guía de riesgo alto o sin verificar no es una guía prohibida;
+        es una que pide más preparación, una red de seguridad y, si se puede, una prueba
+        previa en un equipo que no esté en producción.
+related:
+  - config-backup
+  - config-restore

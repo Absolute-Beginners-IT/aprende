@@ -49,6 +49,18 @@ sources:
 status: { level: docs-checked, reviewed: '2026-10-13', firmware: '10.15' }
 `
 
+const fundamental = `
+id: what-is-a-switch
+title: Qué es un switch
+order: 1
+summary: Para qué sirve un switch.
+sections:
+  - heading: La idea
+    paragraphs: [Un switch conecta equipos de una red.]
+    points: [Aprende direcciones MAC.]
+related: [vlan-create]
+`
+
 const files = () => ({
   '/src/content/platforms/aruba-aoscx.yaml': platform,
   '/src/content/concepts/vlan-create.yaml': concept,
@@ -139,5 +151,37 @@ describe('buildCatalog', () => {
     expect(() => buildCatalog({ ...rest, '/src/content/concepts/vlans.yaml': moved })).toThrow(
       'id "vlan-create" does not match the file name',
     )
+  })
+
+  it('parses fundamentals articles in reading order', () => {
+    const second = fundamental.replace('id: what-is-a-switch', 'id: vendors').replace('order: 1', 'order: 2')
+    const catalog = buildCatalog({
+      ...files(),
+      '/src/content/fundamentals/vendors.yaml': second,
+      '/src/content/fundamentals/what-is-a-switch.yaml': fundamental,
+    })
+
+    expect(catalog.fundamentals.map((article) => article.id)).toEqual(['what-is-a-switch', 'vendors'])
+    expect(catalog.fundamentals[0]?.sections[0]?.points).toEqual(['Aprende direcciones MAC.'])
+  })
+
+  it('rejects a fundamentals article that links to a task with no concept', () => {
+    const broken = fundamental.replace('related: [vlan-create]', 'related: [vpn-create]')
+
+    expect(() => buildCatalog({ ...files(), '/src/content/fundamentals/what-is-a-switch.yaml': broken })).toThrow(
+      'unknown related task "vpn-create"',
+    )
+  })
+
+  it('rejects two fundamentals articles that claim the same position', () => {
+    const second = fundamental.replace('id: what-is-a-switch', 'id: vendors')
+
+    expect(() =>
+      buildCatalog({
+        ...files(),
+        '/src/content/fundamentals/what-is-a-switch.yaml': fundamental,
+        '/src/content/fundamentals/vendors.yaml': second,
+      }),
+    ).toThrow('order 1 is already used by "vendors" in fundamentals')
   })
 })

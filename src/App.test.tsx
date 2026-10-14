@@ -208,4 +208,59 @@ describe('quick search', () => {
       '#/p/aruba-aoscx/port-trunk',
     )
   })
+
+  it('opens the fundamentals from the header, with every article in reading order', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.click(screen.getByRole('link', { name: 'Fundamentos' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Fundamentos' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Fundamentos' })).toHaveAttribute('aria-current', 'page')
+    const articles = within(screen.getByRole('navigation', { name: 'Artículos' })).getAllByRole('link')
+    expect(articles.map((link) => link.getAttribute('href'))).toEqual([
+      '#/f',
+      '#/f/what-is-a-switch',
+      '#/f/traffic-basics',
+      '#/f/switch-types',
+      '#/f/management-basics',
+      '#/f/vendors',
+      '#/f/safe-changes',
+    ])
+  })
+
+  it('compares the brands of this manual on the fundamentals page', () => {
+    openAt('#/f')
+
+    const table = screen.getByRole('table', { name: 'Marcas de este manual' })
+    const rows = within(table).getAllByRole('row').slice(1)
+
+    expect(rows.map((row) => within(row).getAllByRole('cell')[0]?.textContent)).toEqual([
+      'Aruba CX 6100',
+      'Cisco Catalyst 1300',
+      'MikroTik CRS317',
+      'Ruijie NBS3200',
+    ])
+    expect(within(rows[3] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
+  })
+
+  it('shows an article with its sections and links its tasks to the brand in use', () => {
+    localStorage.setItem('switching-manual:last-platform', JSON.stringify('cisco-c1300'))
+    openAt('#/f/what-is-a-switch')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Qué es un switch y para qué sirve' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { level: 2 }).length).toBeGreaterThan(1)
+    const related = screen.getByRole('navigation', { name: 'Guías relacionadas' })
+    expect(within(related).getByRole('link', { name: 'Crear una VLAN' })).toHaveAttribute(
+      'href',
+      '#/p/cisco-c1300/vlan-create',
+    )
+  })
+
+  it('says so when a fundamentals article does not exist', () => {
+    openAt('#/f/nothing-here')
+
+    expect(screen.getByText('No encontramos esa página.')).toBeInTheDocument()
+  })
 })
+

@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
-import type { Route } from '../../lib/useHashRoute'
+import { fundamentalsHref, type Route } from '../../lib/useHashRoute'
+import { FundamentalsNav } from '../fundamentals/FundamentalsNav'
 import { CommandPalette } from './CommandPalette'
 import { PlatformTabs } from './PlatformTabs'
 import { buildSearchIndex, type RunbookHit } from './searchIndex'
@@ -26,7 +27,10 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
   const [searchOpen, setSearchOpen] = useState(false)
   const search = useMemo(() => buildSearchIndex(catalog), [catalog])
   const task = route.name === 'runbook' ? route.task : undefined
-  const pageKey = route.name === 'runbook' ? `${route.platform}/${route.task}` : route.name
+  const onFundamentals = route.name === 'fundamentals' || route.name === 'fundamental'
+  const article = route.name === 'fundamental' ? route.article : undefined
+  const pageKey =
+    route.name === 'runbook' ? `${route.platform}/${route.task}` : article ? `f/${article}` : route.name
 
   // On narrow screens the sidebar covers the page, so it closes once the user has picked something.
   useEffect(() => setSidebarOpen(false), [pageKey, activePlatform])
@@ -55,7 +59,13 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         <a className="shell__title" href="#/">
           Manual de Switching
         </a>
-        <PlatformTabs catalog={catalog} activePlatform={activePlatform} task={task} />
+        <nav className="brand-tabs brand-tabs--fixed" aria-label="Fundamentos">
+          <a href={fundamentalsHref()} aria-current={onFundamentals ? 'page' : undefined}>
+            Fundamentos
+          </a>
+        </nav>
+        {/* No brand is highlighted while reading the fundamentals, which apply to all of them. */}
+        <PlatformTabs catalog={catalog} activePlatform={onFundamentals ? '' : activePlatform} task={task} />
         <button ref={searchButton} type="button" className="shell__search" onClick={() => setSearchOpen(true)}>
           Buscar <kbd>Ctrl K</kbd>
         </button>
@@ -71,7 +81,11 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
       </header>
       <div className="shell__body">
         <aside id={sidebarId} className={sidebarOpen ? 'shell__sidebar shell__sidebar--open' : 'shell__sidebar'}>
-          <TaskNav catalog={catalog} platform={activePlatform} task={task} onSheet={route.name === 'platform'} />
+          {onFundamentals ? (
+            <FundamentalsNav articles={catalog.fundamentals} article={article} />
+          ) : (
+            <TaskNav catalog={catalog} platform={activePlatform} task={task} onSheet={route.name === 'platform'} />
+          )}
         </aside>
         <main className="shell__main">{children}</main>
       </div>

@@ -4,6 +4,8 @@ import {
   type Concept,
   ConceptSchema,
   findUndeclaredParams,
+  type Fundamental,
+  FundamentalSchema,
   type Platform,
   PlatformSchema,
   type Procedure,
@@ -15,6 +17,7 @@ export interface Catalog {
   platforms: Platform[]
   concepts: Concept[]
   procedures: Procedure[]
+  fundamentals: Fundamental[]
 }
 
 function parseFile<Schema extends z.ZodType>(path: string, source: string, schema: Schema): z.infer<Schema> {
@@ -91,5 +94,23 @@ export function buildCatalog(files: Record<string, string>): Catalog {
     return procedure
   })
 
-  return { platforms, concepts, procedures }
+  const fundamentalOrders = new Map<number, string>()
+  const fundamentals = inFolder('fundamentals')
+    .map(([path, source]) => {
+      const article = parseFile(path, source, FundamentalSchema)
+      assertIdMatchesFileName(path, article.id)
+
+      const taken = fundamentalOrders.get(article.order)
+      if (taken) {
+        throw new Error(`Invalid content in ${path}: order ${article.order} is already used by "${taken}" in fundamentals`)
+      }
+      fundamentalOrders.set(article.order, article.id)
+
+      const unknown = article.related.find((task) => !conceptIds.has(task))
+      if (unknown) throw new Error(`Invalid content in ${path}: unknown related task "${unknown}"`)
+      return article
+    })
+    .sort((a, b) => a.order - b.order)
+
+  return { platforms, concepts, procedures, fundamentals }
 }

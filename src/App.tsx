@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { catalog } from './content/catalog'
 import { HomePage } from './features/catalog/HomePage'
 import { PlatformPage } from './features/catalog/PlatformPage'
+import { FundamentalPage } from './features/fundamentals/FundamentalPage'
+import { FundamentalsPage } from './features/fundamentals/FundamentalsPage'
 import { AppShell } from './features/navigation/AppShell'
 import { describeRunbook, type RunbookHit } from './features/navigation/searchIndex'
 import { useRecents } from './features/navigation/useRecents'
@@ -20,9 +22,24 @@ function NotFound() {
   )
 }
 
-function Page({ route, recents }: { route: Route; recents: RunbookHit[] }) {
+interface PageProps {
+  route: Route
+  recents: RunbookHit[]
+  activePlatform: string
+}
+
+function Page({ route, recents, activePlatform }: PageProps) {
   if (route.name === 'home') return <HomePage recents={recents} />
   if (route.name === 'not-found') return <NotFound />
+  if (route.name === 'fundamentals') return <FundamentalsPage catalog={catalog} />
+  if (route.name === 'fundamental') {
+    const article = catalog.fundamentals.find((item) => item.id === route.article)
+    return article ? (
+      <FundamentalPage key={article.id} catalog={catalog} article={article} activePlatform={activePlatform} />
+    ) : (
+      <NotFound />
+    )
+  }
 
   const platform = findPlatform(route.platform)
   if (!platform) return <NotFound />
@@ -80,7 +97,7 @@ export function App() {
 
   return (
     <AppShell catalog={catalog} route={route} activePlatform={activePlatform} recents={recents}>
-      <Page route={route} recents={recents} />
+      <Page route={route} recents={recents} activePlatform={activePlatform} />
     </AppShell>
   )
 }
