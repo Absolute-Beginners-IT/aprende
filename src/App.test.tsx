@@ -263,5 +263,16 @@ describe('quick search', () => {
 
     expect(screen.getByText('No encontramos esa página.')).toBeInTheDocument()
   })
-})
 
+  it('opens a fundamentals article from the quick search', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.keyboard('{Control>}k{/Control}')
+    await user.type(within(dialog()).getByRole('searchbox', { name: 'Buscar' }), 'que es un switch')
+    expect(within(dialog()).getAllByRole('link')[0]).toHaveTextContent(/Qué es un switch y para qué sirve.*Fundamentos/)
+    await user.keyboard('{Enter}')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Qué es un switch y para qué sirve' })).toBeInTheDocument()
+  })
+})
