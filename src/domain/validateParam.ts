@@ -1,6 +1,7 @@
 import type { Param } from './schema'
 
-const INTEGER = /^\d+$/
+const INTEGER = /^-?\d+$/
+const DIGITS = /^\d+$/
 
 function isIntegerInRange(value: string, min: number, max: number): boolean {
   if (!INTEGER.test(value)) return false
@@ -10,7 +11,7 @@ function isIntegerInRange(value: string, min: number, max: number): boolean {
 
 function isIpv4(value: string): boolean {
   const octets = value.split('.')
-  return octets.length === 4 && octets.every((octet) => isIntegerInRange(octet, 0, 255))
+  return octets.length === 4 && octets.every((octet) => DIGITS.test(octet) && isIntegerInRange(octet, 0, 255))
 }
 
 function isCidr(value: string): boolean {

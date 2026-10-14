@@ -93,3 +93,25 @@ describe('validateParam with a value that must differ from another one', () => {
     )
   })
 })
+
+describe('validateParam with ranges that include negative numbers', () => {
+  const offset = param({ type: 'number', min: -12, max: 13 })
+
+  it('accepts negative integers inside the range', () => {
+    expect(validateParam(offset, '-5')).toBeNull()
+    expect(validateParam(offset, '-12')).toBeNull()
+    expect(validateParam(offset, '0')).toBeNull()
+  })
+
+  it('still rejects a sign inside an IPv4 address', () => {
+    expect(validateParam(param({ type: 'ipv4' }), '192.168.-0.1')).toBe(
+      'Debe ser una dirección IPv4 válida, por ejemplo 192.168.10.1.',
+    )
+  })
+
+  it('rejects values below the minimum and malformed signs', () => {
+    expect(validateParam(offset, '-13')).toBe('Debe ser un número entero entre -12 y 13.')
+    expect(validateParam(offset, '--1')).toBe('Debe ser un número entero entre -12 y 13.')
+    expect(validateParam(offset, '-')).toBe('Debe ser un número entero entre -12 y 13.')
+  })
+})
