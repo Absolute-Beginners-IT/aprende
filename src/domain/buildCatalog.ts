@@ -81,6 +81,7 @@ export function buildCatalog(files: Record<string, string>): Catalog {
     const paramIds = new Set(procedure.params.map((param) => param.id))
     for (const param of procedure.params) {
       const other = param.differentFrom?.param
+      if (other === param.id) fail(`param "${param.id}" cannot be required to differ from itself`)
       if (other && !paramIds.has(other)) fail(`param "${param.id}" must differ from undeclared param "${other}"`)
     }
 

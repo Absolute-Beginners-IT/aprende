@@ -17,7 +17,7 @@ function isIpv4(value: string): boolean {
 function isCidr(value: string): boolean {
   const [address, prefix, ...rest] = value.split('/')
   if (address === undefined || prefix === undefined || rest.length > 0) return false
-  return isIpv4(address) && isIntegerInRange(prefix, 0, 32)
+  return isIpv4(address) && DIGITS.test(prefix) && isIntegerInRange(prefix, 0, 32)
 }
 
 function validateFormat(param: Param, value: string): string | null {

@@ -103,6 +103,12 @@ describe('validateParam with ranges that include negative numbers', () => {
     expect(validateParam(offset, '0')).toBeNull()
   })
 
+  it('still rejects a sign in the prefix of an address with prefix', () => {
+    expect(validateParam(param({ type: 'cidr' }), '192.168.10.1/-0')).toBe(
+      'Debe ser una IPv4 con prefijo, por ejemplo 192.168.10.1/24.',
+    )
+  })
+
   it('still rejects a sign inside an IPv4 address', () => {
     expect(validateParam(param({ type: 'ipv4' }), '192.168.-0.1')).toBe(
       'Debe ser una dirección IPv4 válida, por ejemplo 192.168.10.1.',
