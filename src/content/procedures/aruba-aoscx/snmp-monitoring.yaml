@@ -53,16 +53,22 @@ steps:
   - title: Crear la ACL que solo permite al servidor de monitorización
     commands:
       - access-list ip {{aclName}}
-      - 10 permit udp {{nmsIp}} any eq 161
+      - 10 permit any {{nmsIp}} any
       - exit
     explanation: >-
-      Crea una ACL con una única regla que permite las consultas SNMP (UDP 161) que
-      vienen de {{nmsIp}}. Lo que no está permitido queda bloqueado.
+      Crea una ACL con una única regla que permite a {{nmsIp}}. Esta ACL no se
+      aplica a ningún puerto: solo decide qué equipos pueden usar la comunidad SNMP,
+      y cualquier otro queda rechazado para SNMP. El resto del tráfico del switch no
+      se ve afectado.
+    warning: >-
+      No añadas reglas deny ni una regla final permit any any any. Aruba no admite
+      reglas deny en las ACL de SNMP, y un permit any any any dejaría usar la
+      comunidad a cualquier equipo de la red.
     breakdown:
       - token: access-list ip {{aclName}}
         meaning: Crea una ACL IPv4 con ese nombre y entra en ella.
-      - token: 10 permit udp {{nmsIp}} any eq 161
-        meaning: Regla 10; permite UDP desde la IP del servidor hacia cualquier destino en el puerto 161, el de SNMP.
+      - token: 10 permit any {{nmsIp}} any
+        meaning: Regla 10; permite cualquier protocolo desde la IP del servidor hacia cualquier destino. Es la forma que el fabricante documenta para las ACL de SNMP.
   - title: Definir ubicación y contacto
     commands:
       - snmp-server system-location {{location}}
@@ -151,8 +157,7 @@ status:
   firmware: AOS-CX 10.15
   notes: >-
     Los comandos están contrastados con la documentación oficial. La regla de la
-    ACL se construyó a partir de su sintaxis, no de un ejemplo publicado, y no se
-    comprobó si las ACL asociadas a SNMP evalúan el puerto; si la consulta no
-    responde, probá la regla 10 permit any con la IP del servidor como origen. El
-    comando show snmp vrf solo se vio en el índice de la guía. Falta probarla en un
-    6100 real.
+    ACL sigue la forma que la guía SNMP/MIB marca como admitida para SNMP (permit
+    any con origen y destino); la misma guía indica que las reglas deny no se
+    admiten y que estas ACL no suman contadores. El comando show snmp vrf solo se
+    vio en el índice de la guía. Falta probarla en un 6100 real.
