@@ -116,7 +116,9 @@ describe('RunbookPage', () => {
     const copyStep = () => within(section('Paso a paso')).getByRole('button', { name: 'Copiar: Crear la VLAN' })
 
     expect(copyStep()).toBeDisabled()
-    expect(within(section('Paso a paso')).getByRole('button', { name: 'Copiar: Entrar en configuración' })).toBeEnabled()
+    expect(
+      within(section('Paso a paso')).getByRole('button', { name: 'Copiar: Entrar en configuración' }),
+    ).toBeEnabled()
 
     await user.type(screen.getByLabelText('ID de la VLAN'), '5000')
     await user.type(screen.getByLabelText('Nombre de la VLAN'), 'VOZ')
@@ -211,13 +213,11 @@ describe('RunbookPage', () => {
     renderPage()
     const index = screen.getByRole('navigation', { name: 'Secciones de la guía' })
 
-    expect(within(index).getAllByRole('button').map((button) => button.textContent)).toEqual([
-      'Tus datos',
-      'Antes de empezar',
-      'Paso a paso',
-      'Verificación',
-      'Vuelta atrás',
-    ])
+    expect(
+      within(index)
+        .getAllByRole('button')
+        .map((button) => button.textContent),
+    ).toEqual(['Tus datos', 'Antes de empezar', 'Paso a paso', 'Verificación', 'Vuelta atrás'])
 
     await user.click(within(index).getByRole('button', { name: 'Vuelta atrás' }))
 
@@ -252,7 +252,13 @@ describe('RunbookPage', () => {
           options: ['primary', 'secondary'],
           differentFrom: { param: 'fallback', hint: 'No puede ser la misma imagen que la de reserva.' },
         },
-        { id: 'fallback', label: 'Imagen de reserva', type: 'choice', example: 'primary', options: ['primary', 'secondary'] },
+        {
+          id: 'fallback',
+          label: 'Imagen de reserva',
+          type: 'choice',
+          example: 'primary',
+          options: ['primary', 'secondary'],
+        },
       ],
       preflight: [{ text: 'Mira las imágenes.' }],
       steps: [{ title: 'Descargar', commands: ['copy file {{target}}'], explanation: 'Descarga.' }],
@@ -295,7 +301,10 @@ describe('RunbookPage', () => {
   it('links to the official sources', () => {
     renderPage()
 
-    expect(screen.getByRole('link', { name: 'Guía oficial de VLAN' })).toHaveAttribute('href', 'https://example.com/vlan')
+    expect(screen.getByRole('link', { name: 'Guía oficial de VLAN' })).toHaveAttribute(
+      'href',
+      'https://example.com/vlan',
+    )
   })
 
   it('keeps the values and the step progress after reopening the runbook', async () => {

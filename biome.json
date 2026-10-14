@@ -6,12 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "**",
-      "!!**/dist",
-      "!odd",
-      "!src/content/**/*.yaml"
-    ]
+    "includes": ["**", "!!**/dist", "!odd", "!src/content/**/*.yaml"]
   },
   "formatter": {
     "enabled": true,

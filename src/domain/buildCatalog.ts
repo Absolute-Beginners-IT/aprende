@@ -3,9 +3,9 @@ import type { z } from 'zod'
 import {
   type Concept,
   ConceptSchema,
-  findUndeclaredParams,
   type Fundamental,
   FundamentalSchema,
+  findUndeclaredParams,
   type Platform,
   PlatformSchema,
   type Procedure,
@@ -62,9 +62,7 @@ export function buildCatalog(files: Record<string, string>): Catalog {
       positions.set(position, concept.id)
       return concept
     })
-    .sort(
-      (a, b) => TASK_GROUPS.indexOf(a.group) - TASK_GROUPS.indexOf(b.group) || a.order - b.order,
-    )
+    .sort((a, b) => TASK_GROUPS.indexOf(a.group) - TASK_GROUPS.indexOf(b.group) || a.order - b.order)
 
   const platformIds = new Set(platforms.map((platform) => platform.id))
   const conceptIds = new Set(concepts.map((concept) => concept.id))
@@ -102,7 +100,9 @@ export function buildCatalog(files: Record<string, string>): Catalog {
 
       const taken = fundamentalOrders.get(article.order)
       if (taken) {
-        throw new Error(`Invalid content in ${path}: order ${article.order} is already used by "${taken}" in fundamentals`)
+        throw new Error(
+          `Invalid content in ${path}: order ${article.order} is already used by "${taken}" in fundamentals`,
+        )
       }
       fundamentalOrders.set(article.order, article.id)
 

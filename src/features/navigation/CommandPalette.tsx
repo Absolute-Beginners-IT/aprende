@@ -67,13 +67,8 @@ export function CommandPalette({ search, recents, onClose }: CommandPaletteProps
         <ul>
           {results.map((hit, index) => (
             <li key={hit.href}>
-              <a
-                href={hit.href}
-                aria-current={index === active ? 'true' : undefined}
-                onClick={onClose}
-              >
-                <strong>{hit.title}</strong>{' '}
-                <span>{hit.detail}</span>
+              <a href={hit.href} aria-current={index === active ? 'true' : undefined} onClick={onClose}>
+                <strong>{hit.title}</strong> <span>{hit.detail}</span>
               </a>
             </li>
           ))}

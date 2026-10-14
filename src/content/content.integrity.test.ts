@@ -29,11 +29,14 @@ describe('content catalog', () => {
     expect(restores.map((item) => item.risk.level)).toEqual(restores.map(() => 'high'))
   })
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])('includes the VLAN creation runbook for %s', (platform) => {
-    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'vlan-create')
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
+    'includes the VLAN creation runbook for %s',
+    (platform) => {
+      const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'vlan-create')
 
-    expect(runbook).toBeDefined()
-  })
+      expect(runbook).toBeDefined()
+    },
+  )
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has access port and trunk port runbooks for %s',
@@ -44,11 +47,14 @@ describe('content catalog', () => {
     },
   )
 
-  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])('has a link aggregation runbook for %s', (platform) => {
-    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'lag-create')
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
+    'has a link aggregation runbook for %s',
+    (platform) => {
+      const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'lag-create')
 
-    expect(runbook?.risk.level).toBe('high')
-  })
+      expect(runbook?.risk.level).toBe('high')
+    },
+  )
 
   it('has a PoE runbook only for the platforms that supply PoE', () => {
     const platforms = catalog.procedures.filter((item) => item.task === 'poe-port').map((item) => item.platform)
@@ -127,7 +133,9 @@ describe('content catalog', () => {
     (platform) => {
       const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
 
-      expect(tasks).toEqual(expect.arrayContaining(['ntp-client', 'syslog-remote', 'snmp-monitoring', 'lldp-neighbors']))
+      expect(tasks).toEqual(
+        expect.arrayContaining(['ntp-client', 'syslog-remote', 'snmp-monitoring', 'lldp-neighbors']),
+      )
     },
   )
 
