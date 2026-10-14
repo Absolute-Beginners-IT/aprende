@@ -217,6 +217,7 @@ describe('quick search', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Fundamentos' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Fundamentos' })).toHaveAttribute('aria-current', 'page')
+    expect(within(brands()).getAllByRole('link').filter((link) => link.hasAttribute('aria-current'))).toEqual([])
     const articles = within(screen.getByRole('navigation', { name: 'Artículos' })).getAllByRole('link')
     expect(articles.map((link) => link.getAttribute('href'))).toEqual([
       '#/f',
@@ -257,8 +258,8 @@ describe('quick search', () => {
     )
   })
 
-  it('says so when a fundamentals article does not exist', () => {
-    openAt('#/f/nothing-here')
+  it.each(['#/f/nothing-here', '#/f/what-is-a-switch/extra'])('says so when %s is not a fundamentals page', (hash) => {
+    openAt(hash)
 
     expect(screen.getByText('No encontramos esa página.')).toBeInTheDocument()
   })

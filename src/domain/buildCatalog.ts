@@ -108,6 +108,8 @@ export function buildCatalog(files: Record<string, string>): Catalog {
 
       const unknown = article.related.find((task) => !conceptIds.has(task))
       if (unknown) throw new Error(`Invalid content in ${path}: unknown related task "${unknown}"`)
+      const withoutRunbook = article.related.find((task) => !procedures.some((item) => item.task === task))
+      if (withoutRunbook) throw new Error(`Invalid content in ${path}: related task "${withoutRunbook}" has no runbook`)
       return article
     })
     .sort((a, b) => a.order - b.order)

@@ -32,13 +32,14 @@ export function FundamentalPage({ catalog, article, activePlatform }: Fundamenta
 
       {article.sections.map((section) => (
         <Section key={section.heading} title={section.heading}>
-          {section.paragraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
+          {section.paragraphs.map((paragraph, index) => (
+            // Content is static, so the position is a stable key even if two paragraphs read the same.
+            <p key={index}>{paragraph}</p>
           ))}
           {section.points.length > 0 && (
             <ul>
-              {section.points.map((point) => (
-                <li key={point}>{point}</li>
+              {section.points.map((point, index) => (
+                <li key={index}>{point}</li>
               ))}
             </ul>
           )}

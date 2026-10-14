@@ -184,4 +184,17 @@ describe('buildCatalog', () => {
       }),
     ).toThrow('order 1 is already used by "vendors" in fundamentals')
   })
+
+  it('rejects a fundamentals article that links to a task no brand has a runbook for', () => {
+    const lonely = concept.replace('id: vlan-create', 'id: port-access')
+    const broken = fundamental.replace('related: [vlan-create]', 'related: [port-access]')
+
+    expect(() =>
+      buildCatalog({
+        ...files(),
+        '/src/content/concepts/port-access.yaml': lonely.replace('order: 1', 'order: 2'),
+        '/src/content/fundamentals/what-is-a-switch.yaml': broken,
+      }),
+    ).toThrow('related task "port-access" has no runbook')
+  })
 })

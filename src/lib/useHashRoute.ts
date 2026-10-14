@@ -10,12 +10,13 @@ export type Route =
 
 export function parseRoute(hash: string): Route {
   const segments = hash.replace(/^#\/?/, '').split('/').filter(Boolean)
-  const [root, platform, task, ...rest] = segments
+  const [root, second, third, ...rest] = segments
 
   if (root === undefined) return { name: 'home' }
-  if (root === 'f' && task === undefined) {
-    return platform === undefined ? { name: 'fundamentals' } : { name: 'fundamental', article: platform }
+  if (root === 'f' && third === undefined) {
+    return second === undefined ? { name: 'fundamentals' } : { name: 'fundamental', article: second }
   }
+  const [platform, task] = [second, third]
   if (root !== 'p' || platform === undefined || rest.length > 0) return { name: 'not-found' }
   return task === undefined ? { name: 'platform', platform } : { name: 'runbook', platform, task }
 }
