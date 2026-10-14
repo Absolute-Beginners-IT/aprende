@@ -1,0 +1,99 @@
+platform: cisco-c1300
+task: snmp-monitoring
+summary: >-
+  Activa el agente SNMP de un Cisco Catalyst 1300, que viene apagado de fábrica,
+  con una comunidad de solo lectura que solo acepta consultas del servidor de
+  monitorización.
+risk:
+  level: medium
+  reason: >-
+    No afecta al tráfico, pero el agente SNMP expone el estado y la configuración
+    del switch a quien conozca la comunidad.
+params:
+  - id: nmsIp
+    label: IP del servidor de monitorización
+    type: ipv4
+    example: 192.168.10.40
+  - id: location
+    label: Ubicación del switch
+    type: text
+    example: Sede-Central-Rack2
+    pattern: '^[A-Za-z0-9_.-]{1,160}$'
+    patternHint: Sin espacios; letras, números, punto, guion y guion bajo.
+  - id: contact
+    label: Contacto
+    type: text
+    example: sistemas
+    pattern: '^[A-Za-z0-9_.@-]{1,160}$'
+    patternHint: Sin espacios; letras, números, punto, guion, guion bajo y arroba.
+preflight:
+  - text: Mirá si el agente ya está activo y qué comunidades existen.
+    command: show snmp
+  - text: No ejecutes write memory hasta haber probado la consulta desde el servidor.
+steps:
+  - title: Entrar en modo configuración
+    commands:
+      - configure terminal
+    explanation: Pasa de Privileged EXEC a configuración global. El prompt termina en (config)#.
+  - title: Definir ubicación y contacto
+    commands:
+      - snmp-server location {{location}}
+      - snmp-server contact {{contact}}
+    explanation: Datos que verá el sistema de monitorización para identificar el equipo.
+  - title: Crear la comunidad escribiéndola a mano
+    manual: true
+    explanation: >-
+      Escribí snmp-server community, tu comunidad, la palabra ro y la IP
+      {{nmsIp}}, en ese orden, y pulsá Enter. La comunidad admite de 1 a 20
+      caracteres. Sin máscara, solo se aceptan consultas que vengan exactamente de
+      {{nmsIp}}.
+    warning: Este manual no genera este comando porque incluye la comunidad, que es un secreto. No uses rw ni su.
+  - title: Activar el agente SNMP
+    commands:
+      - snmp-server server
+    explanation: Enciende el agente SNMP. Se hace al final, cuando la comunidad ya está limitada al servidor.
+  - title: Salir del modo configuración
+    commands:
+      - end
+    explanation: Vuelve a Privileged EXEC.
+  - title: Probar desde el servidor de monitorización
+    manual: true
+    explanation: >-
+      Desde {{nmsIp}}, consultá el switch con tu comunidad (por ejemplo, añadiéndolo
+      en la herramienta de monitorización o con snmpwalk) y comprobá que responde.
+  - title: Guardar el cambio
+    commands:
+      - write memory
+    explanation: Copia la configuración en ejecución a la de arranque. El switch pide confirmación.
+verification:
+  - command: show snmp
+    expect: >-
+      Dice SNMP is enabled, la comunidad aparece con acceso de solo lectura y
+      asociada a {{nmsIp}}, y la ubicación y el contacto son los configurados.
+rollback:
+  summary: Apagá el agente y borrá la comunidad.
+  steps:
+    - title: Apagar el agente SNMP
+      commands:
+        - configure terminal
+        - no snmp-server server
+      explanation: Nadie puede consultar el switch por SNMP.
+    - title: Borrar la comunidad escribiéndola a mano
+      manual: true
+      explanation: Escribí no snmp-server community, tu comunidad y la IP {{nmsIp}}, y pulsá Enter.
+    - title: Salir y guardar
+      commands:
+        - end
+        - write memory
+      explanation: Guarda la configuración sin SNMP.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión por SSH ni por consola.
+sources:
+  - title: Cisco Catalyst 1300 CLI Guide — SNMP Commands
+    url: https://www.cisco.com/c/en/us/td/docs/switches/campus-lan-switches-access/Catalyst-1200-and-1300-Switches/cli/C1300-cli/snmp-commands.html
+status:
+  level: docs-checked
+  reviewed: '2026-10-14'
+  firmware: CLI Guide Catalyst 1300, edición 2026-04-28
+  notes: >-
+    Sintaxis y valores de fábrica contrastados con la guía oficial de la CLI. Falta
+    probarla en un C1300 real.

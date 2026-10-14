@@ -1,0 +1,158 @@
+platform: aruba-aoscx
+task: snmp-monitoring
+summary: >-
+  Activa SNMP v2c en un Aruba CX 6100 con una comunidad propia de solo lectura,
+  limitada por una ACL a la IP del servidor de monitorización.
+risk:
+  level: medium
+  reason: >-
+    No afecta al tráfico, pero el agente SNMP expone el estado y la configuración
+    del switch. Si se activa antes de proteger la comunidad, queda accesible con la
+    comunidad public de fábrica.
+params:
+  - id: nmsIp
+    label: IP del servidor de monitorización
+    type: ipv4
+    example: 192.168.10.40
+  - id: aclName
+    label: Nombre de la ACL
+    type: text
+    example: SNMP-MON
+    pattern: '^[A-Za-z0-9_-]{1,64}$'
+    patternHint: Hasta 64 caracteres; letras, números, guion y guion bajo.
+  - id: location
+    label: Ubicación del switch
+    type: text
+    example: Sede-Central-Rack2
+    pattern: '^[A-Za-z0-9_.-]{1,64}$'
+    patternHint: Sin espacios; letras, números, punto, guion y guion bajo.
+  - id: contact
+    label: Contacto
+    type: text
+    example: sistemas
+    pattern: '^[A-Za-z0-9_.@-]{1,64}$'
+    patternHint: Sin espacios; letras, números, punto, guion, guion bajo y arroba.
+  - id: checkpointName
+    label: Nombre del checkpoint de respaldo
+    type: text
+    example: antes-snmp
+    pattern: '^(?!CPC)[A-Za-z0-9_-]{1,32}$'
+    patternHint: De 1 a 32 caracteres; letras, números, guion y guion bajo; no puede empezar por CPC.
+preflight:
+  - text: Mirá qué comunidades existen. Si aparece public, el switch está usando la de fábrica.
+    command: show snmp community
+  - text: Mirá si el agente SNMP ya está escuchando en alguna VRF.
+    command: show snmp vrf
+  - text: Guardá un checkpoint con la configuración actual.
+    command: copy running-config checkpoint {{checkpointName}}
+steps:
+  - title: Entrar en modo configuración
+    commands:
+      - config
+    explanation: Pasa a configuración global. El prompt cambia a switch(config)#.
+  - title: Crear la ACL que solo permite al servidor de monitorización
+    commands:
+      - access-list ip {{aclName}}
+      - 10 permit udp {{nmsIp}} any eq 161
+      - exit
+    explanation: >-
+      Crea una ACL con una única regla que permite las consultas SNMP (UDP 161) que
+      vienen de {{nmsIp}}. Lo que no está permitido queda bloqueado.
+    breakdown:
+      - token: access-list ip {{aclName}}
+        meaning: Crea una ACL IPv4 con ese nombre y entra en ella.
+      - token: 10 permit udp {{nmsIp}} any eq 161
+        meaning: Regla 10; permite UDP desde la IP del servidor hacia cualquier destino en el puerto 161, el de SNMP.
+  - title: Definir ubicación y contacto
+    commands:
+      - snmp-server system-location {{location}}
+      - snmp-server system-contact {{contact}}
+    explanation: Datos que verá el sistema de monitorización para identificar el equipo.
+  - title: Crear la comunidad escribiéndola a mano
+    manual: true
+    explanation: >-
+      Escribí snmp-server community seguido de tu comunidad y pulsá Enter. Admite de
+      1 a 32 caracteres, sin espacios ni signo de interrogación. El switch entra en
+      el contexto de la comunidad. Al crear una comunidad propia, la comunidad public
+      de fábrica se borra.
+    warning: Este manual no genera este comando porque incluye la comunidad, que es un secreto.
+  - title: Dejarla en solo lectura y asociarle la ACL
+    commands:
+      - access-level ro
+      - access-list ip {{aclName}}
+      - exit
+    explanation: >-
+      Dentro del contexto de la comunidad, fija el acceso de solo lectura y limita su
+      uso a lo que permite la ACL.
+  - title: Activar el agente SNMP
+    commands:
+      - snmp-server vrf default
+    explanation: >-
+      Hace que el agente SNMP escuche en la VRF por defecto, la única que admite este
+      modelo. Se activa al final, cuando la comunidad ya está protegida.
+  - title: Salir del modo configuración
+    commands:
+      - end
+    explanation: Vuelve al modo Manager.
+  - title: Probar desde el servidor de monitorización
+    manual: true
+    explanation: >-
+      Desde {{nmsIp}}, consultá el switch con tu comunidad (por ejemplo, añadiéndolo
+      en la herramienta de monitorización o con snmpwalk) y comprobá que responde.
+  - title: Guardar el cambio
+    commands:
+      - write memory
+    explanation: Copia la configuración en ejecución a la de arranque.
+verification:
+  - command: show snmp community
+    expect: >-
+      Una sola comunidad, la tuya, con Access-level ro y la ACL {{aclName}} de tipo
+      ipv4. La comunidad public ya no aparece.
+  - command: show snmp vrf
+    expect: El agente escucha en la VRF default.
+rollback:
+  summary: >-
+    Lo primero es apagar el agente, porque al borrar tu comunidad el switch vuelve a
+    crear la comunidad public. Después se quitan la comunidad y la ACL.
+  steps:
+    - title: Apagar el agente SNMP
+      commands:
+        - config
+        - no snmp-server vrf default
+      explanation: El agente deja de escuchar; nadie puede consultar el switch por SNMP.
+    - title: Borrar la comunidad escribiéndola a mano
+      manual: true
+      explanation: Escribí no snmp-server community seguido de tu comunidad y pulsá Enter.
+    - title: Borrar la ACL
+      commands:
+        - no access-list ip {{aclName}}
+        - end
+        - write memory
+      explanation: Elimina la ACL y guarda la configuración.
+    - title: 'Alternativa: volver al checkpoint'
+      commands:
+        - checkpoint rollback {{checkpointName}}
+      explanation: Aplica la configuración guardada antes de empezar.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión por SSH ni por consola.
+sources:
+  - title: AOS-CX 10.15 Fundamentals Guide (4100i, 6000, 6100) — configurar SNMP
+    url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/fundamentals_4100i-6000-6100/Content/Chp_SNMP/cnf-snm.htm
+  - title: AOS-CX 10.15 SNMP/MIB Guide — snmp-server community
+    url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/snmp_mib/Content/Chp_SNMP/SNMP_cmds/snm-ser-com.htm
+  - title: AOS-CX 10.15 SNMP/MIB Guide — snmp-server vrf
+    url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/snmp_mib/Content/Chp_SNMP/SNMP_cmds/snm-ser-vrf.htm
+  - title: AOS-CX 10.15 SNMP/MIB Guide — show snmp community
+    url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/snmp_mib/Content/Chp_SNMP/SNMP_cmds/sho-snm-com.htm
+  - title: AOS-CX 10.15 ACLs and Classifier Policies Guide (4100i, 6000, 6100) — access-list ip
+    url: https://arubanetworking.hpe.com/techdocs/AOS-CX/10.15/HTML/acls_4100i-6000-6100/Content/Chp_ACLs/ACLs_cmds/acc-lis-ip.htm
+status:
+  level: docs-checked
+  reviewed: '2026-10-14'
+  firmware: AOS-CX 10.15
+  notes: >-
+    Los comandos están contrastados con la documentación oficial. La regla de la
+    ACL se construyó a partir de su sintaxis, no de un ejemplo publicado, y no se
+    comprobó si las ACL asociadas a SNMP evalúan el puerto; si la consulta no
+    responde, probá la regla 10 permit any con la IP del servidor como origen. El
+    comando show snmp vrf solo se vio en el índice de la guía. Falta probarla en un
+    6100 real.

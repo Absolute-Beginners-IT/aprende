@@ -1,0 +1,82 @@
+platform: mikrotik-routeros
+task: snmp-monitoring
+summary: >-
+  Sustituye la comunidad public de un MikroTik con RouterOS por una propia,
+  limitada a la IP del servidor de monitorización, y activa SNMP, que viene apagado
+  de fábrica.
+risk:
+  level: medium
+  reason: >-
+    No afecta al tráfico, pero si SNMP se activa con la comunidad public de fábrica
+    queda abierto a toda la red. RouterOS guarda cada cambio en el momento.
+params:
+  - id: nmsIp
+    label: IP del servidor de monitorización
+    type: ipv4
+    example: 192.168.10.40
+  - id: location
+    label: Ubicación del equipo
+    type: text
+    example: Sede-Central-Rack2
+    pattern: '^[A-Za-z0-9_.-]{1,64}$'
+    patternHint: Sin espacios; letras, números, punto, guion y guion bajo.
+  - id: contact
+    label: Contacto
+    type: text
+    example: sistemas
+    pattern: '^[A-Za-z0-9_.@-]{1,64}$'
+    patternHint: Sin espacios; letras, números, punto, guion, guion bajo y arroba.
+preflight:
+  - text: Mirá si SNMP está activo.
+    command: /snmp print
+  - text: >-
+      Mirá las comunidades. De fábrica existe public, accesible desde cualquier
+      dirección, de solo lectura y sin seguridad.
+    command: /snmp community print
+steps:
+  - title: Limitar y renombrar la comunidad public, escribiendo el nombre a mano
+    commands:
+      - /snmp community set [find name=public] address={{nmsIp}}/32 write-access=no name=
+    explanation: >-
+      Pegá el comando y, sin pulsar Enter todavía, escribí tu comunidad justo
+      después de name=. Deja la comunidad en solo lectura y limitada a {{nmsIp}}.
+    warning: No pulses Enter sin escribir el nombre, y no lo dejes como public.
+  - title: Activar SNMP con ubicación y contacto
+    commands:
+      - /snmp set enabled=yes location={{location}} contact={{contact}}
+    explanation: Activa el agente SNMP. Se hace al final, cuando la comunidad ya está limitada.
+  - title: Probar desde el servidor de monitorización
+    manual: true
+    explanation: >-
+      Desde {{nmsIp}}, consultá el equipo con tu comunidad (por ejemplo,
+      añadiéndolo en la herramienta de monitorización o con snmpwalk) y comprobá que
+      responde.
+verification:
+  - command: /snmp print
+    expect: SNMP aparece activo, con la ubicación y el contacto configurados.
+  - command: /snmp community print
+    expect: >-
+      Ya no existe la comunidad public; la tuya tiene {{nmsIp}}/32 como dirección,
+      lectura sí y escritura no.
+rollback:
+  summary: Apagá SNMP. La comunidad renombrada puede quedarse, porque sin SNMP activo no se usa.
+  steps:
+    - title: Apagar SNMP
+      commands:
+        - /snmp set enabled=no
+      explanation: Nadie puede consultar el equipo por SNMP.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión por SSH, WinBox ni consola.
+sources:
+  - title: RouterOS — SNMP
+    url: https://help.mikrotik.com/docs/display/ROS/SNMP
+status:
+  level: unverified
+  reviewed: '2026-10-14'
+  firmware: RouterOS 7
+  notes: >-
+    Marcada sin verificar. La documentación consultada confirma que SNMP viene
+    apagado, los valores inseguros de la comunidad public y las propiedades
+    enabled, contact, location, address, read-access y write-access, pero solo
+    muestra ejemplos sueltos de set. Confirmá con la ayuda del equipo si la
+    propiedad se llama address o addresses en tu versión. Falta probarla en un
+    equipo real.

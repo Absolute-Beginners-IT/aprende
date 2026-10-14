@@ -81,7 +81,7 @@ describe('content catalog', () => {
   })
 
   it('never asks for a password as a runbook value, because values are stored in the browser', () => {
-    const secretLike = /pass|contrase|secret|clave/i
+    const secretLike = /pass|contrase|secret|clave|communit|comunidad/i
     const offenders = catalog.procedures.flatMap((item) =>
       item.params
         .filter((param) => secretLike.test(param.id) || secretLike.test(param.label))
@@ -98,6 +98,21 @@ describe('content catalog', () => {
     const target = upgrade?.params.find((param) => param.id === 'targetImage')
 
     expect(target?.differentFrom?.param).toBe('fallbackImage')
+  })
+
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros'])(
+    'has NTP, remote syslog, SNMP and LLDP runbooks for %s',
+    (platform) => {
+      const tasks = catalog.procedures.filter((item) => item.platform === platform).map((item) => item.task)
+
+      expect(tasks).toEqual(expect.arrayContaining(['ntp-client', 'syslog-remote', 'snmp-monitoring', 'lldp-neighbors']))
+    },
+  )
+
+  it('never rates an SNMP runbook as low risk, since a wrong community or address exposes the switch', () => {
+    const snmp = catalog.procedures.filter((item) => item.task === 'snmp-monitoring')
+
+    expect(snmp.filter((item) => item.risk.level === 'low')).toEqual([])
   })
 
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
