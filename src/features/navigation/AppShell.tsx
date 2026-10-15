@@ -31,6 +31,8 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
   const search = useMemo(() => buildSearchIndex(catalog), [catalog])
   const task = route.name === 'runbook' ? route.task : undefined
   const onFundamentals = route.name === 'fundamentals' || route.name === 'fundamental'
+  // Pages about every brand at once leave all brand tabs unselected.
+  const acrossBrands = onFundamentals || route.name === 'status'
   const article = route.name === 'fundamental' ? route.article : undefined
   const pageKey = route.name === 'runbook' ? `${route.platform}/${route.task}` : article ? `f/${article}` : route.name
 
@@ -71,8 +73,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
             Fundamentos
           </a>
         </nav>
-        {/* No brand is highlighted while reading the fundamentals, which apply to all of them. */}
-        <PlatformTabs catalog={catalog} activePlatform={onFundamentals ? '' : activePlatform} task={task} />
+        <PlatformTabs catalog={catalog} activePlatform={acrossBrands ? '' : activePlatform} task={task} />
         <button ref={searchButton} type="button" className="shell__search" onClick={() => setSearchOpen(true)}>
           Buscar <kbd>Ctrl K</kbd>
         </button>

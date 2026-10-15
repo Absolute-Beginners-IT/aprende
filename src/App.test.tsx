@@ -344,4 +344,34 @@ describe('quick search', () => {
     expect(screen.getByRole('main')).toHaveFocus()
     expect(window.location.hash).toBe('#/p/aruba-aoscx')
   })
+
+  it('shows the content status as a brand by task matrix, linked to each runbook', () => {
+    openAt('#/status')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Estado del contenido' })).toBeInTheDocument()
+    expect(
+      within(brands())
+        .getAllByRole('link')
+        .filter((link) => link.hasAttribute('aria-current')),
+    ).toEqual([])
+    expect(screen.getByText(`${catalog.procedures.length} guías`)).toBeInTheDocument()
+    const matrix = screen.getByRole('table', { name: 'Guías por marca y tarea' })
+    const vlanRow = within(matrix).getByRole('row', { name: /^Crear una VLAN/ })
+    expect(within(vlanRow).getByRole('link', { name: /Aruba CX 6100/ })).toHaveAttribute(
+      'href',
+      '#/p/aruba-aoscx/vlan-create',
+    )
+    const poeRow = within(matrix).getByRole('row', { name: /^Reiniciar un dispositivo PoE/ })
+    // Cells follow the brand columns: Aruba, Cisco, MikroTik (no PoE), Ruijie.
+    expect(within(poeRow).getAllByRole('cell')[2]).toHaveTextContent('—')
+  })
+
+  it('reaches the content status from the footer', () => {
+    openAt('#/')
+
+    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Estado del contenido' })).toHaveAttribute(
+      'href',
+      '#/status',
+    )
+  })
 })

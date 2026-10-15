@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { fundamentalsHref, runbookHref } from '../../lib/useHashRoute'
+import { fundamentalsHref, runbookHref, statusHref } from '../../lib/useHashRoute'
 import type { RunbookHit } from '../navigation/searchIndex'
 
 export function HomePage({ recents }: { recents: RunbookHit[] }) {
@@ -16,6 +16,10 @@ export function HomePage({ recents }: { recents: RunbookHit[] }) {
         <p>
           ¿Empiezas de cero? Lee primero los <a href={fundamentalsHref()}>fundamentos</a>: qué es un switch, cómo se
           gestiona y qué marcas hay.
+        </p>
+        <p>
+          Consulta en el <a href={statusHref}>estado del contenido</a> qué guías están contrastadas y cuáles faltan por
+          probar.
         </p>
       </header>
       {recents.length > 0 && (

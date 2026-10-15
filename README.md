@@ -22,6 +22,11 @@ y 6 artículos de fundamentos.
 3. Elige la marca arriba y la tarea en el lateral, o busca con `Ctrl+K`.
 4. Rellena **Tus datos**: los comandos se completan solos y solo se pueden copiar cuando todos los valores son válidos.
 5. Sigue **Antes de empezar**, **Paso a paso** y **Verificación**. Si algo falla, aplica **Vuelta atrás**.
+6. En **Registro del cambio**, anota el equipo y el ticket y copia o descarga el registro para el ticket. También
+   puedes imprimir la guía rellenada o guardarla como PDF.
+
+El tema claro u oscuro se cambia con el botón de la cabecera. El **Estado del contenido**, enlazado en el pie de página,
+muestra qué guías están contrastadas, cuáles faltan por probar y cuáles conviene revisar.
 
 Los valores y los pasos marcados se guardan en el navegador de ese ordenador. Las contraseñas y comunidades nunca se
 piden ni se guardan: los pasos que las necesitan te indican que las escribas a mano.
