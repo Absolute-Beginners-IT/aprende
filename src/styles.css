@@ -271,26 +271,42 @@ kbd {
   color: var(--text);
 }
 
+/* The task list sits flush against the left edge; only the page content is centred. */
 .shell__body {
   display: grid;
   grid-template-columns: 17rem minmax(0, 1fr);
-  max-width: 84rem;
-  margin: 0 auto;
 }
 
 .shell__sidebar {
   position: sticky;
   top: var(--header-height);
   align-self: start;
-  max-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
   padding: 1rem 0.75rem 2rem;
   overflow-y: auto;
   border-right: 1px solid var(--border);
+  background: var(--surface);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.shell__sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.shell__sidebar::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--border);
 }
 
 .shell__main {
   min-width: 0;
-  padding: 1.5rem 1.5rem 4rem;
+  padding: 1.5rem 2rem 4rem;
+}
+
+.shell__main > * {
+  max-width: 72rem;
+  margin-inline: auto;
 }
 
 .task-nav a {
@@ -375,6 +391,7 @@ kbd {
   .shell__sidebar {
     display: none;
     position: static;
+    height: auto;
     max-height: none;
     border-right: 0;
     border-bottom: 1px solid var(--border);
@@ -818,9 +835,7 @@ thead th {
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 1.5rem;
-  max-width: 84rem;
-  margin: 0 auto;
-  padding: 1rem 1.5rem 2rem;
+  padding: 1rem 2rem 2rem;
   border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 0.85rem;
