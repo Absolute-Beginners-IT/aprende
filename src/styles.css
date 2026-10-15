@@ -878,6 +878,74 @@ thead th {
   margin-top: 0.9rem;
 }
 
+.status-total {
+  margin: 0 0 0.6rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.status-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-summary li {
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.status-summary strong {
+  font-size: 1.15rem;
+}
+
+/* The matrix scrolls on its own on narrow screens instead of widening the page. */
+.status-matrix {
+  overflow-x: auto;
+}
+
+.status-matrix th[scope="row"] {
+  min-width: 14rem;
+  font-weight: 500;
+}
+
+.status-matrix__group th {
+  padding-top: 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.status-cell:hover .badge {
+  outline: 2px solid var(--accent);
+}
+
+.status-cell__meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.status-cell__stale {
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
 /* Printing (or saving as PDF) keeps only the runbook, with the values already filled in. */
 @media print {
   :root {

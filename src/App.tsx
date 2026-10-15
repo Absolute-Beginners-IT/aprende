@@ -8,6 +8,7 @@ import { AppShell } from './features/navigation/AppShell'
 import { describeRunbook, type RunbookHit } from './features/navigation/searchIndex'
 import { useRecents } from './features/navigation/useRecents'
 import { RunbookPage } from './features/procedure/RunbookPage'
+import { StatusPage } from './features/status/StatusPage'
 import { type Route, runbookHref, useHashRoute } from './lib/useHashRoute'
 import { useStoredState } from './lib/useStoredState'
 
@@ -32,6 +33,7 @@ function Page({ route, recents, activePlatform }: PageProps) {
   if (route.name === 'home') return <HomePage recents={recents} />
   if (route.name === 'not-found') return <NotFound />
   if (route.name === 'fundamentals') return <FundamentalsPage catalog={catalog} />
+  if (route.name === 'status') return <StatusPage catalog={catalog} />
   if (route.name === 'fundamental') {
     const article = catalog.fundamentals.find((item) => item.id === route.article)
     return article ? (
