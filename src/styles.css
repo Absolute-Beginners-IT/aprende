@@ -271,7 +271,7 @@ kbd {
   color: var(--text);
 }
 
-/* The task list sits flush against the left edge; only the page content is centred. */
+/* The task list sits flush against the left edge and the page content starts right next to it. */
 .shell__body {
   display: grid;
   grid-template-columns: 17rem minmax(0, 1fr);
@@ -301,12 +301,12 @@ kbd {
 
 .shell__main {
   min-width: 0;
-  padding: 1.5rem 2rem 4rem;
+  padding: 1.5rem 2.5rem 4rem;
 }
 
+/* A cap on line length keeps text readable on very wide screens. */
 .shell__main > * {
-  max-width: 72rem;
-  margin-inline: auto;
+  max-width: 76rem;
 }
 
 .task-nav a {
