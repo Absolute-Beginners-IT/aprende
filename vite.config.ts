@@ -1,10 +1,14 @@
 import react from '@vitejs/plugin-react'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import { defineConfig } from 'vitest/config'
+import packageJson from './package.json'
 
 export default defineConfig({
   // Relative base so the built index.html works when opened from disk (file://).
   base: './',
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version),
+  },
   plugins: [react(), viteSingleFile()],
   test: {
     globals: true,

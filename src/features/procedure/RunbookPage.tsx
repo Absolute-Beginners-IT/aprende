@@ -92,7 +92,18 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
             {procedure.status.firmware} · revisada el {procedure.status.reviewed}
           </span>
         </div>
-        {procedure.status.notes && <p className="muted">{procedure.status.notes}</p>}
+        {procedure.status.level === 'unverified' ? (
+          <aside className="notice notice--warn" role="note" aria-labelledby={`${baseId}-unverified`}>
+            <strong id={`${baseId}-unverified`}>Guía sin verificar</strong>
+            <p>
+              Algún paso no se ha podido confirmar en la documentación oficial. Pruébala antes en un equipo de
+              laboratorio.
+            </p>
+            {procedure.status.notes && <p>{procedure.status.notes}</p>}
+          </aside>
+        ) : (
+          procedure.status.notes && <p className="muted">{procedure.status.notes}</p>
+        )}
         {alternatives.length > 0 && (
           <nav className="alternatives" aria-label="Misma tarea en otra marca">
             <span>Misma tarea en:</span>

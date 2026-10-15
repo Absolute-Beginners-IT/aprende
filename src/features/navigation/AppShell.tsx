@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'rea
 import type { Catalog } from '../../domain/buildCatalog'
 import { fundamentalsHref, type Route } from '../../lib/useHashRoute'
 import { FundamentalsNav } from '../fundamentals/FundamentalsNav'
+import { AppFooter } from './AppFooter'
 import { CommandPalette } from './CommandPalette'
 import { PlatformTabs } from './PlatformTabs'
 import { buildSearchIndex, type RunbookHit, runbookSearchHit } from './searchIndex'
@@ -23,6 +24,7 @@ const isTypingTarget = (target: EventTarget | null) =>
 export function AppShell({ catalog, route, activePlatform, recents, children }: AppShellProps) {
   const sidebarId = useId()
   const searchButton = useRef<HTMLButtonElement>(null)
+  const mainContent = useRef<HTMLElement>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const search = useMemo(() => buildSearchIndex(catalog), [catalog])
@@ -55,6 +57,10 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
 
   return (
     <div className="shell">
+      {/* A button, not an anchor: the hash is the route, so "#content" would navigate away. */}
+      <button type="button" className="skip-link" onClick={() => mainContent.current?.focus()}>
+        Saltar al contenido
+      </button>
       <header className="shell__header">
         <a className="shell__title" href="#/">
           Manual de Switching
@@ -87,8 +93,11 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
             <TaskNav catalog={catalog} platform={activePlatform} task={task} onSheet={route.name === 'platform'} />
           )}
         </aside>
-        <main className="shell__main">{children}</main>
+        <main ref={mainContent} className="shell__main" tabIndex={-1}>
+          {children}
+        </main>
       </div>
+      <AppFooter catalog={catalog} />
       {searchOpen && <CommandPalette search={search} recents={recents.map(runbookSearchHit)} onClose={closeSearch} />}
     </div>
   )

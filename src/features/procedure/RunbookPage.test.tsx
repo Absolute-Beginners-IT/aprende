@@ -139,6 +139,25 @@ describe('RunbookPage', () => {
 
     expect(await navigator.clipboard.readText()).toBe('vlan 20\nname VOZ')
     expect(screen.getByRole('button', { name: 'Copiar: Crear la VLAN' })).toHaveTextContent('Copiado')
+    expect(screen.getByText('Copiado al portapapeles')).toHaveAttribute('role', 'status')
+  })
+
+  it('warns prominently, with its notes, when the runbook is unverified', () => {
+    const unverified = ProcedureSchema.parse({
+      ...procedure,
+      status: { ...status, level: 'unverified', notes: 'El borrado no aparece en la documentación.' },
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={unverified} />)
+
+    const notice = screen.getByRole('note', { name: 'Guía sin verificar' })
+    expect(notice).toHaveTextContent('Pruébala antes en un equipo de laboratorio')
+    expect(notice).toHaveTextContent('El borrado no aparece en la documentación.')
+  })
+
+  it('does not show the unverified warning on a runbook checked against the documentation', () => {
+    renderPage()
+
+    expect(screen.queryByRole('note', { name: 'Guía sin verificar' })).not.toBeInTheDocument()
   })
 
   it('copies every step as one block', async () => {
