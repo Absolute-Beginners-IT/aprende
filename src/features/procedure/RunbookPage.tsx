@@ -8,6 +8,8 @@ import { CommandBlock } from '../../ui/CommandBlock'
 import { CopyButton } from '../../ui/CopyButton'
 import { Section } from '../../ui/Section'
 import { RISK_LABELS, STATUS_LABELS } from '../labels'
+import { ChangeRecordSection } from './ChangeRecordSection'
+import { buildChangeRecord, changeRecordFileName, EMPTY_RECORD, type RecordFields } from './changeRecord'
 
 interface RunbookPageProps {
   platform: Platform
@@ -54,6 +56,9 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   const storageKey = `switching-manual:${procedure.platform}/${procedure.task}`
   const [values, setValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
+  const [storedRecord, setRecord] = useStoredState<RecordFields>(`${storageKey}:record`, EMPTY_RECORD)
+  // Fills fields a record saved by an older version may lack.
+  const record = { ...EMPTY_RECORD, ...storedRecord }
 
   const errors = Object.fromEntries(
     procedure.params.map((param) => [param.id, validateParam(param, values[param.id] ?? '', values)]),
@@ -76,6 +81,15 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   const reset = () => {
     setValues({})
     setDoneSteps([])
+    setRecord(EMPTY_RECORD)
+  }
+
+  const renderRecord = () => {
+    const now = new Date()
+    return {
+      text: buildChangeRecord({ platform, concept, procedure, values: validValues, doneSteps, record, now }),
+      fileName: changeRecordFileName(procedure, now),
+    }
   }
 
   return (
@@ -318,6 +332,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
           </div>
         )}
       </Section>
+
+      <ChangeRecordSection record={record} onChange={setRecord} render={renderRecord} />
 
       <Section title="Fuentes">
         <ul>

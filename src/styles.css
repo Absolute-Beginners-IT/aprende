@@ -549,7 +549,8 @@ kbd {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--border);
@@ -855,4 +856,70 @@ thead th {
 
 .theme-toggle:hover {
   color: var(--accent);
+}
+
+.field textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.record-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.9rem 0;
+  font-weight: 600;
+}
+
+.record-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+/* Printing (or saving as PDF) keeps only the runbook, with the values already filled in. */
+@media print {
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --text: #000000;
+    --muted: #444444;
+    --border: #cccccc;
+    --code-bg: #f3f4f6;
+    --code-text: #000000;
+    --card-shadow: none;
+    --card-border: #cccccc;
+  }
+
+  .shell__header,
+  .shell__sidebar,
+  .shell__footer,
+  .skip-link,
+  .section-index,
+  .alternatives,
+  .copy-button,
+  .link-button,
+  .record-actions {
+    display: none;
+  }
+
+  .shell__body {
+    display: block;
+  }
+
+  .shell__main {
+    padding: 0;
+  }
+
+  .section,
+  .step,
+  .checks > li {
+    break-inside: avoid;
+  }
+
+  pre {
+    white-space: pre-wrap;
+    border: 1px solid var(--border);
+  }
 }

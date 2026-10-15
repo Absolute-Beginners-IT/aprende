@@ -73,7 +73,15 @@ describe('RunbookPage', () => {
 
     const titles = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
 
-    expect(titles).toEqual(['Tus datos', 'Antes de empezar', 'Paso a paso', 'Verificación', 'Vuelta atrás', 'Fuentes'])
+    expect(titles).toEqual([
+      'Tus datos',
+      'Antes de empezar',
+      'Paso a paso',
+      'Verificación',
+      'Vuelta atrás',
+      'Registro del cambio',
+      'Fuentes',
+    ])
   })
 
   it('shows the risk level with its reason and the verification status', () => {
@@ -350,5 +358,86 @@ describe('RunbookPage', () => {
 
     expect(screen.getByLabelText('ID de la VLAN')).toHaveValue('')
     expect(screen.getByRole('checkbox', { name: 'Hecho: Crear la VLAN' })).not.toBeChecked()
+  })
+
+  it('copies a change record with the device, ticket, values, progress and verification result', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.type(screen.getByLabelText('ID de la VLAN'), '20')
+    await user.type(screen.getByLabelText('Nombre de la VLAN'), 'VOZ')
+    await user.click(screen.getByRole('checkbox', { name: 'Hecho: Crear la VLAN' }))
+    const record = section('Registro del cambio')
+    await user.type(within(record).getByLabelText('Equipo (nombre o IP)'), 'SW-PLANTA2')
+    await user.type(within(record).getByLabelText('Ticket o referencia'), 'INC-1234')
+    await user.click(within(record).getByRole('checkbox', { name: 'Verificación correcta' }))
+
+    await user.click(within(record).getByRole('button', { name: 'Copiar registro del cambio' }))
+
+    const copied = await navigator.clipboard.readText()
+    expect(copied).toMatch(/^# Registro de cambio: Crear una VLAN/)
+    expect(copied).toContain('| Equipo | SW-PLANTA2 |')
+    expect(copied).toContain('| Ticket o referencia | INC-1234 |')
+    expect(copied).toContain('2. [x] Crear la VLAN')
+    expect(copied).toContain('vlan 20')
+    expect(copied).toContain('Resultado: correcta')
+  })
+
+  it('keeps the change record fields when the page is opened again', async () => {
+    const user = userEvent.setup()
+    const { unmount } = renderPage()
+    await user.type(within(section('Registro del cambio')).getByLabelText('Equipo (nombre o IP)'), 'SW-PLANTA2')
+
+    unmount()
+    renderPage()
+
+    expect(within(section('Registro del cambio')).getByLabelText('Equipo (nombre o IP)')).toHaveValue('SW-PLANTA2')
+  })
+
+  it('clears the change record together with the values and progress', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const record = section('Registro del cambio')
+    await user.type(within(record).getByLabelText('Equipo (nombre o IP)'), 'SW-PLANTA2')
+    await user.type(within(record).getByLabelText('Notas'), 'Ventana nocturna.')
+    await user.click(within(record).getByRole('checkbox', { name: 'Verificación correcta' }))
+
+    await user.click(screen.getByRole('button', { name: 'Limpiar datos y progreso' }))
+
+    expect(within(record).getByLabelText('Equipo (nombre o IP)')).toHaveValue('')
+    expect(within(record).getByLabelText('Notas')).toHaveValue('')
+    expect(within(record).getByRole('checkbox', { name: 'Verificación correcta' })).not.toBeChecked()
+  })
+
+  it('downloads the change record as a Markdown file named by date, brand and task', async () => {
+    const user = userEvent.setup()
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:record')
+    const revokeObjectURL = vi.fn()
+    Object.assign(URL, { createObjectURL, revokeObjectURL })
+    const clicked: string[] = []
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push(this.download)
+    })
+    renderPage()
+
+    await user.click(within(section('Registro del cambio')).getByRole('button', { name: 'Descargar .md' }))
+
+    const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+    expect(await blob.text()).toMatch(/^# Registro de cambio: Crear una VLAN/)
+    expect(clicked[0]).toMatch(/^\d{4}-\d{2}-\d{2}_aruba-aoscx_vlan-create\.md$/)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:record')
+    click.mockRestore()
+  })
+
+  it('opens the print dialog to save the runbook as PDF', async () => {
+    const user = userEvent.setup()
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    renderPage()
+
+    await user.click(
+      within(section('Registro del cambio')).getByRole('button', { name: 'Imprimir o guardar como PDF' }),
+    )
+
+    expect(print).toHaveBeenCalledOnce()
+    print.mockRestore()
   })
 })
