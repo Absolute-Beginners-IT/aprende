@@ -4,13 +4,31 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [1.0.0] - 2026-10-15
+
+Primera versión publicada como release, con el HTML descargable.
 
 ### Añadido
 
+- Registro del cambio en cada guía: equipo, ticket, resultado de la verificación y notas, para copiarlo, descargarlo
+  como `.md` o imprimir la guía rellenada y guardarla como PDF.
+- Panel de estado del contenido (`#/status`): guías por estado y riesgo, matriz de tareas por marca, aviso de las que
+  llevan más de 180 días sin revisarse y filtro de las pendientes de probar.
+- Pie de página con la versión y la fecha de la última revisión del contenido.
+- Botón de tema en la cabecera (sistema, claro u oscuro), que se recuerda entre sesiones.
+- Aviso destacado en las guías sin verificar.
+- Accesibilidad: botón «Saltar al contenido», anuncio de las copias para lectores de pantalla y foco siempre visible.
 - README con el uso, el desarrollo, cómo añadir guías y los niveles de verificación.
 - Lint y formato con Biome (`npm run check`, `npm run format`).
 - CI en GitHub Actions para cada pull request y publicación del HTML al crear una versión.
+
+### Cambiado
+
+- Nuevo aspecto pizarra e índigo en los temas claro y oscuro, con tarjetas con sombra y esquinas redondeadas.
+
+### Corregido
+
+- En pantallas de menos de 900 px las pestañas de marca desaparecían y el botón «Tareas» se salía de la pantalla.
 
 ## [0.1.0] - 2026-10-15
 
