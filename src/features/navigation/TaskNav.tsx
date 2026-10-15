@@ -31,6 +31,7 @@ export function TaskNav({ catalog, platform, task, onSheet }: TaskNavProps) {
         return (
           <div key={group} className="task-nav__group">
             <p id={headingId}>{GROUP_LABELS[group]}</p>
+            {/* biome-ignore lint/a11y/noRedundantRoles: Safari drops list semantics when list-style is none. */}
             <ul role="list" aria-labelledby={headingId}>
               {inGroup(group).map(({ concept, procedure }) => (
                 <li key={concept.id}>

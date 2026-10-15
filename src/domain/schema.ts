@@ -86,24 +86,26 @@ export const ConceptSchema = z.object({
   prerequisites: z.array(text).default([]),
 })
 
-export const PlatformSchema = z.object({
-  id,
-  vendor: text,
-  name: text,
-  os: text,
-  models: z.array(text).min(1),
-  summary: text,
-  // How the runbooks of this platform are carried out: typed commands or steps in its web interface.
-  management: z.enum(['cli', 'web']).default('cli'),
-  cliModes: z.array(z.object({ name: text, prompt: text, enter: text, description: text })).default([]),
-  configPersistence: text,
-  safetyNets: z.array(z.object({ name: text, description: text, commands: z.array(text).optional() })).min(1),
-  sources: z.array(SourceSchema).min(1),
-  status: StatusSchema,
-}).refine((platform) => platform.management === 'web' || platform.cliModes.length > 0, {
-  message: 'A platform managed from the command line needs its CLI modes',
-  path: ['cliModes'],
-})
+export const PlatformSchema = z
+  .object({
+    id,
+    vendor: text,
+    name: text,
+    os: text,
+    models: z.array(text).min(1),
+    summary: text,
+    // How the runbooks of this platform are carried out: typed commands or steps in its web interface.
+    management: z.enum(['cli', 'web']).default('cli'),
+    cliModes: z.array(z.object({ name: text, prompt: text, enter: text, description: text })).default([]),
+    configPersistence: text,
+    safetyNets: z.array(z.object({ name: text, description: text, commands: z.array(text).optional() })).min(1),
+    sources: z.array(SourceSchema).min(1),
+    status: StatusSchema,
+  })
+  .refine((platform) => platform.management === 'web' || platform.cliModes.length > 0, {
+    message: 'A platform managed from the command line needs its CLI modes',
+    path: ['cliModes'],
+  })
 
 // Background reading that is not tied to a brand: what a switch is, how it is managed, who makes them.
 export const FundamentalSchema = z.object({

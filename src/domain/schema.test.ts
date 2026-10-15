@@ -71,9 +71,9 @@ describe('ProcedureSchema', () => {
   it('rejects empty steps, rollback steps and sources', () => {
     expect(ProcedureSchema.safeParse({ ...validProcedure(), steps: [] }).success).toBe(false)
     expect(ProcedureSchema.safeParse({ ...validProcedure(), sources: [] }).success).toBe(false)
-    expect(
-      ProcedureSchema.safeParse({ ...validProcedure(), rollback: { summary: 'x', steps: [] } }).success,
-    ).toBe(false)
+    expect(ProcedureSchema.safeParse({ ...validProcedure(), rollback: { summary: 'x', steps: [] } }).success).toBe(
+      false,
+    )
   })
 
   it('accepts a step without commands only when it is declared manual', () => {

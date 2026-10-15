@@ -19,12 +19,11 @@ describe('App', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { level: 1, name: 'Manual de Switching' })).toBeInTheDocument()
-    expect(within(brands()).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Aruba CX 6100',
-      'Cisco Catalyst 1300',
-      'MikroTik CRS317',
-      'Ruijie NBS3200',
-    ])
+    expect(
+      within(brands())
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Aruba CX 6100', 'Cisco Catalyst 1300', 'MikroTik CRS317', 'Ruijie NBS3200'])
   })
 
   it('lists every task of the brand in the sidebar, grouped and in working order', () => {
@@ -32,7 +31,11 @@ describe('App', () => {
 
     const group = within(tasks()).getByRole('list', { name: 'VLANs y puertos' })
 
-    expect(within(group).getAllByRole('link').map((link) => link.textContent)).toEqual([
+    expect(
+      within(group)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual([
       'Crear una VLAN',
       'Asignar un puerto de acceso a una VLAN',
       'Configurar un puerto trunk',
@@ -50,7 +53,9 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Crear una VLAN' })).toBeInTheDocument()
     expect(within(tasks()).getByRole('link', { name: 'Crear una VLAN' })).toHaveAttribute('aria-current', 'page')
-    expect(within(tasks()).getByRole('link', { name: 'Configurar un puerto trunk' })).not.toHaveAttribute('aria-current')
+    expect(within(tasks()).getByRole('link', { name: 'Configurar un puerto trunk' })).not.toHaveAttribute(
+      'aria-current',
+    )
   })
 
   it('keeps the task when switching to a brand that also has it', async () => {
@@ -80,10 +85,11 @@ describe('App', () => {
 
     const nav = screen.getByRole('navigation', { name: 'Misma tarea en otra marca' })
 
-    expect(within(nav).getAllByRole('link').map((link) => link.textContent)).toEqual([
-      'Cisco Catalyst 1300',
-      'Ruijie NBS3200',
-    ])
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['Cisco Catalyst 1300', 'Ruijie NBS3200'])
     expect(within(nav).getByRole('link', { name: 'Cisco Catalyst 1300' })).toHaveAttribute(
       'href',
       '#/p/cisco-c1300/poe-port',
@@ -104,7 +110,9 @@ describe('App', () => {
   it('flags unverified runbooks in the sidebar', () => {
     openAt('#/p/mikrotik-routeros')
 
-    const item = within(tasks()).getByRole('link', { name: /Crear una VLAN/ }).closest('li')
+    const item = within(tasks())
+      .getByRole('link', { name: /Crear una VLAN/ })
+      .closest('li')
 
     expect(item).toHaveTextContent('sin verificar')
   })
@@ -139,7 +147,9 @@ describe('quick search', () => {
     await user.keyboard('{Control>}k{/Control}')
     await user.type(within(dialog()).getByRole('searchbox', { name: 'Buscar' }), 'gestion cisco')
 
-    expect(within(dialog()).getByRole('link', { name: /Configurar la IP de gestión.*Cisco Catalyst 1300/ })).toBeInTheDocument()
+    expect(
+      within(dialog()).getByRole('link', { name: /Configurar la IP de gestión.*Cisco Catalyst 1300/ }),
+    ).toBeInTheDocument()
 
     await user.keyboard('{Enter}')
 
@@ -197,7 +207,9 @@ describe('quick search', () => {
     openAt('#/p/aruba-aoscx/port-trunk')
 
     await user.keyboard('{Control>}k{/Control}')
-    expect(within(dialog()).getByRole('link', { name: /Configurar un puerto trunk.*Aruba CX 6100/ })).toBeInTheDocument()
+    expect(
+      within(dialog()).getByRole('link', { name: /Configurar un puerto trunk.*Aruba CX 6100/ }),
+    ).toBeInTheDocument()
     await user.keyboard('{Escape}')
 
     await user.click(screen.getByRole('link', { name: 'Manual de Switching' }))
@@ -217,7 +229,11 @@ describe('quick search', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Fundamentos' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Fundamentos' })).toHaveAttribute('aria-current', 'page')
-    expect(within(brands()).getAllByRole('link').filter((link) => link.hasAttribute('aria-current'))).toEqual([])
+    expect(
+      within(brands())
+        .getAllByRole('link')
+        .filter((link) => link.hasAttribute('aria-current')),
+    ).toEqual([])
     const articles = within(screen.getByRole('navigation', { name: 'Artículos' })).getAllByRole('link')
     expect(articles.map((link) => link.getAttribute('href'))).toEqual([
       '#/f',
@@ -273,6 +289,8 @@ describe('quick search', () => {
     expect(within(dialog()).getAllByRole('link')[0]).toHaveTextContent(/Qué es un switch y para qué sirve.*Fundamentos/)
     await user.keyboard('{Enter}')
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Qué es un switch y para qué sirve' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Qué es un switch y para qué sirve' }),
+    ).toBeInTheDocument()
   })
 })
