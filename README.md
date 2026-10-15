@@ -46,8 +46,9 @@ npm ci
 npm run dev        # servidor de desarrollo
 npm test           # pruebas (Vitest)
 npm run typecheck  # comprobación de tipos
-npm run check      # lint y formato (Biome)
-npm run format     # aplica el formato
+npm run lint       # solo lint (Biome)
+npm run check      # lint, formato y orden de imports (Biome)
+npm run format     # aplica el formato y los arreglos automáticos del lint
 npm run build      # genera dist/index.html
 ```
 
