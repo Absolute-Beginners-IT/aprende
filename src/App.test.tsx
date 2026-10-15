@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import packageJson from '../package.json'
 import { App } from './App'
+import { catalog } from './content/catalog'
 
 const brands = () => screen.getByRole('navigation', { name: 'Marcas' })
 const tasks = () => screen.getByRole('navigation', { name: 'Tareas' })
@@ -12,6 +14,7 @@ const openAt = (hash: string) => {
 beforeEach(() => {
   localStorage.clear()
   window.location.hash = ''
+  document.documentElement.removeAttribute('data-theme')
 })
 
 describe('App', () => {
@@ -292,5 +295,53 @@ describe('quick search', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Qué es un switch y para qué sirve' }),
     ).toBeInTheDocument()
+  })
+
+  it('shows the app version and the date of the most recent content review in the footer', () => {
+    openAt('#/')
+
+    const latest = [...catalog.procedures, ...catalog.platforms]
+      .map((item) => item.status.reviewed)
+      .sort()
+      .at(-1)
+    const footer = screen.getByRole('contentinfo')
+
+    expect(footer).toHaveTextContent(`Versión ${packageJson.version}`)
+    expect(footer).toHaveTextContent(`Contenido revisado hasta ${latest}`)
+  })
+
+  it('cycles the theme from the header between system, light and dark, and remembers it', async () => {
+    const user = userEvent.setup()
+    const { unmount } = openAt('#/')
+    const themeButton = () => screen.getByRole('button', { name: /^Tema:/ })
+
+    expect(themeButton()).toHaveAccessibleName('Tema: Sistema. Cambiar a Claro')
+    await user.click(themeButton())
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+    await user.click(themeButton())
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+    expect(themeButton()).toHaveAccessibleName('Tema: Oscuro. Cambiar a Sistema')
+
+    unmount()
+    document.documentElement.removeAttribute('data-theme')
+    openAt('#/')
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+
+    await user.click(themeButton())
+    expect(document.documentElement).not.toHaveAttribute('data-theme')
+    expect(within(screen.getByRole('contentinfo')).queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
+  it('lets keyboard users skip the navigation and land on the page content', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    await user.tab()
+    const skip = screen.getByRole('button', { name: 'Saltar al contenido' })
+    expect(skip).toHaveFocus()
+    await user.keyboard('{Enter}')
+
+    expect(screen.getByRole('main')).toHaveFocus()
+    expect(window.location.hash).toBe('#/p/aruba-aoscx')
   })
 })

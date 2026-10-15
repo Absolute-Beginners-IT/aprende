@@ -19,15 +19,21 @@ export function CopyButton({ text, label, disabled = false, children = 'Copiar' 
   }
 
   return (
-    <button
-      type="button"
-      className="copy-button"
-      aria-label={label}
-      title={disabled ? 'Completa tus datos para poder copiar' : undefined}
-      disabled={disabled}
-      onClick={copy}
-    >
-      {copied ? 'Copiado' : children}
-    </button>
+    <>
+      <button
+        type="button"
+        className="copy-button"
+        aria-label={label}
+        title={disabled ? 'Completa tus datos para poder copiar' : undefined}
+        disabled={disabled}
+        onClick={copy}
+      >
+        {copied ? 'Copiado' : children}
+      </button>
+      {/* The button text changes silently for screen readers; this announces the copy. */}
+      <span className="visually-hidden" role="status">
+        {copied ? 'Copiado al portapapeles' : ''}
+      </span>
+    </>
   )
 }
