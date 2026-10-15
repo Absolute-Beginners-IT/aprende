@@ -7,6 +7,7 @@ import { CommandPalette } from './CommandPalette'
 import { PlatformTabs } from './PlatformTabs'
 import { buildSearchIndex, type RunbookHit, runbookSearchHit } from './searchIndex'
 import { TaskNav } from './TaskNav'
+import { ThemeToggle } from './ThemeToggle'
 
 interface AppShellProps {
   catalog: Catalog
@@ -75,6 +76,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         <button ref={searchButton} type="button" className="shell__search" onClick={() => setSearchOpen(true)}>
           Buscar <kbd>Ctrl K</kbd>
         </button>
+        <ThemeToggle />
         <button
           type="button"
           className="shell__toggle"

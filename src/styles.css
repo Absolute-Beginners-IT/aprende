@@ -14,7 +14,7 @@
   --warn-bg: #fdf1d3;
   --danger: #a4262c;
   --danger-bg: #fbe4e5;
-  /* Light cards float on a soft shadow; dark ones keep a border, since shadows vanish there. */
+  /* Cards float on a soft shadow; in dark mode a faint border keeps their edge visible. */
   --card-border: transparent;
   --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 18px rgba(15, 23, 42, 0.07);
 }
@@ -26,40 +26,40 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f141c;
-  --surface: #171e29;
-  --text: #e6eaf1;
-  --muted: #9aa5b8;
-  --border: #2b3545;
-  --accent: #6cb2ff;
-  --code-bg: #0a0f17;
+  --bg: #0b1120;
+  --surface: #131c2e;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #243049;
+  --accent: #818cf8;
+  --code-bg: #070b14;
   --ok: #6fd69a;
   --ok-bg: #143523;
   --warn: #f2c35b;
   --warn-bg: #3a2c08;
   --danger: #ff9a9f;
   --danger-bg: #3f1719;
-  --card-border: var(--border);
-  --card-shadow: none;
+  --card-border: rgba(148, 163, 184, 0.14);
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f141c;
-    --surface: #171e29;
-    --text: #e6eaf1;
-    --muted: #9aa5b8;
-    --border: #2b3545;
-    --accent: #6cb2ff;
-    --code-bg: #0a0f17;
+    --bg: #0b1120;
+    --surface: #131c2e;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #243049;
+    --accent: #818cf8;
+    --code-bg: #070b14;
     --ok: #6fd69a;
     --ok-bg: #143523;
     --warn: #f2c35b;
     --warn-bg: #3a2c08;
     --danger: #ff9a9f;
     --danger-bg: #3f1719;
-    --card-border: var(--border);
-    --card-shadow: none;
+    --card-border: rgba(148, 163, 184, 0.14);
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -353,7 +353,7 @@ kbd {
 
   .shell__header {
     flex-wrap: wrap;
-    gap: 0.4rem 1rem;
+    gap: 0.4rem 0.6rem;
     height: auto;
     min-height: var(--header-height);
     padding: 0.5rem 1rem;
@@ -825,22 +825,6 @@ thead th {
   font-size: 0.85rem;
 }
 
-.theme-picker {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-left: auto;
-}
-
-.theme-picker select {
-  padding: 0.2rem 0.4rem;
-  border: 1px solid var(--border);
-  border-radius: 0.35rem;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-}
-
 .notice {
   margin-top: 0.8rem;
   padding: 0.7rem 0.9rem;
@@ -855,4 +839,20 @@ thead th {
 .notice--warn {
   background: var(--warn-bg);
   color: var(--warn);
+}
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  color: var(--accent);
 }

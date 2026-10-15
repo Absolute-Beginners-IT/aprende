@@ -310,21 +310,26 @@ describe('quick search', () => {
     expect(footer).toHaveTextContent(`Contenido revisado hasta ${latest}`)
   })
 
-  it('switches the theme and remembers it, or follows the system again', async () => {
+  it('cycles the theme from the header between system, light and dark, and remembers it', async () => {
     const user = userEvent.setup()
     const { unmount } = openAt('#/')
+    const themeButton = () => screen.getByRole('button', { name: /^Tema:/ })
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Tema' }), 'Oscuro')
+    expect(themeButton()).toHaveAccessibleName('Tema: Sistema. Cambiar a Claro')
+    await user.click(themeButton())
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+    await user.click(themeButton())
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
+    expect(themeButton()).toHaveAccessibleName('Tema: Oscuro. Cambiar a Sistema')
 
     unmount()
     document.documentElement.removeAttribute('data-theme')
     openAt('#/')
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark')
-    expect(screen.getByRole('combobox', { name: 'Tema' })).toHaveValue('dark')
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Tema' }), 'Sistema')
+    await user.click(themeButton())
     expect(document.documentElement).not.toHaveAttribute('data-theme')
+    expect(within(screen.getByRole('contentinfo')).queryByRole('combobox')).not.toBeInTheDocument()
   })
 
   it('lets keyboard users skip the navigation and land on the page content', async () => {
