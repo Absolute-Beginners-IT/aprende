@@ -246,6 +246,7 @@ describe('quick search', () => {
       '#/f/management-basics',
       '#/f/vendors',
       '#/f/safe-changes',
+      '#/f/vlan-design',
     ])
   })
 

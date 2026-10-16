@@ -3,6 +3,8 @@ import type { Catalog } from '../../domain/buildCatalog'
 import { buildPlanGuide } from './buildPlanGuide'
 import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
+import { PlanTools } from './PlanTools'
+import { TopologyDiagram } from './TopologyDiagram'
 import { usePlan } from './usePlan'
 import { type PlanIssue, type PlanSection, validatePlan } from './validatePlan'
 
@@ -50,7 +52,10 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const [plan, setPlan] = usePlan()
   const [tab, setTab] = useState<TabKey>('vlans')
   const issues = validatePlan(plan, catalog)
-  const countFor = (key: TabKey) => issues.filter((issue) => issue.section === key).length
+  // A plan not started yet is not wrong: the editors stay quiet and only the guide says what is missing.
+  const started = plan.vlans.length + plan.switches.length + plan.links.length + plan.ports.length > 0
+  const editorIssues = started ? issues : []
+  const countFor = (key: TabKey) => editorIssues.filter((issue) => issue.section === key).length
 
   const onTabKeyDown = (event: KeyboardEvent) => {
     const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
@@ -74,7 +79,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
       )
     }
     const Editor = EDITORS[tab]
-    const own = issues.filter((issue) => issue.section === tab)
+    const own = editorIssues.filter((issue) => issue.section === tab)
     return (
       <>
         {own.length > 0 && <IssueList issues={own} label="Puntos por corregir en esta sección" />}
@@ -91,8 +96,17 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           Describe tus switches, cómo se conectan y qué VLAN necesitas. El planificador comprueba que todo encaja y te
           da los pasos para cada switch con los comandos de su marca ya rellenos.
         </p>
-        <p className="muted">El plan se guarda en este navegador.</p>
+        <p className="muted">
+          El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
+        </p>
+        <PlanTools plan={plan} onChange={setPlan} />
       </header>
+
+      {plan.switches.length > 0 && (
+        <section className="plan-map" aria-label="Mapa">
+          <TopologyDiagram plan={plan} catalog={catalog} />
+        </section>
+      )}
 
       <div className="plan-tabs" role="tablist" aria-label="Partes del plan">
         {TABS.map((item) => {

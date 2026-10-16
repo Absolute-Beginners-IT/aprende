@@ -8,6 +8,7 @@ import {
   VLAN_PURPOSES,
 } from '../../domain/networkPlan'
 import { PURPOSE_LABELS } from '../labels'
+import { PLAN_TEMPLATES } from './planTemplates'
 import { nextId } from './usePlan'
 import { interfaceParam } from './validatePlan'
 
@@ -70,6 +71,25 @@ export function VlanEditor({ plan, onChange }: EditorProps) {
         Cada VLAN separa un tipo de tráfico. Marca una como Gestión: es la red por la que vas a administrar los
         switches.
       </p>
+      {plan.vlans.length === 0 && (
+        <div className="plan-templates">
+          <p>Empieza con una plantilla o añade las VLAN una a una:</p>
+          <ul>
+            {PLAN_TEMPLATES.map((template) => (
+              <li key={template.name} className="plan-template">
+                <button
+                  type="button"
+                  className="plan-add"
+                  onClick={() => onChange({ ...plan, vlans: template.vlans.map((vlan) => ({ ...vlan })) })}
+                >
+                  {template.name}
+                </button>
+                <span className="muted">{template.description}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {plan.vlans.length > 0 && (
         <div className="plan-table">
           <table aria-label="VLAN del plan">

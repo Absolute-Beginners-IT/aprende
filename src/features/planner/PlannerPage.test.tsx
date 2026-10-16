@@ -26,6 +26,13 @@ describe('PlannerPage', () => {
     expect(screen.queryByRole('heading', { level: 2, name: /^1\./ })).not.toBeInTheDocument()
   })
 
+  it('does not flag anything while the plan is still empty', () => {
+    render(<PlannerPage catalog={catalog} />)
+
+    expect(screen.getByRole('tab', { name: 'VLAN' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Puntos por corregir en esta sección' })).not.toBeInTheDocument()
+  })
+
   it('builds the guide from the VLANs and switches the user enters', async () => {
     const user = userEvent.setup()
     render(<PlannerPage catalog={catalog} />)
@@ -91,6 +98,97 @@ describe('PlannerPage', () => {
       interfaceId: 'gi1/0/5',
       vlanId: '10',
     })
+  })
+
+  it('draws the map of the network from the plan', () => {
+    seed()
+    render(<PlannerPage catalog={catalog} />)
+
+    const map = screen.getByRole('img', { name: /^Mapa de la red/ })
+    expect(map).toHaveAccessibleName(
+      'Mapa de la red: nucleo (Aruba CX 6100) unido a planta1 (Cisco Catalyst 1300) por 1/1/49 y gi1/0/48',
+    )
+    expect(within(map).getByText('nucleo')).toBeInTheDocument()
+    expect(within(map).getByText('192.168.99.3/24')).toBeInTheDocument()
+    expect(within(screen.getByRole('list', { name: 'Leyenda de VLAN' })).getByText('10 USUARIOS')).toBeInTheDocument()
+  })
+
+  it('marks on the map the switches with no path to the core', () => {
+    const plan = twoSwitchPlan()
+    plan.links = []
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan))
+    render(<PlannerPage catalog={catalog} />)
+
+    expect(within(screen.getByRole('img', { name: /^Mapa de la red/ })).getByText('Sin enlace')).toBeInTheDocument()
+  })
+
+  it('starts the VLANs from a template by purpose', async () => {
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+
+    await user.click(screen.getByRole('button', { name: 'Oficina con telefonía y cámaras' }))
+
+    const table = screen.getByRole('table', { name: 'VLAN del plan' })
+    expect(within(table).getAllByRole('row')).toHaveLength(6)
+    expect(screen.getByRole('textbox', { name: 'Nombre de la VLAN 1' })).toHaveValue('USUARIOS')
+    expect(screen.queryByRole('button', { name: 'Oficina pequeña' })).not.toBeInTheDocument()
+  })
+
+  it('exports the plan as a JSON file', async () => {
+    seed()
+    const user = userEvent.setup()
+    const createObjectURL = vi.fn((_blob: Blob) => 'blob:plan')
+    const revokeObjectURL = vi.fn()
+    Object.assign(URL, { createObjectURL, revokeObjectURL })
+    const clicked: string[] = []
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push(this.download)
+    })
+    render(<PlannerPage catalog={catalog} />)
+
+    await user.click(screen.getByRole('button', { name: 'Exportar plan' }))
+
+    const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+    expect(JSON.parse(await blob.text())).toEqual(twoSwitchPlan())
+    expect(clicked[0]).toMatch(/^plan-de-red_\d{4}-\d{2}-\d{2}\.json$/)
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:plan')
+    click.mockRestore()
+  })
+
+  it('imports a plan from a JSON file', async () => {
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+    const file = new File([JSON.stringify(twoSwitchPlan())], 'plan.json', { type: 'application/json' })
+
+    await user.upload(screen.getByLabelText('Importar plan'), file)
+
+    expect(await screen.findByRole('textbox', { name: 'Nombre de la VLAN 1' })).toHaveValue('USUARIOS')
+  })
+
+  it('rejects a file that is not a plan and keeps the current one', async () => {
+    seed()
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+
+    await user.upload(screen.getByLabelText('Importar plan'), new File(['{"hola": 1}'], 'otro.json'))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Ese archivo no es un plan de red válido.')
+    expect(screen.getByRole('textbox', { name: 'Nombre de la VLAN 1' })).toHaveValue('USUARIOS')
+  })
+
+  it('asks before replacing or emptying a plan with content', async () => {
+    seed()
+    const user = userEvent.setup()
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+    render(<PlannerPage catalog={catalog} />)
+
+    await user.click(screen.getByRole('button', { name: 'Vaciar plan' }))
+    expect(screen.getByRole('textbox', { name: 'Nombre de la VLAN 1' })).toHaveValue('USUARIOS')
+
+    await user.click(screen.getByRole('button', { name: 'Vaciar plan' }))
+    expect(screen.queryByRole('textbox', { name: 'Nombre de la VLAN 1' })).not.toBeInTheDocument()
+    expect(confirm).toHaveBeenCalledWith('Se va a borrar el plan actual. ¿Continuar?')
+    confirm.mockRestore()
   })
 
   it('removes the links and ports of a switch that is deleted', async () => {
