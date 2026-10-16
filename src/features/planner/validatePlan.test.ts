@@ -152,6 +152,33 @@ describe('validatePlan', () => {
     expect(messages(plan)).toContain('planta1 no tiene enlace con nucleo: la VLAN de gestión no le llegaría.')
   })
 
+  it('rejects repeated switch, link and port ids from a hand-edited file', () => {
+    const plan = twoSwitchPlan()
+    plan.switches.push({
+      id: 'sw-2',
+      name: 'planta2',
+      platform: 'cisco-c1300',
+      mgmtIp: '192.168.99.4/24',
+      gateway: '192.168.99.1',
+      bridge: '',
+    })
+    plan.links.push({
+      id: 'ln-1',
+      a: { switch: 'sw-1', interface: '1/1/50' },
+      b: { switch: 'sw-2', interface: 'gi1/0/47' },
+      nativeVlan: 1,
+    })
+    plan.ports.push({ id: 'pt-1', switch: 'sw-2', interface: 'gi1/0/6', vlan: 10 })
+
+    expect(messages(plan)).toEqual(
+      expect.arrayContaining([
+        'El archivo del plan tiene dos switches con el mismo identificador (sw-2).',
+        'El archivo del plan tiene dos enlaces con el mismo identificador (ln-1).',
+        'El archivo del plan tiene dos puertos con el mismo identificador (pt-1).',
+      ]),
+    )
+  })
+
   it('rejects a model that is not in the manual', () => {
     const plan = twoSwitchPlan()
     const floor = plan.switches[1]
