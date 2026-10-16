@@ -6,6 +6,8 @@ const NODE_HEIGHT = 84
 const GAP_X = 36
 const GAP_Y = 72
 const MARGIN = 20
+// Characters of the name that fit on the card at its font size; longer names end in an ellipsis.
+const NAME_MAX = 20
 
 // Mid-tone hues that keep their contrast on both the light and the dark surface.
 export const PURPOSE_COLORS: Record<VlanPurpose, string> = {
@@ -18,6 +20,8 @@ export const PURPOSE_COLORS: Record<VlanPurpose, string> = {
   iot: '#06b6d4',
   other: '#ec4899',
 }
+
+const shorten = (name: string) => (name.length > NAME_MAX ? `${name.slice(0, NAME_MAX)}…` : name)
 
 interface Placed {
   id: string
@@ -132,11 +136,15 @@ export function TopologyDiagram({ plan, catalog }: { plan: NetworkPlan; catalog:
                 transform={`translate(${node.x} ${node.y})`}
               >
                 <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx={10} />
-                <text x={12} y={22} className="topology__name">
-                  {nameOf(item.id)}
-                </text>
+                <g>
+                  {nameOf(item.id).length > NAME_MAX && <title>{nameOf(item.id)}</title>}
+                  <text x={12} y={22} className="topology__name">
+                    {shorten(nameOf(item.id))}
+                  </text>
+                </g>
+                {/* On the bottom line, where it never meets the name; the core always has a path, so no "Sin enlace" there. */}
                 {index === 0 && (
-                  <text x={NODE_WIDTH - 12} y={22} textAnchor="end" className="topology__core">
+                  <text x={12} y={76} className="topology__core">
                     Núcleo
                   </text>
                 )}
