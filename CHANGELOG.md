@@ -4,6 +4,16 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Añadido
+
+- Planificador de red (`#/plan`): VLAN con su propósito, switches con su modelo, enlaces y puertos de acceso; comprueba
+  que el plan es coherente y genera los pasos de cada switch, del núcleo hacia fuera, con los comandos de su marca ya
+  rellenos y un enlace para abrir cada guía con esos valores.
+- Mapa de la red dibujado a partir del plan, plantillas de inicio y exportación e importación del plan en JSON.
+- Artículo de fundamentos «Diseñar las VLAN por propósito».
+
 ## [1.0.0] - 2026-10-15
 
 Primera versión publicada como release, con el HTML descargable.

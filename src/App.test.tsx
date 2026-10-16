@@ -246,6 +246,7 @@ describe('quick search', () => {
       '#/f/management-basics',
       '#/f/vendors',
       '#/f/safe-changes',
+      '#/f/vlan-design',
     ])
   })
 
@@ -364,6 +365,21 @@ describe('quick search', () => {
     const poeRow = within(matrix).getByRole('row', { name: /^Reiniciar un dispositivo PoE/ })
     // Cells follow the brand columns: Aruba, Cisco, MikroTik (no PoE), Ruijie.
     expect(within(poeRow).getAllByRole('cell')[2]).toHaveTextContent('—')
+  })
+
+  it('reaches the network planner from the header', () => {
+    openAt('#/')
+
+    const link = within(screen.getByRole('navigation', { name: 'Herramientas' })).getByRole('link', {
+      name: 'Planificador de red',
+    })
+    expect(link).toHaveAttribute('href', '#/plan')
+  })
+
+  it('shows the network planner at its own address', () => {
+    openAt('#/plan')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Planificador de red' })).toBeInTheDocument()
   })
 
   it('reaches the content status from the footer', () => {

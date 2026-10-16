@@ -1,3 +1,4 @@
+import type { VlanPurpose } from '../domain/networkPlan'
 import type { RiskLevel, StatusLevel, TaskGroup } from '../domain/schema'
 
 export const GROUP_LABELS: Record<TaskGroup, string> = {
@@ -17,4 +18,15 @@ export const STATUS_LABELS: Record<StatusLevel, string> = {
   unverified: 'Sin verificar',
   'docs-checked': 'Contrastada con documentación',
   'lab-tested': 'Probada en equipo real',
+}
+
+export const PURPOSE_LABELS: Record<VlanPurpose, string> = {
+  users: 'Usuarios',
+  voice: 'Voz (telefonía IP)',
+  servers: 'Servidores',
+  guests: 'Invitados',
+  cameras: 'Cámaras',
+  management: 'Gestión',
+  iot: 'Dispositivos IoT',
+  other: 'Otro',
 }

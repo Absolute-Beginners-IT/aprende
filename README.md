@@ -28,6 +28,21 @@ y 6 artículos de fundamentos.
 El tema claro u oscuro se cambia con el botón de la cabecera. El **Estado del contenido**, enlazado en el pie de página,
 muestra qué guías están contrastadas, cuáles faltan por probar y cuáles conviene revisar.
 
+### Planificador de red
+
+El **Planificador de red** de la cabecera (`#/plan`) sirve para diseñar o documentar la red de una empresa y sacar los
+pasos de cada switch:
+
+1. En **VLAN**, empieza con una plantilla o añade las VLAN una a una, con su propósito. Marca una como Gestión.
+2. En **Switches**, elige el modelo de cada uno y su IP de gestión. El primero es el núcleo.
+3. En **Enlaces**, indica qué puerto de cada switch une a cuál. Cada enlace se configura como trunk en los dos extremos.
+4. En **Puertos**, asigna los puertos de acceso a su VLAN.
+5. En **Guía**, si todo encaja, tienes los pasos de cada switch, del núcleo hacia fuera, con los comandos de su marca ya
+   rellenos. «Abrir la guía con estos datos» lleva a la guía completa con los valores puestos.
+
+El mapa de la red se dibuja solo a partir del plan. El plan se guarda en el navegador y se puede exportar e importar como
+JSON. No cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos.
+
 Los valores y los pasos marcados se guardan en el navegador de ese ordenador. Las contraseñas y comunidades nunca se
 piden ni se guardan: los pasos que las necesitan te indican que las escribas a mano.
 
@@ -97,7 +112,7 @@ inglés con [Conventional Commits](https://www.conventionalcommits.org/es/).
 | Ruta | Responsabilidad |
 |------|-----------------|
 | `src/domain/` | Esquema del contenido, carga del catálogo, generación de comandos y validación de valores. |
-| `src/features/` | Pantallas: navegación, guía, ficha de marca y fundamentos. |
+| `src/features/` | Pantallas: navegación, guía, ficha de marca, fundamentos, estado y planificador de red. |
 | `src/ui/` | Componentes reutilizables. |
 | `src/lib/` | Rutas por hash, estado guardado en el navegador y portapapeles. |
 | `odd/tasks/` | Seguimiento de cada funcionalidad: requisitos, tareas y registro de decisiones. |

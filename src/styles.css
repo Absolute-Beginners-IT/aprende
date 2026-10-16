@@ -1006,3 +1006,329 @@ thead th {
     border: 1px solid var(--border);
   }
 }
+
+/* Network planner */
+.plan-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: -1px;
+  padding: 0.5rem 0.9rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+}
+
+.plan-tabs button:hover {
+  color: var(--text);
+}
+
+.plan-tabs button[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.plan-tabs__count {
+  min-width: 1.3rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.plan-panel {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+/* Positioned so the visually hidden headers stay inside the scroll box instead of widening the page. */
+.plan-table {
+  position: relative;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+}
+
+.plan-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.plan-table th {
+  padding: 0.3rem 0.4rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.plan-table td {
+  padding: 0.3rem 0.4rem;
+  vertical-align: middle;
+}
+
+.plan-table input,
+.plan-table select {
+  width: 100%;
+  min-width: 7rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+.plan-table input[type="number"] {
+  min-width: 5rem;
+}
+
+.plan-core {
+  display: inline-block;
+  margin-top: 0.2rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.plan-actions {
+  white-space: nowrap;
+}
+
+.plan-actions .link-button {
+  margin-right: 0.8rem;
+}
+
+.plan-add,
+.plan-open {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+}
+
+.plan-add:disabled {
+  border-color: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.plan-issues {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem 0.7rem 2rem;
+  border-left: 4px solid var(--danger);
+  border-radius: 0.4rem;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.plan-issues li + li {
+  margin-top: 0.3rem;
+}
+
+.plan-issues .link-button {
+  margin-left: 0.6rem;
+}
+
+.plan-switch h2 {
+  margin-top: 0;
+}
+
+.plan-steps {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-step {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.plan-step__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.plan-step__header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.plan-substeps {
+  padding-left: 1.2rem;
+}
+
+.plan-substeps li + li {
+  margin-top: 0.6rem;
+}
+
+.plan-commands {
+  margin: 0.6rem 0 0.8rem;
+}
+
+.plan-commands summary {
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.plan-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.plan-tools__import {
+  cursor: pointer;
+}
+
+.plan-tools__import:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.plan-tools .field__error {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.plan-templates ul {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.plan-template {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.8rem;
+}
+
+.plan-map {
+  margin-bottom: 1.2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+.topology__canvas {
+  overflow-x: auto;
+}
+
+.topology svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.topology__node rect {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.topology__node--alone rect {
+  stroke: var(--danger);
+  stroke-dasharray: 6 4;
+}
+
+.topology__node text {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.topology__node .topology__name {
+  fill: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.topology__node .topology__core {
+  fill: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.topology__node .topology__alone {
+  fill: var(--danger);
+  font-weight: 600;
+}
+
+.topology__link line {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.topology__link text {
+  fill: var(--text);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11px;
+}
+
+.topology__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  list-style: none;
+}
+
+.topology__swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.35rem;
+  border-radius: 999px;
+  vertical-align: -0.05rem;
+}
+
+@media print {
+  .plan-tabs,
+  .plan-open,
+  .plan-add,
+  .plan-tools {
+    display: none;
+  }
+}

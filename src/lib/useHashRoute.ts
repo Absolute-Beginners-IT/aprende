@@ -7,6 +7,7 @@ export type Route =
   | { name: 'fundamentals' }
   | { name: 'fundamental'; article: string }
   | { name: 'status' }
+  | { name: 'plan' }
   | { name: 'not-found' }
 
 export function parseRoute(hash: string): Route {
@@ -15,6 +16,7 @@ export function parseRoute(hash: string): Route {
 
   if (root === undefined) return { name: 'home' }
   if (root === 'status' && second === undefined) return { name: 'status' }
+  if (root === 'plan' && second === undefined) return { name: 'plan' }
   if (root === 'f' && third === undefined) {
     return second === undefined ? { name: 'fundamentals' } : { name: 'fundamental', article: second }
   }
@@ -26,6 +28,7 @@ export function parseRoute(hash: string): Route {
 export const platformHref = (platform: string) => `#/p/${platform}`
 export const runbookHref = (platform: string, task: string) => `#/p/${platform}/${task}`
 export const statusHref = '#/status'
+export const planHref = '#/plan'
 export const fundamentalsHref = (article?: string) => (article ? `#/f/${article}` : '#/f')
 
 function subscribe(onChange: () => void) {
