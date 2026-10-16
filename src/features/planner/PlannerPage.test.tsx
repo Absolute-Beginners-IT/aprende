@@ -113,6 +113,20 @@ describe('PlannerPage', () => {
     expect(within(screen.getByRole('list', { name: 'Leyenda de VLAN' })).getByText('10 USUARIOS')).toBeInTheDocument()
   })
 
+  it('keeps a long switch name from running into the core label on the map', () => {
+    const plan = twoSwitchPlan()
+    const core = plan.switches[0]
+    if (!core) throw new Error('fixture')
+    core.name = 'sw-marmarra-sotano-principal'
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan))
+    render(<PlannerPage catalog={catalog} />)
+
+    const map = screen.getByRole('img', { name: /^Mapa de la red: sw-marmarra-sotano-principal/ })
+    const name = within(map).getByText('sw-marmarra-sotano-p…')
+    expect(name.parentElement?.querySelector('title')).toHaveTextContent('sw-marmarra-sotano-principal')
+    expect(within(map).getByText('Núcleo')).not.toHaveAttribute('text-anchor', 'end')
+  })
+
   it('marks on the map the switches with no path to the core', () => {
     const plan = twoSwitchPlan()
     plan.links = []
