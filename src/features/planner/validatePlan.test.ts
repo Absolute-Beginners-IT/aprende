@@ -43,6 +43,28 @@ describe('validatePlan', () => {
     )
   })
 
+  it('rejects a link native VLAN that is neither VLAN 1 nor a VLAN of the plan', () => {
+    const plan = twoSwitchPlan()
+    const link = plan.links[0]
+    if (!link) throw new Error('fixture')
+    link.nativeVlan = 15
+
+    expect(messages(plan)).toContain(
+      'La VLAN nativa 15 del enlace entre nucleo y planta1 no está en el plan: usa la 1 o una VLAN del plan.',
+    )
+  })
+
+  it('accepts VLAN 1 or a VLAN of the plan as link native VLAN', () => {
+    const plan = twoSwitchPlan()
+    const link = plan.links[0]
+    if (!link) throw new Error('fixture')
+
+    link.nativeVlan = 99
+    expect(validatePlan(plan, catalog)).toEqual([])
+    link.nativeVlan = 1
+    expect(validatePlan(plan, catalog)).toEqual([])
+  })
+
   it('needs exactly one management VLAN', () => {
     const none = twoSwitchPlan()
     none.vlans = none.vlans.filter((vlan) => vlan.purpose !== 'management')

@@ -103,6 +103,7 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
     if (switchName.has(id) && iface) add('ports', `El puerto ${iface} de ${nameOf(id)} está usado dos veces.`)
   }
 
+  const vlanIds = new Set(plan.vlans.map((vlan) => vlan.id))
   for (const link of plan.links) {
     if (link.a.switch === link.b.switch) add('links', `Un enlace no puede unir ${nameOf(link.a.switch)} consigo mismo.`)
     if (!isVlanId(link.nativeVlan)) {
@@ -110,9 +111,14 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
         'links',
         `La VLAN nativa del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} tiene que ir de 1 a 4094.`,
       )
+    } else if (link.nativeVlan !== 1 && !vlanIds.has(link.nativeVlan)) {
+      // VLAN 1 exists on every switch from the factory; any other native VLAN has to be created by the plan.
+      add(
+        'links',
+        `La VLAN nativa ${link.nativeVlan} del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} no está en el plan: usa la 1 o una VLAN del plan.`,
+      )
     }
   }
-  const vlanIds = new Set(plan.vlans.map((vlan) => vlan.id))
   for (const port of plan.ports) {
     if (!vlanIds.has(port.vlan)) {
       add(
