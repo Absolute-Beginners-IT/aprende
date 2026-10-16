@@ -4,7 +4,9 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
-## [Sin publicar]
+## [1.1.0] - 2026-10-16
+
+Planificador de red: del diseño de la red a los pasos de cada switch.
 
 ### Añadido
 
