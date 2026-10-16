@@ -34,6 +34,18 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
   const switchName = new Map(plan.switches.map((item) => [item.id, item.name.trim() || 'un switch sin nombre']))
   const nameOf = (id: string) => switchName.get(id) ?? 'un switch que ya no existe'
 
+  // Only a hand-edited file can repeat an id, but a repeated switch id silently drops a switch from the guide.
+  const idChecks: [PlanSection, string, { id: string }[]][] = [
+    ['switches', 'switches', plan.switches],
+    ['links', 'enlaces', plan.links],
+    ['ports', 'puertos', plan.ports],
+  ]
+  for (const [section, noun, items] of idChecks) {
+    for (const id of findRepeated(items.map((item) => item.id))) {
+      add(section, `El archivo del plan tiene dos ${noun} con el mismo identificador (${id}).`)
+    }
+  }
+
   if (plan.vlans.length === 0) add('vlans', 'Añade al menos una VLAN.')
   for (const id of findRepeated(plan.vlans.map((vlan) => vlan.id))) add('vlans', `La VLAN ${id} está repetida.`)
   for (const vlan of plan.vlans) {
