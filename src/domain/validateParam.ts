@@ -9,12 +9,12 @@ function isIntegerInRange(value: string, min: number, max: number): boolean {
   return number >= min && number <= max
 }
 
-function isIpv4(value: string): boolean {
+export function isIpv4(value: string): boolean {
   const octets = value.split('.')
   return octets.length === 4 && octets.every((octet) => DIGITS.test(octet) && isIntegerInRange(octet, 0, 255))
 }
 
-function isCidr(value: string): boolean {
+export function isCidr(value: string): boolean {
   const [address, prefix, ...rest] = value.split('/')
   if (address === undefined || prefix === undefined || rest.length > 0) return false
   return isIpv4(address) && DIGITS.test(prefix) && isIntegerInRange(prefix, 0, 32)
