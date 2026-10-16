@@ -11,8 +11,9 @@ obtienes los comandos listos para copiar, con los riesgos, la verificación y la
 | MikroTik | CRS317 (RouterOS 7) | Línea de comandos |
 | Ruijie Reyee | NBS3200 | Interfaz web |
 
-Incluye 72 guías en 19 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia)
-y 6 artículos de fundamentos.
+Incluye 72 guías en 19 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
+7 artículos de fundamentos y un planificador de red que genera los pasos de cada switch a partir del
+diseño de la red.
 
 ## Uso rápido
 
