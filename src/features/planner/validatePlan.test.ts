@@ -28,6 +28,21 @@ describe('validatePlan', () => {
     )
   })
 
+  it('rejects VLAN IDs outside 1 to 4094, on VLANs and on link native VLANs', () => {
+    const plan = twoSwitchPlan()
+    plan.vlans.push({ id: 0, name: 'MAL', purpose: 'other', subnet: '' })
+    const link = plan.links[0]
+    if (!link) throw new Error('fixture')
+    link.nativeVlan = 4095
+
+    expect(messages(plan)).toEqual(
+      expect.arrayContaining([
+        'La VLAN 0 no es válida: el ID va de 1 a 4094.',
+        'La VLAN nativa del enlace entre nucleo y planta1 tiene que ir de 1 a 4094.',
+      ]),
+    )
+  })
+
   it('needs exactly one management VLAN', () => {
     const none = twoSwitchPlan()
     none.vlans = none.vlans.filter((vlan) => vlan.purpose !== 'management')

@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
-import { fundamentalsHref, type Route } from '../../lib/useHashRoute'
+import { fundamentalsHref, planHref, type Route } from '../../lib/useHashRoute'
 import { FundamentalsNav } from '../fundamentals/FundamentalsNav'
 import { AppFooter } from './AppFooter'
 import { CommandPalette } from './CommandPalette'
@@ -32,7 +32,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
   const task = route.name === 'runbook' ? route.task : undefined
   const onFundamentals = route.name === 'fundamentals' || route.name === 'fundamental'
   // Pages about every brand at once leave all brand tabs unselected.
-  const acrossBrands = onFundamentals || route.name === 'status'
+  const acrossBrands = onFundamentals || route.name === 'status' || route.name === 'plan'
   const article = route.name === 'fundamental' ? route.article : undefined
   const pageKey = route.name === 'runbook' ? `${route.platform}/${route.task}` : article ? `f/${article}` : route.name
 
@@ -68,9 +68,12 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         <a className="shell__title" href="#/">
           Manual de Switching
         </a>
-        <nav className="brand-tabs brand-tabs--fixed" aria-label="Fundamentos">
+        <nav className="brand-tabs brand-tabs--fixed" aria-label="Herramientas">
           <a href={fundamentalsHref()} aria-current={onFundamentals ? 'page' : undefined}>
             Fundamentos
+          </a>
+          <a href={planHref} aria-current={route.name === 'plan' ? 'page' : undefined}>
+            Planificador de red
           </a>
         </nav>
         <PlatformTabs catalog={catalog} activePlatform={acrossBrands ? '' : activePlatform} task={task} />

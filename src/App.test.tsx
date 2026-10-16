@@ -366,6 +366,21 @@ describe('quick search', () => {
     expect(within(poeRow).getAllByRole('cell')[2]).toHaveTextContent('—')
   })
 
+  it('reaches the network planner from the header', () => {
+    openAt('#/')
+
+    const link = within(screen.getByRole('navigation', { name: 'Herramientas' })).getByRole('link', {
+      name: 'Planificador de red',
+    })
+    expect(link).toHaveAttribute('href', '#/plan')
+  })
+
+  it('shows the network planner at its own address', () => {
+    openAt('#/plan')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Planificador de red' })).toBeInTheDocument()
+  })
+
   it('reaches the content status from the footer', () => {
     openAt('#/')
 

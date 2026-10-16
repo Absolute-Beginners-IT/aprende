@@ -2,7 +2,8 @@ import { z } from 'zod'
 
 export const VLAN_PURPOSES = ['users', 'voice', 'servers', 'guests', 'cameras', 'management', 'iot', 'other'] as const
 
-const vlanId = z.number().int().min(1).max(4094)
+// Range is checked by validatePlan, so a half-typed ID never makes the stored plan unreadable.
+const vlanId = z.number().int()
 
 // Fields stay loose strings: the planner checks them with messages the user can act on (validatePlan),
 // while this schema only guards the shape of a stored or imported plan.

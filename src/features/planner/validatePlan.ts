@@ -12,6 +12,7 @@ export interface PlanIssue {
 }
 
 const VLAN_NAME = /^[A-Za-z0-9_-]{1,32}$/
+const isVlanId = (id: number) => Number.isInteger(id) && id >= 1 && id <= 4094
 
 /** The param a brand's access-port runbook uses for the port, which carries that brand's naming format. */
 export function interfaceParam(catalog: Catalog, platform: string): Param | undefined {
@@ -36,6 +37,7 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
   if (plan.vlans.length === 0) add('vlans', 'Añade al menos una VLAN.')
   for (const id of findRepeated(plan.vlans.map((vlan) => vlan.id))) add('vlans', `La VLAN ${id} está repetida.`)
   for (const vlan of plan.vlans) {
+    if (!isVlanId(vlan.id)) add('vlans', `La VLAN ${vlan.id} no es válida: el ID va de 1 a 4094.`)
     if (!VLAN_NAME.test(vlan.name)) {
       add(
         'vlans',
@@ -103,6 +105,12 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
 
   for (const link of plan.links) {
     if (link.a.switch === link.b.switch) add('links', `Un enlace no puede unir ${nameOf(link.a.switch)} consigo mismo.`)
+    if (!isVlanId(link.nativeVlan)) {
+      add(
+        'links',
+        `La VLAN nativa del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} tiene que ir de 1 a 4094.`,
+      )
+    }
   }
   const vlanIds = new Set(plan.vlans.map((vlan) => vlan.id))
   for (const port of plan.ports) {
