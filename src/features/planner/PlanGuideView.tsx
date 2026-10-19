@@ -4,13 +4,14 @@ import { runbookHref } from '../../lib/useHashRoute'
 import { Badge } from '../../ui/Badge'
 import { CommandBlock } from '../../ui/CommandBlock'
 import { STATUS_LABELS } from '../labels'
+import { runbookStorageKey } from '../procedure/runbookStorage'
 import type { GuideStep, SwitchGuide } from './buildPlanGuide'
 
 const STATUS_TONES = { unverified: 'danger', 'docs-checked': 'warn', 'lab-tested': 'ok' } as const
 
 /** Hands the values to the full runbook, which reads them from storage when it opens. */
 function openRunbook(step: GuideStep) {
-  const key = `switching-manual:${step.procedure.platform}/${step.procedure.task}`
+  const key = runbookStorageKey(step.procedure.platform, step.procedure.task)
   try {
     localStorage.setItem(`${key}:values`, JSON.stringify(step.values))
     localStorage.setItem(`${key}:done`, JSON.stringify([]))

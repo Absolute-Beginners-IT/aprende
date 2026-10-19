@@ -10,6 +10,7 @@ import { Section } from '../../ui/Section'
 import { RISK_LABELS, STATUS_LABELS } from '../labels'
 import { ChangeRecordSection } from './ChangeRecordSection'
 import { buildChangeRecord, changeRecordFileName, EMPTY_RECORD, type RecordFields } from './changeRecord'
+import { runbookStorageKey } from './runbookStorage'
 
 interface RunbookPageProps {
   platform: Platform
@@ -53,7 +54,7 @@ const WORKING_SECTIONS = [
 export function RunbookPage({ platform, concept, procedure, alternatives = [] }: RunbookPageProps) {
   const baseId = useId()
   const sectionId = (key: (typeof WORKING_SECTIONS)[number]['key']) => `${baseId}-${key}`
-  const storageKey = `switching-manual:${procedure.platform}/${procedure.task}`
+  const storageKey = runbookStorageKey(procedure.platform, procedure.task)
   const [values, setValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
   const [storedRecord, setRecord] = useStoredState<RecordFields>(`${storageKey}:record`, EMPTY_RECORD)
