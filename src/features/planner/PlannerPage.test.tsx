@@ -158,6 +158,15 @@ describe('PlannerPage', () => {
       expect(name.parentElement?.querySelector('title')).toHaveTextContent('MMMMMMMMMMMMMMMMMMMM')
     })
 
+    it('shows the fitted name when it matches the character rule it starts from', () => {
+      // 21 characters of 7.9 px take 165.9 px, so the measured fit is the same 20 characters plus "…".
+      measureAs(7.9)
+      // With 23 characters the search tries 21 last, which does not fit, before settling on 20.
+      const map = mapWithCoreNamed('aaaaaaaaaaaaaaaaaaaaaaa')
+
+      expect(within(map).getByText('aaaaaaaaaaaaaaaaaaaa…')).toBeInTheDocument()
+    })
+
     it('keeps a long name of narrow letters whole when it fits', () => {
       measureAs(4)
       const map = mapWithCoreNamed('iiiiiiiiiiiiiiiiiiiiiiiiiiii')

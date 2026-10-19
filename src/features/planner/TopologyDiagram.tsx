@@ -27,13 +27,19 @@ export const PURPOSE_COLORS: Record<VlanPurpose, string> = {
 
 const shorten = (name: string) => (name.length > NAME_MAX ? `${name.slice(0, NAME_MAX)}…` : name)
 
-/** The longest start of the name, with an ellipsis, that fits the room; measured on the rendered text element. */
+/**
+ * The longest start of the name, with an ellipsis, that fits the room. It writes candidates into a hidden text
+ * element React leaves empty, never into the visible one, so React's view of the visible text stays true.
+ */
 function fitToWidth(element: SVGTextElement, name: string): string {
   const widthOf = (text: string) => {
     element.textContent = text
     return element.getComputedTextLength()
   }
-  if (widthOf(name) <= NAME_ROOM) return name
+  if (widthOf(name) <= NAME_ROOM) {
+    element.textContent = ''
+    return name
+  }
   let low = 0
   let high = name.length - 1
   while (low < high) {
@@ -41,16 +47,17 @@ function fitToWidth(element: SVGTextElement, name: string): string {
     if (widthOf(`${name.slice(0, middle)}…`) <= NAME_ROOM) low = middle
     else high = middle - 1
   }
+  element.textContent = ''
   return `${name.slice(0, low)}…`
 }
 
 /** A switch name that never runs past its card: measured when the browser can, by characters otherwise. */
 function NodeName({ name }: { name: string }) {
-  const textRef = useRef<SVGTextElement>(null)
+  const measureRef = useRef<SVGTextElement>(null)
   const [shown, setShown] = useState(() => shorten(name))
 
   useLayoutEffect(() => {
-    const element = textRef.current
+    const element = measureRef.current
     // jsdom and very old engines have no text layout; the character rule above stays in place there.
     const measurable = element !== null && typeof element.getComputedTextLength === 'function'
     setShown(measurable ? fitToWidth(element, name) : shorten(name))
@@ -59,9 +66,11 @@ function NodeName({ name }: { name: string }) {
   return (
     <g>
       {shown !== name && <title>{name}</title>}
-      <text ref={textRef} x={NAME_X} y={22} className="topology__name">
+      <text x={NAME_X} y={22} className="topology__name">
         {shown}
       </text>
+      {/* Same font as the name; only used to measure candidates, so it renders nothing. */}
+      <text ref={measureRef} x={NAME_X} y={22} className="topology__name" visibility="hidden" aria-hidden="true" />
     </g>
   )
 }
