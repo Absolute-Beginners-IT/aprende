@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
 import { type NetworkPlan, orderFromCore, type VlanPurpose } from '../../domain/networkPlan'
 
@@ -6,8 +7,11 @@ const NODE_HEIGHT = 84
 const GAP_X = 36
 const GAP_Y = 72
 const MARGIN = 20
-// Characters of the name that fit on the card at its font size; longer names end in an ellipsis.
+// Fallback when the browser cannot measure text: characters that usually fit on the card at its font size.
 const NAME_MAX = 20
+const NAME_X = 12
+// Room for the name between the left and right padding of the card.
+const NAME_ROOM = NODE_WIDTH - NAME_X * 2
 
 // Mid-tone hues that keep their contrast on both the light and the dark surface.
 export const PURPOSE_COLORS: Record<VlanPurpose, string> = {
@@ -22,6 +26,54 @@ export const PURPOSE_COLORS: Record<VlanPurpose, string> = {
 }
 
 const shorten = (name: string) => (name.length > NAME_MAX ? `${name.slice(0, NAME_MAX)}…` : name)
+
+/**
+ * The longest start of the name, with an ellipsis, that fits the room. It writes candidates into a hidden text
+ * element React leaves empty, never into the visible one, so React's view of the visible text stays true.
+ */
+function fitToWidth(element: SVGTextElement, name: string): string {
+  const widthOf = (text: string) => {
+    element.textContent = text
+    return element.getComputedTextLength()
+  }
+  if (widthOf(name) <= NAME_ROOM) {
+    element.textContent = ''
+    return name
+  }
+  let low = 0
+  let high = name.length - 1
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2)
+    if (widthOf(`${name.slice(0, middle)}…`) <= NAME_ROOM) low = middle
+    else high = middle - 1
+  }
+  element.textContent = ''
+  return `${name.slice(0, low)}…`
+}
+
+/** A switch name that never runs past its card: measured when the browser can, by characters otherwise. */
+function NodeName({ name }: { name: string }) {
+  const measureRef = useRef<SVGTextElement>(null)
+  const [shown, setShown] = useState(() => shorten(name))
+
+  useLayoutEffect(() => {
+    const element = measureRef.current
+    // jsdom and very old engines have no text layout; the character rule above stays in place there.
+    const measurable = element !== null && typeof element.getComputedTextLength === 'function'
+    setShown(measurable ? fitToWidth(element, name) : shorten(name))
+  }, [name])
+
+  return (
+    <g>
+      {shown !== name && <title>{name}</title>}
+      <text x={NAME_X} y={22} className="topology__name">
+        {shown}
+      </text>
+      {/* Same font as the name, only to measure candidates; hidden elements stay out of the accessibility tree. */}
+      <text ref={measureRef} x={NAME_X} y={22} className="topology__name" visibility="hidden" />
+    </g>
+  )
+}
 
 interface Placed {
   id: string
@@ -136,12 +188,7 @@ export function TopologyDiagram({ plan, catalog }: { plan: NetworkPlan; catalog:
                 transform={`translate(${node.x} ${node.y})`}
               >
                 <rect width={NODE_WIDTH} height={NODE_HEIGHT} rx={10} />
-                <g>
-                  {nameOf(item.id).length > NAME_MAX && <title>{nameOf(item.id)}</title>}
-                  <text x={12} y={22} className="topology__name">
-                    {shorten(nameOf(item.id))}
-                  </text>
-                </g>
+                <NodeName name={nameOf(item.id)} />
                 {/* On the bottom line, where it never meets the name; the core always has a path, so no "Sin enlace" there. */}
                 {index === 0 && (
                   <text x={12} y={76} className="topology__core">
