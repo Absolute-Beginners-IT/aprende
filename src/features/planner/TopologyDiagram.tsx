@@ -69,8 +69,8 @@ function NodeName({ name }: { name: string }) {
       <text x={NAME_X} y={22} className="topology__name">
         {shown}
       </text>
-      {/* Same font as the name; only used to measure candidates, so it renders nothing. */}
-      <text ref={measureRef} x={NAME_X} y={22} className="topology__name" visibility="hidden" aria-hidden="true" />
+      {/* Same font as the name, only to measure candidates; hidden elements stay out of the accessibility tree. */}
+      <text ref={measureRef} x={NAME_X} y={22} className="topology__name" visibility="hidden" />
     </g>
   )
 }
