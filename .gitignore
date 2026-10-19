@@ -5,3 +5,4 @@ coverage/
 .codegraph/
 .claude/settings.local.json
 .atl/
+.claude/worktrees/
