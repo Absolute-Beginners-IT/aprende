@@ -127,6 +127,46 @@ describe('PlannerPage', () => {
     expect(within(map).getByText('Núcleo')).not.toHaveAttribute('text-anchor', 'end')
   })
 
+  describe('when the browser can measure text', () => {
+    // jsdom has no layout, so each test gives every character a fixed width in pixels.
+    const measureAs = (pixelsPerChar: number) => {
+      Object.defineProperty(SVGElement.prototype, 'getComputedTextLength', {
+        configurable: true,
+        value(this: SVGElement) {
+          return (this.textContent ?? '').length * pixelsPerChar
+        },
+      })
+    }
+    afterEach(() => {
+      Reflect.deleteProperty(SVGElement.prototype, 'getComputedTextLength')
+    })
+    const mapWithCoreNamed = (name: string) => {
+      const plan = twoSwitchPlan()
+      const core = plan.switches[0]
+      if (!core) throw new Error('fixture')
+      core.name = name
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan))
+      render(<PlannerPage catalog={catalog} />)
+      return screen.getByRole('img', { name: /^Mapa de la red/ })
+    }
+
+    it('shortens a name of wide letters to the width of the card', () => {
+      measureAs(14)
+      const map = mapWithCoreNamed('MMMMMMMMMMMMMMMMMMMM')
+
+      const name = within(map).getByText('MMMMMMMMMM…')
+      expect(name.parentElement?.querySelector('title')).toHaveTextContent('MMMMMMMMMMMMMMMMMMMM')
+    })
+
+    it('keeps a long name of narrow letters whole when it fits', () => {
+      measureAs(4)
+      const map = mapWithCoreNamed('iiiiiiiiiiiiiiiiiiiiiiiiiiii')
+
+      const name = within(map).getByText('iiiiiiiiiiiiiiiiiiiiiiiiiiii')
+      expect(name.parentElement?.querySelector('title')).toBeNull()
+    })
+  })
+
   it('marks on the map the switches with no path to the core', () => {
     const plan = twoSwitchPlan()
     plan.links = []
