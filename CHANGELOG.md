@@ -11,6 +11,9 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - La guía de SNMP del Cisco Catalyst 1300 pasa de una comunidad v2c a SNMPv3: Engine ID, grupo con autenticación y
   cifrado, usuario con SHA y AES 128 (creado en la interfaz web, como indica Cisco) y una ACL de gestión que solo
   acepta consultas SNMP del servidor de monitorización. Ahora las cuatro marcas usan SNMPv3.
+- En las guías de SNMP de Aruba y MikroTik, el paso que crea el usuario SNMPv3 vuelve a mostrar el comando completo
+  para copiar. Las claves de autenticación y de cifrado se escriben en «Tus datos»: rellenan el comando, pero solo viven
+  en memoria (no se guardan en el navegador y se borran al recargar) y salen como `********` en el registro del cambio.
 
 ## [1.1.0] - 2026-10-16
 
