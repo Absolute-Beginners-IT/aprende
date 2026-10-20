@@ -196,4 +196,18 @@ describe('content catalog', () => {
 
     expect(untraceable).toEqual([])
   })
+
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
+    'takes SNMP on %s from enabling the agent to an SNMPv3 user with SHA and AES',
+    (platform) => {
+      const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
+      const text = (runbook?.steps ?? [])
+        .flatMap((step) => [step.title ?? '', step.explanation, ...step.commands])
+        .join('\n')
+
+      expect(text).toMatch(/SNMPv3|\bv3\b/)
+      expect(text).toMatch(/\bSHA/)
+      expect(text).toMatch(/\bAES|\baes/)
+    },
+  )
 })

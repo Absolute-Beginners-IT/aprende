@@ -4,6 +4,14 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [Sin publicar]
+
+### Cambiado
+
+- La guía de SNMP del Cisco Catalyst 1300 pasa de una comunidad v2c a SNMPv3: Engine ID, grupo con autenticación y
+  cifrado, usuario con SHA y AES 128 (creado en la interfaz web, como indica Cisco) y una ACL de gestión que solo
+  acepta consultas SNMP del servidor de monitorización. Ahora las cuatro marcas usan SNMPv3.
+
 ## [1.1.0] - 2026-10-16
 
 Planificador de red: del diseño de la red a los pasos de cada switch.

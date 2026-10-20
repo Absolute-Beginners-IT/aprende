@@ -8,10 +8,10 @@ explanation: >-
   leen el estado de los puertos, el tráfico, la temperatura o los errores. En SNMP v2c
   el acceso se protege con una comunidad, que funciona como una contraseña compartida
   y viaja sin cifrar. SNMPv3 usa un usuario con dos claves, una para autenticar cada
-  consulta y otra para cifrarla (nivel authPriv), y es lo recomendable. Las guías de
-  Aruba y MikroTik usan SNMPv3; la de Cisco C1300 sigue con v2c. En los dos casos hay
-  que dar solo lectura, limitar el acceso a la IP del servidor de monitorización y no
-  dejar nunca la comunidad public de fábrica con acceso.
+  consulta y otra para cifrarla (nivel authPriv), y es lo recomendable. Todas las
+  guías de este manual crean un usuario SNMPv3 con autenticación SHA y cifrado AES. En
+  cualquier versión hay que dar solo lectura, limitar el acceso a la IP del servidor de
+  monitorización y no dejar nunca la comunidad public de fábrica con acceso.
 risks:
   - Dejar activa la comunidad public, o un acceso sin restricción de origen, permite a cualquiera de la red leer la configuración y el estado del switch.
   - Dar escritura permite cambiar la configuración por SNMP.
