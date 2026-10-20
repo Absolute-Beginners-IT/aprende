@@ -202,7 +202,8 @@ describe('content catalog', () => {
     (platform) => {
       const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
       const text = (runbook?.steps ?? [])
-        .flatMap((step) => [step.title ?? '', step.explanation, ...step.commands])
+        // The schema defaults commands to [], but the guard keeps the test independent of that default.
+        .flatMap((step) => [step.title ?? '', step.explanation, ...(step.commands ?? [])])
         .join('\n')
 
       expect(text).toMatch(/SNMPv3|\bv3\b/)
