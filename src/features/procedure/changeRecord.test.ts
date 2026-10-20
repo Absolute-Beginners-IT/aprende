@@ -92,6 +92,20 @@ describe('buildChangeRecord', () => {
     expect(record).toContain('- Nombre de la VLAN: sin rellenar')
   })
 
+  it('hides secret values in the values list and in the commands', () => {
+    const withKey = ProcedureSchema.parse({
+      ...procedure,
+      params: [...procedure.params, { id: 'authKey', label: 'Clave', type: 'secret', example: 'Clave2026x' }],
+      steps: [{ title: 'Crear el usuario', commands: ['user {{authKey}}'], explanation: 'Usa {{authKey}}.' }],
+    })
+
+    const record = build({ procedure: withKey, values: { vlanId: '20', authKey: 'S3cretoReal' } })
+
+    expect(record).not.toContain('S3cretoReal')
+    expect(record).toContain('- Clave: ********')
+    expect(record).toContain('   user ********')
+  })
+
   it('marks each step as done or pending, with its filled commands', () => {
     const record = build({ values: { vlanId: '20' }, doneSteps: [0] })
 

@@ -39,6 +39,7 @@ function validateFormat(param: Param, value: string): string | null {
     case 'choice':
       return param.options?.includes(value) ? null : 'Elige una de las opciones disponibles.'
     case 'text':
+    case 'secret':
       if (param.pattern && !new RegExp(param.pattern).test(value)) {
         return param.patternHint ?? 'El formato no es válido.'
       }

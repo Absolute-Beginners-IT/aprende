@@ -16,7 +16,7 @@ risks:
   - Dejar activa la comunidad public, o un acceso sin restricción de origen, permite a cualquiera de la red leer la configuración y el estado del switch.
   - Dar escritura permite cambiar la configuración por SNMP.
   - En SNMPv3, usar DES o el nivel sin cifrado deja las consultas legibles en la red.
-  - La comunidad y las claves de SNMPv3 son secretos; este manual no las guarda y hay que escribirlas a mano.
+  - La comunidad y las claves de SNMPv3 son secretos; las claves se escriben en la guía, que las usa en los comandos sin guardarlas, y la comunidad se escribe a mano.
 prerequisites:
   - Conocer la IP del servidor de monitorización.
   - Tener decididas las claves (o la comunidad, en v2c) y guardadas en el gestor de contraseñas de la empresa.

@@ -44,8 +44,9 @@ pasos de cada switch:
 El mapa de la red se dibuja solo a partir del plan. El plan se guarda en el navegador y se puede exportar e importar como
 JSON. No cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos.
 
-Los valores y los pasos marcados se guardan en el navegador de ese ordenador. Las contraseñas y comunidades nunca se
-piden ni se guardan: los pasos que las necesitan te indican que las escribas a mano.
+Los valores y los pasos marcados se guardan en el navegador de ese ordenador. Las claves (como las de SNMPv3) se
+piden en campos aparte que solo viven en memoria: rellenan los comandos, pero no se guardan en el navegador y salen
+como `********` en el registro del cambio.
 
 ## Cómo leer cada guía
 
@@ -94,7 +95,7 @@ Reglas que comprueba `npm test`:
 
 - Todo `{{param}}` usado en comandos o textos tiene que estar declarado en `params`.
 - Un paso sin comandos lleva `manual: true`; en las marcas gestionadas por web, todos los pasos son manuales.
-- Ningún parámetro puede pedir contraseñas, claves o comunidades.
+- Un parámetro que pida contraseñas, claves o comunidades tiene que ser de tipo `secret`.
 - Toda guía tiene riesgo, fuentes y vuelta atrás. Restaurar, LAG, IP de gestión, firmware y ACL de gestión son
   siempre de riesgo alto.
 - `lab-tested` exige una nota que diga dónde se probó.

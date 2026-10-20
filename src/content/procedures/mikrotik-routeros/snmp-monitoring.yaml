@@ -21,6 +21,23 @@ params:
     example: snmpuser
     pattern: '^[A-Za-z0-9_-]{1,32}$'
     patternHint: Sin espacios; letras, números, guion y guion bajo. Tiene que coincidir con el de la herramienta de monitorización.
+  - id: authKey
+    label: Clave de autenticación SNMPv3
+    type: secret
+    example: Cambia3sta-Clave
+    pattern: '^[A-Za-z0-9_.@+-]{8,32}$'
+    patternHint: De 8 a 32 caracteres; letras, números y los signos _ . @ + -, sin espacios.
+    help: Cópiala del gestor de contraseñas; la herramienta de monitorización necesita la misma.
+  - id: privKey
+    label: Clave de cifrado SNMPv3
+    type: secret
+    example: Otra-Clave-Distinta9
+    pattern: '^[A-Za-z0-9_.@+-]{8,32}$'
+    patternHint: De 8 a 32 caracteres; letras, números y los signos _ . @ + -, sin espacios.
+    help: Cópiala del gestor de contraseñas; la herramienta de monitorización necesita la misma.
+    differentFrom:
+      param: authKey
+      hint: Usa una clave distinta de la de autenticación.
   - id: location
     label: Ubicación del equipo
     type: text
@@ -57,17 +74,13 @@ steps:
         meaning: Selecciona la comunidad predeterminada aunque alguien la haya renombrado.
       - token: read-access=no write-access=no
         meaning: Sin lectura ni escritura, la comunidad no responde a ninguna consulta.
-  - title: Crear el usuario SNMPv3, escribiendo las claves a mano
+  - title: Crear el usuario SNMPv3
     commands:
-      - /snmp community add name={{snmpUser}} addresses={{nmsIp}}/32 security=private authentication-protocol=SHA1 encryption-protocol=AES read-access=yes write-access=no authentication-password=
-    explanation: >-
-      En RouterOS 7 el usuario SNMPv3 se crea como una comunidad. Pega el comando y,
-      sin pulsar Enter todavía, escribe tu clave de autenticación justo después de
-      authentication-password=, un espacio, encryption-password= y tu clave de
-      cifrado. Después pulsa Enter.
+      - /snmp community add name={{snmpUser}} addresses={{nmsIp}}/32 security=private authentication-protocol=SHA1 encryption-protocol=AES read-access=yes write-access=no authentication-password={{authKey}} encryption-password={{privKey}}
+    explanation: En RouterOS 7 el usuario SNMPv3 se crea como una comunidad.
     warning: >-
-      Las dos claves tienen que ser distintas y no pueden quedar vacías. Este manual no
-      las genera porque son secretos.
+      El comando lleva las claves en claro: cuando lo pegues, no lo dejes en notas,
+      chats ni capturas. RouterOS las oculta después en la configuración exportada.
     breakdown:
       - token: name={{snmpUser}}
         meaning: Nombre del usuario SNMPv3; es el que se pone en la herramienta de monitorización.
@@ -79,6 +92,8 @@ steps:
         meaning: Algoritmo de autenticación. RouterOS 7 también admite SHA256, SHA384 y SHA512 si la herramienta de monitorización los soporta.
       - token: encryption-protocol=AES
         meaning: Algoritmo de cifrado. La otra opción, DES, es débil y no debe usarse.
+      - token: authentication-password={{authKey}} encryption-password={{privKey}}
+        meaning: Las dos claves, distintas entre sí; la herramienta de monitorización usa las mismas.
       - token: read-access=yes write-access=no
         meaning: Solo lectura; nadie puede cambiar la configuración por SNMP.
   - title: Activar SNMP con ubicación y contacto
