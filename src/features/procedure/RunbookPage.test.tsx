@@ -388,6 +388,17 @@ describe('RunbookPage', () => {
       expect(screen.getByLabelText('Clave de autenticación')).toHaveValue('')
     })
 
+    it('drops a secret left in the browser storage when another value changes', async () => {
+      localStorage.setItem('switching-manual:aruba-aoscx/vlan-create:values', JSON.stringify({ authKey: 'Antigua123' }))
+      const user = userEvent.setup()
+      renderWithKey()
+
+      expect(screen.getByLabelText('Clave de autenticación')).toHaveValue('')
+      await user.type(screen.getByLabelText('ID de la VLAN'), '20')
+
+      expect(JSON.stringify({ ...localStorage })).not.toContain('Antigua123')
+    })
+
     it('clears the secret on request', async () => {
       const user = userEvent.setup()
       renderWithKey()

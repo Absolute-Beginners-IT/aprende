@@ -59,10 +59,9 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   // Secrets live only in memory: reloading or leaving the runbook forgets them.
   const [secrets, setSecrets] = useState<Record<string, string>>({})
   const secretIds = new Set(procedure.params.filter((param) => param.type === 'secret').map((param) => param.id))
-  const values = {
-    ...Object.fromEntries(Object.entries(storedValues).filter(([id]) => !secretIds.has(id))),
-    ...secrets,
-  }
+  // Drops any secret a stored map may still hold, so it is neither shown nor written back.
+  const plainValues = Object.fromEntries(Object.entries(storedValues).filter(([id]) => !secretIds.has(id)))
+  const values = { ...plainValues, ...secrets }
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
   const [storedRecord, setRecord] = useStoredState<RecordFields>(`${storageKey}:record`, EMPTY_RECORD)
   // Fills fields a record saved by an older version may lack.
@@ -193,7 +192,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
             const update = (next: string) =>
               secret
                 ? setSecrets({ ...secrets, [param.id]: next })
-                : setStoredValues({ ...storedValues, [param.id]: next })
+                : setStoredValues({ ...plainValues, [param.id]: next })
 
             return (
               <div className="field" key={param.id}>
