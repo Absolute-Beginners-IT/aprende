@@ -108,10 +108,11 @@ describe('content catalog', () => {
     expect(upgrades.map((item) => item.risk.level)).toEqual(upgrades.map(() => 'high'))
   })
 
-  it('never asks for a password as a runbook value, because values are stored in the browser', () => {
+  it('asks for passwords only as secret values, because the other values are stored in the browser', () => {
     const secretLike = /pass|contrase|secret|clave|communit|comunidad/i
     const offenders = catalog.procedures.flatMap((item) =>
       item.params
+        .filter((param) => param.type !== 'secret')
         .filter((param) => secretLike.test(param.id) || secretLike.test(param.label))
         .map((param) => `${item.platform}/${item.task}: ${param.id}`),
     )
@@ -152,6 +153,21 @@ describe('content catalog', () => {
     const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
 
     expect(JSON.stringify(runbook?.steps)).toContain(authPrivMarker)
+  })
+
+  it.each([
+    [
+      'aruba-aoscx',
+      'snmpv3 user {{snmpUser}} auth sha auth-pass plaintext {{authKey}} priv aes priv-pass plaintext {{privKey}}',
+    ],
+    ['mikrotik-routeros', 'authentication-password={{authKey}} encryption-password={{privKey}}'],
+  ])('gives the full SNMPv3 user command on %s, with the keys as secret values', (platform, command) => {
+    const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
+    const keys = runbook?.params.filter((param) => param.id === 'authKey' || param.id === 'privKey')
+
+    expect(runbook?.steps.flatMap((step) => step.commands).some((line) => line.includes(command))).toBe(true)
+    expect(keys?.map((param) => param.type)).toEqual(['secret', 'secret'])
+    expect(runbook?.params.find((param) => param.id === 'privKey')?.differentFrom?.param).toBe('authKey')
   })
 
   it('never rates a trunk change as low risk, since a trunk carries several VLANs at once', () => {
@@ -196,4 +212,19 @@ describe('content catalog', () => {
 
     expect(untraceable).toEqual([])
   })
+
+  it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
+    'takes SNMP on %s from enabling the agent to an SNMPv3 user with SHA and AES',
+    (platform) => {
+      const runbook = catalog.procedures.find((item) => item.platform === platform && item.task === 'snmp-monitoring')
+      const text = (runbook?.steps ?? [])
+        // The schema defaults commands to [], but the guard keeps the test independent of that default.
+        .flatMap((step) => [step.title ?? '', step.explanation, ...(step.commands ?? [])])
+        .join('\n')
+
+      expect(text).toMatch(/SNMPv3|\bv3\b/)
+      expect(text).toMatch(/\bSHA/)
+      expect(text).toMatch(/\bAES|\baes/)
+    },
+  )
 })

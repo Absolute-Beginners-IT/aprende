@@ -66,6 +66,13 @@ describe('validateParam', () => {
     expect(validateParam(name, 'VOZ_IP')).toBeNull()
     expect(validateParam(name, 'VOZ IP')).toBe('Sin espacios, hasta 32 caracteres.')
   })
+
+  it('applies the declared pattern to a secret and reports its hint', () => {
+    const key = param({ type: 'secret', pattern: '^[A-Za-z0-9]{8,32}$', patternHint: 'De 8 a 32 caracteres.' })
+
+    expect(validateParam(key, 'Clave2026x')).toBeNull()
+    expect(validateParam(key, 'corta')).toBe('De 8 a 32 caracteres.')
+  })
 })
 
 describe('validateParam with a value that must differ from another one', () => {

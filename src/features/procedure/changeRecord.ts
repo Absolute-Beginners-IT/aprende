@@ -23,6 +23,10 @@ interface ChangeRecordInput {
   now: Date
 }
 
+const SECRET_MASK = '********'
+const isSecret = (procedure: Procedure, id: string) =>
+  procedure.params.some((param) => param.id === id && param.type === 'secret')
+
 const pad = (value: number) => String(value).padStart(2, '0')
 const isoDate = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 const localDateTime = (date: Date) => `${isoDate(date)} ${pad(date.getHours())}:${pad(date.getMinutes())}`
@@ -52,7 +56,11 @@ export function buildChangeRecord({
   record,
   now,
 }: ChangeRecordInput): string {
-  const fill = (text: string) => renderCommand(text, values)
+  // The record ends up in tickets and shared folders, so secrets are masked even where the commands use them.
+  const shown: ParamValues = Object.fromEntries(
+    Object.entries(values).map(([id, value]) => [id, isSecret(procedure, id) && value ? SECRET_MASK : value]),
+  )
+  const fill = (text: string) => renderCommand(text, shown)
   const { status, risk } = procedure
   const doneCount = procedure.steps.filter((_, index) => doneSteps.includes(index)).length
 
@@ -68,7 +76,7 @@ export function buildChangeRecord({
   ].join('\n')
 
   const valueLines = procedure.params.map((param) => {
-    const value = values[param.id]?.trim()
+    const value = shown[param.id]?.trim()
     return `- ${param.label}: ${value || 'sin rellenar'}`
   })
 

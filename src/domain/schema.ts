@@ -21,7 +21,8 @@ export const ParamSchema = z
   .object({
     id: z.string().regex(/^[A-Za-z][A-Za-z0-9]*$/),
     label: text,
-    type: z.enum(['text', 'number', 'vlan-id', 'ipv4', 'cidr', 'choice']),
+    // A secret, such as an SNMPv3 key, fills commands but is never stored in the browser nor written to the record.
+    type: z.enum(['text', 'secret', 'number', 'vlan-id', 'ipv4', 'cidr', 'choice']),
     example: text,
     help: text.optional(),
     required: z.boolean().default(true),

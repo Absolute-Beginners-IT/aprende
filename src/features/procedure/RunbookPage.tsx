@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { extractParamIds, type ParamValues, renderCommand } from '../../domain/renderCommand'
 import type { Concept, Platform, Procedure, RiskLevel, StatusLevel } from '../../domain/schema'
 import { validateParam } from '../../domain/validateParam'
@@ -55,7 +55,13 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   const baseId = useId()
   const sectionId = (key: (typeof WORKING_SECTIONS)[number]['key']) => `${baseId}-${key}`
   const storageKey = runbookStorageKey(procedure.platform, procedure.task)
-  const [values, setValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
+  const [storedValues, setStoredValues] = useStoredState<Record<string, string>>(`${storageKey}:values`, {})
+  // Secrets live only in memory: reloading or leaving the runbook forgets them.
+  const [secrets, setSecrets] = useState<Record<string, string>>({})
+  const secretIds = new Set(procedure.params.filter((param) => param.type === 'secret').map((param) => param.id))
+  // Drops any secret a stored map may still hold, so it is neither shown nor written back.
+  const plainValues = Object.fromEntries(Object.entries(storedValues).filter(([id]) => !secretIds.has(id)))
+  const values = { ...plainValues, ...secrets }
   const [doneSteps, setDoneSteps] = useStoredState<number[]>(`${storageKey}:done`, [])
   const [storedRecord, setRecord] = useStoredState<RecordFields>(`${storageKey}:record`, EMPTY_RECORD)
   // Fills fields a record saved by an older version may lack.
@@ -80,7 +86,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
     setDoneSteps(doneSteps.includes(index) ? doneSteps.filter((step) => step !== index) : [...doneSteps, index])
 
   const reset = () => {
-    setValues({})
+    setStoredValues({})
+    setSecrets({})
     setDoneSteps([])
     setRecord(EMPTY_RECORD)
   }
@@ -181,7 +188,11 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
             const value = values[param.id] ?? ''
             const error = value.trim() === '' ? null : errors[param.id]
             const fieldId = `param-${param.id}`
-            const update = (next: string) => setValues({ ...values, [param.id]: next })
+            const secret = secretIds.has(param.id)
+            const update = (next: string) =>
+              secret
+                ? setSecrets({ ...secrets, [param.id]: next })
+                : setStoredValues({ ...plainValues, [param.id]: next })
 
             return (
               <div className="field" key={param.id}>
@@ -205,6 +216,11 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
                   />
                 )}
                 {param.help && <p className="muted">{param.help}</p>}
+                {secret && (
+                  <p className="muted">
+                    No se guarda en el navegador ni en el registro del cambio: se borra al recargar la página.
+                  </p>
+                )}
                 {error && (
                   <p className="field__error" role="alert">
                     {error}

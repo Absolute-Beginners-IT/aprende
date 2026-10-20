@@ -348,6 +348,86 @@ describe('RunbookPage', () => {
     expect(screen.getByRole('checkbox', { name: 'Hecho: Entrar en configuración' })).not.toBeChecked()
   })
 
+  describe('with a secret value', () => {
+    const withKey = ProcedureSchema.parse({
+      ...procedure,
+      params: [
+        ...procedure.params,
+        { id: 'authKey', label: 'Clave de autenticación', type: 'secret', example: 'Clave2026x' },
+      ],
+      steps: [
+        ...procedure.steps,
+        { title: 'Crear el usuario', commands: ['user monitor auth {{authKey}}'], explanation: 'Crea el usuario.' },
+      ],
+    })
+    const renderWithKey = () => render(<RunbookPage platform={platform} concept={concept} procedure={withKey} />)
+
+    it('shows the secret in the command and copies it, without writing it to the browser storage', async () => {
+      const user = userEvent.setup()
+      renderWithKey()
+      await user.type(screen.getByLabelText('ID de la VLAN'), '20')
+      await user.type(screen.getByLabelText('Clave de autenticación'), 'S3cretoReal')
+
+      expect(screen.getByText('user monitor auth S3cretoReal')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Copiar: Crear el usuario' }))
+      expect(await navigator.clipboard.readText()).toBe('user monitor auth S3cretoReal')
+      expect(JSON.stringify({ ...localStorage })).not.toContain('S3cretoReal')
+      expect(JSON.stringify({ ...localStorage })).toContain('20')
+    })
+
+    it('forgets the secret when the runbook is opened again, keeping the other values', async () => {
+      const user = userEvent.setup()
+      const first = renderWithKey()
+      await user.type(screen.getByLabelText('ID de la VLAN'), '20')
+      await user.type(screen.getByLabelText('Clave de autenticación'), 'S3cretoReal')
+      first.unmount()
+
+      renderWithKey()
+
+      expect(screen.getByLabelText('ID de la VLAN')).toHaveValue('20')
+      expect(screen.getByLabelText('Clave de autenticación')).toHaveValue('')
+    })
+
+    it('drops a secret left in the browser storage when another value changes', async () => {
+      localStorage.setItem('switching-manual:aruba-aoscx/vlan-create:values', JSON.stringify({ authKey: 'Antigua123' }))
+      const user = userEvent.setup()
+      renderWithKey()
+
+      expect(screen.getByLabelText('Clave de autenticación')).toHaveValue('')
+      await user.type(screen.getByLabelText('ID de la VLAN'), '20')
+
+      expect(JSON.stringify({ ...localStorage })).not.toContain('Antigua123')
+    })
+
+    it('clears the secret on request', async () => {
+      const user = userEvent.setup()
+      renderWithKey()
+      await user.type(screen.getByLabelText('Clave de autenticación'), 'S3cretoReal')
+
+      await user.click(screen.getByRole('button', { name: 'Limpiar datos y progreso' }))
+
+      expect(screen.getByLabelText('Clave de autenticación')).toHaveValue('')
+    })
+
+    it('leaves the secret out of the copied change record', async () => {
+      const user = userEvent.setup()
+      renderWithKey()
+      await user.type(screen.getByLabelText('Clave de autenticación'), 'S3cretoReal')
+
+      await user.click(screen.getByRole('button', { name: 'Copiar registro del cambio' }))
+
+      const copied = await navigator.clipboard.readText()
+      expect(copied).not.toContain('S3cretoReal')
+      expect(copied).toContain('- Clave de autenticación: ********')
+    })
+
+    it('tells the user the secret is not saved', () => {
+      renderWithKey()
+
+      expect(screen.getByText(/No se guarda en el navegador ni en el registro del cambio/)).toBeInTheDocument()
+    })
+  })
+
   it('clears the values and the progress on request', async () => {
     const user = userEvent.setup()
     renderPage()

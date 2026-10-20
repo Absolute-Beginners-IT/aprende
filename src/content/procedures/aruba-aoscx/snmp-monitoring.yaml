@@ -22,6 +22,23 @@ params:
     example: snmpuser
     pattern: '^[A-Za-z0-9_-]{1,32}$'
     patternHint: Sin espacios; letras, números, guion y guion bajo. Tiene que coincidir con el de la herramienta de monitorización.
+  - id: authKey
+    label: Clave de autenticación SNMPv3
+    type: secret
+    example: Cambia3sta-Clave
+    pattern: '^[A-Za-z0-9_.@+-]{8,32}$'
+    patternHint: De 8 a 32 caracteres; letras, números y los signos _ . @ + -, sin espacios.
+    help: Cópiala del gestor de contraseñas; la herramienta de monitorización necesita la misma.
+  - id: privKey
+    label: Clave de cifrado SNMPv3
+    type: secret
+    example: Otra-Clave-Distinta9
+    pattern: '^[A-Za-z0-9_.@+-]{8,32}$'
+    patternHint: De 8 a 32 caracteres; letras, números y los signos _ . @ + -, sin espacios.
+    help: Cópiala del gestor de contraseñas; la herramienta de monitorización necesita la misma.
+    differentFrom:
+      param: authKey
+      hint: Usa una clave distinta de la de autenticación.
   - id: aclName
     label: Nombre de la ACL de control plane
     type: text
@@ -124,15 +141,20 @@ steps:
     warning: >-
       No borres la comunidad sin crear otra: si no queda ninguna, el switch vuelve a
       crear public.
-  - title: Crear el usuario SNMPv3, escribiendo las claves a mano
-    manual: true
+  - title: Crear el usuario SNMPv3
+    commands:
+      - snmpv3 user {{snmpUser}} auth sha auth-pass plaintext {{authKey}} priv aes priv-pass plaintext {{privKey}}
     explanation: >-
-      Escribe snmpv3 user {{snmpUser}} auth sha auth-pass plaintext, tu clave de
-      autenticación, priv aes priv-pass plaintext y tu clave de cifrado, en ese orden,
-      y pulsa Enter. El switch guarda las claves cifradas en la configuración.
+      Crea el usuario de solo lectura con autenticación SHA y cifrado AES. El switch
+      guarda las claves cifradas en la configuración.
     warning: >-
-      Usa aes, no des: con des el switch deshabilita el usuario. Este manual no genera
-      este comando porque incluye las claves, que son secretos.
+      Usa aes, no des: con des el switch deshabilita el usuario. El comando lleva las
+      claves en claro: cuando lo pegues, no lo dejes en notas, chats ni capturas.
+    breakdown:
+      - token: auth sha auth-pass plaintext {{authKey}}
+        meaning: Autenticación SHA con la clave escrita en claro; el switch la cifra al guardarla.
+      - token: priv aes priv-pass plaintext {{privKey}}
+        meaning: Cifrado AES con la segunda clave. Sin esta parte el usuario no tendría cifrado (authPriv).
   - title: Activar el agente SNMP
     commands:
       - snmp-server vrf default

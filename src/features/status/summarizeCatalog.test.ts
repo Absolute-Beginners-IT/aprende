@@ -32,7 +32,14 @@ describe('summarizeCatalog', () => {
   })
 
   it('flags a runbook for review when it was last reviewed more than 180 days ago', () => {
-    const halfYearLater = new Date(2027, 3, 13)
+    // Measured from the newest review, so editing a runbook today does not break the test.
+    const newest =
+      catalog.procedures
+        .map((item) => item.status.reviewed)
+        .sort()
+        .at(-1) ?? '2026-10-15'
+    const halfYearLater = new Date(`${newest}T12:00:00`)
+    halfYearLater.setDate(halfYearLater.getDate() + 181)
     const recent = summarizeCatalog(catalog, now)
     const stale = summarizeCatalog(catalog, halfYearLater)
 
