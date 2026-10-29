@@ -39,3 +39,4 @@ T1 `content/kb`: fichas educativas, datos actualizados y sin referencias de empr
 - L1 (2026-10-29): "continua y actualiza la información desfasada que encuentres, si hay una tecnología que sea antigua y se este utilizando una versión mas actual y mejorada actualizalo"
 - L2: dependencias de `app/` al día (`npm outdated` vacío, `npm audit` sin vulnerabilidades). Sin verificar: sintaxis SHA-256/AES-256 en AOS-CX (se deja `sha`/`aes` con indicación de comprobarlo) y macros exactas de `Proxmox VE by HTTP`.
 - L3: pendiente fuera de alcance: correcciones de seguridad de los scripts del toolkit (inyección CSV en Descubrir-Red.ps1, hash de binarios, validación del prefijo).
+- L4: revisión de fiabilidad aprobada (review-781124e58d0f5af0). Sus 3 avisos se corrigen: importación que informa de nuevos y actualizados, errores de almacenamiento visibles y tests del contenedor con React Testing Library (29/29).

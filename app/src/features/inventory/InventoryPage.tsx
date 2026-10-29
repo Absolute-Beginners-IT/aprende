@@ -13,8 +13,18 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
   const [csv, setCsv] = useState('');
   const [message, setMessage] = useState('');
 
-  const reload = () => repository.list().then(setDevices);
-  useEffect(() => { void repository.list().then(setDevices); }, [repository]);
+  const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
+  const reload = async () => {
+    try { setDevices(await repository.list()); }
+    catch (e) { setMessage(`No se ha podido leer el inventario guardado: ${errorText(e)}`); }
+  };
+  // Every write goes through here so a full or blocked browser storage is reported, never swallowed.
+  const persist = async (write: () => Promise<void>, success: string) => {
+    try { await write(); setMessage(success); }
+    catch (e) { setMessage(`No se ha podido guardar en este navegador: ${errorText(e)}`); }
+    await reload();
+  };
+  useEffect(() => { void reload(); }, [repository]);
 
   const findings = useMemo(() => analyzeInventory(devices, new Date()), [devices]);
   const sorted = [...devices].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -29,25 +39,27 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
     if (devices.some(d => d.id === id)) { setMessage(`Ya existe un equipo llamado ${nombre}.`); return; }
     const uplink = String(data.get('uplink') ?? '');
     const finSoporte = String(data.get('finSoporte') ?? '');
-    await repository.save({
+    await persist(() => repository.save({
       id, nombre, tipo: String(data.get('tipo')),
       criticidad: String(data.get('criticidad')) as Device['criticidad'],
       monitorizado: data.get('monitorizado') === 'on',
       ...(uplink ? { uplinks: [uplink] } : {}),
       ...(finSoporte ? { finSoporte } : {}),
-    });
-    form.reset(); setMessage(`${nombre} añadido.`); await reload();
+    }), `${nombre} añadido.`);
+    form.reset();
   };
 
-  const toggleMonitored = async (d: Device) => { await repository.save({ ...d, monitorizado: !d.monitorizado }); await reload(); };
-  const remove = async (d: Device) => { await repository.remove(d.id); setMessage(`${d.nombre} borrado.`); await reload(); };
+  const toggleMonitored = (d: Device) => persist(() => repository.save({ ...d, monitorizado: !d.monitorizado }), `${d.nombre} actualizado.`);
+  const remove = (d: Device) => persist(() => repository.remove(d.id), `${d.nombre} borrado.`);
 
   const importCsv = async () => {
     const parsed = parseInventoryCsv(csv);
-    for (const d of parsed) await repository.save(d);
-    setMessage(parsed.length ? `${parsed.length} equipos importados.` : 'No se encontró ningún equipo. Revisa que el CSV tenga cabecera.');
-    if (parsed.length) setCsv('');
-    await reload();
+    if (!parsed.length) { setMessage('No se encontró ningún equipo. Revisa que el CSV tenga cabecera.'); return; }
+    const existing = new Set(devices.map(d => d.id));
+    const updated = parsed.filter(d => existing.has(d.id)).length;
+    const summary = `${parsed.length} equipos importados (nuevos: ${parsed.length - updated}, actualizados: ${updated}).`
+      + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '');
+    await persist(async () => { for (const d of parsed) await repository.save(d); setCsv(''); }, summary);
   };
 
   const exportCsv = () => {
