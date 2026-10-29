@@ -1,0 +1,741 @@
+[
+  {
+    "id": "internet",
+    "nombre": "Internet / operadora",
+    "familia": "perim",
+    "icono": "cloud",
+    "metodo": "Ping ICMP a la IP pública y a 1.1.1.1 / 8.8.8.8 + speedtest programado",
+    "plantillaZabbix": "ICMP Ping",
+    "metricas": [
+      "Disponibilidad y pérdida de paquetes",
+      "Latencia y jitter",
+      "Velocidad real frente a contratada",
+      "Conmutación a línea de respaldo"
+    ],
+    "alertas": [
+      {
+        "que": "Pérdida de paquetes a Internet",
+        "aviso": ">5 % 5 min",
+        "critico": "100 % 2 min",
+        "severidad": "desastre",
+        "canal": "Teams + SMS",
+        "horario": "24x7",
+        "accion": "Comprobar router de operadora y abrir incidencia"
+      },
+      {
+        "que": "Latencia a Internet",
+        "aviso": ">80 ms 10 min",
+        "critico": ">200 ms 10 min",
+        "severidad": "media",
+        "canal": "Teams",
+        "horario": "Laboral",
+        "accion": "Revisar saturación del enlace"
+      },
+      {
+        "que": "Velocidad de bajada",
+        "aviso": "<70 % contratado",
+        "critico": "<40 % contratado",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Repetir prueba y reclamar a la operadora"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Prueba de velocidad y conmutación a respaldo",
+        "frecuencia": "Mensual",
+        "disparador": "Velocidad < 70 % contratado"
+      },
+      {
+        "que": "Revisar contrato, SLA y teléfonos de averías",
+        "frecuencia": "Anual",
+        "disparador": null
+      }
+    ]
+  },
+  {
+    "id": "firewall",
+    "nombre": "Firewall",
+    "familia": "perim",
+    "icono": "shield",
+    "metodo": "SNMPv3 (lectura) + traps; logs al SIEM; copia de configuración diaria",
+    "plantillaZabbix": "FortiGate by SNMP / plantilla del fabricante",
+    "metricas": [
+      "CPU, memoria y sesiones",
+      "Estado de interfaces y WAN (SD-WAN SLA)",
+      "Túneles VPN arriba/abajo",
+      "Estado del clúster HA y sincronización",
+      "Licencias y contratos de soporte",
+      "Versión de firmware"
+    ],
+    "alertas": [
+      {
+        "que": "Equipo no responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "desastre",
+        "canal": "Teams + SMS",
+        "horario": "24x7",
+        "accion": "Acceso por consola, revisar alimentación"
+      },
+      {
+        "que": "CPU",
+        "aviso": ">80 % 15 min",
+        "critico": ">95 % 5 min",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar sesiones y políticas"
+      },
+      {
+        "que": "Memoria (modo conserve)",
+        "aviso": ">80 %",
+        "critico": ">90 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar sesiones y perfiles UTM"
+      },
+      {
+        "que": "Túnel VPN caído",
+        "aviso": "1 túnel",
+        "critico": "Túnel crítico",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar fase 1/2 y extremo remoto"
+      },
+      {
+        "que": "HA desincronizado",
+        "aviso": "Checksum distinto",
+        "critico": "Nodo fuera",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "diagnose sys ha checksum cluster"
+      },
+      {
+        "que": "Licencias / contrato",
+        "aviso": "<60 días",
+        "critico": "<15 días",
+        "severidad": "aviso",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Renovar"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Revisar avisos de seguridad del fabricante (PSIRT)",
+        "frecuencia": "Semanal",
+        "disparador": null
+      },
+      {
+        "que": "Actualizar firmware a versión recomendada (con MOP)",
+        "frecuencia": "Trimestral o por CVE crítico",
+        "disparador": "Versión antigua o CVE"
+      },
+      {
+        "que": "Copia de configuración",
+        "frecuencia": "Diaria automática",
+        "disparador": "Cambio de config"
+      },
+      {
+        "que": "Revisar reglas sin uso",
+        "frecuencia": "Semestral",
+        "disparador": "Hits = 0"
+      }
+    ]
+  },
+  {
+    "id": "router",
+    "nombre": "Router",
+    "familia": "net",
+    "icono": "router",
+    "metodo": "SNMPv3 + ping; si es de la operadora, al menos ping a su IP LAN",
+    "plantillaZabbix": "Plantilla SNMP del fabricante o ICMP Ping",
+    "metricas": [
+      "Disponibilidad",
+      "Interfaces WAN/LAN y errores",
+      "Tráfico",
+      "Sesiones BGP/OSPF si aplica"
+    ],
+    "alertas": [
+      {
+        "que": "Router no responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "desastre",
+        "canal": "Teams + SMS",
+        "horario": "24x7",
+        "accion": "Escalar a operadora"
+      },
+      {
+        "que": "Interfaz WAN caída",
+        "aviso": "—",
+        "critico": "Link down",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar enlace"
+      },
+      {
+        "que": "Errores en interfaz",
+        "aviso": ">0,1 %",
+        "critico": ">1 %",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Revisar cableado"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Copia de configuración",
+        "frecuencia": "Diaria automática",
+        "disparador": null
+      },
+      {
+        "que": "Actualizar firmware",
+        "frecuencia": "Anual o por CVE",
+        "disparador": "Versión EoL"
+      }
+    ]
+  },
+  {
+    "id": "switch",
+    "nombre": "Switch",
+    "familia": "net",
+    "icono": "switch",
+    "metodo": "SNMPv3 (descubrimiento automático de interfaces) + traps de link; LLDP para el mapa",
+    "plantillaZabbix": "Cisco IOS by SNMP · HP Enterprise Switch by SNMP · Aruba",
+    "metricas": [
+      "Estado de uplinks y agregados LACP",
+      "Errores y descartes por interfaz",
+      "Uso de ancho de banda en troncales",
+      "CPU, memoria, temperatura, fuentes y ventiladores",
+      "Cambios de topología STP",
+      "Consumo PoE"
+    ],
+    "alertas": [
+      {
+        "que": "Switch no responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar uplink y alimentación"
+      },
+      {
+        "que": "Uplink caído",
+        "aviso": "Link down",
+        "critico": "Troncal caída",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar cable/SFP y LACP"
+      },
+      {
+        "que": "Errores en interfaz",
+        "aviso": ">0,1 %",
+        "critico": ">1 %",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Cambiar latiguillo o SFP"
+      },
+      {
+        "que": "Uso de uplink",
+        "aviso": ">70 % 15 min",
+        "critico": ">90 % 15 min",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Valorar ampliar agregado"
+      },
+      {
+        "que": "Cambios STP",
+        "aviso": "1 en 1 h",
+        "critico": ">5 en 1 h",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Buscar bucle"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Copia de configuración (Oxidized + git)",
+        "frecuencia": "Diaria automática",
+        "disparador": "Cambio detectado"
+      },
+      {
+        "que": "Actualizar firmware (acceso primero, core al final)",
+        "frecuencia": "Anual o por CVE",
+        "disparador": "Versión EoL o CVE"
+      },
+      {
+        "que": "Revisar puertos con errores y sin uso",
+        "frecuencia": "Trimestral",
+        "disparador": "Errores > umbral"
+      }
+    ]
+  },
+  {
+    "id": "wifi",
+    "nombre": "Wifi (AP / controladora)",
+    "familia": "net",
+    "icono": "wifi",
+    "metodo": "SNMP o API de la controladora/cloud; ping a cada AP",
+    "plantillaZabbix": "Plantilla de la controladora (Aruba, UniFi, Meraki API…)",
+    "metricas": [
+      "AP caídos",
+      "Clientes por AP",
+      "Utilización de canal e interferencias",
+      "Estado de la controladora"
+    ],
+    "alertas": [
+      {
+        "que": "AP no responde",
+        "aviso": "1 AP",
+        "critico": "Varios AP",
+        "severidad": "media",
+        "canal": "Teams",
+        "horario": "Laboral",
+        "accion": "Revisar PoE y switch"
+      },
+      {
+        "que": "Utilización de canal",
+        "aviso": ">60 %",
+        "critico": ">80 %",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Revisar plan de canales"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Actualizar firmware de AP/controladora",
+        "frecuencia": "Semestral",
+        "disparador": "Versión antigua"
+      },
+      {
+        "que": "Estudio de cobertura",
+        "frecuencia": "Anual o tras reformas",
+        "disparador": "Quejas o métricas pobres"
+      }
+    ]
+  },
+  {
+    "id": "hipervisor",
+    "nombre": "Hipervisor / host",
+    "familia": "comp",
+    "icono": "server",
+    "metodo": "VMware: API de vCenter (usuario de solo lectura). Hyper-V: Zabbix Agent 2 + contadores Hyper-V + estado del clúster. Hardware: iDRAC/iLO",
+    "plantillaZabbix": "VMware · Windows by Zabbix agent · Dell iDRAC / HPE iLO",
+    "metricas": [
+      "Host conectado al clúster / estado HA",
+      "CPU, memoria y capacidad N+1",
+      "Latencia y espacio de datastores / CSV",
+      "Snapshots antiguos",
+      "Hardware: discos, RAID, fuentes, temperatura"
+    ],
+    "alertas": [
+      {
+        "que": "Host fuera del clúster",
+        "aviso": "—",
+        "critico": "Inmediato",
+        "severidad": "desastre",
+        "canal": "Teams + SMS",
+        "horario": "24x7",
+        "accion": "Comprobar HA y arranque de VMs"
+      },
+      {
+        "que": "Memoria del host",
+        "aviso": ">85 %",
+        "critico": ">95 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar capacidad N+1"
+      },
+      {
+        "que": "Datastore / CSV libre",
+        "aviso": "<20 %",
+        "critico": "<10 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Limpiar snapshots o ampliar"
+      },
+      {
+        "que": "Snapshots antiguos",
+        "aviso": ">3 días",
+        "critico": ">7 días",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Consolidar"
+      },
+      {
+        "que": "Disco físico / RAID",
+        "aviso": "Predictivo",
+        "critico": "Fallido",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Pedir disco por garantía"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Parches del hipervisor (modo mantenimiento / CAU)",
+        "frecuencia": "Mensual Hyper-V · trimestral ESXi",
+        "disparador": "Parches pendientes"
+      },
+      {
+        "que": "Prueba de HA (failover controlado)",
+        "frecuencia": "Semestral",
+        "disparador": null
+      },
+      {
+        "que": "Firmware BIOS / iDRAC / iLO / controladora",
+        "frecuencia": "Semestral",
+        "disparador": "Versión antigua"
+      },
+      {
+        "que": "Limpieza de snapshots",
+        "frecuencia": "Semanal",
+        "disparador": "Snapshot > 3 días"
+      }
+    ]
+  },
+  {
+    "id": "servidor",
+    "nombre": "Servidor físico",
+    "familia": "comp",
+    "icono": "server",
+    "metodo": "Zabbix Agent 2 (Windows/Linux) + iDRAC/iLO para hardware",
+    "plantillaZabbix": "Windows by Zabbix agent · Linux by Zabbix agent",
+    "metricas": [
+      "CPU, memoria, disco",
+      "Servicios críticos",
+      "Parches pendientes y reinicio",
+      "Hardware"
+    ],
+    "alertas": [
+      {
+        "que": "Servidor no responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar consola"
+      },
+      {
+        "que": "Disco libre",
+        "aviso": "<15 %",
+        "critico": "<5 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Liberar espacio"
+      },
+      {
+        "que": "Servicio crítico parado",
+        "aviso": "—",
+        "critico": "Parado",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Arrancar y revisar eventos"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Parches del sistema operativo",
+        "frecuencia": "Mensual",
+        "disparador": "Pendientes > 30 días"
+      },
+      {
+        "que": "Firmware de hardware",
+        "frecuencia": "Semestral",
+        "disparador": "Versión antigua"
+      }
+    ]
+  },
+  {
+    "id": "vm",
+    "nombre": "Máquina virtual",
+    "familia": "comp",
+    "icono": "vm",
+    "metodo": "Zabbix Agent 2 dentro de la VM; estado de la VM desde vCenter/Hyper-V",
+    "plantillaZabbix": "Windows by Zabbix agent · Linux by Zabbix agent",
+    "metricas": [
+      "CPU, memoria y disco",
+      "Servicios del rol (AD, DNS, SQL, ERP…)",
+      "Parches pendientes",
+      "Certificados que caducan"
+    ],
+    "alertas": [
+      {
+        "que": "VM no responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar consola del hipervisor"
+      },
+      {
+        "que": "Disco libre",
+        "aviso": "<15 %",
+        "critico": "<5 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Liberar espacio"
+      },
+      {
+        "que": "Servicio crítico parado",
+        "aviso": "—",
+        "critico": "Parado",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Arrancar y revisar eventos"
+      },
+      {
+        "que": "Certificado caduca",
+        "aviso": "<30 días",
+        "critico": "<7 días",
+        "severidad": "alta",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Renovar"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Parches Windows/Linux (grupo piloto primero)",
+        "frecuencia": "Mensual",
+        "disparador": "Pendientes > 30 días"
+      },
+      {
+        "que": "Revisar que entra en el backup",
+        "frecuencia": "Mensual",
+        "disparador": "Sin copia en 26 h"
+      }
+    ]
+  },
+  {
+    "id": "almacenamiento",
+    "nombre": "Almacenamiento / NAS",
+    "familia": "data",
+    "icono": "disk",
+    "metodo": "SNMP o API del fabricante (Synology, QNAP, NetApp, Dell…)",
+    "plantillaZabbix": "Plantilla del fabricante",
+    "metricas": [
+      "Estado de discos y volúmenes",
+      "Espacio libre",
+      "Latencia e IOPS",
+      "Fuentes y temperatura"
+    ],
+    "alertas": [
+      {
+        "que": "Volumen degradado",
+        "aviso": "—",
+        "critico": "Degradado",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Sustituir disco"
+      },
+      {
+        "que": "Espacio libre",
+        "aviso": "<20 %",
+        "critico": "<10 %",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Ampliar o limpiar"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Actualizar firmware",
+        "frecuencia": "Semestral",
+        "disparador": "Versión antigua"
+      },
+      {
+        "que": "Revisar capacidad (tendencia)",
+        "frecuencia": "Trimestral",
+        "disparador": "Crecimiento > previsto"
+      }
+    ]
+  },
+  {
+    "id": "backup",
+    "nombre": "Backup",
+    "familia": "data",
+    "icono": "disk",
+    "metodo": "API REST del software (Veeam: puerto 9419) + espacio del repositorio",
+    "plantillaZabbix": "Veeam Backup and Replication by HTTP",
+    "metricas": [
+      "Resultado de cada trabajo",
+      "Horas desde la última copia correcta",
+      "Espacio del repositorio",
+      "Copia inmutable / externa al día (3-2-1-1-0)"
+    ],
+    "alertas": [
+      {
+        "que": "Trabajo fallido",
+        "aviso": "Aviso",
+        "critico": "Fallido",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "Laboral",
+        "accion": "Relanzar y revisar log"
+      },
+      {
+        "que": "Sin copia correcta",
+        "aviso": ">26 h",
+        "critico": ">48 h",
+        "severidad": "alta",
+        "canal": "Teams",
+        "horario": "24x7",
+        "accion": "Revisar repositorio y trabajos"
+      },
+      {
+        "que": "Repositorio libre",
+        "aviso": "<20 %",
+        "critico": "<10 %",
+        "severidad": "alta",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Ajustar retención"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Prueba de restauración",
+        "frecuencia": "Mensual (muestra) · anual (completa)",
+        "disparador": null
+      },
+      {
+        "que": "Revisar regla 3-2-1-1-0",
+        "frecuencia": "Trimestral",
+        "disparador": null
+      }
+    ]
+  },
+  {
+    "id": "sai",
+    "nombre": "SAI",
+    "familia": "power",
+    "icono": "bolt",
+    "metodo": "SNMP de la tarjeta de red del SAI (no por USB)",
+    "plantillaZabbix": "APC UPS by SNMP (u otra marca)",
+    "metricas": [
+      "En red / en batería",
+      "Autonomía restante",
+      "Carga",
+      "Estado de baterías"
+    ],
+    "alertas": [
+      {
+        "que": "SAI en batería",
+        "aviso": "En batería",
+        "critico": "Autonomía <10 min",
+        "severidad": "desastre",
+        "canal": "Teams + SMS",
+        "horario": "24x7",
+        "accion": "Apagado ordenado"
+      },
+      {
+        "que": "Batería a sustituir",
+        "aviso": "Test fallido",
+        "critico": "—",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Pedir baterías"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Test de batería",
+        "frecuencia": "Trimestral",
+        "disparador": null
+      },
+      {
+        "que": "Probar apagado ordenado",
+        "frecuencia": "Anual",
+        "disparador": null
+      }
+    ]
+  },
+  {
+    "id": "impresora",
+    "nombre": "Impresora",
+    "familia": "other",
+    "icono": "box",
+    "metodo": "SNMP v2c de solo lectura (habitual) o ping",
+    "plantillaZabbix": "Generic SNMP / Printer",
+    "metricas": [
+      "Disponibilidad",
+      "Tóner y errores"
+    ],
+    "alertas": [
+      {
+        "que": "Impresora no responde",
+        "aviso": "—",
+        "critico": "30 min",
+        "severidad": "aviso",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Revisar equipo"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Actualizar firmware",
+        "frecuencia": "Anual",
+        "disparador": "Versión antigua"
+      }
+    ]
+  },
+  {
+    "id": "otro",
+    "nombre": "Otro",
+    "familia": "other",
+    "icono": "box",
+    "metodo": "Ping como mínimo; SNMP o agente si el equipo lo permite",
+    "plantillaZabbix": "ICMP Ping",
+    "metricas": [
+      "Disponibilidad"
+    ],
+    "alertas": [
+      {
+        "que": "No responde",
+        "aviso": "2 fallos",
+        "critico": "5 min",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Revisar equipo"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Revisar si sigue siendo necesario y su soporte",
+        "frecuencia": "Anual",
+        "disparador": null
+      }
+    ]
+  }
+]
