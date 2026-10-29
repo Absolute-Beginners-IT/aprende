@@ -1,0 +1,5 @@
+{{/* Callout from the lesson template: {{< aviso titulo="La distinción que importa" >}}…{{< /aviso >}} */}}
+<aside class="callout">
+  <strong>{{ .Get "titulo" | default "La distinción que importa" }}</strong>
+  {{ .Inner | markdownify }}
+</aside>

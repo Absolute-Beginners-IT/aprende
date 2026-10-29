@@ -1,0 +1,9 @@
+{{ define "main" }}
+<h1>{{ .Title }}</h1>
+{{ .Content }}
+<ol class="lessons">
+  {{ range .Pages.ByWeight }}
+  <li><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} <span class="muted">· {{ . }}</span>{{ end }}</li>
+  {{ end }}
+</ol>
+{{ end }}
