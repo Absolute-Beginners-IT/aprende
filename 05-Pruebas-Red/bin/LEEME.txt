@@ -1,0 +1,1 @@
+Copia aqui iperf3.exe (y su cygwin1.dll) y speedtest.exe (Ookla Speedtest CLI).

@@ -1,0 +1,5 @@
+﻿Nombre;Tipo;Marca;Modelo;IP_Gestion;Ubicacion;Rol;Criticidad;Uplink;Firmware;Fin_Soporte;Metodo_Monitorizacion;Monitorizado;Notas
+EJEMPLO-ISP1;internet;Operadora;Fibra 1 Gbps;;CPD;Salida principal;Alta;;;;Ping + speedtest;No;Fila de ejemplo: borrar
+EJEMPLO-FW01;firewall;Fortinet;FortiGate 100F;192.168.1.1;CPD;Perimetral;Alta;EJEMPLO-ISP1;7.4.5;2027-09-30;SNMPv3;No;Fila de ejemplo: borrar
+EJEMPLO-CORE01;switch;HPE Aruba;6300M;192.168.1.2;CPD;Core;Alta;EJEMPLO-FW01;10.13;;SNMPv3;No;Fila de ejemplo: borrar
+EJEMPLO-ESX01;hipervisor;Dell;PowerEdge R650;192.168.10.11;CPD;Nodo cluster;Alta;EJEMPLO-CORE01;ESXi 8.0U3;;API vCenter + iDRAC;No;Fila de ejemplo: borrar

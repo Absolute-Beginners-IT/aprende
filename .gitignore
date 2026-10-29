@@ -1,0 +1,12 @@
+# Binarios de herramientas (se descargan de la web oficial)
+05-Pruebas-Red/bin/*.exe
+05-Pruebas-Red/bin/*.dll
+# Resultados y descubrimientos: contienen IPs, MACs y datos de la red interna
+05-Pruebas-Red/resultados/
+00-Descubrimiento/descubrimiento_*.csv
+# Nunca subir credenciales
+*.kdbx
+*credenciales*
+*.key
+*.pem
+.env
