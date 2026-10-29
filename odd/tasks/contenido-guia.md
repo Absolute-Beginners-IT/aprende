@@ -20,6 +20,7 @@ Rama: `feat/contenido-guia` · Entrega: `ask-on-risk` · Tests: Vitest (app) + b
 | Dell iDRAC | `Dell iDRAC by SNMP` | Redfish: `DELL PowerEdge R7x0 by HTTP` (iDRAC 8/9) | documentación Zabbix 7.0 |
 | Aruba CX | plantilla genérica | `Aruba CX 8300s by SNMP` (8325/8360) o `HP Enterprise Switch by SNMP` | documentación Zabbix |
 | Virtualización | solo VMware / Hyper-V | añadido Proxmox VE (`Proxmox VE by HTTP`) | documentación Zabbix 7.0 |
+| Teams | conectores de Office 365 | retirados del 18 al 22 de mayo de 2026; usar `MS Teams Workflow` | devblogs.microsoft.com (MC1181996) |
 
 ## Tasks
 
@@ -31,8 +32,6 @@ Rama: `feat/contenido-guia` · Entrega: `ask-on-risk` · Tests: Vitest (app) + b
 | T4 | S1 | inline | hecho: RED (módulos ausentes) → GREEN 24/24; flujo de importación probado en el navegador | 9e9c42f |
 
 T1 `content/kb`: fichas educativas, datos actualizados y sin referencias de empresa · T2 toolkit y guías actualizados · T3 glosario y escenarios (contenido, guía y app) · T4 modo «Mi infraestructura» con análisis de carencias.
-
-| Teams | conectores de Office 365 | retirados del 18 al 22 de mayo de 2026; usar `MS Teams Workflow` | devblogs.microsoft.com (MC1181996) |
 
 ## Log
 
