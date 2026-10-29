@@ -1,14 +1,18 @@
 import tipos from '@content/kb/tipos.json';
 import familias from '@content/kb/familias.json';
 import severidades from '@content/kb/severidades.json';
+import fabricantes from '@content/kb/fabricantes.json';
+import hojaDeRuta from '@content/kb/hoja-de-ruta.json';
 import referencia from '@content/referencia/pyme.json';
-import type { DeviceType, Family, ReferenceModel, Severity } from '../domain/types';
+import type { DeviceType, Family, ReferenceModel, RoadmapPhase, Severity, VendorSnippet } from '../domain/types';
 
 // Single entry point to the shared content; the guide (site/) reads the same files.
 export const content = {
   tipos: tipos as DeviceType[],
   familias: familias as Family[],
   severidades: severidades as Severity[],
+  fabricantes: fabricantes as VendorSnippet[],
+  hojaDeRuta: hojaDeRuta as RoadmapPhase[],
   referencia: referencia as ReferenceModel,
 };
 

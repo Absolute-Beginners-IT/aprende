@@ -28,10 +28,17 @@ export interface DeviceType {
   metricas: string[];
   alertas: Alert[];
   actuaciones: Maintenance[];
+  queEs: string;
+  paraQue: string;
+  siFalla: string;
+  errores: string[];
 }
 
 export interface Family { id: FamilyId; nombre: string }
 export interface Severity { id: string; nombre: string; nivel: 'crit' | 'warn' | 'info' }
+
+export interface VendorSnippet { patron: string; flags: string; nombre: string; configuracion: string }
+export interface RoadmapPhase { fase: string; objetivo: string; pasos: { id: string; texto: string }[] }
 
 export interface Layer { id: string; nombre: string; descripcion: string }
 

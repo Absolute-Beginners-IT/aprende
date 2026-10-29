@@ -52,6 +52,14 @@
         "frecuencia": "Anual",
         "disparador": null
       }
+    ],
+    "queEs": "La conexión que te da la operadora (fibra, radioenlace o 4G/5G). Termina en un router, a menudo de la propia operadora, antes del firewall.",
+    "paraQue": "Correo en la nube, web, VPN de teletrabajo, telefonía IP y cualquier aplicación SaaS.",
+    "siFalla": "La empresa se queda aislada aunque la red interna funcione. Por eso conviene una segunda línea con conmutación automática.",
+    "errores": [
+      "Tener línea de respaldo y no haber probado nunca la conmutación.",
+      "No tener a mano el teléfono de averías y el identificador de cada línea.",
+      "Medir la velocidad por wifi y culpar a la operadora."
     ]
   },
   {
@@ -60,7 +68,7 @@
     "familia": "perim",
     "icono": "shield",
     "metodo": "SNMPv3 (lectura) + traps; logs al SIEM; copia de configuración diaria",
-    "plantillaZabbix": "FortiGate by SNMP / plantilla del fabricante",
+    "plantillaZabbix": "FortiGate by SNMP u otra plantilla del fabricante",
     "metricas": [
       "CPU, memoria y sesiones",
       "Estado de interfaces y WAN (SD-WAN SLA)",
@@ -113,7 +121,7 @@
         "severidad": "alta",
         "canal": "Teams",
         "horario": "24x7",
-        "accion": "diagnose sys ha checksum cluster"
+        "accion": "Comparar la configuración de ambos nodos (en FortiGate: diagnose sys ha checksum cluster)"
       },
       {
         "que": "Licencias / contrato",
@@ -146,6 +154,14 @@
         "frecuencia": "Semestral",
         "disparador": "Hits = 0"
       }
+    ],
+    "queEs": "Equipo que decide qué tráfico entra, sale y circula entre redes según reglas. Suele hacer también VPN, filtrado web e inspección de amenazas.",
+    "paraQue": "Proteger la red interna de Internet y separar zonas: usuarios, servidores, invitados y gestión.",
+    "siFalla": "Sin firewall no hay Internet ni VPN, y a menudo tampoco comunicación entre VLANs. Por eso se monta en pareja (alta disponibilidad).",
+    "errores": [
+      "Reglas «any-any» temporales que se quedan para siempre.",
+      "Firmware sin actualizar con vulnerabilidades críticas publicadas.",
+      "Exponer la administración (HTTPS o SSH) a Internet."
     ]
   },
   {
@@ -201,6 +217,13 @@
         "frecuencia": "Anual o por CVE",
         "disparador": "Versión EoL"
       }
+    ],
+    "queEs": "Conecta redes distintas y decide por dónde enviar cada paquete. En una pyme suele ser el equipo de la operadora o el que une sedes.",
+    "paraQue": "Unir tu red con la de la operadora o con otras sedes.",
+    "siFalla": "Se corta la conexión con Internet o con la sede que une.",
+    "errores": [
+      "No saber si el router es tuyo o de la operadora, ni quién lo gestiona.",
+      "No guardar copia de la configuración."
     ]
   },
   {
@@ -209,7 +232,7 @@
     "familia": "net",
     "icono": "switch",
     "metodo": "SNMPv3 (descubrimiento automático de interfaces) + traps de link; LLDP para el mapa",
-    "plantillaZabbix": "Cisco IOS by SNMP · HP Enterprise Switch by SNMP · Aruba",
+    "plantillaZabbix": "Cisco IOS by SNMP · HP Enterprise Switch by SNMP · Aruba CX 8300s by SNMP",
     "metricas": [
       "Estado de uplinks y agregados LACP",
       "Errores y descartes por interfaz",
@@ -281,6 +304,14 @@
         "frecuencia": "Trimestral",
         "disparador": "Errores > umbral"
       }
+    ],
+    "queEs": "Conecta los equipos de la red local y reparte el tráfico entre ellos. El core es el central; los de acceso llegan a los puestos.",
+    "paraQue": "Que puestos, servidores, teléfonos y puntos de acceso se comuniquen, separando el tráfico en VLANs.",
+    "siFalla": "Si cae un switch de acceso, una planta se queda sin red; si cae el core, casi toda la empresa.",
+    "errores": [
+      "Crear un bucle conectando dos bocas sin STP configurado.",
+      "No documentar qué hay conectado en cada puerto troncal.",
+      "Dejar la VLAN 1 para todo y las contraseñas por defecto."
     ]
   },
   {
@@ -327,6 +358,14 @@
         "frecuencia": "Anual o tras reformas",
         "disparador": "Quejas o métricas pobres"
       }
+    ],
+    "queEs": "Puntos de acceso que dan red inalámbrica, gestionados por una controladora o desde la nube.",
+    "paraQue": "Movilidad para portátiles y móviles, y una red separada para invitados.",
+    "siFalla": "Los usuarios pierden la conexión o va lenta en algunas zonas.",
+    "errores": [
+      "Poner la red de invitados en la misma VLAN que la corporativa.",
+      "Subir la potencia al máximo pensando que mejora la cobertura.",
+      "Usar una clave compartida en la red corporativa en lugar de WPA3-Enterprise (802.1X)."
     ]
   },
   {
@@ -334,8 +373,8 @@
     "nombre": "Hipervisor / host",
     "familia": "comp",
     "icono": "server",
-    "metodo": "VMware: API de vCenter (usuario de solo lectura). Hyper-V: Zabbix Agent 2 + contadores Hyper-V + estado del clúster. Hardware: iDRAC/iLO",
-    "plantillaZabbix": "VMware · Windows by Zabbix agent · Dell iDRAC / HPE iLO",
+    "metodo": "VMware: API de vCenter con usuario de solo lectura. Hyper-V: Zabbix Agent 2 con contadores de Hyper-V y estado del clúster. Proxmox VE: API con token de solo lectura. Hardware: Redfish de iDRAC o iLO",
+    "plantillaZabbix": "VMware · Windows by Zabbix agent · Proxmox VE by HTTP · HPE iLO by HTTP / DELL PowerEdge by HTTP",
     "metricas": [
       "Host conectado al clúster / estado HA",
       "CPU, memoria y capacidad N+1",
@@ -411,6 +450,14 @@
         "frecuencia": "Semanal",
         "disparador": "Snapshot > 3 días"
       }
+    ],
+    "queEs": "Servidor físico que ejecuta varias máquinas virtuales (VMware ESXi, Hyper-V, Proxmox VE). Varios forman un clúster.",
+    "paraQue": "Aprovechar el hardware y poder mover máquinas virtuales de un servidor a otro sin cortes.",
+    "siFalla": "Caen a la vez todas sus máquinas virtuales; si hay clúster con alta disponibilidad, arrancan en otro nodo en unos minutos.",
+    "errores": [
+      "No dejar capacidad libre para absorber la caída de un nodo (N+1).",
+      "Acumular snapshots y usarlos como si fueran copias de seguridad.",
+      "Montar la monitorización dentro del mismo clúster sin vigilancia externa."
     ]
   },
   {
@@ -418,8 +465,8 @@
     "nombre": "Servidor físico",
     "familia": "comp",
     "icono": "server",
-    "metodo": "Zabbix Agent 2 (Windows/Linux) + iDRAC/iLO para hardware",
-    "plantillaZabbix": "Windows by Zabbix agent · Linux by Zabbix agent",
+    "metodo": "Zabbix Agent 2 (Windows o Linux) y Redfish de iDRAC o iLO para el hardware",
+    "plantillaZabbix": "Windows by Zabbix agent · Linux by Zabbix agent · HPE iLO by HTTP / DELL PowerEdge by HTTP",
     "metricas": [
       "CPU, memoria, disco",
       "Servicios críticos",
@@ -466,6 +513,13 @@
         "frecuencia": "Semestral",
         "disparador": "Versión antigua"
       }
+    ],
+    "queEs": "Ordenador dedicado a dar un servicio, instalado directamente sobre el hardware, sin virtualizar.",
+    "paraQue": "Servicios que necesitan hardware propio o que aún no se han virtualizado.",
+    "siFalla": "Se pierde el servicio hasta repararlo o restaurarlo en otro equipo.",
+    "errores": [
+      "No vigilar el hardware desde la controladora (iDRAC o iLO).",
+      "Reiniciar para aplicar parches sin avisar ni comprobar después los servicios."
     ]
   },
   {
@@ -530,6 +584,14 @@
         "frecuencia": "Mensual",
         "disparador": "Sin copia en 26 h"
       }
+    ],
+    "queEs": "Ordenador virtual que se ejecuta dentro de un hipervisor. Para el sistema operativo es como un servidor físico.",
+    "paraQue": "Tener cada servicio (directorio activo, ficheros, ERP…) en su propia máquina, aislado y fácil de copiar o mover.",
+    "siFalla": "Se pierde el servicio que da; si el hipervisor está bien, suele recuperarse reiniciando o restaurando la copia.",
+    "errores": [
+      "Darle más CPU de la que necesita: puede ir más lenta, no más rápida.",
+      "No comprobar que las máquinas nuevas entran en el plan de copias.",
+      "Dejar máquinas apagadas y olvidadas, sin parches."
     ]
   },
   {
@@ -576,6 +638,14 @@
         "frecuencia": "Trimestral",
         "disparador": "Crecimiento > previsto"
       }
+    ],
+    "queEs": "Cabina o NAS con muchos discos que da espacio a los hipervisores o a los usuarios.",
+    "paraQue": "Guardar los discos de las máquinas virtuales y los datos compartidos con redundancia (RAID).",
+    "siFalla": "Caen todas las máquinas virtuales que viven en él. Un RAID degradado avisa antes: no lo ignores.",
+    "errores": [
+      "Creer que el RAID es una copia de seguridad.",
+      "Dejar que el espacio libre baje del 10 %.",
+      "No cambiar a tiempo un disco con aviso predictivo."
     ]
   },
   {
@@ -583,7 +653,7 @@
     "nombre": "Backup",
     "familia": "data",
     "icono": "disk",
-    "metodo": "API REST del software (Veeam: puerto 9419) + espacio del repositorio",
+    "metodo": "API REST del software de copias (Veeam B&R 12 o 13: puerto 9419, solo en ediciones que incluyen la API) y espacio del repositorio",
     "plantillaZabbix": "Veeam Backup and Replication by HTTP",
     "metricas": [
       "Resultado de cada trabajo",
@@ -631,6 +701,14 @@
         "frecuencia": "Trimestral",
         "disparador": null
       }
+    ],
+    "queEs": "Software y repositorios que guardan copias de servidores y datos para poder restaurarlos.",
+    "paraQue": "Recuperarse de borrados, averías y ransomware.",
+    "siFalla": "No pasa nada visible… hasta que necesitas restaurar y no hay copia. Por eso se vigila cada noche.",
+    "errores": [
+      "Hacer copias en el mismo disco o cabina que los datos.",
+      "No probar nunca una restauración.",
+      "Dejar el repositorio accesible con credenciales del dominio: el ransomware lo cifra también."
     ]
   },
   {
@@ -677,6 +755,14 @@
         "frecuencia": "Anual",
         "disparador": null
       }
+    ],
+    "queEs": "Sistema de alimentación ininterrumpida: baterías que mantienen los equipos encendidos si se va la luz.",
+    "paraQue": "Aguantar cortes cortos y apagar de forma ordenada si el corte se alarga.",
+    "siFalla": "Un corte de luz apaga los equipos de golpe, con riesgo de corromper datos y dañar discos.",
+    "errores": [
+      "Conectarlo por USB a un solo servidor en lugar de a la red.",
+      "No cambiar las baterías (duran entre 3 y 5 años).",
+      "No haber probado nunca el apagado ordenado."
     ]
   },
   {
@@ -684,7 +770,7 @@
     "nombre": "Impresora",
     "familia": "other",
     "icono": "box",
-    "metodo": "SNMP v2c de solo lectura (habitual) o ping",
+    "metodo": "SNMPv3 si el modelo lo admite; si no, SNMP v2c de solo lectura limitado a la IP de monitorización, o ping",
     "plantillaZabbix": "Generic SNMP / Printer",
     "metricas": [
       "Disponibilidad",
@@ -707,6 +793,14 @@
         "frecuencia": "Anual",
         "disparador": "Versión antigua"
       }
+    ],
+    "queEs": "Impresoras y equipos multifunción conectados a la red.",
+    "paraQue": "Imprimir y escanear.",
+    "siFalla": "Molesta al usuario, pero suele ser la primera llamada del día.",
+    "errores": [
+      "Olvidarlas en el inventario y en las actualizaciones de firmware.",
+      "Dejar la contraseña de administración por defecto.",
+      "Escanear a carpeta con un usuario de dominio con demasiados permisos."
     ]
   },
   {
@@ -736,6 +830,13 @@
         "frecuencia": "Anual",
         "disparador": null
       }
+    ],
+    "queEs": "Cualquier equipo con IP que no encaje en los anteriores: cámaras, control de accesos, relojes de fichar…",
+    "paraQue": "Depende del equipo.",
+    "siFalla": "Depende del equipo; lo importante es saber que existe y quién lo mantiene.",
+    "errores": [
+      "No inventariarlos porque «no son de sistemas».",
+      "Dejarlos en la misma red que los puestos, sin separar."
     ]
   }
 ]

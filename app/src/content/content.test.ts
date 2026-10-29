@@ -23,6 +23,18 @@ describe('shared content integrity', () => {
     }
   });
 
+  it('explains every type for a junior (what it is, what for, what if it fails, common mistakes)', () => {
+    for (const t of tipos) {
+      for (const field of ['queEs', 'paraQue', 'siFalla'] as const) expect(t[field]?.trim(), `${field} de ${t.id}`).toBeTruthy();
+      expect(t.errores?.length, `errores de ${t.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps the content free of company-specific references', () => {
+    const text = JSON.stringify(content).toLowerCase();
+    for (const word of ['ninjaone', 'consultoría', 'vuestro']) expect(text, word).not.toContain(word);
+  });
+
   it('builds the reference map only from known types, layers and nodes', () => {
     const capas = new Set(ids(referencia.capas));
     for (const n of referencia.nodos) {
