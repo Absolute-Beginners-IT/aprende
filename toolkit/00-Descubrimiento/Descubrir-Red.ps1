@@ -13,11 +13,17 @@
   .\Descubrir-Red.ps1 -Prefijo 192.168.10 -Desde 1 -Hasta 50
 #>
 param(
-    [Parameter(Mandatory = $true)][string]$Prefijo,   # p. ej. 192.168.1
-    [int]$Desde = 1,
-    [int]$Hasta = 254,
+    # Tres octetos de una red /24, p. ej. 192.168.1. Se valida porque forma las IPs y el nombre del CSV.
+    [Parameter(Mandatory = $true)]
+    [ValidateScript({
+        if ($_ -match '^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){2}\z') { $true }
+        else { throw "Prefijo no válido: '$_'. Usa los tres primeros octetos de una red /24, p. ej. 192.168.1" }
+    })][string]$Prefijo,
+    [ValidateRange(1, 254)][int]$Desde = 1,
+    [ValidateRange(1, 254)][int]$Hasta = 254,
     [int]$TimeoutMs = 600
 )
+if ($Desde -gt $Hasta) { throw "Desde ($Desde) no puede ser mayor que Hasta ($Hasta)." }
 
 $ErrorActionPreference = 'SilentlyContinue'
 $puertos = @{
@@ -52,6 +58,13 @@ function Sugerir-Tipo($abiertos) {
     return 'otro'
 }
 
+# Los nombres DNS los controla quien gestiona la red: un "=HYPERLINK(...)" se ejecutaría al abrir el CSV en Excel.
+# Mismo criterio que la app (inventoryCsv.ts), que quita este apóstrofo al importar.
+function Proteger-Celda($v) {
+    if ($v -is [string] -and $v -match "^'*[=+\-@`t`r]") { return "'$v" }
+    return $v
+}
+
 $vecinos = @{}
 Get-NetNeighbor -AddressFamily IPv4 | ForEach-Object { $vecinos[$_.IPAddress] = $_.LinkLayerAddress }
 
@@ -69,6 +82,7 @@ $res = foreach ($ip in $vivos) {
 }
 
 $salida = Join-Path $PSScriptRoot ("descubrimiento_{0}_{1}.csv" -f $Prefijo.Replace('.', '-'), (Get-Date -Format 'yyyyMMdd-HHmm'))
-$res | Export-Csv -Path $salida -Delimiter ';' -NoTypeInformation -Encoding UTF8
+$res | ForEach-Object { foreach ($c in $_.PSObject.Properties) { $c.Value = Proteger-Celda $c.Value }; $_ } |
+    Export-Csv -Path $salida -Delimiter ';' -NoTypeInformation -Encoding UTF8
 Write-Host "CSV generado: $salida" -ForegroundColor Green
 Write-Host "Revisa el tipo sugerido, completa marca/modelo/uplink y pásalo a 01-Inventario\inventario.csv"

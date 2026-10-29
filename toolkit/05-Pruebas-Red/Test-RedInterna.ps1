@@ -19,8 +19,29 @@ param(
     [int]$UdpMbps = 500
 )
 
+# Devuelve $null si el SHA-256 del fichero coincide con el de bin\SHA256SUMS.txt (formato de sha256sum:
+# "<hash>  <fichero>"); si no, el motivo para no ejecutarlo. Ver bin\LEEME.txt.
+function Comprobar-Binario([string]$ruta) {
+    $nombre = Split-Path $ruta -Leaf
+    $sums = Join-Path (Split-Path $ruta) 'SHA256SUMS.txt'
+    $esperado = $null
+    if (Test-Path $sums) {
+        foreach ($l in Get-Content $sums) {
+            if ($l -match "^\s*([0-9a-fA-F]{64})\s+\*?$([regex]::Escape($nombre))\s*$") { $esperado = $Matches[1]; break }
+        }
+    }
+    if (-not $esperado) { return "No hay hash registrado para $nombre en $sums. Compara su SHA-256 con el que publica el fabricante y añádelo (ver bin\LEEME.txt)." }
+    $real = (Get-FileHash -Algorithm SHA256 -Path $ruta).Hash
+    if ($real -ne $esperado) { return "El SHA-256 de $nombre ($real) no coincide con el registrado en $sums. No se ejecuta: el fichero puede estar alterado." }
+    return $null
+}
+
 $bin = Join-Path $PSScriptRoot 'bin\iperf3.exe'
 if (-not (Test-Path $bin)) { throw "No se encuentra $bin. Descarga iperf3 para Windows y copia iperf3.exe en la carpeta bin." }
+# iperf3 para Windows carga cygwin1.dll desde su misma carpeta: se verifica igual que el ejecutable.
+foreach ($f in $bin, (Join-Path $PSScriptRoot 'bin\cygwin1.dll')) {
+    if (Test-Path $f) { $motivo = Comprobar-Binario $f; if ($motivo) { throw $motivo } }
+}
 $historico = Join-Path $PSScriptRoot 'resultados\red-interna.csv'
 New-Item -ItemType Directory -Force -Path (Split-Path $historico) | Out-Null
 

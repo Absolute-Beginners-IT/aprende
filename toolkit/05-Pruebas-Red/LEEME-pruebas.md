@@ -12,7 +12,7 @@
 
 ## Montaje (una vez)
 
-1. Descarga `iperf3.exe` y `speedtest.exe` (Ookla CLI) en `bin\`.
+1. Descarga `iperf3.exe` y `speedtest.exe` (Ookla CLI) en `bin\` y registra su SHA-256 en `bin\SHA256SUMS.txt` tras compararlo con el que publica el fabricante (pasos en `bin\LEEME.txt`). Los scripts no ejecutan un binario cuyo hash no esté registrado o no coincida.
 2. En un servidor del CPD con tarjeta de 10 Gbps (o 1 Gbps), deja `iperf3.exe -s` como servicio o tarea programada, y abre TCP/UDP 5201 solo desde las redes internas.
 3. Programa `Test-Internet.ps1` en el Programador de tareas 3 veces al día.
 4. Los resultados se acumulan en `resultados\*.csv`. Pega las filas en la sección **Pruebas de red** del mapa interactivo para verlas en gráfico.
