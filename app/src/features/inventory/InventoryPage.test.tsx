@@ -42,6 +42,15 @@ describe('InventoryPage', () => {
     expect(await screen.findByText('Tus equipos (3)')).toBeTruthy();
   });
 
+  it('combines rows that resolve to the same device and says so instead of over-counting', async () => {
+    const repo = memoryRepository();
+    render(<InventoryPage repository={repo} />);
+    expect(await importCsv('Nombre;Tipo;Monitorizado\nFW01;firewall;No\nfw01;firewall;Sí\nCORE;switch;No'))
+      .toBe('2 equipos importados (nuevos: 2, actualizados: 0). 1 fila repetida por nombre se ha combinado: se conserva la última.');
+    expect(repo.devices.size).toBe(2);
+    expect(repo.devices.get('fw01')?.monitorizado).toBe(true);
+  });
+
   it('shows the gap analysis for the imported inventory', async () => {
     render(<InventoryPage repository={memoryRepository()} />);
     await importCsv('Nombre;Tipo\nCORE;switch');

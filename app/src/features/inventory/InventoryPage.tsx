@@ -55,11 +55,16 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
   const importCsv = async () => {
     const parsed = parseInventoryCsv(csv);
     if (!parsed.length) { setMessage('No se encontró ningún equipo. Revisa que el CSV tenga cabecera.'); return; }
+    // Rows whose names slugify to the same id are one device: keep the last row, as the store would.
+    const unique = [...new Map(parsed.map(d => [d.id, d])).values()];
+    const repeated = parsed.length - unique.length;
     const existing = new Set(devices.map(d => d.id));
-    const updated = parsed.filter(d => existing.has(d.id)).length;
-    const summary = `${parsed.length} equipos importados (nuevos: ${parsed.length - updated}, actualizados: ${updated}).`
-      + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '');
-    await persist(async () => { for (const d of parsed) await repository.save(d); setCsv(''); }, summary);
+    const updated = unique.filter(d => existing.has(d.id)).length;
+    const summary = `${unique.length} equipos importados (nuevos: ${unique.length - updated}, actualizados: ${updated}).`
+      + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '')
+      + (repeated === 1 ? ' 1 fila repetida por nombre se ha combinado: se conserva la última.' : '')
+      + (repeated > 1 ? ` ${repeated} filas repetidas por nombre se han combinado: se conserva la última de cada una.` : '');
+    await persist(async () => { for (const d of unique) await repository.save(d); setCsv(''); }, summary);
   };
 
   const exportCsv = () => {
