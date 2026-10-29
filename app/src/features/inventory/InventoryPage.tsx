@@ -64,7 +64,16 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
       + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '')
       + (repeated === 1 ? ' 1 fila repetida por nombre se ha combinado: se conserva la última.' : '')
       + (repeated > 1 ? ` ${repeated} filas repetidas por nombre se han combinado: se conserva la última de cada una.` : '');
-    await persist(async () => { for (const d of unique) await repository.save(d); setCsv(''); }, summary);
+    // Saves are not transactional: on a mid-import failure, say what was stored and keep the CSV for a retry.
+    let saved = 0;
+    await persist(async () => {
+      try { for (const d of unique) { await repository.save(d); saved++; } }
+      catch (e) {
+        if (!saved) throw e;
+        throw new Error(`${errorText(e)}. Se han guardado ${saved} de ${unique.length} equipos antes del fallo; el CSV sigue en el cuadro para que puedas reintentar la importación.`);
+      }
+      setCsv('');
+    }, summary);
   };
 
   const exportCsv = () => {

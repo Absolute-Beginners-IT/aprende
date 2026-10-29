@@ -64,6 +64,17 @@ describe('InventoryPage', () => {
     expect(await importCsv('Nombre;Tipo\nFW01;firewall')).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
   });
 
+  it('says how many devices were saved when the storage fails halfway through an import', async () => {
+    const repo = memoryRepository();
+    const save = repo.save;
+    repo.save = async d => { if (repo.devices.size >= 1) throw new Error('QuotaExceededError'); await save(d); };
+    render(<InventoryPage repository={repo} />);
+    expect(await importCsv('Nombre;Tipo\nFW01;firewall\nCORE;switch'))
+      .toBe('No se ha podido guardar en este navegador: QuotaExceededError. Se han guardado 1 de 2 equipos antes del fallo; el CSV sigue en el cuadro para que puedas reintentar la importación.');
+    expect([...repo.devices.keys()]).toEqual(['fw01']);
+    expect((screen.getByLabelText('CSV del inventario') as HTMLTextAreaElement).value).toBe('Nombre;Tipo\nFW01;firewall\nCORE;switch');
+  });
+
   it('shows an error when the saved inventory cannot be read', async () => {
     const repo = memoryRepository();
     repo.list = async () => { throw new Error('SecurityError'); };
