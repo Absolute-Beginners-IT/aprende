@@ -17,6 +17,14 @@ export function NodeDetail({ node }: { node: ReferenceNode | null }) {
       <span className={`tag fam-${t.familia}`}>{t.nombre}</span>
       <h2>{node.nombre}</h2>
       <p>{node.descripcion}</p>
+      <h3>Qué es</h3>
+      <p>{t.queEs}</p>
+      <h3>Para qué sirve</h3>
+      <p>{t.paraQue}</p>
+      <h3>Si falla</h3>
+      <p>{t.siFalla}</p>
+      <h3>Errores típicos</h3>
+      <ul>{t.errores.map(e => <li key={e}>{e}</li>)}</ul>
       <h3>Qué vigilar</h3>
       <ul>{t.metricas.map(m => <li key={m}>{m}</li>)}</ul>
       <h3>Cómo se recogen los datos</h3>

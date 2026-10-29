@@ -13,7 +13,7 @@
       },
       {
         "id": "p1c",
-        "texto": "Pedir a la consultoría su inventario y diagramas"
+        "texto": "Pedir al anterior responsable o al proveedor de soporte su inventario y diagramas"
       }
     ]
   },
@@ -45,7 +45,7 @@
     "pasos": [
       {
         "id": "p3a",
-        "texto": "Montar servidor Zabbix (VM) y, si hay sedes, un proxy por sede"
+        "texto": "Montar Zabbix 7.0 LTS en una VM (pasar a 8.0 LTS cuando salga) y un proxy por sede si hay varias"
       },
       {
         "id": "p3b",

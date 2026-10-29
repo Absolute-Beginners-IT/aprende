@@ -23,6 +23,36 @@ describe('shared content integrity', () => {
     }
   });
 
+  it('explains every type for a junior (what it is, what for, what if it fails, common mistakes)', () => {
+    for (const t of tipos) {
+      for (const field of ['queEs', 'paraQue', 'siFalla'] as const) expect(t[field]?.trim(), `${field} de ${t.id}`).toBeTruthy();
+      expect(t.errores?.length, `errores de ${t.id}`).toBeGreaterThan(0);
+    }
+  });
+
+  it('keeps the content free of company-specific references', () => {
+    const text = JSON.stringify(content).toLowerCase();
+    for (const word of ['ninjaone', 'consultoría', 'vuestro']) expect(text, word).not.toContain(word);
+  });
+
+  it('defines every glossary term once and links only to known types', () => {
+    expect(content.glosario.length).toBeGreaterThan(0);
+    expect(duplicates(ids(content.glosario))).toEqual([]);
+    for (const g of content.glosario) {
+      expect(g.termino.trim() && g.definicion.trim(), g.id).toBeTruthy();
+      for (const t of g.tipos ?? []) expect(tipoIds, `tipo en ${g.id}`).toContain(t);
+    }
+  });
+
+  it('walks every incident scenario through nodes that exist on the reference map', () => {
+    expect(content.escenarios.length).toBeGreaterThan(0);
+    expect(duplicates(ids(content.escenarios))).toEqual([]);
+    for (const e of content.escenarios) {
+      expect(e.pasos.length, e.id).toBeGreaterThan(0);
+      for (const p of e.pasos) for (const n of p.nodos) expect(nodoIds, `nodo en ${e.id}`).toContain(n);
+    }
+  });
+
   it('builds the reference map only from known types, layers and nodes', () => {
     const capas = new Set(ids(referencia.capas));
     for (const n of referencia.nodos) {

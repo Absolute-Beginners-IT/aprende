@@ -8,12 +8,15 @@ interface Props {
   visibleLayers: Set<string>;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  /** When set, every other node is dimmed (used by the incident scenarios). */
+  highlighted?: Set<string>;
 }
 
 const center = (x: number, y: number) => ({ cx: PAD + x * CELL_W + NODE_W / 2, cy: PAD + y * CELL_H + NODE_H / 2 });
 
 /** Presentational SVG of the reference infrastructure, filtered by layer. */
-export function ReferenceMap({ model, visibleLayers, selectedId, onSelect }: Props) {
+export function ReferenceMap({ model, visibleLayers, selectedId, onSelect, highlighted }: Props) {
+  const dimmed = (id: string) => highlighted !== undefined && !highlighted.has(id);
   const nodes = model.nodos.filter(n => visibleLayers.has(n.capa));
   const byId = new Map(nodes.map(n => [n.id, n]));
   const cols = Math.max(...model.nodos.map(n => n.x)) + 1, rows = Math.max(...model.nodos.map(n => n.y)) + 1;
@@ -38,14 +41,15 @@ export function ReferenceMap({ model, visibleLayers, selectedId, onSelect }: Pro
         const a = byId.get(e.desde), b = byId.get(e.hasta);
         if (!a || !b) return null;
         const p = center(a.x, a.y), q = center(b.x, b.y);
-        return <line key={`${e.desde}-${e.hasta}`} className={`link link-${e.tipo ?? 'red'}`} x1={p.cx} y1={p.cy} x2={q.cx} y2={q.cy} />;
+        const dim = dimmed(a.id) || dimmed(b.id) ? ' dim' : '';
+        return <line key={`${e.desde}-${e.hasta}`} className={`link link-${e.tipo ?? 'red'}${dim}`} x1={p.cx} y1={p.cy} x2={q.cx} y2={q.cy} />;
       })}
       {nodes.map(n => {
         const t = typeOf(n.tipo), x = PAD + n.x * CELL_W, y = PAD + n.y * CELL_H;
         return (
           <g
             key={n.id}
-            className={`node fam-${t.familia}${selectedId === n.id ? ' selected' : ''}`}
+            className={`node fam-${t.familia}${selectedId === n.id ? ' selected' : ''}${dimmed(n.id) ? ' dim' : ''}${highlighted?.has(n.id) ? ' lit' : ''}`}
             tabIndex={0}
             role="button"
             aria-label={n.nombre}

@@ -1,0 +1,10 @@
+{{ define "main" }}
+<h1>{{ .Title }}</h1>
+{{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+{{ .Content }}
+<dl class="terms">
+  {{ range sort hugo.Data.glosario "termino" }}
+  <div class="term" id="{{ .id }}"><dt>{{ .termino }}</dt><dd>{{ .definicion }}</dd></div>
+  {{ end }}
+</dl>
+{{ end }}

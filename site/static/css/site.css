@@ -16,3 +16,7 @@ td { border-bottom: 1px solid var(--line); padding: 10px 12px; vertical-align: t
 .callout { border-left: 5px solid var(--accent); background: var(--callout); border-radius: 0 12px 12px 0; padding: 14px 18px; margin: 20px 0; }
 .callout p { margin: 6px 0 0; }
 .foot { border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; padding: 16px; text-align: center; }
+.terms { display: grid; gap: 12px; }
+.term { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.term dt { font-weight: 700; } .term dd { margin: 4px 0 0; }
+.scenario { margin-top: 40px; }

@@ -1,6 +1,8 @@
 # Guía del administrador de sistemas junior
 
-Guía interactiva para dar los primeros pasos como administrador de sistemas: qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella. El núcleo es un **mapa de infraestructura por capas** (física, lógica, servicios y protección) en el que cada pieza explica qué es, qué vigilar, qué alertas crear y qué mantenimiento necesita.
+Guía interactiva para dar los primeros pasos como administrador de sistemas: qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella. El núcleo es un **mapa de infraestructura por capas** (física, lógica, servicios y protección) en el que cada pieza explica qué es, para qué sirve, qué pasa si falla, los errores típicos, qué vigilar, qué alertas crear y qué mantenimiento necesita.
+
+La app incluye además **escenarios de incidencias** paso a paso sobre el mapa, un **glosario** y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
 
 ## Estructura
 

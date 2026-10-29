@@ -29,6 +29,9 @@ El proyecto sigue la separación en tres responsabilidades de la metodología de
 
 - `content/kb/`: tipos de equipo (qué vigilar, cómo, alertas, mantenimiento), familias, severidades, fragmentos de configuración por fabricante y hoja de ruta.
 - `content/referencia/pyme.json`: el mapa de referencia de una pyme típica (nodos con capa y posición, enlaces, VLANs).
+- `content/glosario.json` y `content/escenarios.json`: términos y escenarios de incidencias paso a paso (cada paso señala nodos del mapa de referencia).
+
+Los tests de `app/` validan el contenido: fichas completas, referencias entre ficheros correctas y ninguna referencia a una empresa concreta.
 
 Hugo lo monta como datos (`hugo.Data.kb.*`) y la app lo importa con el alias `@content`. Ninguno de los dos copia los datos.
 
@@ -40,7 +43,7 @@ La app no sabe dónde se guardan los datos del alumno:
 - `src/adapters/localStorageInventoryRepository.ts`: implementación actual, solo en el navegador.
 - Futuro: `httpInventoryRepository.ts` contra `api.example.com`, con el mismo contrato.
 
-Los componentes siguen el patrón contenedor/presentación: `MapPage` gestiona el estado y `ReferenceMap` y `NodeDetail` solo pintan.
+Los componentes siguen el patrón contenedor/presentación: `MapPage`, `ScenariosPage` e `InventoryPage` gestionan el estado, y `ReferenceMap` y `NodeDetail` solo pintan. La lógica del modo «Mi infraestructura» vive en funciones puras con tests: `domain/inventoryAnalysis.ts` (carencias frente a una pyme típica) y `domain/inventoryCsv.ts` (importación y exportación con protección contra fórmulas de hoja de cálculo).
 
 ## Despliegue (cuando toque)
 

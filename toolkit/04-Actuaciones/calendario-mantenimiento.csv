@@ -15,4 +15,4 @@ backup;Prueba de restauracion;Mensual (muestra) / Anual (completa);-;Estandar;La
 sai;Test de bateria;Trimestral;-;Estandar;Laboral;No;Programable en la tarjeta de red del SAI
 internet;Prueba de velocidad y conmutacion a linea de respaldo;Mensual;Velocidad < 70% contratado;Estandar;Fuera de horario;No;Scripts de 05-Pruebas-Red
 general;Revision de inventario y fin de soporte;Trimestral;Fin_Soporte < 12 meses;-;-;No;Planificar renovaciones en presupuesto
-general;Revision de cuentas y accesos de proveedores;Trimestral;-;-;-;No;Incluye cuentas de la consultoria
+general;Revision de cuentas y accesos de proveedores;Trimestral;-;-;-;No;Incluye cuentas de proveedores externos y de soporte
