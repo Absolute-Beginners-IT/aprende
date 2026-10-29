@@ -1,0 +1,22 @@
+[
+  {
+    "id": "desastre",
+    "nombre": "Desastre",
+    "nivel": "crit"
+  },
+  {
+    "id": "alta",
+    "nombre": "Alta",
+    "nivel": "crit"
+  },
+  {
+    "id": "media",
+    "nombre": "Media",
+    "nivel": "warn"
+  },
+  {
+    "id": "aviso",
+    "nombre": "Aviso",
+    "nivel": "info"
+  }
+]
