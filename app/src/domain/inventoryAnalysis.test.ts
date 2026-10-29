@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { analyzeInventory } from './inventoryAnalysis';
 import type { Device } from './types';
 
-const TODAY = new Date('2026-10-29T00:00:00Z');
+const TODAY = new Date(2026, 9, 29, 12, 0);
 const dev = (id: string, tipo: string, overrides: Partial<Device> = {}): Device => ({
   id, nombre: id, tipo, criticidad: 'Media', monitorizado: true, ...overrides,
 });
@@ -51,6 +51,21 @@ describe('analyzeInventory', () => {
       { nivel: 'crit', mensaje: 'Viejo está sin soporte del fabricante desde 2026-01-31.', deviceId: 'old' },
       { nivel: 'warn', mensaje: 'Core no está monitorizado.', deviceId: 'core' },
       { nivel: 'warn', mensaje: 'Pronto se queda sin soporte en 123 días (2027-03-01): presupuesta la renovación.', deviceId: 'soon' },
+    ]);
+  });
+
+  it('counts support days by calendar date, whatever the time of day', () => {
+    const lateEvening = new Date(2026, 9, 29, 23, 30);
+    const earlyMorning = new Date(2026, 9, 29, 0, 5);
+    const soon = [...complete, dev('soon', 'switch', { nombre: 'Pronto', finSoporte: '2027-03-01' })];
+    for (const now of [lateEvening, earlyMorning]) {
+      expect(analyzeInventory(soon, now).map(f => f.mensaje)).toContain('Pronto se queda sin soporte en 123 días (2027-03-01): presupuesta la renovación.');
+    }
+  });
+
+  it('flags support dates that cannot be read instead of ignoring them', () => {
+    expect(analyzeInventory([...complete, dev('x', 'switch', { nombre: 'Raro', finSoporte: '31/12/2027' })], TODAY)).toEqual([
+      { nivel: 'info', mensaje: 'Raro tiene una fecha de fin de soporte no válida («31/12/2027»): usa el formato AAAA-MM-DD.', deviceId: 'x' },
     ]);
   });
 

@@ -31,6 +31,12 @@ describe('toInventoryCsv', () => {
     expect(parseInventoryCsv(csv)).toEqual(devices);
   });
 
+  it('round-trips values that start with formula characters or an apostrophe unchanged', () => {
+    const tricky = ['=SUM(A1)', '+34 600 000 000', '-', '@admin', "'=already quoted", "'normal"];
+    const devices = tricky.map((notas, i) => ({ id: `d${i}`, nombre: `D${i}`, tipo: 'otro', criticidad: 'Baja' as const, monitorizado: false, notas }));
+    expect(parseInventoryCsv(toInventoryCsv(devices)).map(d => d.notas)).toEqual(tricky);
+  });
+
   it('neutralises spreadsheet formulas so Excel does not execute them', () => {
     const csv = toInventoryCsv([{ id: 'x', nombre: '=HYPERLINK("http://evil")', tipo: 'otro', criticidad: 'Baja', monitorizado: false, notas: '+cmd|calc' }]);
     const row = csv.split('\r\n')[1];

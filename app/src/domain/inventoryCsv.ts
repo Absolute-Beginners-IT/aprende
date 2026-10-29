@@ -12,7 +12,10 @@ const TYPE_HINTS: [RegExp, string][] = [
   [/wifi|\bap\b|wlan/, 'wifi'], [/router/, 'router'], [/impres|print/, 'impresora'], [/internet|isp|wan/, 'internet'],
 ];
 
-const stripAccents = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+// Matches the single apostrophe added by cell() in front of a formula-like value.
+const FORMULA_GUARDED = /^'(?='*[=+\-@\t\r])/;
+
+const stripAccents =(s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 export const slugify = (s: string) => stripAccents(s).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
 function normalizeType(raw: string): string {
@@ -52,7 +55,7 @@ export function parseInventoryCsv(text: string): Device[] {
   const devices: Device[] = [];
   for (const cells of rows) {
     // Undo the formula guard added by toInventoryCsv so data round-trips.
-    const r = Object.fromEntries(keys.map((k, i) => [k, (cells[i] ?? '').trim().replace(/^'(?=[=+\-@])/, '')]));
+    const r = Object.fromEntries(keys.map((k, i) => [k, (cells[i] ?? '').trim().replace(FORMULA_GUARDED, '')]));
     const nombre = r.nombre ?? '';
     if (!nombre || /^EJEMPLO-/i.test(nombre)) continue;
     const device: Device = {
@@ -70,10 +73,14 @@ export function parseInventoryCsv(text: string): Device[] {
   return devices;
 }
 
-/** Quotes a cell and neutralises leading =, +, -, @ so spreadsheets never run it as a formula. */
+/**
+ * Quotes a cell and neutralises leading =, +, -, @, tab or CR so spreadsheets never run it as a formula.
+ * Values that already start with apostrophes before one of those get one more, so the parser can
+ * strip exactly one and every value round-trips unchanged.
+ */
 function cell(value: string | undefined): string {
   let v = value ?? '';
-  if (/^[=+\-@\t\r]/.test(v)) v = `'${v}`;
+  if (/^'*[=+\-@\t\r]/.test(v)) v = `'${v}`;
   return /[;"\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
