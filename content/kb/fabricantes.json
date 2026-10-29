@@ -57,7 +57,7 @@
     "patron": "apc|schneider|eaton|salicru|riello|socomec",
     "flags": "i",
     "nombre": "SAI · tarjeta de red SNMP",
-    "configuracion": "# En la tarjeta de red del SAI: activar SNMPv3 (o v1 de solo lectura\n# restringido a la IP de Zabbix si el modelo no soporta v3).\n# Zabbix: \"APC UPS by SNMP\" o plantilla genérica UPS-MIB."
+    "configuracion": "# En la tarjeta de red del SAI: activar SNMPv3 (o v2c de solo lectura\n# restringido a la IP de Zabbix si el modelo no admite v3; evita SNMPv1).\n# Zabbix: \"APC UPS by SNMP\" o plantilla genérica UPS-MIB."
   },
   {
     "patron": "veeam",
