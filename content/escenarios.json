@@ -1,0 +1,53 @@
+[
+  {
+    "id": "sin-internet",
+    "titulo": "«No hay Internet»",
+    "sintoma": "Varios usuarios llaman a la vez: no cargan las webs ni el correo en la nube.",
+    "pasos": [
+      { "titulo": "Delimita el alcance", "texto": "¿Le pasa a todo el mundo o a una planta? ¿Funciona la red interna (servidor de ficheros, ERP)? Si lo interno va bien, el problema está en la salida.", "nodos": ["acc1", "acc2", "fs"] },
+      { "titulo": "Mira el firewall", "texto": "Entra en el firewall: ¿qué estado tienen las WAN? Si la principal está caída, ¿ha conmutado a la de respaldo? Revisa también si hay un pico de CPU o de sesiones.", "nodos": ["fw1", "fw2"] },
+      { "titulo": "Comprueba la línea", "texto": "Haz ping a la IP del router de la operadora y a 1.1.1.1 desde el firewall. Si no responde el router, revisa luces y alimentación y llama a averías con el identificador de la línea.", "nodos": ["isp1", "isp2"] },
+      { "titulo": "Descarta el DNS", "texto": "Si el ping a 1.1.1.1 funciona pero las webs no cargan, el problema puede ser el DNS: prueba a resolver un nombre con nslookup contra el controlador de dominio.", "nodos": ["dc"] }
+    ],
+    "causasTipicas": ["Corte de la operadora", "Router de la operadora colgado", "DNS interno caído", "Línea de respaldo que nunca se probó y no conmuta"],
+    "aprendizaje": "Ve de dentro hacia fuera y por capas: red local, firewall, línea y, por último, servicios como el DNS. Y documenta qué número llamar antes de necesitarlo."
+  },
+  {
+    "id": "ficheros-lentos",
+    "titulo": "«El servidor de ficheros va lentísimo»",
+    "sintoma": "Abrir documentos de la carpeta compartida tarda minutos desde primera hora.",
+    "pasos": [
+      { "titulo": "¿Es el servidor o la red?", "texto": "Mira en la monitorización la CPU, la memoria y la latencia de disco de la VM de ficheros. Si están normales, sospecha de la red.", "nodos": ["fs", "mon"] },
+      { "titulo": "Sube al hipervisor", "texto": "Revisa el host: ¿hay otras VMs consumiendo mucho? ¿Hay snapshots antiguos de esa VM? Un snapshot de semanas degrada el disco.", "nodos": ["esx1"] },
+      { "titulo": "Revisa el almacenamiento", "texto": "En la cabina: ¿algún volumen degradado o reconstruyendo un RAID? ¿Espacio libre por debajo del 10 %? Ambos disparan la latencia.", "nodos": ["nas"] },
+      { "titulo": "Comprueba la red", "texto": "Revisa errores y uso del uplink entre el switch core y el hipervisor. Un cable o un SFP defectuoso provoca errores y retransmisiones.", "nodos": ["core"] }
+    ],
+    "causasTipicas": ["Snapshot olvidado", "RAID reconstruyendo tras cambiar un disco", "Antivirus escaneando la carpeta compartida", "Uplink con errores"],
+    "aprendizaje": "La lentitud se diagnostica con datos: compara con el histórico de la monitorización en lugar de adivinar."
+  },
+  {
+    "id": "alerta-disco",
+    "titulo": "Alerta: disco por debajo del 10 % en el ERP",
+    "sintoma": "Llega una alerta de severidad Alta: «Disco libre <10 %» en la VM de la aplicación de gestión.",
+    "pasos": [
+      { "titulo": "Reconoce la alerta", "texto": "Reconócela en la monitorización para que el equipo sepa que la estás mirando y no se escale.", "nodos": ["mon"] },
+      { "titulo": "Busca qué ha crecido", "texto": "Entra en la VM y busca qué carpeta ha crecido: logs, copias locales de la base de datos o ficheros temporales. Mira en la gráfica desde cuándo crece.", "nodos": ["app"] },
+      { "titulo": "Libera o amplía con cabeza", "texto": "Borra solo lo que sabes que es prescindible. Si hay que ampliar el disco, comprueba antes que el almacenamiento tiene espacio y que la última copia es correcta.", "nodos": ["nas", "bkp"] },
+      { "titulo": "Evita que se repita", "texto": "Configura la rotación de logs o la purga que faltaba y documenta lo ocurrido en el ticket.", "nodos": ["app"] }
+    ],
+    "causasTipicas": ["Logs sin rotación", "Copias locales de la base de datos que nadie borra", "Crecimiento normal no previsto"],
+    "aprendizaje": "Una alerta bien diseñada te avisa antes del desastre. Arregla la causa, no solo el síntoma."
+  },
+  {
+    "id": "corte-luz",
+    "titulo": "Corte de luz en la oficina",
+    "sintoma": "Se va la luz. Los puestos se apagan, pero el CPD sigue encendido.",
+    "pasos": [
+      { "titulo": "Confirma que el SAI aguanta", "texto": "Comprueba en la monitorización que el SAI está en batería y cuánta autonomía estima.", "nodos": ["sai", "mon"] },
+      { "titulo": "Decide a tiempo", "texto": "Si la autonomía baja de lo que necesitas para apagar ordenadamente, empieza el apagado: primero aplicaciones y VMs, después hipervisores y almacenamiento.", "nodos": ["app", "fs", "dc", "esx1", "esx2", "nas"] },
+      { "titulo": "Al volver la luz, arranca en orden", "texto": "Al revés: almacenamiento, hipervisores, controlador de dominio (DNS y DHCP) y, por último, las aplicaciones. Comprueba cada servicio.", "nodos": ["nas", "esx1", "esx2", "dc", "app"] }
+    ],
+    "causasTipicas": ["Corte del suministro", "Disparo del diferencial del CPD"],
+    "aprendizaje": "El orden de apagado y de arranque se escribe y se prueba antes del corte, no durante."
+  }
+]

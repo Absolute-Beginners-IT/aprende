@@ -40,6 +40,18 @@ export interface Severity { id: string; nombre: string; nivel: 'crit' | 'warn' |
 export interface VendorSnippet { patron: string; flags: string; nombre: string; configuracion: string }
 export interface RoadmapPhase { fase: string; objetivo: string; pasos: { id: string; texto: string }[] }
 
+export interface GlossaryTerm { id: string; termino: string; definicion: string; tipos?: string[] }
+
+export interface ScenarioStep { titulo: string; texto: string; nodos: string[] }
+export interface Scenario {
+  id: string;
+  titulo: string;
+  sintoma: string;
+  pasos: ScenarioStep[];
+  causasTipicas: string[];
+  aprendizaje: string;
+}
+
 export interface Layer { id: string; nombre: string; descripcion: string }
 
 export interface ReferenceNode {
