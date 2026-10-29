@@ -25,13 +25,17 @@ Rama: `feat/contenido-guia` · Entrega: `ask-on-risk` · Tests: Vitest (app) + b
 
 | ID | Specs | Ruta | Estado | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S1, S2, S3 | inline | pendiente | |
-| T2 | S2, S3 | inline | pendiente | |
-| T3 | S1, S3 | inline | pendiente | |
-| T4 | S1 | inline | pendiente | |
+| T1 | S1, S2, S3 | inline | hecho: RED 2 tests de contenido → GREEN | d7db62c |
+| T2 | S2, S3 | inline | hecho | 2c87754 |
+| T3 | S1, S3 | inline | hecho: RED 2 tests → GREEN; build Hugo con 29 términos y 4 escenarios | 8b8ede0 |
+| T4 | S1 | inline | hecho: RED (módulos ausentes) → GREEN 24/24; flujo de importación probado en el navegador | 9e9c42f |
 
 T1 `content/kb`: fichas educativas, datos actualizados y sin referencias de empresa · T2 toolkit y guías actualizados · T3 glosario y escenarios (contenido, guía y app) · T4 modo «Mi infraestructura» con análisis de carencias.
+
+| Teams | conectores de Office 365 | retirados del 18 al 22 de mayo de 2026; usar `MS Teams Workflow` | devblogs.microsoft.com (MC1181996) |
 
 ## Log
 
 - L1 (2026-10-29): "continua y actualiza la información desfasada que encuentres, si hay una tecnología que sea antigua y se este utilizando una versión mas actual y mejorada actualizalo"
+- L2: dependencias de `app/` al día (`npm outdated` vacío, `npm audit` sin vulnerabilidades). Sin verificar: sintaxis SHA-256/AES-256 en AOS-CX (se deja `sha`/`aes` con indicación de comprobarlo) y macros exactas de `Proxmox VE by HTTP`.
+- L3: pendiente fuera de alcance: correcciones de seguridad de los scripts del toolkit (inyección CSV en Descubrir-Red.ps1, hash de binarios, validación del prefijo).
