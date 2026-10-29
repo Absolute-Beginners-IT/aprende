@@ -16,6 +16,29 @@ param(
     [int]$PingsPorDestino = 20
 )
 
+# Devuelve $null si el SHA-256 del fichero coincide con el de bin\SHA256SUMS.txt (formato de sha256sum:
+# "<hash>  <fichero>"); si no, el motivo para no ejecutarlo. Ver bin\LEEME.txt.
+function Comprobar-Binario([string]$ruta) {
+    $nombre = Split-Path $ruta -Leaf
+    $sums = Join-Path (Split-Path $ruta) 'SHA256SUMS.txt'
+    $esperado = $null
+    if (Test-Path $sums) {
+        foreach ($l in Get-Content $sums) {
+            if ($l -match "^\s*([0-9a-fA-F]{64})\s+\*?$([regex]::Escape($nombre))\s*$") { $esperado = $Matches[1]; break }
+        }
+    }
+    if (-not $esperado) { return "No hay hash registrado para $nombre en $sums. Compara su SHA-256 con el que publica el fabricante y añádelo (ver bin\LEEME.txt)." }
+    $real = (Get-FileHash -Algorithm SHA256 -Path $ruta).Hash
+    if ($real -ne $esperado) { return "El SHA-256 de $nombre ($real) no coincide con el registrado en $sums. No se ejecuta: el fichero puede estar alterado." }
+    return $null
+}
+
+# El ISP y el servidor los devuelve speedtest: se protegen antes de guardarlos en el CSV (fórmulas de Excel).
+function Proteger-Celda($v) {
+    if ($v -is [string] -and $v -match "^'*[=+\-@`t`r]") { return "'$v" }
+    return $v
+}
+
 $bin = Join-Path $PSScriptRoot 'bin\speedtest.exe'
 $historico = Join-Path $PSScriptRoot 'resultados\internet.csv'
 New-Item -ItemType Directory -Force -Path (Split-Path $historico) | Out-Null
@@ -35,7 +58,10 @@ $ping = foreach ($d in '1.1.1.1', '8.8.8.8') {
 
 # 2. Speedtest
 $bajada = $subida = $latSt = $servidor = $isp = $url = $null
-if (Test-Path $bin) {
+$motivo = if (Test-Path $bin) { Comprobar-Binario $bin }
+if ($motivo) {
+    Write-Warning "$motivo Se mide solo con ping."
+} elseif (Test-Path $bin) {
     $json = & $bin --accept-license --accept-gdpr --format=json 2>$null | ConvertFrom-Json
     if ($json) {
         $bajada = [math]::Round($json.download.bandwidth * 8 / 1e6, 1)   # bytes/s -> Mbps
@@ -56,6 +82,7 @@ $fila = [pscustomobject]@{
     Ping_8888_ms = $ping[1].Media; Perdida_8888 = $ping[1].Perdida
     Servidor = $servidor; ISP = $isp; URL_Resultado = $url
 }
-$fila | Export-Csv -Path $historico -Delimiter ';' -NoTypeInformation -Append -Encoding UTF8
+$fila | ForEach-Object { foreach ($c in $_.PSObject.Properties) { $c.Value = Proteger-Celda $c.Value }; $_ } |
+    Export-Csv -Path $historico -Delimiter ';' -NoTypeInformation -Append -Encoding UTF8
 $fila | Format-List
 if ($fila.Pct_Contratado -and $fila.Pct_Contratado -lt 70) { Write-Warning "Velocidad por debajo del 70% de lo contratado." }
