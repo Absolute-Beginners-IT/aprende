@@ -6,8 +6,8 @@ El proyecto separa tres responsabilidades: portada y contenido público estátic
               Navegador
              /         \
    example.com        app.example.com
-   site/ (Hugo)       app/ (React SPA)
-   guía y lecciones   mapa interactivo
+   site/ (Hugo)       app/ (React SPA)     + /guias/
+   guía y lecciones   mapa interactivo       guias/ (guías de switching)
                            |
                            | HTTPS (futuro)
                            v
@@ -21,6 +21,7 @@ El proyecto separa tres responsabilidades: portada y contenido público estátic
 | --- | --- | --- |
 | `example.com` | Lecciones, glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
 | `app.example.com` | Mapa por capas y modo "Mi infraestructura" | `npm run build` → Cloudflare Pages |
+| `app.example.com/guias/` | Guías de switching por marca y planificador de red | `npm run build` en `guias/`, integradas con `git subtree` (ver ADR 0004) |
 | `api.example.com` | Cuentas, progreso, inventarios compartidos | **No se construye todavía** (ver ADR 0002) |
 
 ## Contenido compartido
@@ -51,6 +52,7 @@ Los componentes siguen el patrón contenedor/presentación: `MapPage`, `Scenario
 | --- | --- | --- | --- |
 | Guía | `site` | `hugo --minify` | `public` |
 | App | `app` | `npm ci && npm run build` | `dist` |
+| Guías de switching | `guias` | `npm ci && npm run build` | `dist/index.html`, servido en `/guias/` de la app |
 
 Cada carpeta lleva su `_headers` con cabeceras de seguridad (CSP estricta, `nosniff`, `frame-ancestors 'none'`). La app incluye `_redirects` para que las rutas de la SPA vuelvan a `index.html`.
 

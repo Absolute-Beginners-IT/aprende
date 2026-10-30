@@ -10,6 +10,7 @@ La app incluye además **escenarios de incidencias** paso a paso sobre el mapa, 
 | --- | --- | --- |
 | `site/` | Guía y lecciones (Hugo, contenido estático) | `example.com` |
 | `app/` | Mapa interactivo (React + Vite + TypeScript, SPA estática) | `app.example.com` |
+| `guias/` | Guías de switching por marca (de [Absolute-Beginners-IT/guias](https://github.com/Absolute-Beginners-IT/guias), integradas con `git subtree`) | `app.example.com/guias/` |
 | `api/` | Backend futuro. **Todavía no existe**: ver `api/README.md` | `api.example.com` |
 | `content/` | Base de conocimiento compartida (JSON) que leen `site/` y `app/` | — |
 | `toolkit/` | Scripts PowerShell y plantillas para aplicar lo aprendido en una red real | — |
@@ -19,13 +20,23 @@ La separación en portada estática, aplicación estática y API futura se expli
 
 ## Desarrollo
 
-Requisitos: Node.js 20 o superior y Hugo extended 0.158 o superior.
+Requisitos: Node.js 24 y Hugo extended 0.158 o superior.
 
 ```bash
 cd app && npm install && npm run dev      # mapa en http://localhost:5173
 cd app && npm test                         # tests (Vitest)
+cd guias && npm ci && npm run dev          # guías de switching
+cd guias && npm test                       # tests de las guías (Vitest)
 cd site && hugo server                     # guía en http://localhost:1313
 ```
+
+Las guías de switching se desarrollan en su propio repo. Para traer sus cambios:
+
+```bash
+git subtree pull --prefix=guias https://github.com/Absolute-Beginners-IT/guias.git main --squash
+```
+
+No edites `guias/` directamente aquí: el siguiente `subtree pull` daría conflictos (ver [ADR 0004](docs/adr/0004-guias-integradas-con-subtree.md)).
 
 ## Contenido
 

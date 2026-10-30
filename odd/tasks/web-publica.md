@@ -15,7 +15,7 @@ Objetivo: publicar el proyecto como prototipo honesto, con la arquitectura de tr
 
 | ID | Specs | Ruta | Estado | Evidencia |
 | --- | --- | --- | --- | --- |
-| T1 | S1, S2 | inline | en curso | — |
+| T1 | S1, S2 | inline | hecho | subtree desde `guias` 13cea0a; `guias` 243/243 y build, `app` 34/34 y build, Hugo build sin errores |
 | T2 | S1, S6 | inline | pendiente | — |
 | T3 | S3 | inline | pendiente | — |
 | T4 | S4 | inline | pendiente | — |
@@ -28,3 +28,4 @@ T1 Manuales integrado en `guias/` con `git subtree`, con sus pruebas y su build 
 
 - L1 (2026-10-30): "no lo sé, sigue la arquitectura que te pasé en las 6 imagenes, simplifica todo lo que puedas y vamos poco a poco. integraría el repor de manuales switches en el proyecto este pero dejaría su repo como está por si se sigue desarrollando independientemente por otra via"
 - L2 (2026-10-30): contexto previo. Repos públicos nuevos `aprende` (desde Mapa-Infraestructura, sin `legacy/` ni las imágenes del curso) y `guias` (desde Manual-Switches), cada uno con un commit inicial firmado con la dirección anónima de GitHub; los privados quedan como archivo. Verificado: sin datos de la empresa ni secretos; `aprende` 34/34 pruebas y build, `guias` 243/243 pruebas, tipos y build.
+- L3 (2026-10-30): T1 en la rama `feat/integrate-guias`. Manuales integrado en `guias/` con `git subtree --squash` (ADR 0004); se quita `Subir-a-GitHub.ps1`, un script de un solo uso que creaba el repo privado antiguo. Siguiente: T2, despliegue en GitHub Pages.
