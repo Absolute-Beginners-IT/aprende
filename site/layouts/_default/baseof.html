@@ -24,7 +24,7 @@
       <button type="button" class="theme-toggle" data-theme-toggle hidden>Tema</button>
     </nav>
   </header>
-  <main class="page">{{ block "main" . }}{{ end }}</main>
+  <main class="page{{ if .IsHome }} page--wide{{ end }}">{{ block "main" . }}{{ end }}</main>
   <footer class="foot"><p>Contenido de práctica: usa los scripts del toolkit solo en redes de tu empresa y con autorización.</p></footer>
 </body>
 </html>
