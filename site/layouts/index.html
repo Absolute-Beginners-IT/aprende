@@ -1,15 +1,73 @@
 {{ define "main" }}
-<section class="hero">
-  <span class="label">Mentoría · Sistemas</span>
-  <h1>{{ site.Title }}</h1>
-  <p>{{ site.Params.description }}</p>
-  <p><a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa de infraestructura</a></p>
+{{/* Figures come from the shared content, so the landing never promises more than exists. */}}
+{{ $tipos := len hugo.Data.kb.tipos }}
+{{ $escenarios := len hugo.Data.escenarios }}
+{{ $terminos := len hugo.Data.glosario }}
+{{ $primera := index (where site.RegularPages "Section" "lecciones").ByWeight 0 }}
+
+<section class="landing-hero">
+  <div class="landing-hero__text">
+    <span class="label">Prototipo gratuito · Para quien empieza en sistemas</span>
+    <h1>{{ site.Title }}</h1>
+    <p class="landing-lead">Qué hay en la infraestructura de una empresa, cómo se vigila y cómo se cambia sin romper nada. Con un mapa interactivo, guías paso a paso con vuelta atrás y herramientas para aplicarlo en tu propia red.</p>
+    <p class="landing-actions">
+      <a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa</a>
+      {{ with $primera }}<a class="cta cta--ghost" href="{{ .RelPermalink }}">Empezar por la lección 1</a>{{ end }}
+    </p>
+    <p class="muted landing-trust">Gratis · Sin registro · Lo que escribes se queda en tu navegador</p>
+  </div>
+  {{/* The four layers of the reference map, the idea the whole guide is built on. */}}
+  <ol class="layers-figure" aria-label="Las cuatro capas de una infraestructura">
+    <li class="layer layer--proteccion"><b>Protección</b><span>Copias, SAI y monitorización</span></li>
+    <li class="layer layer--servicios"><b>Servicios</b><span>Directorio activo, DNS, DHCP y ficheros</span></li>
+    <li class="layer layer--logica"><b>Lógica</b><span>VLAN y subredes</span></li>
+    <li class="layer layer--fisica"><b>Física</b><span>Firewall, switches, wifi y servidores</span></li>
+  </ol>
 </section>
-{{ .Content }}
-<h2>Lecciones</h2>
-<ol class="lessons">
-  {{ range (where site.RegularPages "Section" "lecciones").ByWeight }}
-  <li><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} <span class="muted">· {{ . }}</span>{{ end }}</li>
-  {{ end }}
-</ol>
+
+<section class="landing-section">
+  <h2>Qué puedes hacer aquí</h2>
+  <div class="feature-grid">
+    <a class="feature" href="{{ site.Params.appURL }}">
+      <span class="label">Entender</span>
+      <h3>El mapa de una pyme típica</h3>
+      <p>Las piezas de una infraestructura por capas. De cada uno de los {{ $tipos }} tipos de equipo: qué es, para qué sirve, qué pasa si falla, qué vigilar y qué mantenimiento necesita.</p>
+    </a>
+    <a class="feature" href="{{ site.Params.appURL }}#mi-infraestructura">
+      <span class="label">Comparar</span>
+      <h3>Mi infraestructura</h3>
+      <p>Apunta tus equipos o importa tu inventario y descubre qué te falta frente a una pyme típica: copias, alta disponibilidad, SAI, monitorización y soporte.</p>
+    </a>
+    <a class="feature" href="{{ site.Params.appURL }}guias/">
+      <span class="label">Cambiar con seguridad</span>
+      <h3>Guías de switching</h3>
+      <p>Paso a paso para Aruba CX, Cisco Catalyst 1300, MikroTik y Ruijie: los comandos con tus datos, qué comprobar antes y después, y cómo volver atrás si algo falla.</p>
+    </a>
+    <a class="feature" href="{{ "herramientas/" | relURL }}">
+      <span class="label">Aplicarlo en tu red</span>
+      <h3>Herramientas</h3>
+      <p>Scripts para descubrir tu red y medirla, plantillas de inventario, alertas, mantenimiento, MOP y post-mortem. Cada descarga con su huella SHA-256.</p>
+    </a>
+  </div>
+</section>
+
+<section class="landing-section">
+  <h2>Cómo usarla</h2>
+  <ol class="steps">
+    <li><b>Entiende las piezas.</b> Empieza por la lección 1 y ten el mapa abierto al lado: cada concepto se ve en su sitio.</li>
+    <li><b>Mira tu caso.</b> Compara tu infraestructura con la de referencia y repasa los {{ $escenarios }} escenarios de incidencias, paso a paso sobre el mapa.</li>
+    <li><b>Cambia con red de seguridad.</b> Sigue la guía de tu marca, verifica cada paso y ten preparada la vuelta atrás. Al terminar, guarda el registro del cambio para tu ticket.</li>
+  </ol>
+  <p class="muted">Y si te pierdes con algún término, el <a href="{{ "glosario/" | relURL }}">glosario</a> explica {{ $terminos }} sin rodeos.</p>
+</section>
+
+<section class="landing-section honest">
+  <h2>Sin letra pequeña</h2>
+  <ul>
+    <li><b>Es un prototipo.</b> El contenido se está revisando y cada guía indica si está sin verificar, contrastada con la documentación o probada en un equipo real.</li>
+    <li><b>No hay cuentas ni servidor.</b> Tu inventario y los valores de las guías se guardan solo en tu navegador.</li>
+    <li><b>Los scripts se ejecutan en tu red</b>, solo con autorización, y puedes comprobar que no se han modificado antes de usarlos.</li>
+  </ul>
+  <p><a href="{{ "que-es-esto/" | relURL }}">Qué es esto y en qué estado está</a></p>
+</section>
 {{ end }}
