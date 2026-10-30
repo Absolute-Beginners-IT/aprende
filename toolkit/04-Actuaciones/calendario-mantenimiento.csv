@@ -1,0 +1,18 @@
+﻿Tipo;Actuacion;Frecuencia;Disparador_por_monitorizacion;Tipo_cambio_ITIL;Ventana;Requiere_MOP;Notas
+firewall;Revisar avisos de seguridad del fabricante (PSIRT);Semanal;-;-;-;No;Fortinet PSIRT / avisos INCIBE-CERT
+firewall;Actualizar firmware a version recomendada;Trimestral o por vulnerabilidad critica;Version < recomendada o CVE critico;Normal (Emergencia si CVE explotado);Fuera de horario;Si;Seguir upgrade path del fabricante
+firewall;Copia de configuracion;Diaria (automatica) + antes de cada cambio;-;Estandar;-;No;Oxidized o FortiManager
+firewall;Revision de reglas sin uso y caducadas;Semestral;Contador de hits = 0;Normal;Laboral;No;-
+switch;Copia de configuracion;Diaria (automatica);Cambio detectado en config;Estandar;-;No;Oxidized con salida git
+switch;Actualizar firmware;Anual o por vulnerabilidad;Version EoL o CVE;Normal;Fuera de horario;Si;Empezar por acceso, core el ultimo
+switch;Revisar puertos con errores y sin uso;Trimestral;Errores > umbral;Estandar;Laboral;No;-
+hipervisor;Parches ESXi / Hyper-V;Mensual (Hyper-V) / Trimestral (ESXi);Parches pendientes;Normal;Fuera de horario;Si;Cluster-Aware Updating / vLCM con modo mantenimiento
+hipervisor;Prueba de HA (failover controlado);Semestral;-;Normal;Fuera de horario;Si;Documentar tiempos de recuperacion
+hipervisor;Limpieza de snapshots;Semanal;Snapshot > 3 dias;Estandar;Laboral;No;-
+servidor;Parches Windows;Mensual (tras Patch Tuesday);Parches pendientes > 30 dias;Estandar;Fuera de horario;No;Grupo piloto primero
+hardware;Firmware BIOS / iDRAC / iLO / controladora;Semestral;Version antigua;Normal;Fuera de horario;Si;Con el host en mantenimiento
+backup;Prueba de restauracion;Mensual (muestra) / Anual (completa);-;Estandar;Laboral;No;Regla 3-2-1-1-0: 0 errores verificados
+sai;Test de bateria;Trimestral;-;Estandar;Laboral;No;Programable en la tarjeta de red del SAI
+internet;Prueba de velocidad y conmutacion a linea de respaldo;Mensual;Velocidad < 70% contratado;Estandar;Fuera de horario;No;Scripts de 05-Pruebas-Red
+general;Revision de inventario y fin de soporte;Trimestral;Fin_Soporte < 12 meses;-;-;No;Planificar renovaciones en presupuesto
+general;Revision de cuentas y accesos de proveedores;Trimestral;-;-;-;No;Incluye cuentas de proveedores externos y de soporte

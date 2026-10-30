@@ -1,0 +1,59 @@
+{
+  "id": "pyme",
+  "nombre": "Pyme típica (una sede, 30-80 puestos)",
+  "descripcion": "Infraestructura de referencia para entender qué suele haber en una empresa pequeña o mediana y cómo se relaciona cada pieza.",
+  "capas": [
+    { "id": "fisica", "nombre": "Física", "descripcion": "Equipos y cables: por dónde viajan los datos." },
+    { "id": "logica", "nombre": "Lógica", "descripcion": "VLANs y subredes: cómo se separa el tráfico aunque compartan cable." },
+    { "id": "servicios", "nombre": "Servicios", "descripcion": "Lo que usan las personas: identidad, nombres, ficheros, impresión." },
+    { "id": "proteccion", "nombre": "Protección", "descripcion": "Lo que evita perder datos o servicio: copias, energía y vigilancia." }
+  ],
+  "nodos": [
+    { "id": "isp1", "tipo": "internet", "nombre": "Fibra principal", "capa": "fisica", "x": 2, "y": 0, "descripcion": "Línea de la operadora. Si cae, la empresa se queda sin correo en la nube, web y VPN." },
+    { "id": "isp2", "tipo": "internet", "nombre": "Línea de respaldo", "capa": "fisica", "x": 4, "y": 0, "descripcion": "4G/5G o segunda fibra. Solo sirve si se prueba la conmutación." },
+    { "id": "fw1", "tipo": "firewall", "nombre": "Firewall A", "capa": "fisica", "x": 2, "y": 1, "descripcion": "Separa Internet de la red interna y entre VLANs. Punto único de fallo si no hay pareja." },
+    { "id": "fw2", "tipo": "firewall", "nombre": "Firewall B (HA)", "capa": "fisica", "x": 4, "y": 1, "descripcion": "Pareja en alta disponibilidad del firewall A." },
+    { "id": "core", "tipo": "switch", "nombre": "Switch core", "capa": "fisica", "x": 3, "y": 2, "descripcion": "Corazón de la red local: todo pasa por aquí." },
+    { "id": "acc1", "tipo": "switch", "nombre": "Switch planta 1", "capa": "fisica", "x": 0, "y": 3, "descripcion": "Switch de acceso: conecta puestos, teléfonos e impresoras." },
+    { "id": "acc2", "tipo": "switch", "nombre": "Switch planta 2", "capa": "fisica", "x": 1, "y": 3, "descripcion": "Switch de acceso de la segunda planta." },
+    { "id": "ap", "tipo": "wifi", "nombre": "Puntos de acceso wifi", "capa": "fisica", "x": 2, "y": 3, "descripcion": "Wifi corporativa e invitados, cada una en su VLAN." },
+    { "id": "esx1", "tipo": "hipervisor", "nombre": "Hipervisor 1", "capa": "fisica", "x": 4, "y": 3, "descripcion": "Servidor físico que ejecuta máquinas virtuales." },
+    { "id": "esx2", "tipo": "hipervisor", "nombre": "Hipervisor 2", "capa": "fisica", "x": 5, "y": 3, "descripcion": "Segundo nodo: si cae el primero, las VMs arrancan aquí." },
+    { "id": "nas", "tipo": "almacenamiento", "nombre": "Cabina / NAS", "capa": "fisica", "x": 6, "y": 3, "descripcion": "Almacenamiento compartido de las VMs." },
+    { "id": "imp", "tipo": "impresora", "nombre": "Impresoras", "capa": "fisica", "x": 0, "y": 4, "descripcion": "Las grandes olvidadas: suelen tener firmware sin actualizar." },
+    { "id": "dc", "tipo": "vm", "nombre": "Controlador de dominio (AD, DNS, DHCP)", "capa": "servicios", "x": 3, "y": 4, "descripcion": "Quién eres (AD), cómo se llaman las cosas (DNS) y qué IP te toca (DHCP). Si falla, falla casi todo." },
+    { "id": "fs", "tipo": "vm", "nombre": "Servidor de ficheros", "capa": "servicios", "x": 4, "y": 4, "descripcion": "Carpetas compartidas con permisos por grupo." },
+    { "id": "app", "tipo": "vm", "nombre": "Aplicación de gestión (ERP)", "capa": "servicios", "x": 5, "y": 4, "descripcion": "El programa del que vive la empresa. Suele tener su propia base de datos." },
+    { "id": "bkp", "tipo": "backup", "nombre": "Servidor de copias", "capa": "proteccion", "x": 6, "y": 4, "descripcion": "Copias 3-2-1: tres copias, dos soportes, una fuera. Una copia sin prueba de restauración no es una copia." },
+    { "id": "mon", "tipo": "vm", "nombre": "Monitorización", "capa": "proteccion", "x": 2, "y": 4, "descripcion": "Vigila todo lo anterior y avisa antes de que llame el usuario." },
+    { "id": "sai", "tipo": "sai", "nombre": "SAI del CPD", "capa": "proteccion", "x": 7, "y": 2, "descripcion": "Da tiempo para un apagado ordenado si se va la luz." }
+  ],
+  "enlaces": [
+    { "desde": "isp1", "hasta": "fw1" },
+    { "desde": "isp2", "hasta": "fw2" },
+    { "desde": "fw1", "hasta": "fw2", "tipo": "ha" },
+    { "desde": "fw1", "hasta": "core" },
+    { "desde": "fw2", "hasta": "core" },
+    { "desde": "core", "hasta": "acc1" },
+    { "desde": "core", "hasta": "acc2" },
+    { "desde": "core", "hasta": "ap" },
+    { "desde": "core", "hasta": "esx1" },
+    { "desde": "core", "hasta": "esx2" },
+    { "desde": "core", "hasta": "nas" },
+    { "desde": "acc1", "hasta": "imp" },
+    { "desde": "esx1", "hasta": "dc", "tipo": "aloja" },
+    { "desde": "esx1", "hasta": "fs", "tipo": "aloja" },
+    { "desde": "esx2", "hasta": "app", "tipo": "aloja" },
+    { "desde": "esx1", "hasta": "mon", "tipo": "aloja" },
+    { "desde": "nas", "hasta": "bkp", "tipo": "copia" },
+    { "desde": "sai", "hasta": "esx1", "tipo": "energia" },
+    { "desde": "sai", "hasta": "esx2", "tipo": "energia" },
+    { "desde": "sai", "hasta": "nas", "tipo": "energia" }
+  ],
+  "zonas": [
+    { "id": "vlan-usuarios", "nombre": "VLAN 10 · Usuarios", "nodos": ["acc1", "acc2", "imp"] },
+    { "id": "vlan-wifi", "nombre": "VLAN 20/30 · Wifi corporativa e invitados", "nodos": ["ap"] },
+    { "id": "vlan-servidores", "nombre": "VLAN 50 · Servidores", "nodos": ["esx1", "esx2", "nas", "dc", "fs", "app", "bkp", "mon"] },
+    { "id": "vlan-gestion", "nombre": "VLAN 99 · Gestión", "nodos": ["fw1", "fw2", "core", "sai"] }
+  ]
+}

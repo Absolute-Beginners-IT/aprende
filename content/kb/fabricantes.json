@@ -1,0 +1,68 @@
+[
+  {
+    "patron": "fortinet|fortigate",
+    "flags": "i",
+    "nombre": "FortiGate (FortiOS 7.4, 7.6 y 8.0) · SNMPv3",
+    "configuracion": "config system snmp sysinfo\n    set status enable\nend\nconfig system snmp user\n    edit \"zabbix\"\n        set notify-hosts <ZBX_IP>\n        set security-level auth-priv\n        set auth-proto sha256\n        set auth-pwd <CLAVE_AUTH>\n        set priv-proto aes256\n        set priv-pwd <CLAVE_PRIV>\n    next\nend\nconfig system interface\n    edit \"<interfaz_gestion>\"\n        append allowaccess snmp\n    next\nend"
+  },
+  {
+    "patron": "cisco|catalyst|nexus",
+    "flags": "i",
+    "nombre": "Cisco IOS / IOS-XE · SNMPv3",
+    "configuracion": "! IOS-XE 17.10 o posterior: SHA-2 y AES-256\nsnmp-server view ZBXVIEW iso included\nsnmp-server group ZBXGRP v3 priv read ZBXVIEW\nsnmp-server user zabbix ZBXGRP v3 auth sha-2 256 <CLAVE_AUTH> priv aes 256 <CLAVE_PRIV>\nsnmp-server host <ZBX_IP> version 3 priv zabbix\nsnmp-server enable traps snmp linkdown linkup coldstart\n! Versiones anteriores (solo SHA-1): auth sha <CLAVE_AUTH> priv aes 128 <CLAVE_PRIV>"
+  },
+  {
+    "patron": "aos-?cx|aruba.*(6[0-9]{3}|8[0-9]{3})|cx ?6",
+    "flags": "i",
+    "nombre": "HPE Aruba AOS-CX · SNMPv3",
+    "configuracion": "snmp-server vrf default\nsnmpv3 user zabbix auth sha256 auth-pass plaintext <CLAVE_AUTH> priv aes256 priv-pass plaintext <CLAVE_PRIV>\n! sha256 y aes256 figuran en la documentación de AOS-CX 10.13 y posteriores. Si tu versión no los admite\n! (compruébalo con \"snmpv3 user zabbix auth ?\"), usa auth sha y priv aes.\n! Zabbix: \"Aruba CX 8300s by SNMP\" (8325/8360); en otros modelos, \"HP Enterprise Switch by SNMP\"."
+  },
+  {
+    "patron": "aruba|procurve|hpe|hp ",
+    "flags": "i",
+    "nombre": "HPE Aruba AOS-S (2530, 2930F…, gama anterior) · SNMPv3",
+    "configuracion": "snmpv3 enable\nsnmpv3 user zabbix auth sha <CLAVE_AUTH> priv aes <CLAVE_PRIV>\nsnmpv3 group managerpriv user zabbix sec-model ver3\nsnmpv3 only"
+  },
+  {
+    "patron": "vmware|esxi|vsphere|vcenter",
+    "flags": "i",
+    "nombre": "VMware vCenter (vSphere 8 y 9) · API",
+    "configuracion": "# 1. vCenter: usuario svc-zabbix con rol \"Solo lectura\" propagado\n# 2. zabbix_server.conf:\nStartVMwareCollectors=2\n# 3. Host en Zabbix con plantilla \"VMware\" y macros:\n{$VMWARE.URL}=https://<vcenter>/sdk\n{$VMWARE.USERNAME}=svc-zabbix@vsphere.local\n{$VMWARE.PASSWORD}=<clave>"
+  },
+  {
+    "patron": "hyper-?v|microsoft|windows|azure local",
+    "flags": "i",
+    "nombre": "Hyper-V / Windows · Zabbix Agent 2",
+    "configuracion": "# zabbix_agent2.conf\nServer=<ZBX_IP>\nServerActive=<ZBX_IP>\nHostname=<NOMBRE>\n# Estado del clúster (Failover Cluster)\nUserParameter=cluster.nodes.down,powershell -NoProfile -Command \"(Get-ClusterNode | Where-Object State -ne 'Up').Count\"\nUserParameter=cluster.csv.freepct[*],powershell -NoProfile -Command \"$c=Get-ClusterSharedVolume -Name '$1'; [math]::Round($c.SharedVolumeInfo.Partition.PercentFree,1)\"\n# Contadores útiles (ítem perf_counter_en):\n# \\Hyper-V Hypervisor Logical Processor(_Total)\\% Total Run Time\n# \\Hyper-V Virtual Storage Device(*)\\Latency"
+  },
+  {
+    "patron": "proxmox|pve",
+    "flags": "i",
+    "nombre": "Proxmox VE · API",
+    "configuracion": "# En Proxmox: Datacenter > Permissions > API Tokens\n#   usuario zabbix@pve con rol PVEAuditor (solo lectura) y su token\n#   Asigna el rol al usuario y también al token: con \"Privilege Separation\" el token no hereda los permisos\n# En Zabbix: plantilla \"Proxmox VE by HTTP\" con las macros:\n{$PVE.URL.HOST}=<servidor-proxmox>\n{$PVE.URL.PORT}=8006\n{$PVE.TOKEN.ID}=zabbix@pve!monitorizacion\n{$PVE.TOKEN.SECRET}=<secreto>"
+  },
+  {
+    "patron": "dell|poweredge|idrac",
+    "flags": "i",
+    "nombre": "Dell iDRAC · Redfish",
+    "configuracion": "# En iDRAC (8 o 9, firmware 4.32 o posterior): activar Redfish y crear un usuario de solo lectura\n# En Zabbix: plantilla \"DELL PowerEdge <modelo> by HTTP\" (R720, R740, R820, R840…)\n# Alternativa: SNMPv3 (SHA + AES) con la plantilla \"DELL PowerEdge <modelo> by SNMP\"\n# Así ves discos, fuentes y temperatura aunque el sistema operativo esté caído."
+  },
+  {
+    "patron": "proliant|ilo",
+    "flags": "i",
+    "nombre": "HPE iLO · Redfish",
+    "configuracion": "# En iLO 5 o 6: Security > Access Settings > Redfish, usuario de solo lectura\n# En Zabbix: plantilla \"HPE iLO by HTTP\""
+  },
+  {
+    "patron": "apc|schneider|eaton|salicru|riello|socomec",
+    "flags": "i",
+    "nombre": "SAI · tarjeta de red SNMP",
+    "configuracion": "# En la tarjeta de red del SAI: activar SNMPv3 (o v2c de solo lectura\n# restringido a la IP de Zabbix si el modelo no admite v3; evita SNMPv1).\n# Zabbix: \"APC UPS by SNMP\" o plantilla genérica UPS-MIB."
+  },
+  {
+    "patron": "veeam",
+    "flags": "i",
+    "nombre": "Veeam B&R 12 y 13 · API REST",
+    "configuracion": "# Usuario de solo lectura en Veeam (rol Veeam Backup Viewer)\n# Zabbix: plantilla \"Veeam Backup and Replication by HTTP\"\n{$VEEAM.API.URL}=https://<servidor-veeam>:9419\n{$VEEAM.USER}=svc-zabbix\n{$VEEAM.PASSWORD}=<clave>\n# La API REST solo está en las ediciones Foundation, Advanced, Premium y Enterprise Plus."
+  }
+]

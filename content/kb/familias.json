@@ -1,0 +1,26 @@
+[
+  {
+    "id": "perim",
+    "nombre": "Perímetro"
+  },
+  {
+    "id": "net",
+    "nombre": "Red"
+  },
+  {
+    "id": "comp",
+    "nombre": "Cómputo"
+  },
+  {
+    "id": "data",
+    "nombre": "Datos"
+  },
+  {
+    "id": "power",
+    "nombre": "Energía"
+  },
+  {
+    "id": "other",
+    "nombre": "Otros"
+  }
+]

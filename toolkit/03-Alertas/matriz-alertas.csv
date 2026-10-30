@@ -1,0 +1,33 @@
+﻿Tipo;Que_se_vigila;Umbral_aviso;Umbral_critico;Severidad;Canal;Horario;Accion_esperada;Runbook
+internet;Perdida de paquetes a 1.1.1.1 y 8.8.8.8;>5% 5 min;100% 2 min;Desastre;Teams + SMS;24x7;Comprobar router operadora y abrir incidencia;RB-Caida-Comunicaciones
+internet;Latencia a Internet;>80 ms 10 min;>200 ms 10 min;Media;Teams;Laboral;Revisar saturacion del enlace;RB-Caida-Comunicaciones
+internet;Velocidad de bajada (speedtest);<70% contratado;<40% contratado;Media;Correo;Laboral;Repetir prueba y reclamar a operadora;RB-Pruebas-Red
+firewall;Equipo no responde (ping/SNMP);2 fallos;5 min;Desastre;Teams + SMS;24x7;Acceso por consola, revisar alimentacion;RB-Firewall
+firewall;CPU;>80% 15 min;>95% 5 min;Alta;Teams;24x7;Revisar sesiones y politicas;RB-Firewall
+firewall;Memoria (modo conserve);>80%;>90%;Alta;Teams;24x7;Revisar sesiones y perfiles UTM;RB-Firewall
+firewall;Tunel VPN caido;1 tunel;Tunel critico;Alta;Teams;24x7;Revisar fase 1/2 y extremo remoto;RB-VPN
+firewall;Cluster HA desincronizado;Checksum distinto;Un nodo fuera;Alta;Teams;24x7;diagnose sys ha checksum cluster;RB-Firewall
+firewall;Licencias/contrato FortiGuard;<60 dias;<15 dias;Aviso;Correo;Laboral;Renovar;-
+switch;Equipo no responde;2 fallos;5 min;Alta;Teams;24x7;Revisar uplink y alimentacion;RB-Switch
+switch;Puerto de uplink caido;Link down;Link down troncal;Alta;Teams;24x7;Revisar cable/SFP y agregado LACP;RB-Switch
+switch;Errores en interfaz;>0.1%;>1%;Media;Correo;Laboral;Cambiar latiguillo/SFP;RB-Switch
+switch;Uso de interfaz uplink;>70% 15 min;>90% 15 min;Media;Correo;Laboral;Valorar ampliar agregado;-
+switch;Cambio de topologia STP;1 en 1 h;>5 en 1 h;Alta;Teams;24x7;Buscar bucle;RB-Switch
+hipervisor;Host desconectado del cluster;-;Inmediato;Desastre;Teams + SMS;24x7;Comprobar HA y arranque de VMs;RB-HA
+hipervisor;CPU host;>80% 30 min;>90% 15 min;Media;Correo;Laboral;Balancear VMs;-
+hipervisor;Memoria host;>85%;>95%;Alta;Teams;24x7;Revisar consumo y capacidad N+1;-
+hipervisor;Datastore / CSV libre;<20%;<10%;Alta;Teams;24x7;Limpiar snapshots o ampliar;RB-Almacenamiento
+hipervisor;Snapshots de VM antiguos;>3 dias;>7 dias;Media;Correo;Laboral;Consolidar snapshots;-
+servidor;Servidor no responde;2 fallos;5 min;Alta;Teams;24x7;Revisar consola del hipervisor;-
+servidor;Disco libre;<15%;<5%;Alta;Teams;24x7;Liberar espacio;-
+servidor;Servicio critico parado (AD, DNS, SQL...);-;Parado;Alta;Teams;24x7;Arrancar y revisar eventos;-
+servidor;Reinicio pendiente / parches;>30 dias sin parchear;>60 dias;Aviso;Correo;Laboral;Planificar ventana;-
+hardware;Disco fisico / RAID degradado;Predictivo;Fallido;Alta;Teams;24x7;Pedir disco por garantia;-
+hardware;Fuente de alimentacion o ventilador;-;Fallo;Alta;Teams;24x7;Pedir repuesto;-
+hardware;Temperatura;>30 C sala;>35 C sala;Alta;Teams + SMS;24x7;Revisar climatizacion;-
+sai;En bateria;En bateria;Autonomia <10 min;Desastre;Teams + SMS;24x7;Apagado ordenado;RB-Apagado
+sai;Bateria a sustituir;Test fallido;-;Media;Correo;Laboral;Pedir baterias;-
+backup;Trabajo de copia fallido;Aviso;Fallido 1 vez;Alta;Teams;Laboral;Relanzar y revisar log;RB-Backup
+backup;Sin copia correcta en X horas;>26 h;>48 h;Alta;Teams;24x7;Revisar repositorio y trabajos;RB-Backup
+backup;Repositorio libre;<20%;<10%;Alta;Correo;Laboral;Ajustar retencion o ampliar;-
+certificado;Caducidad certificado;<30 dias;<7 dias;Alta;Correo;Laboral;Renovar;-

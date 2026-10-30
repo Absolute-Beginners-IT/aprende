@@ -1,0 +1,150 @@
+[
+  {
+    "fase": "Descubrir",
+    "objetivo": "Saber qué hay.",
+    "pasos": [
+      {
+        "id": "p1a",
+        "texto": "Ejecutar Descubrir-Red.ps1 en cada VLAN y sede"
+      },
+      {
+        "id": "p1b",
+        "texto": "Revisar ARP/LLDP del switch core para equipos que no responden a ping"
+      },
+      {
+        "id": "p1c",
+        "texto": "Pedir al anterior responsable o al proveedor de soporte su inventario y diagramas"
+      }
+    ]
+  },
+  {
+    "fase": "Inventariar",
+    "objetivo": "Una sola fuente de verdad.",
+    "pasos": [
+      {
+        "id": "p2a",
+        "texto": "Completar tipo, marca, modelo y firmware de cada equipo"
+      },
+      {
+        "id": "p2b",
+        "texto": "Rellenar el uplink de cada equipo (dibuja el mapa)"
+      },
+      {
+        "id": "p2c",
+        "texto": "Anotar fin de soporte de cada modelo"
+      },
+      {
+        "id": "p2d",
+        "texto": "Guardar credenciales en el gestor de contraseñas, no en el inventario"
+      }
+    ]
+  },
+  {
+    "fase": "Monitorizar",
+    "objetivo": "Ver antes de que llame el usuario.",
+    "pasos": [
+      {
+        "id": "p3a",
+        "texto": "Montar Zabbix 7.0 LTS en una VM (pasar a 8.0 LTS cuando salga) y un proxy por sede si hay varias"
+      },
+      {
+        "id": "p3b",
+        "texto": "Ping a todo el inventario"
+      },
+      {
+        "id": "p3c",
+        "texto": "SNMPv3 en firewall y switches"
+      },
+      {
+        "id": "p3d",
+        "texto": "vCenter / clúster Hyper-V y iDRAC/iLO"
+      },
+      {
+        "id": "p3e",
+        "texto": "Agente en servidores críticos"
+      },
+      {
+        "id": "p3f",
+        "texto": "Backup, SAI y certificados"
+      },
+      {
+        "id": "p3g",
+        "texto": "Monitor externo de la propia monitorización"
+      }
+    ]
+  },
+  {
+    "fase": "Alertar",
+    "objetivo": "Pocas alertas, todas útiles.",
+    "pasos": [
+      {
+        "id": "p4a",
+        "texto": "Definir severidades, canales y horarios"
+      },
+      {
+        "id": "p4b",
+        "texto": "Crear canal de Teams y media types (Teams, correo, SMS)"
+      },
+      {
+        "id": "p4c",
+        "texto": "Dependencias por uplink para evitar avalanchas"
+      },
+      {
+        "id": "p4d",
+        "texto": "Integrar con el sistema de tickets"
+      },
+      {
+        "id": "p4e",
+        "texto": "Revisión del ruido a las 2 semanas"
+      }
+    ]
+  },
+  {
+    "fase": "Actuaciones",
+    "objetivo": "El mantenimiento deja de ser reactivo.",
+    "pasos": [
+      {
+        "id": "p5a",
+        "texto": "Copia automática de configuraciones (Oxidized)"
+      },
+      {
+        "id": "p5b",
+        "texto": "Calendario de parches y firmware"
+      },
+      {
+        "id": "p5c",
+        "texto": "Prueba de restauración mensual"
+      },
+      {
+        "id": "p5d",
+        "texto": "Prueba de HA semestral"
+      },
+      {
+        "id": "p5e",
+        "texto": "MOP y rollback para cada cambio normal"
+      }
+    ]
+  },
+  {
+    "fase": "Medir la red",
+    "objetivo": "Datos para hablar con la operadora.",
+    "pasos": [
+      {
+        "id": "p6a",
+        "texto": "Servidor iperf3 en el CPD"
+      },
+      {
+        "id": "p6b",
+        "texto": "Speedtest programado 3 veces al día"
+      },
+      {
+        "id": "p6c",
+        "texto": "Pruebas desde cada planta, VLAN y sede"
+      },
+      {
+        "id": "p6d",
+        "texto": "Revisar tendencia mensual"
+      }
+    ]
+  }
+]

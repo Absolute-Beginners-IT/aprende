@@ -1,0 +1,25 @@
+# Binarios de herramientas (se descargan de la web oficial)
+toolkit/05-Pruebas-Red/bin/*.exe
+toolkit/05-Pruebas-Red/bin/*.dll
+# Resultados y descubrimientos: contienen IPs, MACs y datos de la red interna
+toolkit/05-Pruebas-Red/resultados/
+toolkit/00-Descubrimiento/descubrimiento_*.csv
+# Nunca subir credenciales
+*.kdbx
+*credenciales*
+*.key
+*.pem
+.env
+.env.*
+
+# App (Vite)
+node_modules/
+app/dist/
+# Guía (Hugo)
+site/public/
+site/resources/
+site/.hugo_build.lock
+
+# Herramientas locales del agente
+.atl/
+.claude/

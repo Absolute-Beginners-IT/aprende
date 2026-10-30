@@ -1,0 +1,9 @@
+{{/* Renders the shared knowledge base (../content/kb/tipos.json): the same data the map uses. */}}
+<table>
+  <thead><tr><th>Equipo</th><th>Qué es</th><th>Qué vigilar</th></tr></thead>
+  <tbody>
+    {{ range hugo.Data.kb.tipos }}
+    <tr><td><strong>{{ .nombre }}</strong></td><td>{{ .queEs }}</td><td>{{ delimit .metricas ", " }}</td></tr>
+    {{ end }}
+  </tbody>
+</table>

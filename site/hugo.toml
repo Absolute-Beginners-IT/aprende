@@ -1,0 +1,28 @@
+baseURL = "https://example.com/"
+locale = "es-ES"
+defaultContentLanguage = "es"
+title = "Guía del administrador de sistemas junior"
+enableRobotsTXT = true
+
+[params]
+  appURL = "https://app.example.com/"
+  description = "Qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella, explicado para quien empieza."
+
+# The shared content in ../content is exposed as site data (hugo.Data.kb.*, hugo.Data.referencia.*),
+# so the guide and the app (app/) always read the same knowledge base.
+[module]
+  [[module.mounts]]
+    source = "content"
+    target = "content"
+  [[module.mounts]]
+    source = "../content"
+    target = "data"
+  [[module.mounts]]
+    source = "layouts"
+    target = "layouts"
+  [[module.mounts]]
+    source = "static"
+    target = "static"
+  [[module.mounts]]
+    source = "archetypes"
+    target = "archetypes"
