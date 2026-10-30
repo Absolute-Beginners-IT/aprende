@@ -41,6 +41,10 @@ export function App() {
 
   return (
     <div className="wrap">
+      {/* Relative links: the app is served under the site (/app/), so ../ is the site and ./guias/ the guides. */}
+      <p className="prototype-notice" role="note" aria-label="Aviso de prototipo">
+        <b>Prototipo en desarrollo:</b> el contenido se está revisando y no sustituye a la documentación oficial del fabricante ni a una prueba en laboratorio. <a href="../que-es-esto/">Qué es esto</a>
+      </p>
       <header className="head">
         <span className="label">Guía para administradores de sistemas junior</span>
         <h1>Mapa de infraestructura</h1>
@@ -50,6 +54,7 @@ export function App() {
         {VIEWS.map(([k, label]) => (
           <a key={k} href={`#${k}`} className="tab" aria-current={view === k ? 'page' : undefined}>{label}</a>
         ))}
+        <a href="./guias/" className="tab">Guías de switching</a>
       </nav>
       <main>
         {view === 'mapa' && <MapPage />}
