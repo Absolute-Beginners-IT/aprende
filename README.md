@@ -29,7 +29,7 @@ cd guias && npm ci && npm run dev          # guías de switching
 cd guias && npm test                       # tests de las guías (Vitest)
 cd site && hugo server                     # guía en http://localhost:1313
 node site/scripts/descargas.mjs            # genera las descargas de «Herramientas» (también al publicar)
-node --test "site/scripts/*.test.mjs"      # tests del generador de descargas
+node --test "site/scripts/*.test.mjs"      # tests de los scripts de la portada (descargas y tema)
 ```
 
 Las guías de switching se desarrollan en su propio repo. Para traer sus cambios:

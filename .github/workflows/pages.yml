@@ -52,13 +52,11 @@ jobs:
 
       - name: Switching guides
         working-directory: guias
-        env:
-          # From /app/guias/ back to the site home; enables the "Volver a la web" link.
-          VITE_HOME_URL: ../../
         run: |
           npm ci
           npm test
-          npm run build
+          # Only the build gets the variable (from /app/guias/ back to the site home), so the tests see the standalone default.
+          VITE_HOME_URL=../../ npm run build
 
       - name: Tool downloads (copied from toolkit/ with their SHA-256)
         run: |
