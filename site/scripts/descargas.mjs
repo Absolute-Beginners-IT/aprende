@@ -2,7 +2,7 @@
 // so the "Herramientas" page offers exactly the bytes it publishes. Hashes are never written by hand.
 // Usage (from the repo root): node site/scripts/descargas.mjs
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, normalize, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -19,14 +19,23 @@ export function generarDescargas({ raiz, destinoArchivos, destinoDatos }) {
   const catalogo = JSON.parse(readFileSync(join(toolkit, 'catalogo.json'), 'utf8'));
 
   // Validate every entry first: a broken catalog must not leave a half-written download folder.
-  const planes = catalogo.map(h => ({
-    ...h,
-    archivos: h.archivos.map(ruta => {
-      const origen = rutaSegura(toolkit, ruta);
-      if (!existsSync(origen)) throw new Error(`El catálogo lista toolkit/${ruta}, que no existe.`);
-      return { ruta: ruta.replaceAll('\\', '/'), origen };
-    }),
-  }));
+  const ids = new Set();
+  const planes = catalogo.map(h => {
+    if (ids.has(h.id)) throw new Error(`El id ${h.id} está repetido en el catálogo.`);
+    ids.add(h.id);
+    return {
+      ...h,
+      archivos: h.archivos.map(ruta => {
+        const origen = rutaSegura(toolkit, ruta);
+        if (!existsSync(origen)) throw new Error(`El catálogo lista toolkit/${ruta}, que no existe.`);
+        if (!statSync(origen).isFile()) throw new Error(`El catálogo lista toolkit/${ruta}, que no es un archivo.`);
+        return { ruta: ruta.replaceAll('\\', '/'), origen };
+      }),
+    };
+  });
+
+  // Start from an empty folder so a tool removed from the catalog leaves no stale download behind.
+  rmSync(destinoArchivos, { recursive: true, force: true });
 
   const datos = planes.map(h => ({
     ...h,

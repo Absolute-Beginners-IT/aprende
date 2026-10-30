@@ -63,6 +63,42 @@ test('fails without writing anything when a listed file does not exist', () => {
   }
 });
 
+test('fails without writing anything when a listed path is a folder, not a file', () => {
+  const raiz = repoDePrueba([{ id: 'x', nombre: 'X', archivos: ['06-Runbooks'] }], { '06-Runbooks/Plantilla-MOP.md': '# MOP' });
+  try {
+    assert.throws(() => generarDescargas(opciones(raiz)), { message: 'El catálogo lista toolkit/06-Runbooks, que no es un archivo.' });
+    assert.equal(existsSync(join(raiz, 'site', 'data', 'herramientas.json')), false);
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
+test('refuses repeated tool ids, which are used as page anchors', () => {
+  const raiz = repoDePrueba(
+    [{ id: 'mop', nombre: 'A', archivos: ['a.md'] }, { id: 'mop', nombre: 'B', archivos: ['b.md'] }],
+    { 'a.md': 'a', 'b.md': 'b' },
+  );
+  try {
+    assert.throws(() => generarDescargas(opciones(raiz)), { message: 'El id mop está repetido en el catálogo.' });
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
+test('removes downloads left over from tools no longer in the catalog', () => {
+  const raiz = repoDePrueba([{ id: 'mop', nombre: 'MOP', archivos: ['06-Runbooks/Plantilla-MOP.md'] }], { '06-Runbooks/Plantilla-MOP.md': '# MOP' });
+  const sobrante = join(raiz, 'site', 'static', 'herramientas', 'descargas', 'viejo', 'Retirado.ps1');
+  try {
+    mkdirSync(dirname(sobrante), { recursive: true });
+    writeFileSync(sobrante, 'ya no está en el catálogo');
+    generarDescargas(opciones(raiz));
+    assert.equal(existsSync(sobrante), false);
+    assert.equal(existsSync(join(raiz, 'site', 'static', 'herramientas', 'descargas', '06-Runbooks', 'Plantilla-MOP.md')), true);
+  } finally {
+    rmSync(raiz, { recursive: true, force: true });
+  }
+});
+
 test('refuses paths that leave the toolkit folder', () => {
   for (const ruta of ['../secreto.txt', 'a/../../secreto.txt', '/etc/passwd', 'C:\\Windows\\win.ini']) {
     const raiz = repoDePrueba([{ id: 'x', nombre: 'X', archivos: [ruta] }], {});
@@ -78,6 +114,7 @@ test('the real catalog only lists files that exist and describes each tool', () 
   const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
   const catalogo = JSON.parse(readFileSync(join(raiz, 'toolkit', 'catalogo.json'), 'utf8'));
   assert.ok(catalogo.length > 0);
+  assert.equal(new Set(catalogo.map(h => h.id)).size, catalogo.length, 'ids repetidos');
   for (const h of catalogo) {
     for (const campo of ['id', 'nombre', 'tipo', 'descripcion', 'requisitos']) assert.ok(h[campo]?.trim(), `${campo} de ${h.id}`);
     for (const archivo of h.archivos) assert.ok(existsSync(join(raiz, 'toolkit', archivo)), `toolkit/${archivo}`);
