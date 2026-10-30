@@ -1,7 +1,11 @@
 ﻿Copia aquí iperf3.exe (y su cygwin1.dll) y speedtest.exe (Ookla Speedtest CLI), descargados de su web oficial.
 
 Los scripts solo ejecutan estos ficheros si su SHA-256 figura en SHA256SUMS.txt, en esta misma carpeta.
-Así, un ejecutable sustituido o alterado no se ejecuta con tus permisos.
+Así no se ejecuta por error una descarga equivocada, corrupta o sustituida después de comprobarla.
+
+Límite: quien pueda escribir en esta carpeta también puede cambiar SHA256SUMS.txt. Deja el toolkit en una
+carpeta en la que solo los administradores tengan permiso de escritura (no en una carpeta compartida
+con permisos de modificación para todos).
 
 1. Calcula el hash de cada fichero (en PowerShell, desde esta carpeta):
      Get-FileHash -Algorithm SHA256 .\iperf3.exe, .\cygwin1.dll, .\speedtest.exe

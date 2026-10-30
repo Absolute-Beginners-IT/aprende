@@ -64,6 +64,11 @@ function Proteger-Celda($v) {
     if ($v -is [string] -and $v -match "^'*[=+\-@`t`r]") { return "'$v" }
     return $v
 }
+# Único punto del script que escribe CSV, para que ninguna exportación se salte Proteger-Celda.
+function Export-CsvProtegido($Filas, [string]$Ruta, [switch]$Anexar) {
+    $Filas | Where-Object { $null -ne $_ } | ForEach-Object { foreach ($c in $_.PSObject.Properties) { $c.Value = Proteger-Celda $c.Value }; $_ } |
+        Export-Csv -Path $Ruta -Delimiter ';' -NoTypeInformation -Encoding UTF8 -Append:$Anexar
+}
 
 $vecinos = @{}
 Get-NetNeighbor -AddressFamily IPv4 | ForEach-Object { $vecinos[$_.IPAddress] = $_.LinkLayerAddress }
@@ -82,7 +87,6 @@ $res = foreach ($ip in $vivos) {
 }
 
 $salida = Join-Path $PSScriptRoot ("descubrimiento_{0}_{1}.csv" -f $Prefijo.Replace('.', '-'), (Get-Date -Format 'yyyyMMdd-HHmm'))
-$res | ForEach-Object { foreach ($c in $_.PSObject.Properties) { $c.Value = Proteger-Celda $c.Value }; $_ } |
-    Export-Csv -Path $salida -Delimiter ';' -NoTypeInformation -Encoding UTF8
+Export-CsvProtegido $res $salida
 Write-Host "CSV generado: $salida" -ForegroundColor Green
 Write-Host "Revisa el tipo sugerido, completa marca/modelo/uplink y pásalo a 01-Inventario\inventario.csv"

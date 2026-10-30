@@ -19,8 +19,12 @@ param(
     [int]$UdpMbps = 500
 )
 
+# Cada script del toolkit se puede copiar suelto a otro equipo, por eso las funciones auxiliares
+# se repiten en vez de importarse de un módulo común; las pruebas (tests\Test-Toolkit.ps1) cubren cada copia.
+
 # Devuelve $null si el SHA-256 del fichero coincide con el de bin\SHA256SUMS.txt (formato de sha256sum:
-# "<hash>  <fichero>"); si no, el motivo para no ejecutarlo. Ver bin\LEEME.txt.
+# "<hash>  <fichero>"); si no, el motivo para no ejecutarlo. Protege frente a descargas equivocadas o
+# corruptas, no frente a quien pueda escribir en bin\ (podría cambiar también SHA256SUMS.txt). Ver bin\LEEME.txt.
 function Comprobar-Binario([string]$ruta) {
     $nombre = Split-Path $ruta -Leaf
     $sums = Join-Path (Split-Path $ruta) 'SHA256SUMS.txt'
@@ -34,6 +38,17 @@ function Comprobar-Binario([string]$ruta) {
     $real = (Get-FileHash -Algorithm SHA256 -Path $ruta).Hash
     if ($real -ne $esperado) { return "El SHA-256 de $nombre ($real) no coincide con el registrado en $sums. No se ejecuta: el fichero puede estar alterado." }
     return $null
+}
+
+# Origen y Destino los escribe quien lanza el script: se protegen igual antes de guardarlos (fórmulas de Excel).
+function Proteger-Celda($v) {
+    if ($v -is [string] -and $v -match "^'*[=+\-@`t`r]") { return "'$v" }
+    return $v
+}
+# Único punto del script que escribe CSV, para que ninguna exportación se salte Proteger-Celda.
+function Export-CsvProtegido($Filas, [string]$Ruta, [switch]$Anexar) {
+    $Filas | Where-Object { $null -ne $_ } | ForEach-Object { foreach ($c in $_.PSObject.Properties) { $c.Value = Proteger-Celda $c.Value }; $_ } |
+        Export-Csv -Path $Ruta -Delimiter ';' -NoTypeInformation -Encoding UTF8 -Append:$Anexar
 }
 
 $bin = Join-Path $PSScriptRoot 'bin\iperf3.exe'
@@ -70,6 +85,6 @@ $fila = [pscustomobject]@{
     UDP_Perdida_pct = if ($udp) { [math]::Round($udp.end.sum.lost_percent, 2) } else { $null }
     Ping_ms = if ($lt) { [math]::Round(($lt | Measure-Object -Average).Average, 1) } else { $null }
 }
-$fila | Export-Csv -Path $historico -Delimiter ';' -NoTypeInformation -Append -Encoding UTF8
+Export-CsvProtegido $fila $historico -Anexar
 $fila | Format-List
 Write-Host "Referencia: un enlace de 1 Gbps sano da ~930-940 Mbps en TCP; 10 Gbps, ~9.4 Gbps con varios flujos."
