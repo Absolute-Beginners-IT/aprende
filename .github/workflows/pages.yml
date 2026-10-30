@@ -52,6 +52,9 @@ jobs:
 
       - name: Switching guides
         working-directory: guias
+        env:
+          # From /app/guias/ back to the site home; enables the "Volver a la web" link.
+          VITE_HOME_URL: ../../
         run: |
           npm ci
           npm test
