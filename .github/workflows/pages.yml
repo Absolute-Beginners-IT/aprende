@@ -55,7 +55,8 @@ jobs:
         run: |
           npm ci
           npm test
-          npm run build
+          # Only the build gets the variable (from /app/guias/ back to the site home), so the tests see the standalone default.
+          VITE_HOME_URL=../../ npm run build
 
       - name: Tool downloads (copied from toolkit/ with their SHA-256)
         run: |

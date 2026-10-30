@@ -5,6 +5,7 @@ import { GlossaryPage } from './features/glossary/GlossaryPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
+import { ThemeToggle } from './features/theme/ThemeToggle';
 
 const VIEWS = [
   ['mapa', 'Mapa'],
@@ -45,6 +46,10 @@ export function App() {
       <p className="prototype-notice" role="note" aria-label="Aviso de prototipo">
         <b>Prototipo en desarrollo:</b> el contenido se está revisando y no sustituye a la documentación oficial del fabricante ni a una prueba en laboratorio. <a href="../que-es-esto/">Qué es esto</a>
       </p>
+      <div className="head-bar">
+        <a href="../" className="home-link">← Volver a la web</a>
+        <ThemeToggle />
+      </div>
       <header className="head">
         <span className="label">Guía para administradores de sistemas junior</span>
         <h1>Mapa de infraestructura</h1>
