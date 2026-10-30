@@ -1,0 +1,47 @@
+{{ define "main" }}
+<h1>{{ .Title }}</h1>
+{{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+{{ .Content }}
+<div class="callout">
+  <strong>Antes de ejecutar un script</strong>
+  <p>Comprueba su huella en PowerShell y compárala con la de esta página: <code>Get-FileHash .\Descubrir-Red.ps1 -Algorithm SHA256</code>. Si coincide, Windows puede seguir bloqueándolo por venir de Internet: desbloquéalo con <code>Unblock-File .\Descubrir-Red.ps1</code>. Si no coincide, no lo ejecutes.</p>
+</div>
+
+<h2>En el navegador</h2>
+<div class="tools">
+  <section class="tool">
+    <h3><a href="{{ site.Params.appURL }}#mi-infraestructura">Mi infraestructura</a></h3>
+    <p>Tu inventario comparado con el de una pyme típica: te dice qué falta (copias, alta disponibilidad, SAI, monitorización y soporte). Importa y exporta el CSV del inventario.</p>
+  </section>
+  <section class="tool">
+    <h3><a href="{{ site.Params.appURL }}guias/#/plan">Planificador de red</a></h3>
+    <p>Diseña las VLAN, los switches y los enlaces de tu red y obtén los pasos de cada switch con los comandos de su marca.</p>
+  </section>
+</div>
+
+<h2>Para descargar</h2>
+{{ with hugo.Data.herramientas }}
+<div class="tools">
+  {{ range . }}
+  <section class="tool" id="{{ .id }}">
+    <span class="label">{{ .tipo }}</span>
+    <h3>{{ .nombre }}</h3>
+    <p>{{ .descripcion }}</p>
+    <p class="muted"><strong>Necesitas:</strong> {{ .requisitos }}</p>
+    {{ with .uso }}<p class="muted"><strong>Ejemplo:</strong> <code>{{ . }}</code></p>{{ end }}
+    {{ with .aviso }}<p class="tool-warning">{{ . }}</p>{{ end }}
+    <ul class="downloads">
+      {{ range .archivos }}
+      <li>
+        <a href="{{ .ruta | relURL }}" download>{{ .nombre }}</a> <span class="muted">· {{ div .bytes 1024 | math.Ceil }} KB</span>
+        <code class="hash" title="SHA-256">{{ .sha256 }}</code>
+      </li>
+      {{ end }}
+    </ul>
+  </section>
+  {{ end }}
+</div>
+{{ else }}
+<p class="muted">Las descargas se generan al publicar la web. Para verlas en local, ejecuta <code>node site/scripts/descargas.mjs</code> desde la raíz del repositorio.</p>
+{{ end }}
+{{ end }}

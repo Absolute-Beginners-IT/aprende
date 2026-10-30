@@ -10,6 +10,7 @@ Esta web es un **prototipo**: un proyecto en desarrollo para ayudar a quien empi
 - **Lecciones, escenarios de incidencias y glosario**, en esta parte de la web.
 - **El mapa de infraestructura**: una pyme típica por capas, con lo que hay que vigilar de cada pieza, y el modo «Mi infraestructura», que compara tu inventario con el de referencia y te dice qué falta.
 - **Guías de switching**: pasos para configurar switches de varias marcas, con los comandos rellenos con tus datos, la verificación y la vuelta atrás de cada cambio.
+- **[Herramientas]({{< relref "herramientas" >}})**: scripts y plantillas para descargar, cada uno con su huella SHA-256, y las herramientas que funcionan en el navegador.
 
 ## Qué tienes que saber antes de usarla
 
@@ -20,7 +21,6 @@ Esta web es un **prototipo**: un proyecto en desarrollo para ayudar a quien empi
 ## Qué no hay todavía
 
 - Un simulador para practicar las guías y sus fallos antes de tocar producción.
-- Un apartado con todas las herramientas descargables.
 - Una forma sencilla de dejar tu opinión. Mientras tanto, puedes abrir una incidencia en el [repositorio del proyecto](https://github.com/Absolute-Beginners-IT/aprende/issues).
 
 Si estas piezas llegan o no depende, en buena parte, de si la web resulta útil a quien la visita.

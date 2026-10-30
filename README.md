@@ -28,6 +28,8 @@ cd app && npm test                         # tests (Vitest)
 cd guias && npm ci && npm run dev          # guías de switching
 cd guias && npm test                       # tests de las guías (Vitest)
 cd site && hugo server                     # guía en http://localhost:1313
+node site/scripts/descargas.mjs            # genera las descargas de «Herramientas» (también al publicar)
+node --test "site/scripts/*.test.mjs"      # tests del generador de descargas
 ```
 
 Las guías de switching se desarrollan en su propio repo. Para traer sus cambios:
@@ -42,7 +44,7 @@ No edites `guias/` directamente aquí: el siguiente `subtree pull` daría confli
 
 Todo el conocimiento (tipos de equipo, alertas, mantenimientos, el mapa de referencia) vive en `content/`. Si cambias un dato ahí, cambia a la vez en la guía y en el mapa. Los tests de `app/` comprueban que el contenido es coherente (tipos, capas y enlaces que existen).
 
-Para escribir una lección nueva: `cd site && hugo new lecciones/02-mi-leccion.md` (usa la plantilla de la metodología).
+Para escribir una lección nueva: `cd site && hugo new lecciones/02-mi-leccion.md` (usa la plantilla de lección).
 
 ## Toolkit
 
@@ -51,6 +53,8 @@ Lo que antes era la carpeta de trabajo está en `toolkit/`, en el mismo orden: d
 - Windows PowerShell 5.1 o PowerShell 7.
 - `iperf3` (https://iperf.fr/iperf-download.php) y Ookla Speedtest CLI (https://www.speedtest.net/apps/cli) en `toolkit\05-Pruebas-Red\bin`, con su SHA-256 registrado en `bin\SHA256SUMS.txt`: los scripts no ejecutan un binario cuyo hash no figure ahí o no coincida. Los pasos están en `toolkit\05-Pruebas-Red\bin\LEEME.txt`.
 - **Ejecuta los scripts de descubrimiento solo en redes de tu empresa y con autorización.**
+
+La página «Herramientas» de la web publica los archivos que lista `toolkit/catalogo.json`, con su descripción, requisitos y huella SHA-256. Al publicar, `site/scripts/descargas.mjs` copia esos archivos y calcula sus huellas: nunca se escriben a mano. Si añades o renombras un archivo del toolkit, actualiza el catálogo; los tests fallan si lista un archivo que no existe.
 
 ## Principios
 
