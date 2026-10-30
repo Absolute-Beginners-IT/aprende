@@ -1,5 +1,5 @@
 # Builds the three parts of the web and publishes them together on GitHub Pages:
-#   /            site/   (Hugo: lessons, scenarios, glossary, "Qué es esto")
+#   /            site/   (Hugo: lessons, scenarios, glossary, tools, "Qué es esto")
 #   /app/        app/    (map and "Mi infraestructura")
 #   /app/guias/  guias/  (switching guides, a single index.html)
 name: Pages
@@ -56,6 +56,11 @@ jobs:
           npm ci
           npm test
           npm run build
+
+      - name: Tool downloads (copied from toolkit/ with their SHA-256)
+        run: |
+          node --test "site/scripts/*.test.mjs"
+          node site/scripts/descargas.mjs
 
       - name: Site
         working-directory: site

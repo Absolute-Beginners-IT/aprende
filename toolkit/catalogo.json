@@ -1,0 +1,102 @@
+[
+  {
+    "id": "descubrir-red",
+    "nombre": "Descubrir la red",
+    "tipo": "Script de PowerShell",
+    "descripcion": "Busca los equipos activos de una subred /24: hace ping a todas las IP, saca el nombre por DNS inverso y la MAC por la tabla ARP, y comprueba puertos habituales para sugerir el tipo de equipo. Genera un CSV con el formato del inventario.",
+    "requisitos": "Windows PowerShell 5.1 o PowerShell 7, en un equipo de la red que quieres revisar.",
+    "uso": ".\\Descubrir-Red.ps1 -Prefijo 192.168.1",
+    "aviso": "Úsalo solo en redes de tu empresa y con autorización: hace ping y prueba puertos en todos los equipos del rango.",
+    "archivos": [
+      "00-Descubrimiento/Descubrir-Red.ps1"
+    ]
+  },
+  {
+    "id": "inventario",
+    "nombre": "Plantilla de inventario",
+    "tipo": "Plantilla CSV y guía",
+    "descripcion": "La lista de equipos con su tipo, marca, IP de gestión, criticidad, fin de soporte y si están monitorizados. Es la misma estructura que importa el modo «Mi infraestructura».",
+    "requisitos": "Excel, LibreOffice o cualquier editor de texto. El separador es el punto y coma.",
+    "archivos": [
+      "01-Inventario/inventario.csv",
+      "01-Inventario/LEEME-inventario.md"
+    ]
+  },
+  {
+    "id": "monitorizacion",
+    "nombre": "Guía de monitorización",
+    "tipo": "Guía",
+    "descripcion": "Cómo monitorizar cada tipo de equipo con Zabbix: método, puerto, plantilla oficial y la configuración de cada fabricante.",
+    "requisitos": "Un lector de Markdown o cualquier editor de texto.",
+    "archivos": [
+      "02-Monitorizacion/Guia-Monitorizacion.md"
+    ]
+  },
+  {
+    "id": "alertas",
+    "nombre": "Matriz de alertas",
+    "tipo": "Plantilla CSV y guía",
+    "descripcion": "Qué vigilar de cada tipo de equipo, con umbrales de aviso y críticos, severidad, canal, horario y la acción esperada. La guía explica cómo llega cada alerta y a quién.",
+    "requisitos": "Excel, LibreOffice o cualquier editor de texto.",
+    "archivos": [
+      "03-Alertas/matriz-alertas.csv",
+      "03-Alertas/Como-llegan-las-alertas.md"
+    ]
+  },
+  {
+    "id": "mantenimiento",
+    "nombre": "Calendario de mantenimiento",
+    "tipo": "Plantilla CSV",
+    "descripcion": "Las actuaciones periódicas de cada tipo de equipo: frecuencia, qué alerta las dispara, tipo de cambio, ventana y si necesitan MOP.",
+    "requisitos": "Excel, LibreOffice o cualquier editor de texto.",
+    "archivos": [
+      "04-Actuaciones/calendario-mantenimiento.csv"
+    ]
+  },
+  {
+    "id": "test-internet",
+    "nombre": "Medir la conexión a Internet",
+    "tipo": "Script de PowerShell",
+    "descripcion": "Mide bajada, subida, latencia, jitter y pérdida de paquetes, y guarda cada medición en un CSV histórico. Se puede programar varias veces al día.",
+    "requisitos": "Windows PowerShell 5.1 o PowerShell 7. Para la velocidad, speedtest.exe (Ookla Speedtest CLI) en la carpeta bin, con su SHA-256 registrado en bin\\SHA256SUMS.txt; sin él, mide solo con ping.",
+    "uso": ".\\Test-Internet.ps1 -Sede \"Central\" -ContratadoMbps 1000",
+    "archivos": [
+      "05-Pruebas-Red/Test-Internet.ps1",
+      "05-Pruebas-Red/LEEME-pruebas.md",
+      "05-Pruebas-Red/bin/LEEME.txt"
+    ]
+  },
+  {
+    "id": "test-red-interna",
+    "nombre": "Medir la red interna",
+    "tipo": "Script de PowerShell",
+    "descripcion": "Mide el rendimiento entre este equipo y un servidor iperf3: TCP en los dos sentidos y UDP para jitter y pérdida. Sirve para encontrar cuellos de botella en uplinks, cableado, wifi o la VPN entre sedes.",
+    "requisitos": "Windows PowerShell 5.1 o PowerShell 7, iperf3.exe en la carpeta bin con su SHA-256 registrado en bin\\SHA256SUMS.txt, y un servidor con iperf3 -s.",
+    "uso": ".\\Test-RedInterna.ps1 -Servidor 192.168.10.50 -Origen \"Planta2\"",
+    "archivos": [
+      "05-Pruebas-Red/Test-RedInterna.ps1",
+      "05-Pruebas-Red/LEEME-pruebas.md",
+      "05-Pruebas-Red/bin/LEEME.txt"
+    ]
+  },
+  {
+    "id": "mop",
+    "nombre": "Plantilla de MOP",
+    "tipo": "Plantilla",
+    "descripcion": "El procedimiento de un cambio planificado: objetivo, riesgos e impacto, preparación, pasos, verificación, vuelta atrás y cierre.",
+    "requisitos": "Un lector de Markdown o cualquier editor de texto.",
+    "archivos": [
+      "06-Runbooks/Plantilla-MOP.md"
+    ]
+  },
+  {
+    "id": "post-mortem",
+    "nombre": "Plantilla de post-mortem",
+    "tipo": "Plantilla",
+    "descripcion": "El análisis de un incidente sin buscar culpables: cronología, causa raíz con los 5 porqués, qué funcionó y qué no, y acciones correctivas.",
+    "requisitos": "Un lector de Markdown o cualquier editor de texto.",
+    "archivos": [
+      "06-Runbooks/Plantilla-PostMortem.md"
+    ]
+  }
+]
