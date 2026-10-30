@@ -39,7 +39,7 @@ Para escribir una lección nueva: `cd site && hugo new lecciones/02-mi-leccion.m
 Lo que antes era la carpeta de trabajo está en `toolkit/`, en el mismo orden: descubrir, inventariar, monitorizar, alertar, actuaciones, medir la red y procedimientos.
 
 - Windows PowerShell 5.1 o PowerShell 7.
-- `iperf3` (https://iperf.fr/iperf-download.php) y Ookla Speedtest CLI (https://www.speedtest.net/apps/cli) en `toolkit\05-Pruebas-Red\bin`.
+- `iperf3` (https://iperf.fr/iperf-download.php) y Ookla Speedtest CLI (https://www.speedtest.net/apps/cli) en `toolkit\05-Pruebas-Red\bin`, con su SHA-256 registrado en `bin\SHA256SUMS.txt`: los scripts no ejecutan un binario cuyo hash no figure ahí o no coincida. Los pasos están en `toolkit\05-Pruebas-Red\bin\LEEME.txt`.
 - **Ejecuta los scripts de descubrimiento solo en redes de tu empresa y con autorización.**
 
 ## Principios
