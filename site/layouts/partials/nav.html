@@ -1,0 +1,17 @@
+{{/* The same six entries as the app and the switching guides, in the same order, so every part of the website
+     can reach every other one. Keep this list in sync with app/src/features/nav/SiteNav.tsx and VITE_SITE_NAV in .github/workflows/pages.yml. */}}
+{{ $s := .Section }}
+{{ $current := "" }}
+{{ if .IsHome }}{{ $current = "inicio" }}
+{{ else if in (slice "aprender" "lecciones" "escenarios" "glosario") $s }}{{ $current = "aprender" }}
+{{ else if eq $s "herramientas" }}{{ $current = "herramientas" }}{{ end }}
+{{ $app := site.Params.appURL }}
+{{ $items := slice
+  (dict "id" "inicio" "label" "Inicio" "url" site.Home.RelPermalink)
+  (dict "id" "aprender" "label" "Aprender" "url" ("aprender/" | relURL))
+  (dict "id" "mapa" "label" "Mapa" "url" $app)
+  (dict "id" "infra" "label" "Mi infraestructura" "url" (print $app "#mi-infraestructura"))
+  (dict "id" "guias" "label" "Guías" "url" (print $app "guias/"))
+  (dict "id" "herramientas" "label" "Herramientas" "url" ("herramientas/" | relURL))
+}}
+{{ range $items }}<a href="{{ .url }}"{{ if eq .id $current }} aria-current="page"{{ end }}>{{ .label }}</a>{{ end }}

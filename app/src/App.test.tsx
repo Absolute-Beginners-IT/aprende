@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from './App';
 
 // Same key and values as the switching guides, so one choice applies to the whole website.
@@ -25,14 +25,30 @@ describe('App', () => {
     }
   });
 
-  it('links to the switching guides served inside the app', () => {
+  it('shows the same website navigation as the site and the guides', () => {
     render(<App />);
-    expect(screen.getByRole('link', { name: 'Guías de switching' }).getAttribute('href')).toBe('./guias/');
+    const nav = within(screen.getAllByRole('navigation', { name: 'Secciones' })[0]);
+    expect(nav.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Inicio', '../'],
+      ['Aprender', '../aprender/'],
+      ['Mapa', '#mapa'],
+      ['Mi infraestructura', '#mi-infraestructura'],
+      ['Guías', './guias/'],
+      ['Herramientas', '../herramientas/'],
+    ]);
   });
 
-  it('links back to the website home', () => {
-    render(<App />);
-    expect(screen.getByRole('link', { name: '← Volver a la web' }).getAttribute('href')).toBe('../');
+  it('marks the current section in the navigation', () => {
+    for (const [hash, current, sub] of [['', 'Mapa', 'Mapa'], ['#escenarios', 'Mapa', 'Escenarios'], ['#glosario', 'Mapa', 'Glosario'], ['#mi-infraestructura', 'Mi infraestructura', null]] as const) {
+      location.hash = hash;
+      const { unmount } = render(<App />);
+      const nav = within(screen.getAllByRole('navigation', { name: 'Secciones' })[0]);
+      expect(nav.getAllByRole('link').filter(a => a.getAttribute('aria-current') === 'page').map(a => a.textContent), hash).toEqual([current]);
+      const tabs = screen.queryByRole('navigation', { name: 'Vistas del mapa' });
+      if (sub) expect(within(tabs!).getByRole('link', { name: sub }).getAttribute('aria-current'), hash).toBe('page');
+      else expect(tabs, hash).toBeNull();
+      unmount();
+    }
   });
 
   it('cycles the theme system, light, dark and saves it where the guides read it', () => {
