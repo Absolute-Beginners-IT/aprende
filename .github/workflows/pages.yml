@@ -55,8 +55,9 @@ jobs:
         run: |
           npm ci
           npm test
-          # Only the build gets the variable (from /app/guias/ back to the site home), so the tests see the standalone default.
-          VITE_HOME_URL=../../ npm run build
+          # Only the build gets the website's navigation (same entries as site/layouts/partials/nav.html, relative to
+          # /app/guias/), so the tests see the standalone default.
+          VITE_SITE_NAV='[{"label":"Inicio","href":"../../"},{"label":"Aprender","href":"../../aprender/"},{"label":"Mapa","href":"../#mapa"},{"label":"Mi infraestructura","href":"../#mi-infraestructura"},{"label":"Guías","href":"./","current":true},{"label":"Herramientas","href":"../../herramientas/"}]' npm run build
 
       - name: Tool downloads (copied from toolkit/ with their SHA-256)
         run: |
