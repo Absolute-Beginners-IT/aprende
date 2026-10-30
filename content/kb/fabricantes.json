@@ -15,7 +15,7 @@
     "patron": "aos-?cx|aruba.*(6[0-9]{3}|8[0-9]{3})|cx ?6",
     "flags": "i",
     "nombre": "HPE Aruba AOS-CX · SNMPv3",
-    "configuracion": "snmp-server vrf default\nsnmpv3 user zabbix auth sha auth-pass plaintext <CLAVE_AUTH> priv aes priv-pass plaintext <CLAVE_PRIV>\n! Comprueba con \"snmpv3 user zabbix auth ?\" si tu versión admite algoritmos más fuertes.\n! Zabbix: \"Aruba CX 8300s by SNMP\" (8325/8360); en otros modelos, \"HP Enterprise Switch by SNMP\"."
+    "configuracion": "snmp-server vrf default\nsnmpv3 user zabbix auth sha256 auth-pass plaintext <CLAVE_AUTH> priv aes256 priv-pass plaintext <CLAVE_PRIV>\n! sha256 y aes256 figuran en la documentación de AOS-CX 10.13 y posteriores. Si tu versión no los admite\n! (compruébalo con \"snmpv3 user zabbix auth ?\"), usa auth sha y priv aes.\n! Zabbix: \"Aruba CX 8300s by SNMP\" (8325/8360); en otros modelos, \"HP Enterprise Switch by SNMP\"."
   },
   {
     "patron": "aruba|procurve|hpe|hp ",
@@ -39,7 +39,7 @@
     "patron": "proxmox|pve",
     "flags": "i",
     "nombre": "Proxmox VE · API",
-    "configuracion": "# En Proxmox: Datacenter > Permissions > API Tokens\n#   usuario zabbix@pve con rol PVEAuditor (solo lectura) y su token\n# En Zabbix: plantilla \"Proxmox VE by HTTP\" con las macros:\n{$PVE.URL.HOST}=<servidor-proxmox>\n{$PVE.TOKEN.ID}=zabbix@pve!monitorizacion\n{$PVE.TOKEN.SECRET}=<secreto>"
+    "configuracion": "# En Proxmox: Datacenter > Permissions > API Tokens\n#   usuario zabbix@pve con rol PVEAuditor (solo lectura) y su token\n#   Asigna el rol al usuario y también al token: con \"Privilege Separation\" el token no hereda los permisos\n# En Zabbix: plantilla \"Proxmox VE by HTTP\" con las macros:\n{$PVE.URL.HOST}=<servidor-proxmox>\n{$PVE.URL.PORT}=8006\n{$PVE.TOKEN.ID}=zabbix@pve!monitorizacion\n{$PVE.TOKEN.SECRET}=<secreto>"
   },
   {
     "patron": "dell|poweredge|idrac",

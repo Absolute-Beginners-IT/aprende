@@ -94,9 +94,9 @@ snmpv3 only
 ### HPE Aruba AOS-CX (6100, 6300...)
 ```
 snmp-server vrf default
-snmpv3 user zabbix auth sha auth-pass plaintext <CLAVE_AUTH> priv aes priv-pass plaintext <CLAVE_PRIV>
+snmpv3 user zabbix auth sha256 auth-pass plaintext <CLAVE_AUTH> priv aes256 priv-pass plaintext <CLAVE_PRIV>
 ```
-Comprueba con `snmpv3 user zabbix auth ?` si tu versión admite algoritmos más fuertes y úsalos. Plantilla: `Aruba CX 8300s by SNMP` en 8325/8360; en otros modelos, `HP Enterprise Switch by SNMP`.
+`sha256` y `aes256` figuran en la documentación de AOS-CX 10.13 y posteriores. Si tu versión no los admite (compruébalo con `snmpv3 user zabbix auth ?`), usa `auth sha` y `priv aes`. Las claves deben tener de 8 a 32 caracteres; si llevan caracteres especiales, escríbelas entre comillas simples. Plantilla: `Aruba CX 8300s by SNMP` en 8325/8360; en otros modelos, `HP Enterprise Switch by SNMP`.
 
 ### VMware vCenter (vSphere 8 y 9)
 1. Crea en vCenter un usuario `svc-zabbix` con rol **Solo lectura** propagado.
@@ -107,7 +107,8 @@ Comprueba con `snmpv3 user zabbix auth ?` si tu versión admite algoritmos más 
 
 ### Proxmox VE
 1. En Proxmox: **Datacenter → Permissions → API Tokens**, crea el usuario `zabbix@pve` con el rol `PVEAuditor` (solo lectura) y genera un token.
-2. En Zabbix, aplica `Proxmox VE by HTTP` y define `{$PVE.URL.HOST}`, `{$PVE.TOKEN.ID}` y `{$PVE.TOKEN.SECRET}`.
+2. Asigna el rol `PVEAuditor` en `/` al usuario **y también al token**: si el token tiene activada la opción *Privilege Separation*, no hereda los permisos del usuario.
+3. En Zabbix, aplica `Proxmox VE by HTTP` y define `{$PVE.URL.HOST}`, `{$PVE.TOKEN.ID}` (con el formato `zabbix@pve!<nombre-del-token>`) y `{$PVE.TOKEN.SECRET}`. Cambia `{$PVE.URL.PORT}` solo si la API no está en el puerto 8006.
 
 ### Hyper-V / Windows Server
 1. Instala **Zabbix Agent 2** (MSI) con `Server=<ZBX_IP>` y `ServerActive=<ZBX_IP>`.

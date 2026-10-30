@@ -73,7 +73,7 @@ try {
     }
 
     # --- Protección contra fórmulas en los CSV exportados ---
-    foreach ($s in 'Descubrir-Red.ps1', 'Test-Internet.ps1') {
+    foreach ($s in 'Descubrir-Red.ps1', 'Test-Internet.ps1', 'Test-RedInterna.ps1') {
         $ruta = Get-ChildItem $toolkit -Recurse -Filter $s | Select-Object -First 1 -ExpandProperty FullName
         Prueba "$s protege las celdas con fórmulas" {
             Importar-Funcion $ruta 'Proteger-Celda'
@@ -88,10 +88,36 @@ try {
             Igual (Proteger-Celda 42) 42
             Igual (Proteger-Celda $null) $null
         }
-        Prueba "$s aplica Proteger-Celda antes de Export-Csv" {
-            if ((Get-Content $ruta -Raw) -notmatch 'ForEach-Object \{ foreach \(\$c in \$_\.PSObject\.Properties\) \{ \$c\.Value = Proteger-Celda \$c\.Value \}; \$_ \} \|\s*Export-Csv') {
-                throw 'Export-Csv no recibe las filas pasadas por Proteger-Celda'
+        Prueba "$s solo usa Export-Csv dentro de Export-CsvProtegido" {
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($ruta, [ref]$null, [ref]$null)
+            $exportaciones = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.CommandAst] -and $n.GetCommandName() -eq 'Export-Csv' }, $true)
+            if (-not $exportaciones) { throw 'No hay ningún Export-Csv' }
+            foreach ($e in $exportaciones) {
+                $p = $e.Parent
+                while ($p -and $p -isnot [System.Management.Automation.Language.FunctionDefinitionAst]) { $p = $p.Parent }
+                if (-not $p -or $p.Name -ne 'Export-CsvProtegido') { throw "Export-Csv fuera de Export-CsvProtegido (línea $($e.Extent.StartLineNumber))" }
             }
+        }
+        Prueba "$s guarda el CSV con las celdas protegidas" {
+            Importar-Funcion $ruta 'Proteger-Celda'
+            Importar-Funcion $ruta 'Export-CsvProtegido'
+            $csv = Join-Path $tmp "protegido-$s.csv"
+            Export-CsvProtegido @([pscustomobject]@{ Nombre = '=HYPERLINK("http://x")'; Puertos = 'SSH'; Total = 3 }) $csv
+            Export-CsvProtegido @([pscustomobject]@{ Nombre = '@srv'; Puertos = ''; Total = -1 }) $csv -Anexar
+            $filas = @(Import-Csv $csv -Delimiter ';')
+            Igual $filas.Count 2
+            Igual $filas[0].Nombre "'=HYPERLINK(""http://x"")"
+            Igual $filas[0].Puertos 'SSH'
+            Igual $filas[0].Total '3'
+            Igual $filas[1].Nombre "'@srv"
+            Igual $filas[1].Total '-1'
+        }
+        Prueba "$s crea un CSV vacío sin errores cuando no hay filas" {
+            Importar-Funcion $ruta 'Proteger-Celda'
+            Importar-Funcion $ruta 'Export-CsvProtegido'
+            $csv = Join-Path $tmp "vacio-$s.csv"
+            Export-CsvProtegido $null $csv   # $ErrorActionPreference = 'Stop': cualquier error hace fallar la prueba
+            Igual (Get-Item $csv).Length ([long]3)   # solo el BOM, igual que antes
         }
     }
 
