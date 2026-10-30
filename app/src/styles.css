@@ -14,6 +14,9 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
 .wrap { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+.prototype-notice { margin: 0 0 16px; padding: 8px 12px; border-radius: 8px; font-size: 14px; background: #fdf1d3; color: #6b4600; }
+.prototype-notice a { color: inherit; font-weight: 600; }
+@media (prefers-color-scheme: dark) { .prototype-notice { background: #3a2c08; color: #f2c35b; } }
 .label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
 h1 { margin: 4px 0; font-size: clamp(26px, 4vw, 38px); }
 .muted { color: var(--muted); }
