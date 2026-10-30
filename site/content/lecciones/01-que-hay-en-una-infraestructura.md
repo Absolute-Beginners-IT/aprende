@@ -16,6 +16,19 @@ Una infraestructura no es una lista de equipos: son **capas** que se apoyan unas
 | Servicios | Directorio activo, DNS, DHCP, ficheros, aplicaciones | ¿Qué usan las personas? |
 | Protección | Copias de seguridad, SAI, monitorización | ¿Qué evita perder datos o servicio? |
 
+{{< aviso titulo="No son las capas del modelo OSI" >}}
+Estas cuatro capas son una forma práctica de mirar la infraestructura de una empresa, propia de esta guía. No son las 7 capas del modelo OSI ni las 4 del modelo TCP/IP (acceso a la red, internet, transporte y aplicación), que describen cómo viaja la información por la red. Las vas a necesitar las dos: OSI para entender la red y estas capas para ordenar la infraestructura.
+{{< /aviso >}}
+
+Cómo encajan, a grandes rasgos, con el modelo OSI:
+
+| Capa de esta guía | Capas OSI | Por qué |
+| --- | --- | --- |
+| Física | 1 (física) y 2 (enlace) | Cableado, puertos y switches |
+| Lógica | 2 (enlace) y 3 (red) | Las VLAN separan el tráfico en la capa 2; las subredes y el enrutamiento son de la capa 3 |
+| Servicios | Sobre todo 7 (aplicación) | DNS, DHCP o el directorio activo son servicios que usan las personas y los equipos |
+| Protección | Ninguna | Es transversal: las copias, el SAI y la monitorización protegen a todas las demás |
+
 {{< aviso titulo="La distinción que importa" >}}
 Que un servidor responda a ping no significa que el servicio funcione. La capa física puede estar bien y el servicio (por ejemplo, el DNS) estar caído.
 {{< /aviso >}}
@@ -36,6 +49,6 @@ Esta tabla sale de la misma base de conocimiento que usa el mapa:
 
 ## Checklist del alumno
 
-- [ ] Sé nombrar las cuatro capas y poner un ejemplo de cada una.
+- [ ] Sé nombrar las cuatro capas de esta guía, poner un ejemplo de cada una y explicar en qué se diferencian de las del modelo OSI.
 - [ ] Sé qué pieza da nombre a las cosas (DNS) y cuál reparte direcciones (DHCP).
 - [ ] Sé qué es un punto único de fallo y encuentro al menos dos en el mapa.
