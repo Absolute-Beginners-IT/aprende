@@ -29,8 +29,8 @@ Una infraestructura no es una lista de equipos: son **capas** que se apoyan unas
 Que un servidor responda a ping no significa que el servicio funcione. La capa física puede estar bien y el servicio (por ejemplo, el DNS) estar caído.
 {{< /aviso >}}
 
-{{< pregunta texto="¿En qué capa están las VLAN?" respuesta="logica|lógica|capa logica|capa lógica|la capa logica|la capa lógica" pista="Las VLAN deciden quién puede hablar con quién." >}}
-{{< pregunta texto="¿En qué capa está el SAI?" respuesta="proteccion|protección|capa de proteccion|capa de protección" >}}
+{{< pregunta texto="¿En qué capa están las VLAN?" respuesta="logica|capa logica|la capa logica" pista="Las VLAN deciden quién puede hablar con quién." >}}
+{{< pregunta texto="¿En qué capa está el SAI?" respuesta="proteccion|capa de proteccion|la capa de proteccion" >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="Qué vigilar en cada equipo" %}}

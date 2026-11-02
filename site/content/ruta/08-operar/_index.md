@@ -1,6 +1,6 @@
 ---
 title: "Operar la infraestructura"
-description: "La hoja de ruta para hacerte cargo de una red real: descubrir, inventariar, monitorizar, alertar, mantener y medir."
+description: "La hoja de ruta para hacerte cargo de una red real: descubrir, inventariar, monitorizar, alertar, actuar (mantenimiento y cambios) y medir."
 modulo: "8"
 weight: 9
 ---

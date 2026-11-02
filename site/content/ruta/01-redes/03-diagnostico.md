@@ -49,7 +49,7 @@ Test-NetConnection servidor01 -Port 443
 tracert 1.1.1.1
 ```
 
-Si el primer salto (tu puerta de enlace) responde y el segundo no, el problema está entre tu router y la operadora.
+Si el primer salto (tu puerta de enlace) responde y a partir de ahí ya no responde ninguno, ni siquiera el destino, el problema está entre tu router y la operadora. Un salto suelto con `*` no es una avería: muchos routers no contestan a `tracert` y dejan pasar el tráfico igualmente.
 
 {{< pregunta texto="¿Cómo se llama el comando de Windows que muestra los saltos hasta un destino?" respuesta="tracert" >}}
 {{% /tarea %}}

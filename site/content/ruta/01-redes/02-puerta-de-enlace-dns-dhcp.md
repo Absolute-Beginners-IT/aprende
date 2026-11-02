@@ -22,7 +22,7 @@ Si un equipo tiene mal la puerta de enlace, puede abrir las carpetas del servido
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="DNS: de nombres a direcciones" %}}
-Las personas recordamos nombres (`intranet.empresa.local`); los equipos necesitan direcciones IP. El **DNS** es el servicio que traduce unos en otros. Cuando escribes un nombre, tu equipo pregunta al servidor DNS que tiene configurado y este le responde con la IP.
+Las personas recordamos nombres (`intranet.lab.example.com`); los equipos necesitan direcciones IP. El **DNS** es el servicio que traduce unos en otros. Cuando escribes un nombre, tu equipo pregunta al servidor DNS que tiene configurado y este le responde con la IP.
 
 La información se guarda en **registros**. Los dos primeros que debes conocer:
 

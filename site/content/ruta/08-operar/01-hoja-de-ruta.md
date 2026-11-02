@@ -6,7 +6,7 @@ equipo: "grafica"
 duracion: "Varias semanas (en la red real)"
 nivel: "Intermedio"
 objetivos:
-  - "Seguir un orden para hacerte cargo de una red: descubrir, inventariar, monitorizar, alertar, mantener y medir."
+  - "Seguir un orden para hacerte cargo de una red: descubrir, inventariar, monitorizar, alertar, actuar (mantenimiento y cambios) y medir."
   - "Saber qué material del toolkit usar en cada fase."
 requisitos:
   - "Módulos 0 a 7"

@@ -59,12 +59,13 @@ Cada máquina virtual tiene una tarjeta de red virtual, y tú decides a qué se 
 
 | Modo | Qué hace | Riesgo |
 | --- | --- | --- |
-| **NAT** | La VM sale a Internet a través de tu ordenador, pero nadie de fuera la ve. | Ninguno. Buena opción por defecto. |
-| **Red interna** | Las VM solo se ven entre ellas. | Ninguno. Ideal para montar tu «empresa». |
+| **NAT** | La VM sale a Internet a través de tu ordenador, pero nadie de fuera la ve. Cada VM queda aislada en su propia red (`10.0.2.0/24` en VirtualBox). | Ninguno, pero las VM no se ven entre ellas. Sirve para una VM suelta. |
+| **Red NAT** | Como NAT, pero todas las VM conectadas comparten una red cuyo rango eliges tú, con la puerta de enlace en `.1`. | Ninguno. **Es la que usarás en esta ruta**, con el rango `192.168.50.0/24`. En Hyper-V, el equivalente es un conmutador interno con NAT. |
+| **Red interna** | Las VM solo se ven entre ellas, sin salida a Internet. | Ninguno. Útil para redes aisladas, como las VLAN del módulo 5. |
 | **Adaptador puente** | La VM se conecta directamente a tu red real, como un equipo más. | Si montas un DHCP o un DNS en la VM, puedes estropear la red de tu casa o de tu empresa. |
 
 {{< aviso titulo="La distinción que importa" >}}
-Un servidor DHCP de laboratorio conectado en modo puente a la red de la oficina empezará a repartir direcciones a los equipos reales. Usa NAT o red interna salvo que sepas exactamente por qué necesitas el puente.
+Un servidor DHCP de laboratorio conectado en modo puente a la red de la oficina empezará a repartir direcciones a los equipos reales. Usa Red NAT o red interna salvo que sepas exactamente por qué necesitas el puente.
 {{< /aviso >}}
 
 {{< pregunta texto="¿Qué modo conecta la máquina virtual directamente a tu red real?" respuesta="puente|adaptador puente|bridge|modo puente" >}}

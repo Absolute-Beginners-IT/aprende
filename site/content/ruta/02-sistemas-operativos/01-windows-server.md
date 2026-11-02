@@ -15,7 +15,7 @@ requisitos:
 ---
 
 {{% tarea n="1" titulo="Instala Windows Server" %}}
-Crea una máquina virtual con **2 CPU, 4 GB de RAM y 60 GB de disco**, conéctala a la **red interna** o en **NAT** y arranca desde la ISO de evaluación.
+Crea una máquina virtual con **2 CPU, 4 GB de RAM y 60 GB de disco**, conéctala a una red de laboratorio `192.168.50.0/24` y arranca desde la ISO de evaluación. En VirtualBox, crea una **Red NAT** con ese rango: las VM se ven entre ellas, salen a Internet y VirtualBox pone la puerta de enlace en `192.168.50.1`. El modo **NAT** simple no sirve aquí, porque usa su propia red `10.0.2.0/24`.
 
 El instalador te ofrece dos tipos de instalación:
 

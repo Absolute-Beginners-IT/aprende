@@ -16,7 +16,7 @@ requisitos:
 ---
 
 {{% tarea n="1" titulo="Instala Ubuntu Server y conéctate por SSH" %}}
-Crea una VM con **1–2 CPU, 2 GB de RAM y 25 GB de disco** y arranca desde la ISO de Ubuntu Server. Durante la instalación, marca la opción **Install OpenSSH server**.
+Crea una VM con **1–2 CPU, 2 GB de RAM y 25 GB de disco** y arranca desde la ISO de Ubuntu Server. Conéctala a la misma red que el Windows Server. Durante la instalación, en la pantalla de red, pon la IP fija `192.168.50.20/24`, la puerta de enlace `192.168.50.1` y el DNS `192.168.50.10`, y marca la opción **Install OpenSSH server**.
 
 Los servidores Linux casi nunca se administran delante de la pantalla, sino a distancia con **SSH**, una conexión cifrada a la consola. Desde Windows (PowerShell ya incluye el cliente):
 
