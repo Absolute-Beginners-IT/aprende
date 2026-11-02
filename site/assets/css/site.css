@@ -61,6 +61,12 @@ code { font-family: var(--mono); font-size: .9em; }
   .top > .nav { display: none; }
   .menu { display: block; }
 }
+/* Narrow phones: brand, menu and theme button must fit in one row without horizontal scroll. */
+@media (max-width: 420px) {
+  .top { gap: 8px; padding: 10px 16px; }
+  .brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .theme-toggle, .menu summary { padding: 6px 10px; font-size: 13px; }
+}
 
 /* Page layout */
 .page { max-width: 860px; margin: 0 auto; padding: 40px 20px 72px; }
