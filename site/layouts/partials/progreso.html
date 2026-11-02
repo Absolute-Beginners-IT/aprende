@@ -1,0 +1,5 @@
+{{- /* Progress bar filled by ruta.js: .salas = room paths it sums, .total = tasks in those rooms. */ -}}
+<div class="progreso" data-salas="{{ delimit .salas " " }}" data-total="{{ .total }}">
+  <progress max="{{ .total }}" value="0"></progress>
+  <span class="progreso-texto">0 de {{ .total }} tareas</span>
+</div>

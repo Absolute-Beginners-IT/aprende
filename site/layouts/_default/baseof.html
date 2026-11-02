@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ site.Params.description }}{{ end }}">
-  <link rel="stylesheet" href="{{ "css/site.css" | relURL }}">
+  {{/* Fingerprinted so a new deploy never pairs new markup with a cached old stylesheet. */}}
+  {{- with resources.Get "css/site.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+  {{- end }}
+  {{/* Plain, early and blocking on purpose: it sets data-theme before the first paint (scripts/tema.test.mjs reads it from static/). */}}
   <script src="{{ "js/tema.js" | relURL }}"></script>
 </head>
 <body>
@@ -27,5 +31,9 @@
     <p>{{ site.Title }} · Prototipo · <a href="{{ "que-es-esto/" | relURL }}">Qué es esto</a> · <a href="https://github.com/Absolute-Beginners-IT/aprende">Código en GitHub</a></p>
     <p>Usa los scripts del toolkit solo en redes de tu empresa y con autorización.</p>
   </footer>
+  {{/* Learning route progress: it only acts on pages that have tasks, questions or the route topology. */}}
+  {{- with resources.Get "js/ruta.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
 </body>
 </html>

@@ -2,13 +2,13 @@
 
 Guía interactiva para dar los primeros pasos como administrador de sistemas: qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella. El núcleo es un **mapa de infraestructura por capas** (física, lógica, servicios y protección) en el que cada pieza explica qué es, para qué sirve, qué pasa si falla, los errores típicos, qué vigilar, qué alertas crear y qué mantenimiento necesita.
 
-La app incluye además **escenarios de incidencias** paso a paso sobre el mapa, un **glosario** y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
+La guía tiene una **ruta de aprendizaje**: 10 módulos en orden (de redes y sistemas operativos hasta operar una red real y montar la tuya en un laboratorio), con salas, tareas, preguntas comprobables y progreso guardado en el navegador, dibujada como una topología de red. El reparto es sencillo: **la guía es para aprender** (ruta, glosario) y **la app es para practicar**. La app incluye el mapa, los **escenarios de incidencias** paso a paso sobre el mapa (la guía enlaza cada uno con `#escenarios/<id>`) y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
 
 ## Estructura
 
 | Carpeta | Qué es | Se despliega en |
 | --- | --- | --- |
-| `site/` | Guía y lecciones (Hugo, contenido estático) | `example.com` |
+| `site/` | Guía y ruta de aprendizaje (Hugo, contenido estático) | `example.com` |
 | `app/` | Mapa interactivo (React + Vite + TypeScript, SPA estática) | `app.example.com` |
 | `guias/` | Guías de switching por marca (de [Absolute-Beginners-IT/guias](https://github.com/Absolute-Beginners-IT/guias), integradas con `git subtree`) | `app.example.com/guias/` |
 | `api/` | Backend futuro. **Todavía no existe**: ver `api/README.md` | `api.example.com` |
@@ -44,7 +44,7 @@ No edites `guias/` directamente aquí: el siguiente `subtree pull` daría confli
 
 Todo el conocimiento (tipos de equipo, alertas, mantenimientos, el mapa de referencia) vive en `content/`. Si cambias un dato ahí, cambia a la vez en la guía y en el mapa. Los tests de `app/` comprueban que el contenido es coherente (tipos, capas y enlaces que existen).
 
-Para escribir una lección nueva: `cd site && hugo new lecciones/02-mi-leccion.md` (usa la plantilla de lección).
+Para escribir una sala nueva de la ruta: `cd site && hugo new ruta/04-servicios-esenciales/05-mi-sala.md` (usa la plantilla `archetypes/ruta.md`). Cada tarea va en `{{% tarea n="1" titulo="…" %}}` y cada pregunta en `{{< pregunta texto="…" respuesta="respuesta|variante" >}}`; las respuestas se publican solo como hash SHA-256 y las variantes se escriben sin tildes. El icono de la sala en la topología sale del campo `equipo` del front matter.
 
 ## Toolkit
 

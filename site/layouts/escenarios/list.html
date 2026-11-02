@@ -2,16 +2,15 @@
 <h1>{{ .Title }}</h1>
 {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
 {{ .Content }}
-{{ range hugo.Data.escenarios }}
-<section class="scenario" id="{{ .id }}">
-  <h2>{{ .titulo }}</h2>
-  <p><strong>Síntoma:</strong> {{ .sintoma }}</p>
-  <table>
-    <thead><tr><th>Paso</th><th>Qué haces</th></tr></thead>
-    <tbody>{{ range $i, $p := .pasos }}<tr><td>{{ add $i 1 }}. {{ $p.titulo }}</td><td>{{ $p.texto }}</td></tr>{{ end }}</tbody>
-  </table>
-  <p><strong>Causas típicas:</strong> {{ delimit .causasTipicas ", " }}.</p>
-  <aside class="callout"><strong>Qué te llevas</strong><p>{{ .aprendizaje }}</p></aside>
-</section>
-{{ end }}
+{{- /* The steps, typical causes and takeaways live in the app, where each step highlights the map: here only the briefing. */}}
+<ol class="modulos">
+  {{- range hugo.Data.escenarios }}
+  <li class="modulo" id="{{ .id }}">
+    <h2>{{ .titulo }}</h2>
+    <p><strong>Síntoma:</strong> {{ .sintoma }}</p>
+    <p class="muted">{{ len .pasos }} pasos guiados sobre el mapa.</p>
+    <p><a class="cta" href="{{ site.Params.appURL }}#escenarios/{{ .id }}">Resuélvelo en el mapa <span aria-hidden="true">→</span></a></p>
+  </li>
+  {{- end }}
+</ol>
 {{ end }}

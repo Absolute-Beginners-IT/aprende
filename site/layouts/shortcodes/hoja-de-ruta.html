@@ -1,0 +1,12 @@
+{{- /* Module 8: one task per phase of the shared roadmap (../content/kb/hoja-de-ruta.json), linked to its toolkit folder. */ -}}
+{{- $toolkit := dict "Descubrir" "00-Descubrimiento" "Inventariar" "01-Inventario" "Monitorizar" "02-Monitorizacion" "Alertar" "03-Alertas" "Actuaciones" "04-Actuaciones" "Medir la red" "05-Pruebas-Red" -}}
+{{- $page := .Page -}}
+{{- range $i, $fase := index hugo.Data.kb "hoja-de-ruta" -}}
+  {{- $cuerpo := printf "<p class=\"lead\">%s</p><ul class=\"pasos\">" ($fase.objetivo | htmlEscape) -}}
+  {{- range $fase.pasos -}}{{- $cuerpo = printf "%s<li>%s</li>" $cuerpo (.texto | htmlEscape) -}}{{- end -}}
+  {{- $cuerpo = printf "%s</ul>" $cuerpo -}}
+  {{- with index $toolkit $fase.fase -}}
+    {{- $cuerpo = printf "%s<p>Material para aplicarlo: <a href=\"%stoolkit/%s\">toolkit/%s</a>.</p>" $cuerpo site.Params.repoURL . . -}}
+  {{- end -}}
+  {{- partial "tarea.html" (dict "page" $page "n" (add $i 1) "titulo" $fase.fase "cuerpo" ($cuerpo | safeHTML)) -}}
+{{- end -}}

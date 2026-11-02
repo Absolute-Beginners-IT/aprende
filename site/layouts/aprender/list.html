@@ -3,15 +3,21 @@
 <h1>{{ .Title }}</h1>
 {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
 <div class="cards">
-  {{ with site.GetPage "/lecciones" }}
-  <section class="card">
-    <span class="label">Lecciones</span>
-    <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+  {{/* The route goes first and full width: it is where a beginner should start. Figures come from the content itself. */}}
+  {{ with site.GetPage "/ruta" }}
+  {{ $modulos := .Sections.ByWeight }}
+  {{ $t := partial "ruta-totales.html" $modulos }}
+  <a class="card card--destacada" href="{{ .RelPermalink }}">
+    <span class="label">Ruta de aprendizaje</span>
+    <h3>{{ .Title }}</h3>
     <p>{{ .Description }}</p>
-    <ol class="lessons">
-      {{ range .Pages.ByWeight }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
-    </ol>
-  </section>
+    <ul class="stats">
+      <li><b>{{ len $modulos }}</b><span>módulos</span></li>
+      <li><b>{{ len $t.salas }}</b><span>salas</span></li>
+      <li><b>{{ $t.total }}</b><span>tareas</span></li>
+    </ul>
+    <span class="go">Empieza la ruta →</span>
+  </a>
   {{ end }}
   {{ with site.GetPage "/escenarios" }}
   <a class="card" href="{{ .RelPermalink }}">

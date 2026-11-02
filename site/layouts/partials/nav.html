@@ -4,7 +4,7 @@
 {{ $section := .Section }}
 {{ $current := "" }}
 {{ if .IsHome }}{{ $current = "inicio" }}
-{{ else if in (slice "aprender" "lecciones" "escenarios" "glosario") $section }}{{ $current = "aprender" }}
+{{ else if in (slice "aprender" "ruta" "escenarios" "glosario") $section }}{{ $current = "aprender" }}
 {{ else if eq $section "herramientas" }}{{ $current = "herramientas" }}{{ end }}
 {{ range hugo.Data.navegacion }}
   {{ $url := print site.Home.RelPermalink .ruta }}

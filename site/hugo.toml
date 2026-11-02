@@ -8,7 +8,13 @@ enableRobotsTXT = true
   appURL = "https://app.example.com/"
   # Short name for the navigation bar; the full name stays in the title and on the landing page.
   marca = "sysadmin junior"
+  # Base of the toolkit links in the learning route (module 7 runbooks, module 8 roadmap).
+  repoURL = "https://github.com/Absolute-Beginners-IT/aprende/tree/main/"
   description = "Qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella, explicado para quien empieza."
+
+# Route shortcodes (tarea, pregunta) emit HTML around Markdown, so raw HTML must pass through.
+[markup.goldmark.renderer]
+  unsafe = true
 
 # The shared content in ../content is exposed as site data (hugo.Data.kb.*, hugo.Data.referencia.*),
 # so the guide and the app (app/) always read the same knowledge base.
@@ -36,6 +42,10 @@ enableRobotsTXT = true
   [[module.mounts]]
     source = "static"
     target = "static"
+  # CSS and JS go through Hugo Pipes so their URLs carry a content hash: browsers and CDNs never serve a stale copy.
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
   [[module.mounts]]
     source = "archetypes"
     target = "archetypes"

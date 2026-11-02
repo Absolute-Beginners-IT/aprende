@@ -1,0 +1,2 @@
+{{- /* Task of a room, TryHackMe style: {{% tarea n="1" titulo="…" %}}Markdown and {{< pregunta >}}…{{% /tarea %}} */ -}}
+{{- partial "tarea.html" (dict "page" .Page "n" (.Get "n") "titulo" (.Get "titulo") "cuerpo" .Inner) -}}
