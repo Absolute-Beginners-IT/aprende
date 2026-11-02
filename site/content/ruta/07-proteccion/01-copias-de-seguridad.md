@@ -70,7 +70,7 @@ Dos errores muy habituales que no son copias de seguridad:
 
 Y un detalle clave: el repositorio de copias **no debe aceptar las credenciales del dominio**. Si la misma cuenta que entra en los servidores entra en las copias, el ransomware también.
 
-{{< pregunta texto="En 3-2-1-1-0, ¿qué significa el 0?" respuesta="cero errores|0 errores|ningun error|sin errores" pista="Tiene que ver con verificar y probar las restauraciones." >}}
+{{< pregunta texto="En 3-2-1-1-0, ¿qué significa el 0?" respuesta="cero errores|0 errores|ningun error|ninguno|sin errores|errores cero|cero fallos|sin fallos" pista="Tiene que ver con verificar y probar las restauraciones." >}}
 {{% /tarea %}}
 
 {{% tarea n="4" titulo="Pruébalo en tu laboratorio: copia, borra y restaura" %}}
@@ -102,7 +102,7 @@ cat ~/restaurado/home/$USER/datos/informe.txt
 
 Si ves «Informe trimestral», has recuperado el fichero. Ojo: en el laboratorio la copia está en el mismo disco que los datos, lo que incumple la regla 3-2-1. En una empresa, el repositorio estaría en otro equipo y habría una segunda copia fuera.
 
-¿Prefieres Windows? En `SRV-DC01` añade un segundo disco a la VM (por ejemplo, `E:`) , crea la carpeta `C:\Datos` con un par de ficheros e instala **Copias de seguridad de Windows Server**:
+¿Prefieres Windows? En `SRV-DC01` añade un segundo disco a la VM, inicialízalo y dale formato con la letra `E:` (en **Administración de discos**), crea la carpeta `C:\Datos` con un par de ficheros e instala **Copias de seguridad de Windows Server**:
 
 ```
 Install-WindowsFeature Windows-Server-Backup

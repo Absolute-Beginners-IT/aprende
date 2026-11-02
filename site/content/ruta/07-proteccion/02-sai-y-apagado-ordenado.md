@@ -24,9 +24,9 @@ Hay tres tipos, de más sencillo a más completo:
 | --- | --- | --- |
 | **Off-line (standby)** | Los equipos van directos a la red eléctrica; si cae, conmuta a batería en unos milisegundos. | Puestos de trabajo y equipos domésticos. |
 | **Línea interactiva** | Como el anterior, pero corrige subidas y bajadas de tensión sin gastar batería. | Armarios pequeños, switches, oficinas. |
-| **On-line (doble conversión)** | Los equipos siempre se alimentan desde el inversor; la red solo recarga. No hay conmutación. | Salas de servidores y equipos críticos. |
+| **On-line (doble conversión)** | Los equipos siempre se alimentan desde el inversor, que toma la energía de la red (a través del rectificador) o de la batería si la red cae. No hay conmutación. | Salas de servidores y equipos críticos. |
 
-{{< pregunta texto="¿Qué tipo de SAI alimenta siempre los equipos desde el inversor, sin conmutar?" respuesta="on-line|online|on line|doble conversion|de doble conversion" >}}
+{{< pregunta texto="¿Qué tipo de SAI alimenta siempre los equipos desde el inversor, sin conmutar?" respuesta="on-line|online|on line|doble conversion|de doble conversion|on-line de doble conversion|online de doble conversion" >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="Autonomía: cuánto aguanta de verdad" %}}
@@ -52,7 +52,7 @@ Conectar el SAI por **USB** a un servidor solo avisa a ese servidor. Lo correcto
 
 Cada fabricante tiene su agente, y en Linux existe una opción libre muy extendida: **NUT** (Network UPS Tools). Funciona así:
 
-1. Un equipo ejecuta el servidor de NUT (`upsd`), que habla con el SAI.
+1. Un equipo ejecuta el servidor de NUT (`upsd`), que recibe los datos del SAI a través de un driver (por ejemplo, el de SNMP para la tarjeta de red).
 2. El resto de equipos ejecutan el monitor (`upsmon`) y le preguntan al servidor por el estado.
 3. Cuando el SAI indica **batería baja**, cada `upsmon` lanza el apagado de su equipo.
 
@@ -71,7 +71,7 @@ upsc sai01@192.168.50.5 battery.runtime
 
 `battery.runtime` da la autonomía estimada en **segundos**.
 
-{{< pregunta texto="En NUT, ¿qué código de estado indica que el SAI está funcionando con batería?" respuesta="ob|on battery" >}}
+{{< pregunta texto="En NUT, ¿qué código de estado indica que el SAI está funcionando con batería?" respuesta="ob|on battery|ob (on battery)" >}}
 {{% /tarea %}}
 
 {{% tarea n="4" titulo="El orden importa (y hay que probarlo)" %}}

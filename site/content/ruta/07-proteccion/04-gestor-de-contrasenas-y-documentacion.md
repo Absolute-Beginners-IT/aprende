@@ -25,13 +25,13 @@ En cualquier empresa hay credenciales que comparten varias personas: la cuenta `
 | La memoria del administrador | No | El día que se va o se pone enfermo, nadie puede entrar. |
 | Un **gestor de contraseñas** de equipo | Sí | Cifrado, con permisos por persona o grupo, registro de accesos y una sola copia que todos ven actualizada. |
 
-Hay opciones en la nube y opciones que alojas tú (Bitwarden, Vaultwarden o KeePassXC son ejemplos conocidos). Lo importante no es la marca, sino cómo lo usas.
+Hay opciones en la nube, opciones que alojas tú y opciones basadas en un fichero cifrado (Bitwarden, Vaultwarden o KeePassXC son ejemplos conocidos). Lo importante no es la marca, sino cómo lo usas.
 
 {{< aviso titulo="La distinción que importa" >}}
 El **inventario** dice **qué** hay y **dónde** (nombre, IP, modelo, función). El **gestor** guarda **cómo se entra**. En el inventario, como mucho, escribe «credenciales: ver entrada SAI-01 en el gestor». Nunca la contraseña.
 {{< /aviso >}}
 
-{{< pregunta texto="¿Dónde deben guardarse las credenciales compartidas de la empresa?" respuesta="gestor de contrasenas|en un gestor de contrasenas|en el gestor de contrasenas|gestor" >}}
+{{< pregunta texto="¿Dónde deben guardarse las credenciales compartidas de la empresa?" respuesta="gestor de contrasenas|en un gestor de contrasenas|en el gestor de contrasenas|un gestor de contrasenas|gestor|en un gestor" >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="Un gestor bien organizado" %}}
@@ -65,7 +65,7 @@ En el toolkit de este proyecto tienes plantillas listas para usar en [06-Runbook
 
 Tres costumbres que la mantienen viva: documenta **mientras** haces el cambio, no «luego»; pon fecha y autor en cada documento; y guárdala en un sitio que siga accesible si caen los servidores (por ejemplo, una copia impresa o exportada del procedimiento de recuperación, junto al sobre de emergencia).
 
-{{< pregunta texto="¿Qué documento describe un cambio planificado, cómo comprobarlo y cómo volver atrás?" respuesta="mop|plan de cambio|el mop" >}}
+{{< pregunta texto="¿Qué documento describe un cambio planificado, cómo comprobarlo y cómo volver atrás?" respuesta="mop|plan de cambio|el mop|plan de cambios|un mop|method of procedure" >}}
 {{% /tarea %}}
 
 {{% tarea n="4" titulo="Escribe tu primer procedimiento" %}}

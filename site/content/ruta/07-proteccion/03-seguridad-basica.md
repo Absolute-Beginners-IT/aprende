@@ -30,6 +30,7 @@ Una cadencia sencilla que funciona en la mayoría de las empresas:
 Mira los parches pendientes en tu laboratorio:
 
 ```
+sudo apt update
 apt list --upgradable
 ```
 
@@ -37,7 +38,7 @@ apt list --upgradable
 Get-HotFix | Sort-Object InstalledOn -Descending | Select-Object -First 5
 ```
 
-El primero, en Ubuntu, lista lo que falta por actualizar; el segundo, en `SRV-DC01`, muestra las últimas actualizaciones instaladas. No te olvides de los equipos que no son servidores: firewall, switches, NAS e hipervisores también tienen firmware que parchear.
+El primero, en Ubuntu, refresca la lista de paquetes y muestra lo que falta por actualizar; el segundo, en `SRV-DC01`, muestra las últimas actualizaciones instaladas. No te olvides de los equipos que no son servidores: firewall, switches, NAS e hipervisores también tienen firmware que parchear.
 
 {{< pregunta texto="¿Cómo se llama el conjunto de equipos donde instalas los parches antes que en el resto?" respuesta="grupo piloto|piloto|el grupo piloto" >}}
 {{% /tarea %}}
@@ -96,18 +97,18 @@ Practica en el laboratorio. En Ubuntu, crea un usuario de prueba y bloquéalo:
 ```
 sudo adduser becario
 sudo usermod -L becario
-sudo chage -E 0 becario
+sudo chage -E 1 becario
 ```
 
-`usermod -L` bloquea su contraseña y `chage -E 0` marca la cuenta como caducada, lo que impide también entrar con claves SSH. En `SRV-DC01`:
+`usermod -L` bloquea su contraseña y `chage -E 1` pone como fecha de caducidad el 2 de enero de 1970, así que la cuenta queda caducada y tampoco se puede entrar con claves SSH (no uses `0`: el manual de `shadow` advierte que puede interpretarse como «sin caducidad»). En `SRV-DC01`, que desde el módulo 4 es controlador de dominio, ya no hay cuentas locales: la baja se hace en Active Directory.
 
 ```
-New-LocalUser -Name "becario" -NoPassword
-Disable-LocalUser -Name "becario"
-Get-LocalUser -Name "becario"
+New-ADUser -Name "becario" -SamAccountName "becario"
+Disable-ADAccount -Identity "becario"
+Get-ADUser -Identity "becario"
 ```
 
-En un dominio de Active Directory (módulo 4) el equivalente es `Disable-ADAccount`.
+En la salida de `Get-ADUser`, `Enabled` debe valer `False`. En un servidor que no es controlador de dominio, el equivalente con cuentas locales es `New-LocalUser` y `Disable-LocalUser`.
 
 Crea y deshabilita la cuenta de prueba en los dos sistemas y marca la tarea.
 {{% /tarea %}}
