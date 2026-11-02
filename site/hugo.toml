@@ -28,6 +28,10 @@ enableRobotsTXT = true
   [[module.mounts]]
     source = "static"
     target = "static"
+  # CSS and JS go through Hugo Pipes so their URLs carry a content hash: browsers and CDNs never serve a stale copy.
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
   [[module.mounts]]
     source = "archetypes"
     target = "archetypes"

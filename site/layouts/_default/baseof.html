@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} · {{ site.Title }}{{ end }}</title>
   <meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ site.Params.description }}{{ end }}">
-  <link rel="stylesheet" href="{{ "css/site.css" | relURL }}">
+  {{- with resources.Get "css/site.css" | minify | fingerprint }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}">
+  {{- end }}
 </head>
 <body>
   <header class="top">
@@ -19,6 +21,8 @@
   </header>
   <main class="page">{{ block "main" . }}{{ end }}</main>
   <footer class="foot"><p>Contenido de práctica: usa los scripts del toolkit solo en redes de tu empresa y con autorización.</p></footer>
-  <script src="{{ "js/ruta.js" | relURL }}" defer></script>
+  {{- with resources.Get "js/ruta.js" | minify | fingerprint }}
+  <script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>
+  {{- end }}
 </body>
 </html>
