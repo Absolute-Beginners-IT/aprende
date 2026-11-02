@@ -1,0 +1,8 @@
+[
+  { "id": "inicio", "nombre": "Inicio", "ruta": "" },
+  { "id": "aprender", "nombre": "Aprender", "ruta": "aprender/" },
+  { "id": "mapa", "nombre": "Mapa", "ruta": "app/#mapa" },
+  { "id": "infra", "nombre": "Mi infraestructura", "ruta": "app/#mi-infraestructura" },
+  { "id": "guias", "nombre": "Guías", "ruta": "app/guias/" },
+  { "id": "herramientas", "nombre": "Herramientas", "ruta": "herramientas/" }
+]

@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from './App';
 
 // Same key and values as the switching guides, so one choice applies to the whole website.
 const THEME_KEY = 'switching-manual:theme';
+
+// Each test starts on the map, whatever hash another test (or a loop inside one) left behind.
+beforeEach(() => { location.hash = ''; });
 
 afterEach(() => {
   cleanup();

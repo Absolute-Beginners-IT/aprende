@@ -2,7 +2,7 @@
    The orange is darker in light mode so it keeps 4.5:1 contrast as text. */
 :root {
   --bg: #f6f7f9; --surface: #ffffff; --text: #16202e; --muted: #5b6676; --line: #d9dee6;
-  --accent: #c2410c; --on-accent: #ffffff; --glow: rgba(229, 104, 42, .12);
+  --accent: #c2410c; --on-accent: #ffffff; --glow: rgba(194, 65, 12, .10);
   --navy: #18243f; --callout: #fdeee6; --notice-bg: #fdf1d3; --notice-text: #6b4600;
   --l-proteccion: #b45309; --l-servicios: #047857; --l-logica: #7c3aed; --l-fisica: #1d4ed8;
   --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
