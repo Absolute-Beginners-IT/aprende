@@ -120,13 +120,12 @@ Get-ADGroupMember -Identity "GG-Ingenieria" | Select-Object Name
 {{% /tarea %}}
 
 {{% tarea n="5" titulo="Prepara SRV-FS01" %}}
-Crea una segunda VM de Windows Server igual que en el módulo 2, llámala `SRV-FS01`, ponle la IP fija **192.168.50.11** con DNS **192.168.50.10** (si apuntas a otro DNS, no encontrará el dominio) y únela al dominio:
+Crea una segunda VM de Windows Server igual que en el módulo 2, llámala `SRV-FS01`, ponle la IP fija **192.168.50.11** con DNS **192.168.50.10** (si apuntas a otro DNS, no encontrará el dominio) y únela al dominio (`-NewName` le cambia el nombre en el mismo paso; el reinicio va al final para que no corte los comandos anteriores):
 
 ```
-Rename-Computer -NewName "SRV-FS01" -Restart
 New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 192.168.50.11 -PrefixLength 24 -DefaultGateway 192.168.50.1
 Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 192.168.50.10
-Add-Computer -DomainName "lab.example.com" -Credential "LAB\adm-tunombre" -Restart
+Add-Computer -DomainName "lab.example.com" -NewName "SRV-FS01" -Credential "LAB\adm-tunombre" -Restart
 ```
 
 Los datos de la empresa **no van en el disco del sistema**. Apaga la VM, añádele un disco virtual de 20 GB y, al arrancar, inicialízalo como unidad `E:`:

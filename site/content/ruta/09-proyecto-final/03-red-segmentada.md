@@ -101,7 +101,7 @@ Test-NetConnection srv-fs01.lab.example.com -Port 445
 Test-NetConnection 1.1.1.1 -Port 443
 ```
 
-(Desde un Linux «live», usa `nslookup` y `ping`.) Y, para ver que el firewall está trabajando, mira **Status → System Logs → Firewall** en pfSense mientras intentas llegar a una dirección de 192.168.99.0/24: aparecerán los bloqueos.
+(Desde un Linux «live», usa `nslookup` y `ping`.) Y, para ver que el firewall está trabajando, edita la regla de bloqueo, marca **Log packets that are handled by this rule** (las reglas que creas no registran nada si no lo activas) y mira **Status → System Logs → Firewall** en pfSense mientras intentas llegar a una dirección de 192.168.99.0/24: aparecerán los bloqueos.
 
 Checklist del hito:
 

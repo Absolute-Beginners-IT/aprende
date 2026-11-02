@@ -92,7 +92,7 @@ Ahora da de alta los servidores en la web, en **Data collection → Hosts → Cr
 
 Son las mismas plantillas y la misma organización por grupos y etiquetas que propone la guía de monitorización del toolkit.
 
-**Cómo sabes que está bien:** en **Monitoring → Hosts**, los tres servidores tienen **ZBX** en verde y en **Monitoring → Latest data** ves la CPU, la memoria y el espacio libre de `E:` en `SRV-FS01`.
+**Cómo sabes que está bien:** en **Monitoring → Hosts**, los tres servidores (`SRV-MON01` aparece como «Zabbix server») tienen **ZBX** en verde y en **Monitoring → Latest data** ves la CPU, la memoria y el espacio libre de `E:` en `SRV-FS01`.
 
 {{< pregunta texto="¿En qué puerto TCP escucha Zabbix Agent 2?" respuesta="10050" >}}
 {{% /tarea %}}

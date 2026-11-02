@@ -123,7 +123,7 @@ Una copia manual se olvida. Prográmala en `SRV-FS01`, desde la consola `wbadmin
 wbadmin enable backup -addtarget:F: -include:E: -schedule:21:00 -quiet
 ```
 
-Y en `SRV-DC01`, una tarea programada que lance cada noche el `wbadmin start systemstatebackup` de la tarea 3.
+Y en `SRV-DC01`, una tarea programada que lance cada noche el `wbadmin start systemstatebackup` de la tarea 3. Ese comando no borra las copias antiguas por sí solo: para cumplir los 7 días de la tabla, añade a la misma tarea `wbadmin delete systemstatebackup -keepVersions:7 -quiet`, que conserva solo las siete más recientes.
 
 Con eso tienes **dos copias** (los datos y la del disco `F:`), pero las dos viven en el mismo ordenador. Para cumplir la regla **3-2-1** (3 copias, en 2 soportes distintos, 1 fuera) falta la de fuera. En el laboratorio, basta con copiar la carpeta `F:\WindowsImageBackup` a un disco USB o a una carpeta de tu ordenador anfitrión de vez en cuando. En una empresa, esa copia iría a otra sede, a la nube o a cinta, y sería **inmutable** para que un ransomware no pudiera borrarla.
 

@@ -39,7 +39,7 @@ Traduce cada frase a una pieza técnica. Esta es tu lista de la compra:
 | Enterarse antes que nadie | Monitorización con alertas | Módulo 8 (operar) |
 | Saber qué equipos hay | Inventario | Módulos 3 y 8 |
 
-{{< pregunta texto="¿Qué servicio de Windows Server permite que cada persona inicie sesión con su propia cuenta en cualquier equipo de la empresa?" respuesta="active directory|ad|el active directory|directorio activo|el directorio activo|ad ds" pista="Lo verás en el módulo 4: dominio, usuarios, grupos y GPO." >}}
+{{< pregunta texto="¿Qué servicio de Windows Server permite que cada persona inicie sesión con su propia cuenta en cualquier equipo de la empresa?" respuesta="active directory|ad|el active directory|directorio activo|el directorio activo|ad ds|adds|active directory domain services|servicios de dominio de active directory" pista="Lo verás en el módulo 4: dominio, usuarios, grupos y GPO." >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="El plan de direcciones" %}}
@@ -102,7 +102,7 @@ Fíjate en el grupo: los permisos **nunca se dan a personas sueltas**, sino a gr
 
 **Cómo sabes que está bien:** puedes deducir para qué sirve cualquier equipo o grupo solo con leer su nombre.
 
-{{< pregunta texto="Si mañana entra una persona nueva en Ingeniería, ¿a qué grupo la añades para que acceda a su carpeta?" respuesta="gg-ingenieria" >}}
+{{< pregunta texto="Si mañana entra una persona nueva en Ingeniería, ¿a qué grupo la añades para que acceda a su carpeta?" respuesta="gg-ingenieria|gg ingenieria" >}}
 {{% /tarea %}}
 
 {{% tarea n="5" titulo="Dibuja el mapa y reparte los recursos" %}}
