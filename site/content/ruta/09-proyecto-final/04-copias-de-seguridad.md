@@ -65,7 +65,7 @@ Y comprueba que existe, con su identificador de versión:
 wbadmin get versions -backupTarget:F:
 ```
 
-El **identificador de versión** tiene el formato `MM/DD/AAAA-HH:MM` (mes primero y hora UTC, aunque tu Windows esté en español). Apúntalo: lo necesitarás para restaurar.
+El **identificador de versión** tiene el formato `MM/DD/AAAA-HH:MM`: el mes va primero, aunque tu Windows esté en español, y la hora puede no coincidir con la de tu reloj. Cópialo tal cual de la salida del comando: lo necesitarás para restaurar.
 
 En el controlador de dominio, haz también una copia del **estado del sistema**, que es lo que permite recuperar Active Directory. Necesita un disco distinto del sistema, así que añade a `SRV-DC01` un disco virtual (por ejemplo, `F:`) igual que antes:
 
@@ -89,10 +89,18 @@ Remove-Item -Path "E:\Compartido\Administracion\nominas-octubre.txt"
 Restaura la carpeta en **otra ubicación**, nunca encima de la original sin mirar antes qué vas a sobrescribir. Usa el identificador de versión de la tarea anterior (el de abajo es un ejemplo):
 
 ```
-wbadmin start recovery -version:11/02/2026-20:00 -itemType:File -items:E:\Compartido\Administracion -backupTarget:F: -recoveryTarget:E:\Restaurado -recursive -quiet
+wbadmin start recovery -version:11/02/2026-20:00 -itemType:File -items:E:\Compartido\Administracion -backupTarget:F: -machine:SRV-FS01 -recoveryTarget:E:\Restaurado -recursive -quiet
 ```
 
-Comprueba el fichero restaurado y sus permisos, y después devuélvelo a su sitio:
+Cuando indicas `-backupTarget`, `wbadmin` exige también `-machine` con el nombre del servidor cuya copia restauras.
+
+Antes de seguir, mira dónde ha quedado lo restaurado:
+
+```
+Get-ChildItem -Path "E:\Restaurado" -Recurse
+```
+
+Lo normal es encontrar la carpeta como `E:\Restaurado\Administracion`; si en tu caso la ruta es otra, ajusta los comandos siguientes. Comprueba el fichero restaurado y sus permisos, y después devuélvelo a su sitio:
 
 ```
 Get-Content -Path "E:\Restaurado\Administracion\nominas-octubre.txt"

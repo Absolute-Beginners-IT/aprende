@@ -72,7 +72,7 @@ msiexec /i zabbix_agent2-7.0.x-windows-amd64-openssl.msi /qn SERVER=192.168.50.2
 Get-Service "Zabbix Agent 2"
 ```
 
-El instalador crea también la regla del firewall de Windows para el puerto **TCP 10050**. Comprueba desde `SRV-MON01` que llegas:
+El instalador crea también la regla del firewall de Windows para el puerto **TCP 10050** (salvo que le pases `SKIP=fw`). Comprueba desde `SRV-MON01` que llegas:
 
 ```
 nc -zv 192.168.50.10 10050
