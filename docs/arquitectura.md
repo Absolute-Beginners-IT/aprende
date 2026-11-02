@@ -7,7 +7,7 @@ El proyecto sigue la separación en tres responsabilidades de la metodología de
              /         \
    example.com        app.example.com
    site/ (Hugo)       app/ (React SPA)
-   guía y lecciones   mapa interactivo
+   guía y ruta        mapa interactivo
                            |
                            | HTTPS (futuro)
                            v
@@ -19,7 +19,7 @@ El proyecto sigue la separación en tres responsabilidades de la metodología de
 
 | Dirección | Qué sirve | Cómo se aloja |
 | --- | --- | --- |
-| `example.com` | Lecciones, glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
+| `example.com` | Ruta de aprendizaje (módulos, salas y tareas), glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
 | `app.example.com` | Mapa por capas y modo "Mi infraestructura" | `npm run build` → Cloudflare Pages |
 | `api.example.com` | Cuentas, progreso, inventarios compartidos | **No se construye todavía** (ver ADR 0002) |
 
@@ -50,8 +50,18 @@ Los componentes siguen el patrón contenedor/presentación: `MapPage`, `Scenario
 | Proyecto | Directorio raíz | Comando de build | Salida |
 | --- | --- | --- | --- |
 | Guía | `site` | `hugo --minify` | `public` |
-| App | `app` | `npm ci && npm run build` | `dist` |
+| App | `app` | `npm ci && npm run build` (con `VITE_GUIDE_URL` apuntando a la guía) | `dist` |
 
 Cada carpeta lleva su `_headers` con cabeceras de seguridad (CSP estricta, `nosniff`, `frame-ancestors 'none'`). La app incluye `_redirects` para que las rutas de la SPA vuelvan a `index.html`.
+
+## Ruta de aprendizaje
+
+`site/content/ruta/` sigue el modelo de TryHackMe: la ruta tiene módulos (secciones con `modulo` y `weight`), cada módulo tiene salas (páginas con `duracion`, `nivel`, `objetivos` y `requisitos`) y cada sala tiene tareas (shortcode `tarea`) con preguntas (shortcode `pregunta`). Las respuestas válidas se publican como hash SHA-256 del texto normalizado, y `site/assets/js/ruta.js` (servido con hash en el nombre por Hugo Pipes) las comprueba y guarda el progreso en `localStorage` (en memoria si no está disponible). Las barras de progreso cuentan las tareas sobre la sala ya renderizada, así que también cuentan las que genera un shortcode, como las fases de la hoja de ruta (`content/kb/hoja-de-ruta.json`) en el módulo 8.
+
+La ruta se dibuja como una **topología de red**: cada módulo es un segmento con su color y su «VLAN», y cada sala es un equipo (icono según el campo `equipo` de su front matter, en `layouts/partials/icono-equipo.html`). `ruta.js` dibuja en SVG los cables en ángulo recto entre salas consecutivas, los enciende cuando la sala de origen está completa y marca el estado de cada LED (completada, en curso, siguiente). Sin JavaScript, la ruta se ve como una lista.
+
+## Guía y app
+
+La guía es para aprender y la app para practicar. El glosario vive solo en la guía y la página de escenarios de la guía presenta cada incidencia y enlaza a la app (`app.example.com/#escenarios/<id>`), donde se resuelve sobre el mapa. La app enlaza de vuelta a la guía con `VITE_GUIDE_URL` (`src/config.ts`) y lee las rutas del hash con `src/routing.ts`.
 
 Decisiones registradas en [docs/adr/](adr/).

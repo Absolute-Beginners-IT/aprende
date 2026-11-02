@@ -1,0 +1,8 @@
+{{- /* One numbered task of a room. Its id (room path + "t" + number) is the key ruta.js stores progress under. Blank lines keep the body rendered as Markdown. */ -}}
+<section class="tarea" id="tarea-{{ .n }}" data-tarea="{{ .page.RelPermalink }}t{{ .n }}">
+<header class="tarea-cabecera"><span class="tarea-num">Tarea {{ .n }}</span><h2>{{ .titulo }}</h2><span class="tarea-estado" aria-live="polite"></span></header>
+
+{{ .cuerpo }}
+
+<p class="tarea-pie"><button type="button" class="tarea-completar">Marcar como completada</button></p>
+</section>

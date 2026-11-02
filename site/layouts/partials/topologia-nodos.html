@@ -1,0 +1,15 @@
+{{- /* Rooms of a module drawn as network devices. ruta.js lights the LEDs and draws the cables between consecutive .nodo-equipo. Tasks are counted on the rendered room, so tasks emitted by shortcodes count too. */ -}}
+{{- $seg := mod (int .Params.modulo) 6 }}
+<ol class="nodos">
+  {{- range .Pages.ByWeight }}
+  {{- $total := len (findRE `data-tarea="` .Content) }}
+  <li class="nodo sala seg-{{ $seg }}" data-sala="{{ .RelPermalink }}" data-total="{{ $total }}" data-seg="{{ $seg }}">
+    <a class="nodo-equipo" href="{{ .RelPermalink }}" tabindex="-1" aria-hidden="true">{{ partial "icono-equipo.html" (.Params.equipo | default "servidor") }}<span class="led"></span></a>
+    <div class="nodo-texto">
+      <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+      <span class="muted">{{ with .Params.duracion }}{{ . }} · {{ end }}{{ $total }} tareas</span>
+      <span class="nodo-estado"></span>
+    </div>
+  </li>
+  {{- end }}
+</ol>

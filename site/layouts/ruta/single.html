@@ -1,0 +1,25 @@
+{{ define "main" }}
+{{- $salas := slice }}
+{{- range .Parent.Parent.Sections.ByWeight }}{{ range .Pages.ByWeight }}{{ $salas = $salas | append . }}{{ end }}{{ end }}
+{{- $actual := 0 }}
+{{- range $i, $s := $salas }}{{ if eq $s.RelPermalink $.RelPermalink }}{{ $actual = $i }}{{ end }}{{ end }}
+<article class="lesson sala-pagina">
+  <span class="label">Módulo {{ .Parent.Params.modulo }} · {{ .Parent.Title }}</span>
+  <h1>{{ .Title }}</h1>
+  {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+  <p class="sala-meta muted">{{ with .Params.duracion }}Duración: {{ . }}{{ end }}{{ with .Params.nivel }} · Nivel: {{ . }}{{ end }}</p>
+  {{- with .Params.objetivos }}
+  <aside class="objetivos"><strong>Al terminar esta sala sabrás:</strong><ul>{{ range . }}<li>{{ . | markdownify }}</li>{{ end }}</ul></aside>
+  {{- end }}
+  {{- with .Params.requisitos }}
+  <p class="muted"><strong>Antes necesitas:</strong> {{ delimit . ", " | markdownify }}.</p>
+  {{- end }}
+  {{ partial "progreso.html" (dict "salas" (slice .RelPermalink) "total" (len (findRE `data-tarea="` .Content))) }}
+  {{ .Content }}
+  <nav class="sala-nav" aria-label="Salas">
+    {{- if gt $actual 0 }}{{ with index $salas (sub $actual 1) }}<a href="{{ .RelPermalink }}">← {{ .Title }}</a>{{ end }}{{ else }}<span></span>{{ end }}
+    <a href="{{ .Parent.Parent.RelPermalink }}">Ruta</a>
+    {{- if lt $actual (sub (len $salas) 1) }}{{ with index $salas (add $actual 1) }}<a href="{{ .RelPermalink }}">{{ .Title }} →</a>{{ end }}{{ else }}<span></span>{{ end }}
+  </nav>
+</article>
+{{ end }}

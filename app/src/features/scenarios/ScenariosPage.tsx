@@ -1,25 +1,32 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { content } from '../../content';
+import { GUIDE_URL } from '../../config';
 import { ReferenceMap } from '../map/ReferenceMap';
 
 const allLayers = new Set(content.referencia.capas.map(c => c.id));
 
-/** Container: picks a scenario and a step, and highlights on the map where to look. */
-export function ScenariosPage() {
-  const [scenarioId, setScenarioId] = useState(content.escenarios[0]?.id ?? '');
+interface Props {
+  /** Scenario opened by the link (#escenarios/<id>); unknown or missing ids open the first one. */
+  scenarioId?: string;
+  onChoose: (id: string) => void;
+}
+
+/** Container: shows the scenario in the link, walks its steps and highlights on the map where to look. */
+export function ScenariosPage({ scenarioId, onChoose }: Props) {
   const [step, setStep] = useState(0);
-  const scenario = content.escenarios.find(s => s.id === scenarioId);
+  const scenario = content.escenarios.find(s => s.id === scenarioId) ?? content.escenarios[0];
+  useEffect(() => setStep(0), [scenario?.id]);
   if (!scenario) return <p className="muted">Todavía no hay escenarios.</p>;
 
   const current = scenario.pasos[step];
   const last = step === scenario.pasos.length - 1;
-  const choose = (id: string) => { setScenarioId(id); setStep(0); };
 
   return (
     <section className="scenarios">
+      <p className="muted">Piensa qué mirarías antes de pasar de paso. ¿Te falta base? Repasa la <a href={`${GUIDE_URL}ruta/`}>ruta de aprendizaje</a> de la guía.</p>
       <div className="layers" role="group" aria-label="Escenarios">
         {content.escenarios.map(s => (
-          <button key={s.id} type="button" className="chip" aria-pressed={s.id === scenarioId} onClick={() => choose(s.id)}>{s.titulo}</button>
+          <button key={s.id} type="button" className="chip" aria-pressed={s.id === scenario.id} onClick={() => onChoose(s.id)}>{s.titulo}</button>
         ))}
       </div>
       <div className="map-grid">

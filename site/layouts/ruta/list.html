@@ -1,0 +1,53 @@
+{{ define "main" }}
+{{- if .Parent.IsHome }}
+{{- $modulos := .Sections.ByWeight }}
+{{- $t := partial "ruta-totales.html" $modulos }}
+<section class="ruta-cabecera">
+  <span class="label">Ruta de aprendizaje</span>
+  <h1>{{ .Title }}</h1>
+  {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+  {{ partial "progreso.html" $t }}
+  <p class="ruta-acciones"><a class="cta" id="continuar" href="{{ (index $modulos 0).RelPermalink }}">Empieza por el módulo 0</a>
+  <button type="button" class="enlace" data-reiniciar>Reiniciar mi progreso</button></p>
+</section>
+{{ .Content }}
+<div class="topologia" data-topologia>
+  <svg class="cables" aria-hidden="true"></svg>
+  {{- range $modulos }}
+  {{- $seg := mod (int .Params.modulo) 6 }}
+  <section class="segmento seg-{{ $seg }}">
+    <header class="segmento-cabecera">
+      <span class="label">Módulo {{ .Params.modulo }}</span>
+      <span class="vlan">VLAN {{ mul (add (int .Params.modulo) 1) 10 }}</span>
+      <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+      {{ with .Description }}<p class="muted">{{ . }}</p>{{ end }}
+      {{- if .Params.proximamente }}
+      <p><span class="insignia">Próximamente</span></p>
+      {{- else }}
+      {{ partial "progreso.html" (partial "ruta-totales.html" (slice .)) }}
+      {{- end }}
+    </header>
+    {{ partial "topologia-nodos.html" . }}
+  </section>
+  {{- end }}
+</div>
+{{- else }}
+<article class="modulo-pagina">
+  <span class="label">Módulo {{ .Params.modulo }}</span>
+  <h1>{{ .Title }}</h1>
+  {{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+  {{- if .Params.proximamente }}
+  <p><span class="insignia">Próximamente</span> Este módulo está en preparación. Esto es lo que verás:</p>
+  {{ with .Params.temario }}<ul class="temario">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
+  {{- else }}
+  {{ partial "progreso.html" (partial "ruta-totales.html" (slice .)) }}
+  {{- end }}
+  {{ .Content }}
+  <div class="topologia seg-{{ mod (int .Params.modulo) 6 }}" data-topologia>
+    <svg class="cables" aria-hidden="true"></svg>
+    {{ partial "topologia-nodos.html" . }}
+  </div>
+  <p><a href="{{ .Parent.RelPermalink }}">← Volver a la ruta</a></p>
+</article>
+{{- end }}
+{{ end }}
