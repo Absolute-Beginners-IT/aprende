@@ -72,7 +72,7 @@ Muchos switches de acceso también dan **PoE** (*Power over Ethernet*): alimenta
 {{% /tarea %}}
 
 {{% tarea n="4" titulo="Bucles, STP y enlaces agregados" %}}
-Si conectas dos switches con **dos cables** «por si uno falla», creas un **bucle**: un broadcast entra por un cable, vuelve por el otro y da vueltas sin fin, multiplicándose. En segundos la red se satura (**tormenta de broadcast**) y deja de funcionar. Pasa también cuando alguien enchufa un latiguillo con los dos extremos en la misma roseta.
+Si conectas dos switches con **dos cables** «por si uno falla», creas un **bucle**. Si nada lo impide (lo verás en la tabla de abajo), un broadcast entra por un cable, vuelve por el otro y da vueltas sin fin, multiplicándose. En segundos la red se satura (**tormenta de broadcast**) y deja de funcionar. Pasa también cuando alguien enchufa un latiguillo con los dos extremos en la misma roseta.
 
 Hay dos herramientas para tener redundancia sin bucles:
 

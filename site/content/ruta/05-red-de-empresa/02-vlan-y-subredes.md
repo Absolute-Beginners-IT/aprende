@@ -88,7 +88,7 @@ Hay un detalle que suele romper cosas: los clientes piden IP por **DHCP con un b
 Si quieres verlo funcionar, monta un firewall virtual con **pfSense** u **OPNsense** (los dos son gratuitos y se instalan desde su ISO). En VirtualBox o Hyper-V, cada «VLAN» la simularás con una **red interna** distinta; en Proxmox puedes usar un puente con la opción *VLAN aware* y poner la etiqueta en la tarjeta de cada VM, que es etiquetado 802.1Q real.
 
 1. Crea la VM del firewall con **tres adaptadores**: WAN en NAT, LAN en la red interna `servidores` y un tercero en la red interna `usuarios`.
-2. Asigna `192.168.50.1/24` a la LAN y `192.168.10.1/24` a la interfaz de usuarios. Activa el servidor DHCP del firewall en la red de usuarios.
+2. Asigna `192.168.50.1/24` a la LAN y `192.168.10.1/24` a la interfaz de usuarios. Activa el servidor DHCP del firewall solo en la red de usuarios; en la LAN déjalo desactivado, porque ahí ya reparte direcciones tu `SRV-DC01` y dos DHCP en la misma red chocan.
 3. Conecta una VM cliente a la red `usuarios` y comprueba que recibe una IP `192.168.10.x` con `ipconfig /all` o `ip a`.
 4. Desde el cliente, haz `ping 192.168.50.10` (tu `SRV-DC01`). Lo normal es que **falle**: en estos firewalls, las interfaces nuevas no traen ninguna regla que permita tráfico. Apúntalo; lo arreglarás en la sala siguiente.
 

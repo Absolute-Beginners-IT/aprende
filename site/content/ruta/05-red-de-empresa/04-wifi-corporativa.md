@@ -38,7 +38,7 @@ La seguridad de la wifi se configura con **WPA2** o, mejor, **WPA3** (*Wi-Fi Pro
 | **Personal** (PSK, *Pre-Shared Key*) | Una **contraseña compartida** por todos. WPA3-Personal usa un intercambio más robusto, llamado SAE. | Si se va alguien de la empresa, se lleva la clave; para quitarle el acceso hay que cambiarla en todos los dispositivos. |
 | **Enterprise** (802.1X) | Cada persona entra con **sus credenciales** (usuario del dominio) o con un **certificado** en el equipo. Un servidor **RADIUS** comprueba quién es. | Das de baja la cuenta y pierde el acceso. Además, el registro dice quién se conectó y cuándo. |
 
-El servidor RADIUS puede ser el rol **NPS** (Servidor de directivas de redes) de Windows Server, FreeRADIUS en Linux o un servicio del propio fabricante, normalmente consultando el directorio activo. Lo verás encajar cuando montes Active Directory en el módulo 4.
+El servidor RADIUS puede ser el rol **NPS** (Servidor de directivas de redes) de Windows Server, FreeRADIUS en Linux o un servicio del propio fabricante, normalmente consultando el directorio activo. Así, la wifi usa las mismas cuentas del Active Directory que montaste en el módulo 4.
 
 {{< aviso titulo="La distinción que importa" >}}
 La wifi **corporativa** debería ir en modo **Enterprise**. El modo Personal es aceptable para la de **invitados**, siempre que esa red esté aislada y la clave se cambie de vez en cuando.
@@ -70,7 +70,7 @@ Cuando alguien dice «la wifi va mal», no siempre es culpa de la red de cable. 
 
 | Banda | Alcance | Capacidad | Nota |
 | --- | --- | --- | --- |
-| **2,4 GHz** | Mayor, atraviesa mejor las paredes. | Menor y con más interferencias. | Solo hay **tres canales que no se solapan**: el 1, el 6 y el 11. |
+| **2,4 GHz** | Mayor, atraviesa mejor las paredes. | Menor y con más interferencias. | Con el ancho habitual de 20 MHz, solo hay **tres canales que no se solapan**: el 1, el 6 y el 11. |
 | **5 GHz** | Menor. | Mucho mayor, con muchos más canales. | La banda principal en una oficina. |
 | **6 GHz** | La menor. | La mayor. | Solo para dispositivos y AP compatibles con Wi-Fi 6E o posterior. |
 

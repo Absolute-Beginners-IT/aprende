@@ -35,7 +35,7 @@ No necesitas saber cómo cifran por dentro, pero sí reconocerlos, porque condic
 
 | Protocolo | Dónde se usa | Qué abre en el firewall |
 | --- | --- | --- |
-| **IPsec** (normalmente con **IKEv2** para negociar las claves) | El estándar de las VPN **sitio a sitio**, sobre todo entre firewalls de fabricantes distintos. También para acceso remoto. | UDP 500 y UDP 4500 (este último cuando hay NAT por el camino). |
+| **IPsec** (normalmente con **IKEv2** para negociar las claves) | El estándar de las VPN **sitio a sitio**, sobre todo entre firewalls de fabricantes distintos. También para acceso remoto. | UDP 500 y UDP 4500 (este último cuando hay NAT por el camino); sin NAT, además, el protocolo ESP (protocolo IP 50). |
 | **VPN SSL/TLS** (por ejemplo, OpenVPN o las «SSL VPN» de los fabricantes) | Muy común en **acceso remoto**: cada fabricante suele tener su cliente. | Depende de la configuración; a menudo TCP o UDP 443, o UDP 1194 en OpenVPN. |
 | **WireGuard** | Moderno y sencillo: cada extremo tiene un par de claves. Sirve para los dos tipos. | Un puerto UDP que eliges tú; 51820 es el que se usa habitualmente. |
 

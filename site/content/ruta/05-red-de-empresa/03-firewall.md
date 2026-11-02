@@ -94,7 +94,7 @@ Lo que se olvida al cambiar de línea:
 - Los servicios que filtran por IP de origen (un proveedor que solo admite la IP de tu oficina) te rechazarán.
 - Si **no la pruebas**, no sabes si funciona. Desenchufa la principal en una ventana de mantenimiento y comprueba.
 
-Si montaste el laboratorio de la sala anterior: añade en la interfaz de usuarios una regla que permita ICMP hacia `192.168.50.10` y repite el ping. Si sigue fallando, recuerda que el propio firewall de Windows de `SRV-DC01` puede estar bloqueando el ping.
+Si montaste el laboratorio de la sala anterior: añade en la interfaz de usuarios una regla que permita ICMP hacia `192.168.50.10` y repite el ping. Si sigue fallando, comprueba que `SRV-DC01` tiene como puerta de enlace `192.168.50.1` (si no, sus respuestas no vuelven por el firewall) y recuerda que el propio firewall de Windows de `SRV-DC01` puede estar bloqueando el ping.
 
 {{< pregunta texto="¿Cómo se llama el modo de doble WAN en el que la segunda línea solo se usa si cae la principal?" respuesta="failover|conmutacion por error|activo-pasivo|activo pasivo|respaldo" >}}
 {{% /tarea %}}
