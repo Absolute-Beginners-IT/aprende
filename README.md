@@ -4,7 +4,7 @@ Guía interactiva para dar los primeros pasos como administrador de sistemas: qu
 
 La guía tiene una **ruta de aprendizaje** al estilo de las de TryHackMe: módulos en orden (de redes y sistemas operativos hasta operar una red real), salas con tareas, preguntas comprobables y progreso guardado en el navegador.
 
-La app incluye además **escenarios de incidencias** paso a paso sobre el mapa, un **glosario** y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
+El reparto es sencillo: **la guía es para aprender** (ruta, glosario) y **la app es para practicar**. La app incluye el mapa, los **escenarios de incidencias** paso a paso sobre el mapa (la guía enlaza cada uno con `#escenarios/<id>`) y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
 
 ## Estructura
 

@@ -50,12 +50,16 @@ Los componentes siguen el patrón contenedor/presentación: `MapPage`, `Scenario
 | Proyecto | Directorio raíz | Comando de build | Salida |
 | --- | --- | --- | --- |
 | Guía | `site` | `hugo --minify` | `public` |
-| App | `app` | `npm ci && npm run build` | `dist` |
+| App | `app` | `npm ci && npm run build` (con `VITE_GUIDE_URL` apuntando a la guía) | `dist` |
 
 Cada carpeta lleva su `_headers` con cabeceras de seguridad (CSP estricta, `nosniff`, `frame-ancestors 'none'`). La app incluye `_redirects` para que las rutas de la SPA vuelvan a `index.html`.
 
 ## Ruta de aprendizaje
 
 `site/content/ruta/` sigue el modelo de TryHackMe: la ruta tiene módulos (secciones con `modulo` y `weight`), cada módulo tiene salas (páginas con `duracion`, `nivel`, `objetivos` y `requisitos`) y cada sala tiene tareas (shortcode `tarea`) con preguntas (shortcode `pregunta`). Las respuestas válidas se publican como hash SHA-256 del texto normalizado, y `site/static/js/ruta.js` las comprueba y guarda el progreso en `localStorage` (en memoria si no está disponible). Las barras de progreso cuentan las tareas sobre la sala ya renderizada, así que también cuentan las que genera un shortcode, como las fases de la hoja de ruta (`content/kb/hoja-de-ruta.json`) en el módulo 8.
+
+## Guía y app
+
+La guía es para aprender y la app para practicar. El glosario vive solo en la guía y la página de escenarios de la guía presenta cada incidencia y enlaza a la app (`app.example.com/#escenarios/<id>`), donde se resuelve sobre el mapa. La app enlaza de vuelta a la guía con `VITE_GUIDE_URL` (`src/config.ts`) y lee las rutas del hash con `src/routing.ts`.
 
 Decisiones registradas en [docs/adr/](adr/).
