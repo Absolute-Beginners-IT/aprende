@@ -98,7 +98,7 @@ sudo poweroff
 ```
 
 3. A partir de ahora no arranques la plantilla: solo se clona. Haz un clon de ella llamado `SRV-WEB01`.
-4. Arranca `SRV-WEB01`, cámbiale el nombre y regenera las claves SSH:
+4. Arranca `SRV-WEB01` y, desde su consola (el SSH no funcionará hasta regenerar las claves), cámbiale el nombre y regenera las claves SSH:
 
 ```
 sudo hostnamectl set-hostname SRV-WEB01

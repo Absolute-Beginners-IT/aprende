@@ -29,7 +29,7 @@ Sobre ellos, el hipervisor crea los discos virtuales de las VM de dos formas:
 
 El fino ahorra espacio y permite sobreasignar disco, pero exige vigilar el almacén: si se llena, todas las VM que viven en él se detienen a la vez.
 
-{{< pregunta texto="¿Cómo se llama el aprovisionamiento en el que el disco virtual crece a medida que se escriben datos?" respuesta="fino|thin|dinamico|aprovisionamiento fino" >}}
+{{< pregunta texto="¿Cómo se llama el aprovisionamiento en el que el disco virtual crece a medida que se escriben datos?" respuesta="fino|thin|dinamico|aprovisionamiento fino|aprovisionamiento dinamico" >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="RAID: que un disco roto no pare el servidor" %}}
@@ -40,7 +40,7 @@ Los discos se estropean; es cuestión de tiempo. **RAID** (conjunto redundante d
 | **RAID 1** (espejo) | 2 | La de un disco (50 %) | 1 | Sencillo y fiable. Típico para el disco del sistema. |
 | **RAID 5** | 3 | Todos menos uno | 1 | Aprovecha bien el espacio, pero con discos grandes la reconstrucción es lenta y arriesgada. |
 | **RAID 6** | 4 | Todos menos dos | 2 | Como RAID 5, pero aguanta un segundo fallo durante la reconstrucción. |
-| **RAID 10** (espejos combinados) | 4 | La mitad (50 %) | Al menos 1 (uno por cada espejo) | El más rápido; muy usado para VM y bases de datos. |
+| **RAID 10** (espejos combinados) | 4 | La mitad (50 %) | 1 seguro; hasta uno por cada espejo si fallan en espejos distintos | El más rápido; muy usado para VM y bases de datos. |
 
 Ejemplo con **4 discos de 4 TB**: en RAID 5 tienes 12 TB útiles; en RAID 6, 8 TB; en RAID 10, 8 TB.
 
@@ -54,7 +54,7 @@ RAID te protege de **un** tipo de problema: que se rompa un disco. Contra todo l
 
 - Si alguien borra una carpeta, el RAID borra la carpeta en todos los discos a la vez.
 - Si un *ransomware* (programa que cifra tus datos para pedir un rescate) cifra los ficheros, el RAID guarda fielmente los ficheros cifrados.
-- Si se quema la controladora, se inunda la sala o roban el servidor, se pierden todos los discos juntos.
+- Si hay un incendio, se inunda la sala o roban el servidor, se pierden todos los discos juntos.
 
 {{< aviso titulo="La distinción que importa" >}}
 RAID sirve para **disponibilidad**: que el servicio no se pare por un disco roto. Las copias de seguridad sirven para **recuperar** datos perdidos. Necesitas las dos cosas; una no sustituye a la otra.

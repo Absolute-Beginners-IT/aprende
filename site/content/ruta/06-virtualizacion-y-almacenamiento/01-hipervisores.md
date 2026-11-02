@@ -28,7 +28,7 @@ Un hipervisor de tipo 1 rinde más y es más estable, porque no compite con un s
 Hyper-V parece de tipo 2 porque lo activas desde Windows, pero no lo es: al activarlo, el hipervisor arranca primero, sobre el hardware, y tu Windows pasa a ejecutarse encima de él como una partición especial de gestión. Por eso se considera de **tipo 1**.
 {{< /aviso >}}
 
-{{< pregunta texto="¿De qué tipo es un hipervisor que se instala directamente sobre el hardware, sin sistema operativo debajo?" respuesta="tipo 1|1|bare metal|baremetal" >}}
+{{< pregunta texto="¿De qué tipo es un hipervisor que se instala directamente sobre el hardware, sin sistema operativo debajo?" respuesta="tipo 1|1|de tipo 1|tipo uno|bare metal|baremetal" >}}
 {{% /tarea %}}
 
 {{% tarea n="2" titulo="Los tres que vas a encontrar" %}}
