@@ -41,6 +41,8 @@ body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
 .menu .nav { position: absolute; right: 0; top: calc(100% + 8px); min-width: 230px; flex-direction: column; gap: 2px; padding: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, .25); }
 .menu .nav a { padding: 10px 12px; border-radius: 10px; }
 @media (max-width: 900px) { .top > .nav { display: none; } .menu { display: block; } }
+/* Narrow phones: brand, menu and theme button must fit in one row without horizontal scroll (same rule as the site). */
+@media (max-width: 420px) { .top { gap: 8px; padding: 10px 16px; } .brand { min-width: 0; overflow: hidden; text-overflow: ellipsis; } .theme-toggle, .menu summary { padding: 6px 10px; font-size: 13px; } }
 .label { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 h1 { margin: 6px 0; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -.01em; }
 .muted { color: var(--muted); }
