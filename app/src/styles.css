@@ -93,7 +93,3 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .findings { list-style: none; padding: 0; display: grid; gap: 8px; }
 .finding { border-left: 4px solid var(--other); padding: 4px 10px; }
 .finding.crit { border-color: #dc2626; } .finding.warn { border-color: #d97706; }
-.search { display: grid; gap: 4px; max-width: 420px; margin: 12px 0; font-size: 14px; }
-.terms { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.term { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
-.term dt { font-weight: 700; margin-bottom: 4px; } .term dd { margin: 0; }

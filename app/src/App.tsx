@@ -1,24 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { MapPage } from './features/map/MapPage';
 import { ScenariosPage } from './features/scenarios/ScenariosPage';
-import { GlossaryPage } from './features/glossary/GlossaryPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
+import { GUIDE_URL } from './config';
+import { parseHash, scenarioHash, type Route } from './routing';
 
-// The map, its scenarios and its glossary are one section ("Mapa"); "Mi infraestructura" is its own section.
+// The map and its scenarios are one section ("Mapa"); "Mi infraestructura" is its own section.
+// The glossary lives only in the guide: the old #glosario link opens the map (see routing.ts).
 const MAP_VIEWS = [
   ['mapa', 'Mapa'],
   ['escenarios', 'Escenarios'],
-  ['glosario', 'Glosario'],
 ] as const;
-type View = typeof MAP_VIEWS[number][0] | 'mi-infraestructura';
 
-const viewFromHash = (): View => {
-  const h = location.hash.slice(1);
-  return h === 'mi-infraestructura' || MAP_VIEWS.some(([k]) => k === h) ? (h as View) : 'mapa';
-};
+const routeFromHash = (): Route => parseHash(location.hash);
 
 // localStorage can be unavailable (private mode, blocked storage): fall back to memory for the session.
 function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
@@ -32,10 +29,11 @@ function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
 }
 
 export function App() {
-  const [view, setView] = useState<View>(viewFromHash);
+  const [route, setRoute] = useState<Route>(routeFromHash);
+  const { view } = route;
   const repository = useMemo(() => createLocalStorageInventoryRepository(browserStorage()), []);
   useEffect(() => {
-    const onHash = () => setView(viewFromHash());
+    const onHash = () => setRoute(routeFromHash());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -61,6 +59,7 @@ export function App() {
               <span className="label">Mapa</span>
               <h1>Mapa de infraestructura</h1>
               <p className="muted">{content.referencia.descripcion} Activa y desactiva las capas para ver cómo encaja cada pieza.</p>
+              <p className="muted">Aquí se practica. Para aprender los conceptos paso a paso, sigue la <a href={`${GUIDE_URL}ruta/`}>ruta de aprendizaje</a> de la guía; si una palabra no te suena, búscala en el <a href={`${GUIDE_URL}glosario/`}>glosario</a>.</p>
             </header>
             <nav className="tabs" aria-label="Vistas del mapa">
               {MAP_VIEWS.map(([k, label]) => (
@@ -71,8 +70,7 @@ export function App() {
         )}
         <main>
           {view === 'mapa' && <MapPage />}
-          {view === 'escenarios' && <ScenariosPage />}
-          {view === 'glosario' && <GlossaryPage />}
+          {view === 'escenarios' && <ScenariosPage scenarioId={route.scenarioId} onChoose={id => { location.hash = scenarioHash(id); }} />}
           {inventory && <InventoryPage repository={repository} />}
         </main>
       </div>
