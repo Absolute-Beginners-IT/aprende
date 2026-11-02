@@ -56,9 +56,15 @@
 
     let next = null;
     document.querySelectorAll('.sala[data-sala]').forEach(el => {
-      const complete = doneIn([el.dataset.sala]) >= Number(el.dataset.total);
+      const done = doneIn([el.dataset.sala]);
+      const complete = done >= Number(el.dataset.total);
+      const isNext = !complete && !next;
       el.classList.toggle('completa', complete);
-      if (!complete && !next) next = el.querySelector('a');
+      el.classList.toggle('en-curso', !complete && done > 0);
+      el.classList.toggle('siguiente', isNext);
+      const status = el.querySelector('.nodo-estado');
+      if (status) status.textContent = complete ? 'Completada' : isNext ? (done > 0 ? 'En curso · siguiente' : 'Siguiente') : done > 0 ? 'En curso' : '';
+      if (isNext) next = el.querySelector('.nodo-texto a') || el.querySelector('a');
     });
 
     const continuar = document.getElementById('continuar');
@@ -69,6 +75,42 @@
     } else if (continuar && document.querySelector('.sala[data-sala]')) {
       continuar.textContent = '¡Has completado todas las salas disponibles!';
     }
+    drawCables();
+  }
+
+  // Network-style cabling between consecutive rooms: down, across, down. A cable lights up once the room it leaves is complete.
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  function drawCables() {
+    document.querySelectorAll('[data-topologia]').forEach(topology => {
+      const svg = topology.querySelector('svg.cables');
+      if (!svg) return;
+      const box = topology.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+      svg.setAttribute('width', box.width);
+      svg.setAttribute('height', box.height);
+      const nodes = [...topology.querySelectorAll('.nodo')];
+      const paths = nodes.slice(1).map((node, i) => {
+        const from = nodes[i].querySelector('.nodo-equipo').getBoundingClientRect();
+        const to = node.querySelector('.nodo-equipo').getBoundingClientRect();
+        const x1 = from.left + from.width / 2 - box.left;
+        const y1 = from.bottom - box.top;
+        const x2 = to.left + to.width / 2 - box.left;
+        const y2 = to.top - box.top;
+        const ym = Math.round((y1 + y2) / 2);
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', `M${x1} ${y1} V${ym} H${x2} V${y2}`);
+        path.setAttribute('class', `cable seg-${node.dataset.seg}${nodes[i].classList.contains('completa') ? ' encendido' : ''}`);
+        return path;
+      });
+      svg.replaceChildren(...paths);
+    });
+  }
+
+  if ('ResizeObserver' in window) {
+    const observer = new ResizeObserver(() => drawCables());
+    document.querySelectorAll('[data-topologia]').forEach(t => observer.observe(t));
+  } else {
+    window.addEventListener('resize', drawCables);
   }
 
   function setTaskDone(task, done) {

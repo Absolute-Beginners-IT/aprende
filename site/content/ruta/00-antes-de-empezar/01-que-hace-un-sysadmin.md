@@ -2,6 +2,7 @@
 title: "Qué hace un administrador de sistemas"
 description: "En qué consiste el trabajo, cómo está organizada esta ruta y la mentalidad con la que conviene empezar."
 weight: 1
+equipo: "libro"
 duracion: "15 min"
 nivel: "Inicial"
 objetivos:

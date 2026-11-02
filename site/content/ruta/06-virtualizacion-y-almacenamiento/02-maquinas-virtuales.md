@@ -2,6 +2,7 @@
 title: "Máquinas virtuales, plantillas e instantáneas"
 description: "Crea servidores en minutos a partir de una plantilla y usa las instantáneas para lo que sirven, sin confundirlas con una copia de seguridad."
 weight: 2
+equipo: "capas"
 duracion: "50 min"
 nivel: "Inicial"
 objetivos:

@@ -2,6 +2,7 @@
 title: "Herramientas de diagnóstico"
 description: "Los comandos que usarás cada día para saber qué le pasa a una red, y un método para no ir a ciegas."
 weight: 3
+equipo: "terminal"
 duracion: "40 min"
 nivel: "Inicial"
 objetivos:

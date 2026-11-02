@@ -2,6 +2,7 @@
 title: "Firewall: reglas, NAT y doble WAN"
 description: "Cómo decide un firewall qué pasa y qué no, cómo traduce direcciones para salir a Internet y qué cambia cuando tienes dos líneas."
 weight: 3
+equipo: "firewall"
 duracion: "50 min"
 nivel: "Intermedio"
 objetivos:

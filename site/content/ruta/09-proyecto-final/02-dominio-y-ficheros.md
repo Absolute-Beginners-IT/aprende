@@ -2,6 +2,7 @@
 title: "Dominio, DNS, DHCP y servidor de ficheros"
 description: "Levanta el corazón de la empresa: el controlador de dominio con DNS y DHCP, los usuarios y grupos, y las carpetas por departamento."
 weight: 2
+equipo: "servidor"
 duracion: "2–3 h"
 nivel: "Intermedio"
 objetivos:

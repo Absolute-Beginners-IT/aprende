@@ -2,6 +2,7 @@
 title: "Windows Server: primeros pasos"
 description: "Instala un Windows Server en tu laboratorio y déjalo como lo dejaría un administrador: nombre, IP fija, roles y registros."
 weight: 1
+equipo: "servidor"
 duracion: "45 min (más la instalación)"
 nivel: "Inicial"
 objetivos:

@@ -2,6 +2,7 @@
 title: "La hoja de ruta en tu empresa"
 description: "Qué hacer, y en qué orden, cuando te haces cargo de una red que no conoces."
 weight: 1
+equipo: "grafica"
 duracion: "Varias semanas (en la red real)"
 nivel: "Intermedio"
 objetivos:

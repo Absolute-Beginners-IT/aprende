@@ -2,6 +2,7 @@
 title: "Gestor de contraseñas y documentación"
 description: "Guarda las credenciales compartidas donde deben estar y escribe la documentación que permitirá a otra persona arreglar las cosas cuando tú no estés."
 weight: 4
+equipo: "llave"
 duracion: "40 min"
 nivel: "Inicial"
 objetivos:

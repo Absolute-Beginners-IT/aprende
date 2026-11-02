@@ -2,6 +2,7 @@
 title: "Red segmentada con VLAN (opcional)"
 description: "Añade un firewall virtual, separa los puestos de los servidores y haz que el DHCP del dominio sirva a las dos redes."
 weight: 3
+equipo: "firewall"
 duracion: "1,5–2 h"
 nivel: "Intermedio"
 objetivos:

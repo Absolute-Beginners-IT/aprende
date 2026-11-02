@@ -30,18 +30,13 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .progreso progress { flex: 1; height: 10px; accent-color: var(--accent); }
 .progreso-texto { font-size: 14px; color: var(--muted); white-space: nowrap; }
 .ruta-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-.modulos, .salas, .modulos-resumen { padding: 0; list-style: none; }
+.modulos, .modulos-resumen { padding: 0; list-style: none; }
 .modulos { display: grid; gap: 16px; margin-top: 32px; }
 .modulo { border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
 .modulo h2 { margin: 4px 0; font-size: 22px; }
 .modulo h2 a { text-decoration: none; }
 .modulo.proximamente { background: var(--panel); }
 .modulos-resumen li { padding: 6px 0; border-bottom: 1px solid var(--line); }
-.salas { display: grid; gap: 8px; }
-.sala { border-left: 4px solid var(--line); padding: 4px 0 4px 12px; }
-.sala p { margin: 2px 0 0; font-size: 15px; }
-.sala.completa { border-left-color: var(--ok); }
-.sala.completa > a::after { content: " ✓"; color: var(--ok); }
 .temario { color: var(--muted); }
 .objetivos { background: var(--panel); border-radius: 12px; padding: 12px 18px; margin: 16px 0; }
 .objetivos ul { margin: 6px 0 0; }
@@ -64,3 +59,47 @@ code { font-size: .92em; }
 .pregunta-pista p { margin: 4px 0 0; }
 .pasos li { margin: 4px 0; }
 .sala-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
+
+/* Route topology: each module is a coloured segment, each room a device, cables light up as rooms are completed */
+.seg-0 { --seg: #2563eb; } .seg-1 { --seg: #0d9488; } .seg-2 { --seg: #7c3aed; }
+.seg-3 { --seg: #c2410c; } .seg-4 { --seg: #be123c; } .seg-5 { --seg: #4d7c0f; }
+@media (prefers-color-scheme: dark) {
+  .seg-0 { --seg: #60a5fa; } .seg-1 { --seg: #2dd4bf; } .seg-2 { --seg: #a78bfa; }
+  .seg-3 { --seg: #fb923c; } .seg-4 { --seg: #fb7185; } .seg-5 { --seg: #a3e635; }
+}
+.topologia { position: relative; margin-top: 32px; }
+.cables { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 0; }
+.cable { fill: none; stroke: var(--line); stroke-width: 3; stroke-linejoin: round; }
+.cable.encendido { stroke: var(--seg); stroke-dasharray: 10 6; animation: trafico 1.2s linear infinite; }
+@keyframes trafico { to { stroke-dashoffset: -16; } }
+.segmento { position: relative; z-index: 1; margin-bottom: 8px; }
+.segmento-cabecera { position: relative; background: var(--bg); border: 1px solid var(--line); border-left: 6px solid var(--seg); border-radius: 12px; padding: 14px 18px; margin-top: 16px; }
+.segmento-cabecera h2 { margin: 4px 0; font-size: 22px; }
+.segmento-cabecera h2 a { text-decoration: none; }
+.segmento-cabecera p { margin: 4px 0; }
+.vlan { float: right; font: 600 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; color: var(--seg); border: 1px solid var(--seg); border-radius: 6px; padding: 0 8px; }
+.nodos { list-style: none; margin: 0; padding: 36px 0 28px; display: grid; gap: 44px; }
+.nodo { position: relative; z-index: 1; display: flex; align-items: center; gap: 16px; width: 62%; margin-left: 6%; }
+.nodo:nth-child(even) { margin-left: auto; margin-right: 6%; flex-direction: row-reverse; text-align: right; }
+.nodo-equipo { flex: none; position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 14px; background: var(--panel); border: 2px solid var(--line); color: var(--muted); transition: transform .15s, border-color .15s; }
+.nodo-equipo .icono { width: 38px; height: 38px; }
+.nodo:hover .nodo-equipo { transform: translateY(-2px); border-color: var(--seg); }
+.nodo.completa .nodo-equipo, .nodo.en-curso .nodo-equipo, .nodo.siguiente .nodo-equipo { border-color: var(--seg); color: var(--seg); }
+.nodo.completa .nodo-equipo { background: color-mix(in srgb, var(--seg) 14%, var(--panel)); }
+.led { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.nodo.completa .led { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.nodo.en-curso .led { background: #d97706; }
+.nodo.siguiente .led { background: var(--accent); animation: parpadeo 1.4s ease-in-out infinite; }
+@keyframes parpadeo { 50% { opacity: .25; } }
+.nodo-texto { display: flex; flex-direction: column; min-width: 0; }
+.nodo-texto a { font-weight: 600; text-decoration: none; }
+.nodo-texto a:hover { text-decoration: underline; }
+.nodo-texto .muted { font-size: 14px; }
+.nodo-estado { font-size: 13px; font-weight: 600; color: var(--seg); }
+@media (max-width: 640px) {
+  .nodo, .nodo:nth-child(even) { width: 100%; margin: 0; flex-direction: row; text-align: left; }
+  .vlan { float: none; display: inline-block; margin-left: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cable.encendido, .nodo.siguiente .led { animation: none; }
+}

@@ -2,6 +2,7 @@
 title: "Servidor de ficheros e impresión"
 description: "Comparte una carpeta con permisos de recurso compartido y NTFS bien combinados, comprueba el acceso y conoce cómo funciona un servidor de impresión."
 weight: 4
+equipo: "disco"
 duracion: "45 min"
 nivel: "Intermedio"
 objetivos:

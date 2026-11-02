@@ -2,6 +2,7 @@
 title: "Active Directory: tu primer dominio"
 description: "Entiende qué es un dominio de Active Directory, elige bien su nombre y convierte SRV-DC01 en el primer controlador de dominio de tu laboratorio."
 weight: 1
+equipo: "servidor"
 duracion: "50 min"
 nivel: "Inicial"
 objetivos:

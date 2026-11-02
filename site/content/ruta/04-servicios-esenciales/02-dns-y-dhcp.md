@@ -2,6 +2,7 @@
 title: "DNS interno y DHCP"
 description: "Gestiona las zonas y registros del DNS de tu dominio y monta un servidor DHCP con ámbito, opciones y reservas."
 weight: 2
+equipo: "router"
 duracion: "50 min"
 nivel: "Inicial"
 objetivos:

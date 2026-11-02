@@ -2,6 +2,7 @@
 title: "{{ replace .File.ContentBaseName "-" " " | strings.TrimLeft "0123456789 " | title }}"
 description: ""
 weight: 1
+equipo: "servidor"  # icono: libro, portatil, router, servidor, terminal, switch, usuarios, disco, firewall, wifi, nube, capas, sai, escudo, llave, grafica, bandera
 duracion: "20 min"
 nivel: "Inicial"
 objetivos:

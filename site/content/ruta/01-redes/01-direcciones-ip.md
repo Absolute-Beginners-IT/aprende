@@ -2,6 +2,7 @@
 title: "Direcciones IP y máscaras"
 description: "Cómo se identifica cada equipo en una red y cómo saber si dos equipos están en la misma."
 weight: 1
+equipo: "router"
 duracion: "35 min"
 nivel: "Inicial"
 objetivos:

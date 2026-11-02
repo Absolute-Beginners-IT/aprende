@@ -2,6 +2,7 @@
 title: "SAI y apagado ordenado"
 description: "Qué hace un SAI, cuánto aguanta y cómo consigue que los servidores se apaguen solos y en orden antes de que se agote la batería."
 weight: 2
+equipo: "sai"
 duracion: "40 min"
 nivel: "Inicial"
 objetivos:

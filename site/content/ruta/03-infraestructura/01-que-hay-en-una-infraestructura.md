@@ -2,6 +2,7 @@
 title: "Qué hay en una infraestructura"
 description: "Las piezas de una pyme típica y por qué se miran por capas."
 weight: 1
+equipo: "switch"
 duracion: "30 min"
 nivel: "Inicial"
 aliases: ["/lecciones/01-que-hay-en-una-infraestructura/"]

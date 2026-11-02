@@ -2,6 +2,7 @@
 title: "Seguridad básica: parches, privilegios y MFA"
 description: "Las cuatro costumbres que frenan la mayoría de los incidentes: parchear con calma pero sin falta, dar el mínimo privilegio, separar la cuenta de administrador y pedir un segundo factor."
 weight: 3
+equipo: "escudo"
 duracion: "45 min"
 nivel: "Inicial"
 objetivos:

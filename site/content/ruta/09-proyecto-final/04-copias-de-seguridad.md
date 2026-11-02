@@ -2,6 +2,7 @@
 title: "Copias de seguridad y prueba de restauración"
 description: "Protege las carpetas de la empresa con copias programadas y demuestra que sabes recuperar un fichero borrado."
 weight: 4
+equipo: "disco"
 duracion: "1,5 h"
 nivel: "Intermedio"
 objetivos:

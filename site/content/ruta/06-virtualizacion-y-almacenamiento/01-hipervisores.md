@@ -2,6 +2,7 @@
 title: "Hipervisores en la empresa"
 description: "Qué diferencia al hipervisor de tu portátil del que mueve los servidores de una empresa, qué opciones hay y cómo se reparten la CPU y la memoria."
 weight: 1
+equipo: "servidor"
 duracion: "35 min"
 nivel: "Inicial"
 objetivos:

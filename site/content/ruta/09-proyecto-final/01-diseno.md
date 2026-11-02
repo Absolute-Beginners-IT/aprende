@@ -2,6 +2,7 @@
 title: "Diseña tu empresa: mapa y plan de direcciones"
 description: "Recibe el encargo de una pequeña empresa y, antes de encender ninguna máquina, decide nombres, direcciones, redes y recursos."
 weight: 1
+equipo: "libro"
 duracion: "1 h"
 nivel: "Intermedio"
 objetivos:

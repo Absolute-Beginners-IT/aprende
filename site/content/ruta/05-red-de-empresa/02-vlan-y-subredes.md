@@ -2,6 +2,7 @@
 title: "VLAN y subredes"
 description: "Separa la red por funciones aunque todos compartan los mismos switches, y haz que las VLAN se hablen solo por donde tú decidas."
 weight: 2
+equipo: "capas"
 duracion: "50 min (más el laboratorio opcional)"
 nivel: "Intermedio"
 objetivos:

@@ -2,6 +2,7 @@
 title: "Linux para administradores"
 description: "Instala Ubuntu Server, conéctate por SSH y aprende lo justo para moverte, gestionar usuarios, permisos y servicios."
 weight: 2
+equipo: "terminal"
 duracion: "45 min (más la instalación)"
 nivel: "Inicial"
 objetivos:

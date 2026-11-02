@@ -2,6 +2,7 @@
 title: "VPN: teletrabajo y entre sedes"
 description: "Conecta a quien trabaja desde casa y une oficinas a través de Internet sin exponer la red interna."
 weight: 5
+equipo: "nube"
 duracion: "45 min"
 nivel: "Intermedio"
 objetivos:

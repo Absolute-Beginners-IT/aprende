@@ -2,6 +2,7 @@
 title: "Monta tu laboratorio"
 description: "Un entorno de máquinas virtuales en tu ordenador donde practicar todo lo de la ruta sin miedo a romper nada."
 weight: 2
+equipo: "portatil"
 duracion: "40 min (más las descargas)"
 nivel: "Inicial"
 objetivos:

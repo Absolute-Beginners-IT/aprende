@@ -2,6 +2,7 @@
 title: "Discos, RAID, NAS y SAN"
 description: "Dónde se guardan de verdad los datos y las máquinas virtuales: tipos de disco, niveles de RAID y la diferencia entre un NAS y una SAN."
 weight: 3
+equipo: "disco"
 duracion: "50 min"
 nivel: "Inicial"
 objetivos:

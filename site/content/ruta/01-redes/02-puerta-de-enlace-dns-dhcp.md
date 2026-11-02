@@ -2,6 +2,7 @@
 title: "Puerta de enlace, DNS y DHCP"
 description: "Las tres piezas que necesita cualquier equipo para funcionar en una red: por dónde salir, cómo encontrar nombres y quién le da la configuración."
 weight: 2
+equipo: "servidor"
 duracion: "30 min"
 nivel: "Inicial"
 objetivos:

@@ -2,6 +2,7 @@
 title: "Wifi corporativa e invitados"
 description: "Cómo se monta la wifi de una empresa: una red para la plantilla con credenciales personales y otra para invitados que solo da Internet."
 weight: 4
+equipo: "wifi"
 duracion: "35 min"
 nivel: "Inicial"
 objetivos:

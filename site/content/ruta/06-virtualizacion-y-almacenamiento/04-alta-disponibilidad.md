@@ -2,6 +2,7 @@
 title: "Alta disponibilidad y puntos únicos de fallo"
 description: "Cómo se monta un clúster de virtualización para que un servidor roto no pare la empresa, y cómo encontrar lo que todavía puede pararla."
 weight: 4
+equipo: "escudo"
 duracion: "40 min"
 nivel: "Intermedio"
 objetivos:

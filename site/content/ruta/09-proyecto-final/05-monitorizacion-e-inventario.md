@@ -2,6 +2,7 @@
 title: "Monitorización, inventario y entrega"
 description: "Instala Zabbix 7.0 LTS, vigila tus servidores con agentes y alertas, y cierra el proyecto con el inventario importado en «Mi infraestructura»."
 weight: 5
+equipo: "bandera"
 duracion: "2 h"
 nivel: "Intermedio"
 objetivos:

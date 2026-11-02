@@ -2,6 +2,7 @@
 title: "Usuarios, grupos y GPO"
 description: "Ordena el dominio con unidades organizativas, crea usuarios y grupos siguiendo AGDLP y aplica tu primera directiva de grupo."
 weight: 3
+equipo: "usuarios"
 duracion: "50 min"
 nivel: "Intermedio"
 objetivos:

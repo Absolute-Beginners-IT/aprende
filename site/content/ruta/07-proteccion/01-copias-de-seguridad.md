@@ -2,6 +2,7 @@
 title: "Copias de seguridad que se pueden restaurar"
 description: "Decide cuánto puedes perder y cuánto puedes tardar, elige el tipo de copia, protégela del ransomware y comprueba que de verdad recuperas los datos."
 weight: 1
+equipo: "disco"
 duracion: "60 min"
 nivel: "Inicial"
 objetivos:

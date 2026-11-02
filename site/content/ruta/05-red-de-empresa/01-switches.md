@@ -2,6 +2,7 @@
 title: "Switches: puertos y tabla MAC"
 description: "Qué hace de verdad un switch, cómo aprende dónde está cada equipo y para qué sirve cada tipo de puerto."
 weight: 1
+equipo: "switch"
 duracion: "35 min"
 nivel: "Inicial"
 objetivos:
