@@ -49,7 +49,7 @@ icacls "C:\Compartido\Contabilidad" /grant "LAB\DL-Contabilidad-M:(OI)(CI)M"
 icacls "C:\Compartido\Contabilidad"
 ```
 
-La carpeta también **hereda** los permisos de `C:\`, que dejan leer a todos los usuarios del equipo. En producción se quita esa herencia y se dejan solo SYSTEM, los administradores y tus grupos: pestaña Seguridad → Opciones avanzadas → Deshabilitar herencia → convertir en permisos explícitos, y después borras las entradas que sobran. Pruébalo en el laboratorio con una instantánea hecha, y comprueba que tu cuenta de administración sigue teniendo acceso.
+La carpeta también **hereda** los permisos de `C:\`, que dan acceso a todos los usuarios (a los usuarios autenticados, incluso para crear y modificar). En producción se quita esa herencia y se dejan solo SYSTEM, los administradores y tus grupos: pestaña Seguridad → Opciones avanzadas → Deshabilitar herencia → convertir en permisos explícitos, y después borras las entradas que sobran. Pruébalo en el laboratorio con una instantánea hecha, y comprueba que tu cuenta de administración sigue teniendo acceso.
 
 {{< pregunta texto="¿Qué cmdlet crea una carpeta compartida en Windows?" respuesta="new-smbshare" >}}
 {{% /tarea %}}
@@ -83,7 +83,7 @@ En una oficina, las impresoras no se instalan una a una en cada ordenador: se in
 
 | Pieza | Qué es |
 | --- | --- |
-| **Impresora** | El equipo físico, con su IP (fija o con reserva DHCP, como la de la sala anterior). |
+| **Impresora** | El equipo físico, con su IP (fija o con reserva DHCP, como la de la sala «DNS interno y DHCP»). |
 | **Puerto** | Cómo llega el servidor a la impresora; normalmente un puerto TCP/IP con su dirección. |
 | **Controlador** (*driver*) | El software que traduce los trabajos al lenguaje de ese modelo. Descárgalo siempre de la web del fabricante. |
 | **Cola de impresión** | La impresora compartida en el servidor, a la que se conectan los usuarios, por ejemplo `\\SRV-DC01\IMP-PLANTA1`. |

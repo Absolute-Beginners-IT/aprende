@@ -102,7 +102,7 @@ Una **directiva de grupo** (GPO, *Group Policy Object*) es un paquete de configu
 
 Una GPO no hace nada hasta que la **vinculas** a una OU (o al dominio entero). Cuando varias GPO chocan, gana la última que se aplica, en este orden: local, sitio, dominio y, por último, OU. La regla se recuerda como **LSDOU**.
 
-Crea una GPO que impida a los usuarios abrir el Panel de control, configúrala y vincúlala a la OU `Usuarios`:
+Crea una GPO que impida a los usuarios abrir el Panel de control, configúrala y vincúlala a la OU `Usuarios` (afectará a todas las cuentas de esa OU, también a `adm-tunombre` si la creaste ahí):
 
 ```
 New-GPO -Name "U-Bloquear-Panel-de-control"
@@ -119,7 +119,7 @@ gpupdate /force
 gpresult /r
 ```
 
-`gpresult /r` te dice qué GPO se han aplicado al equipo y al usuario. Si tienes una VM con Windows 10 u 11 en la misma red, únela al dominio con `Add-Computer -DomainName "lab.example.com" -Restart`, inicia sesión como `LAB\ana.garcia` y comprueba que el Panel de control ya no abre. Si no, revisa la GPO con `Get-GPOReport -Name "U-Bloquear-Panel-de-control" -ReportType Html -Path "C:\gpo.html"` y abre el informe.
+`gpresult /r` te dice qué GPO se han aplicado al equipo y al usuario. Si tienes una VM con Windows 10 u 11 en la misma red, únela al dominio con `Add-Computer -DomainName "lab.example.com" -Credential "LAB\adm-tunombre" -Restart`, inicia sesión como `LAB\ana.garcia` y comprueba que el Panel de control ya no abre. Si no, revisa la GPO con `Get-GPOReport -Name "U-Bloquear-Panel-de-control" -ReportType Html -Path "C:\gpo.html"` y abre el informe.
 
 {{< aviso titulo="La distinción que importa" >}}
 Las directivas de **usuario** se aplican según la OU donde está el **usuario**, y las de **equipo**, según la OU donde está el **equipo**. Una GPO con configuración de usuario vinculada a la OU `Equipos` no hará nada: es el error más frecuente con las GPO.

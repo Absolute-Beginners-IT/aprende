@@ -23,7 +23,7 @@ Las piezas que vas a oír a diario:
 | Término | Qué es |
 | --- | --- |
 | **Dominio** | El conjunto de usuarios, grupos y equipos que se administran juntos. Tiene un nombre DNS, como `lab.example.com`. |
-| **Controlador de dominio** (DC, *domain controller*) | El servidor que guarda la base de datos de AD y valida los inicios de sesión. En una empresa siempre hay al menos dos. |
+| **Controlador de dominio** (DC, *domain controller*) | El servidor que guarda la base de datos de AD y valida los inicios de sesión. En una empresa lo recomendable es tener al menos dos, por si uno falla. |
 | **Bosque** | El contenedor de uno o varios dominios. Al crear el primer dominio, creas también su bosque. |
 | **Unidad organizativa** (OU) | Una «carpeta» dentro del dominio para ordenar objetos y aplicarles directivas. |
 | **Objeto** | Cada cosa que vive en el directorio: un usuario, un grupo, un equipo… |

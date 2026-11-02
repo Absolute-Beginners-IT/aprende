@@ -107,7 +107,7 @@ netsh dhcp add securitygroups
 Restart-Service DHCPServer
 ```
 
-El Administrador del servidor seguirá mostrando un aviso para «completar la configuración de DHCP». Puedes abrirlo y terminar el asistente: hace estos mismos dos pasos.
+El Administrador del servidor seguirá mostrando un aviso para «completar la configuración de DHCP». Puedes abrirlo y terminar el asistente: hace lo mismo que acabas de hacer (crear los grupos y autorizar el servidor).
 
 {{< pregunta texto="¿Qué cmdlet autoriza un servidor DHCP en Active Directory?" respuesta="add-dhcpserverindc" >}}
 {{% /tarea %}}
