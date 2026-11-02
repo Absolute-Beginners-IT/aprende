@@ -1,0 +1,33 @@
+{{ define "main" }}
+<p class="label">Aprender</p>
+<h1>{{ .Title }}</h1>
+{{ with .Description }}<p class="lead">{{ . }}</p>{{ end }}
+<div class="cards">
+  {{ with site.GetPage "/lecciones" }}
+  <section class="card">
+    <span class="label">Lecciones</span>
+    <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+    <p>{{ .Description }}</p>
+    <ol class="lessons">
+      {{ range .Pages.ByWeight }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}
+    </ol>
+  </section>
+  {{ end }}
+  {{ with site.GetPage "/escenarios" }}
+  <a class="card" href="{{ .RelPermalink }}">
+    <span class="label">Escenarios</span>
+    <h3>{{ .Title }}</h3>
+    <p>{{ .Description }}</p>
+    <span class="go">{{ len hugo.Data.escenarios }} escenarios →</span>
+  </a>
+  {{ end }}
+  {{ with site.GetPage "/glosario" }}
+  <a class="card" href="{{ .RelPermalink }}">
+    <span class="label">Glosario</span>
+    <h3>{{ .Title }}</h3>
+    <p>{{ .Description }}</p>
+    <span class="go">{{ len hugo.Data.glosario }} términos →</span>
+  </a>
+  {{ end }}
+</div>
+{{ end }}

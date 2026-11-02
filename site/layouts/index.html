@@ -1,73 +1,90 @@
 {{ define "main" }}
-{{/* Figures come from the shared content, so the landing never promises more than exists. */}}
+{{/* Figures come from the shared content and the guides' own files, so the landing never promises more than exists. */}}
 {{ $tipos := len hugo.Data.kb.tipos }}
 {{ $escenarios := len hugo.Data.escenarios }}
 {{ $terminos := len hugo.Data.glosario }}
+{{ $guias := 0 }}{{ range hugo.Data.guias.procedures }}{{ $guias = add $guias (len .) }}{{ end }}
+{{ $marcas := slice }}{{ range hugo.Data.guias.platforms }}{{ $marcas = $marcas | append .name }}{{ end }}
+{{ $herramientas := len (hugo.Data.herramientas | default slice) }}
 {{ $primera := index (where site.RegularPages "Section" "lecciones").ByWeight 0 }}
 
-<section class="landing-hero">
-  <div class="landing-hero__text">
-    <span class="label">Prototipo gratuito · Para quien empieza en sistemas</span>
-    <h1>{{ site.Title }}</h1>
-    <p class="landing-lead">Qué hay en la infraestructura de una empresa, cómo se vigila y cómo se cambia sin romper nada. Con un mapa interactivo, guías paso a paso con vuelta atrás y herramientas para aplicarlo en tu propia red.</p>
-    <p class="landing-actions">
-      <a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa</a>
+<section class="hero">
+  <div>
+    <p class="kicker">{{ site.Title }} · Prototipo gratuito</p>
+    <h1>Entiende la infraestructura de tu empresa y <span class="accent">cámbiala sin romper nada.</span></h1>
+    <p class="lead">Un mapa interactivo de una pyme típica, guías paso a paso con vuelta atrás y herramientas para aplicarlo en tu propia red. Gratis, sin registro y con tus datos solo en tu navegador.</p>
+    <p class="actions">
+      <a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa <span aria-hidden="true">→</span></a>
       {{ with $primera }}<a class="cta cta--ghost" href="{{ .RelPermalink }}">Empezar por la lección 1</a>{{ end }}
     </p>
-    <p class="muted landing-trust">Gratis · Sin registro · Lo que escribes se queda en tu navegador</p>
+    <ul class="stats">
+      <li><b>{{ $tipos }}</b><span>tipos de equipo</span></li>
+      {{ with $guias }}<li><b>{{ . }}</b><span>guías paso a paso</span></li>{{ end }}
+      {{ with $herramientas }}<li><b>{{ . }}</b><span>herramientas</span></li>{{ end }}
+      <li><b>{{ $escenarios }}</b><span>escenarios de incidencias</span></li>
+    </ul>
+    {{ with $marcas }}<p class="brands">Guías para <b>{{ delimit . " · " }}</b></p>{{ end }}
   </div>
   {{/* The four layers of the reference map, the idea the whole guide is built on. */}}
-  <ol class="layers-figure" aria-label="Las cuatro capas de una infraestructura">
-    <li class="layer layer--proteccion"><b>Protección</b><span>Copias, SAI y monitorización</span></li>
-    <li class="layer layer--servicios"><b>Servicios</b><span>Directorio activo, DNS, DHCP y ficheros</span></li>
-    <li class="layer layer--logica"><b>Lógica</b><span>VLAN y subredes</span></li>
-    <li class="layer layer--fisica"><b>Física</b><span>Firewall, switches, wifi y servidores</span></li>
+  <ol class="layers" aria-label="Las cuatro capas de una infraestructura">
+    <li class="layer layer--proteccion"><small>CAPA 4</small><b>Protección</b><span>Copias, SAI y monitorización</span></li>
+    <li class="layer layer--servicios"><small>CAPA 3</small><b>Servicios</b><span>Directorio activo, DNS, DHCP y ficheros</span></li>
+    <li class="layer layer--logica"><small>CAPA 2</small><b>Lógica</b><span>VLAN y subredes</span></li>
+    <li class="layer layer--fisica"><small>CAPA 1</small><b>Física</b><span>Firewall, switches, wifi y servidores</span></li>
   </ol>
 </section>
 
-<section class="landing-section">
-  <h2>Qué puedes hacer aquí</h2>
-  <div class="feature-grid">
-    <a class="feature" href="{{ site.Params.appURL }}">
+<section class="section">
+  <p class="label">Qué puedes hacer aquí</p>
+  <h2>Del concepto al cambio en producción</h2>
+  <div class="cards">
+    <a class="card" href="{{ site.Params.appURL }}">
       <span class="label">Entender</span>
       <h3>El mapa de una pyme típica</h3>
-      <p>Las piezas de una infraestructura por capas. De cada uno de los {{ $tipos }} tipos de equipo: qué es, para qué sirve, qué pasa si falla, qué vigilar y qué mantenimiento necesita.</p>
+      <p>Las piezas por capas. De cada uno de los {{ $tipos }} tipos de equipo: qué es, para qué sirve, qué pasa si falla, qué vigilar y qué mantenimiento necesita.</p>
+      <span class="go">Abrir el mapa →</span>
     </a>
-    <a class="feature" href="{{ site.Params.appURL }}#mi-infraestructura">
+    <a class="card" href="{{ site.Params.appURL }}#mi-infraestructura">
       <span class="label">Comparar</span>
       <h3>Mi infraestructura</h3>
       <p>Apunta tus equipos o importa tu inventario y descubre qué te falta frente a una pyme típica: copias, alta disponibilidad, SAI, monitorización y soporte.</p>
+      <span class="go">Comparar →</span>
     </a>
-    <a class="feature" href="{{ site.Params.appURL }}guias/">
+    <a class="card" href="{{ site.Params.appURL }}guias/">
       <span class="label">Cambiar con seguridad</span>
       <h3>Guías de switching</h3>
-      <p>Paso a paso para Aruba CX, Cisco Catalyst 1300, MikroTik y Ruijie: los comandos con tus datos, qué comprobar antes y después, y cómo volver atrás si algo falla.</p>
+      <p>Los comandos de tu marca rellenos con tus datos, qué comprobar antes y después, y cómo volver atrás si algo falla.</p>
+      <span class="go">Ver las guías →</span>
     </a>
-    <a class="feature" href="{{ "herramientas/" | relURL }}">
+    <a class="card" href="{{ "herramientas/" | relURL }}">
       <span class="label">Aplicarlo en tu red</span>
       <h3>Herramientas</h3>
-      <p>Scripts para descubrir tu red y medirla, plantillas de inventario, alertas, mantenimiento, MOP y post-mortem. Cada descarga con su huella SHA-256.</p>
+      <p>Scripts para descubrir y medir tu red, y plantillas de inventario, alertas, mantenimiento, MOP y post-mortem. Cada descarga con su huella SHA-256.</p>
+      <span class="go">Descargar →</span>
     </a>
   </div>
 </section>
 
-<section class="landing-section">
-  <h2>Cómo usarla</h2>
+<section class="section">
+  <p class="label">Cómo usarla</p>
+  <h2>Tres pasos, sin prisas</h2>
   <ol class="steps">
-    <li><b>Entiende las piezas.</b> Empieza por la lección 1 y ten el mapa abierto al lado: cada concepto se ve en su sitio.</li>
-    <li><b>Mira tu caso.</b> Compara tu infraestructura con la de referencia y repasa los {{ $escenarios }} escenarios de incidencias, paso a paso sobre el mapa.</li>
-    <li><b>Cambia con red de seguridad.</b> Sigue la guía de tu marca, verifica cada paso y ten preparada la vuelta atrás. Al terminar, guarda el registro del cambio para tu ticket.</li>
+    <li><b>Entiende las piezas</b>Empieza por la lección 1 y ten el mapa abierto al lado: cada concepto se ve en su sitio.</li>
+    <li><b>Mira tu caso</b>Compara tu infraestructura con la de referencia y repasa los {{ $escenarios }} escenarios de incidencias paso a paso.</li>
+    <li><b>Cambia con red de seguridad</b>Sigue la guía de tu marca, verifica cada paso y ten preparada la vuelta atrás. Guarda el registro del cambio para tu ticket.</li>
   </ol>
-  <p class="muted">Y si te pierdes con algún término, el <a href="{{ "glosario/" | relURL }}">glosario</a> explica {{ $terminos }} sin rodeos.</p>
+  <p class="muted">¿Te pierdes con algún término? El <a href="{{ "glosario/" | relURL }}">glosario</a> explica {{ $terminos }} sin rodeos.</p>
 </section>
 
-<section class="landing-section honest">
-  <h2>Sin letra pequeña</h2>
-  <ul>
-    <li><b>Es un prototipo.</b> El contenido se está revisando y cada guía indica si está sin verificar, contrastada con la documentación o probada en un equipo real.</li>
-    <li><b>No hay cuentas ni servidor.</b> Tu inventario y los valores de las guías se guardan solo en tu navegador.</li>
-    <li><b>Los scripts se ejecutan en tu red</b>, solo con autorización, y puedes comprobar que no se han modificado antes de usarlos.</li>
-  </ul>
-  <p><a href="{{ "que-es-esto/" | relURL }}">Qué es esto y en qué estado está</a></p>
+<section class="section">
+  <div class="honest">
+    <p class="label">Sin letra pequeña</p>
+    <ul>
+      <li><b>Es un prototipo.</b> El contenido se está revisando y cada guía indica si está sin verificar, contrastada con la documentación o probada en un equipo real.</li>
+      <li><b>No hay cuentas ni servidor.</b> Tu inventario y los valores de las guías se guardan solo en tu navegador.</li>
+      <li><b>Los scripts se ejecutan en tu red</b>, solo con autorización, y puedes comprobar que no se han modificado antes de usarlos.</li>
+    </ul>
+    <a href="{{ "que-es-esto/" | relURL }}">Qué es esto y en qué estado está →</a>
+  </div>
 </section>
 {{ end }}

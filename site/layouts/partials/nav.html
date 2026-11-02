@@ -1,0 +1,13 @@
+{{/* The website's sections come from content/navegacion.json, shared with the app and the switching guides,
+     so every part of the website shows the same entries in the same order. `ruta` is relative to the site root;
+     entries under app/ go to the app, wherever it is published (params.appURL). */}}
+{{ $section := .Section }}
+{{ $current := "" }}
+{{ if .IsHome }}{{ $current = "inicio" }}
+{{ else if in (slice "aprender" "lecciones" "escenarios" "glosario") $section }}{{ $current = "aprender" }}
+{{ else if eq $section "herramientas" }}{{ $current = "herramientas" }}{{ end }}
+{{ range hugo.Data.navegacion }}
+  {{ $url := print site.Home.RelPermalink .ruta }}
+  {{ if hasPrefix .ruta "app/" }}{{ $url = print site.Params.appURL (strings.TrimPrefix "app/" .ruta) }}{{ end }}
+  <a href="{{ $url }}"{{ if eq .id $current }} aria-current="page"{{ end }}>{{ .nombre }}</a>
+{{ end }}
