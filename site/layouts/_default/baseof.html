@@ -11,13 +11,14 @@
   <header class="top">
     <a class="brand" href="{{ "/" | relURL }}">{{ site.Title }}</a>
     <nav>
-      <a href="{{ "lecciones/" | relURL }}">Lecciones</a>
+      <a class="cta" href="{{ "ruta/" | relURL }}">Ruta de aprendizaje</a>
       <a href="{{ "escenarios/" | relURL }}">Escenarios</a>
       <a href="{{ "glosario/" | relURL }}">Glosario</a>
-      <a class="cta" href="{{ site.Params.appURL }}">Abrir el mapa</a>
+      <a href="{{ site.Params.appURL }}">Mapa interactivo</a>
     </nav>
   </header>
   <main class="page">{{ block "main" . }}{{ end }}</main>
   <footer class="foot"><p>Contenido de práctica: usa los scripts del toolkit solo en redes de tu empresa y con autorización.</p></footer>
+  <script src="{{ "js/ruta.js" | relURL }}" defer></script>
 </body>
 </html>

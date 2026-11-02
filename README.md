@@ -2,13 +2,15 @@
 
 Guía interactiva para dar los primeros pasos como administrador de sistemas: qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella. El núcleo es un **mapa de infraestructura por capas** (física, lógica, servicios y protección) en el que cada pieza explica qué es, para qué sirve, qué pasa si falla, los errores típicos, qué vigilar, qué alertas crear y qué mantenimiento necesita.
 
+La guía tiene una **ruta de aprendizaje** al estilo de las de TryHackMe: módulos en orden (de redes y sistemas operativos hasta operar una red real), salas con tareas, preguntas comprobables y progreso guardado en el navegador.
+
 La app incluye además **escenarios de incidencias** paso a paso sobre el mapa, un **glosario** y el modo **«Mi infraestructura»**, que compara tu inventario (guardado solo en tu navegador) con el de una pyme típica y te dice qué falta.
 
 ## Estructura
 
 | Carpeta | Qué es | Se despliega en |
 | --- | --- | --- |
-| `site/` | Guía y lecciones (Hugo, contenido estático) | `example.com` |
+| `site/` | Guía y ruta de aprendizaje (Hugo, contenido estático) | `example.com` |
 | `app/` | Mapa interactivo (React + Vite + TypeScript, SPA estática) | `app.example.com` |
 | `api/` | Backend futuro. **Todavía no existe**: ver `api/README.md` | `api.example.com` |
 | `content/` | Base de conocimiento compartida (JSON) que leen `site/` y `app/` | — |
@@ -32,7 +34,7 @@ cd site && hugo server                     # guía en http://localhost:1313
 
 Todo el conocimiento (tipos de equipo, alertas, mantenimientos, el mapa de referencia) vive en `content/`. Si cambias un dato ahí, cambia a la vez en la guía y en el mapa. Los tests de `app/` comprueban que el contenido es coherente (tipos, capas y enlaces que existen).
 
-Para escribir una lección nueva: `cd site && hugo new lecciones/02-mi-leccion.md` (usa la plantilla de la metodología).
+Para escribir una sala nueva de la ruta: `cd site && hugo new ruta/04-servicios-esenciales/01-mi-sala.md` (usa la plantilla `archetypes/ruta.md`). Cada tarea va en `{{% tarea n="1" titulo="…" %}}` y cada pregunta en `{{< pregunta texto="…" respuesta="respuesta|variante" >}}`; las respuestas se publican solo como hash SHA-256. Para sacar un módulo de «Próximamente», quita `proximamente` y `temario` de su `_index.md` cuando tenga salas.
 
 ## Toolkit
 

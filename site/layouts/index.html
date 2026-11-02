@@ -1,15 +1,17 @@
 {{ define "main" }}
+{{- $ruta := site.GetPage "/ruta" }}
 <section class="hero">
   <span class="label">Mentoría · Sistemas</span>
   <h1>{{ site.Title }}</h1>
   <p>{{ site.Params.description }}</p>
-  <p><a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa de infraestructura</a></p>
+  <p><a class="cta" href="{{ $ruta.RelPermalink }}">Empieza la ruta de aprendizaje</a></p>
+  <p class="muted">¿Ya tienes base? Ve directamente al <a href="{{ site.Params.appURL }}">mapa interactivo</a>.</p>
 </section>
 {{ .Content }}
-<h2>Lecciones</h2>
-<ol class="lessons">
-  {{ range (where site.RegularPages "Section" "lecciones").ByWeight }}
-  <li><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} <span class="muted">· {{ . }}</span>{{ end }}</li>
-  {{ end }}
+<h2>La ruta, módulo a módulo</h2>
+<ol class="modulos-resumen">
+  {{- range $ruta.Sections.ByWeight }}
+  <li><a href="{{ .RelPermalink }}"><strong>Módulo {{ .Params.modulo }}.</strong> {{ .Title }}</a>{{ if .Params.proximamente }} <span class="insignia">Próximamente</span>{{ end }}{{ with .Description }} <span class="muted">· {{ . }}</span>{{ end }}</li>
+  {{- end }}
 </ol>
 {{ end }}

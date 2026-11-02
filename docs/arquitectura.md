@@ -7,7 +7,7 @@ El proyecto sigue la separación en tres responsabilidades de la metodología de
              /         \
    example.com        app.example.com
    site/ (Hugo)       app/ (React SPA)
-   guía y lecciones   mapa interactivo
+   guía y ruta        mapa interactivo
                            |
                            | HTTPS (futuro)
                            v
@@ -19,7 +19,7 @@ El proyecto sigue la separación en tres responsabilidades de la metodología de
 
 | Dirección | Qué sirve | Cómo se aloja |
 | --- | --- | --- |
-| `example.com` | Lecciones, glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
+| `example.com` | Ruta de aprendizaje (módulos, salas y tareas), glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
 | `app.example.com` | Mapa por capas y modo "Mi infraestructura" | `npm run build` → Cloudflare Pages |
 | `api.example.com` | Cuentas, progreso, inventarios compartidos | **No se construye todavía** (ver ADR 0002) |
 
@@ -53,5 +53,9 @@ Los componentes siguen el patrón contenedor/presentación: `MapPage`, `Scenario
 | App | `app` | `npm ci && npm run build` | `dist` |
 
 Cada carpeta lleva su `_headers` con cabeceras de seguridad (CSP estricta, `nosniff`, `frame-ancestors 'none'`). La app incluye `_redirects` para que las rutas de la SPA vuelvan a `index.html`.
+
+## Ruta de aprendizaje
+
+`site/content/ruta/` sigue el modelo de TryHackMe: la ruta tiene módulos (secciones con `modulo` y `weight`), cada módulo tiene salas (páginas con `duracion`, `nivel`, `objetivos` y `requisitos`) y cada sala tiene tareas (shortcode `tarea`) con preguntas (shortcode `pregunta`). Las respuestas válidas se publican como hash SHA-256 del texto normalizado, y `site/static/js/ruta.js` las comprueba y guarda el progreso en `localStorage` (en memoria si no está disponible). Las barras de progreso cuentan las tareas sobre la sala ya renderizada, así que también cuentan las que genera un shortcode, como las fases de la hoja de ruta (`content/kb/hoja-de-ruta.json`) en el módulo 8.
 
 Decisiones registradas en [docs/adr/](adr/).
