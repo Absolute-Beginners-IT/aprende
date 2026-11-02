@@ -1,10 +1,11 @@
-/* Tokens. The theme button (js/tema.js) sets data-theme on <html>; without it the system preference applies.
+/* Tokens. --ok marks completed route tasks; --panel is an inset box inside a surface. The theme button (js/tema.js) sets data-theme on <html>; without it the system preference applies.
    The orange is darker in light mode so it keeps 4.5:1 contrast as text. */
 :root {
   --bg: #f6f7f9; --surface: #ffffff; --text: #16202e; --muted: #5b6676; --line: #d9dee6;
   --accent: #c2410c; --on-accent: #ffffff; --glow: rgba(194, 65, 12, .10);
   --navy: #18243f; --callout: #fdeee6; --notice-bg: #fdf1d3; --notice-text: #6b4600;
   --l-proteccion: #b45309; --l-servicios: #047857; --l-logica: #7c3aed; --l-fisica: #1d4ed8;
+  --ok: #15803d; --panel: #eef1f5;
   --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
   color-scheme: light;
 }
@@ -13,6 +14,7 @@
   --accent: #fb923c; --on-accent: #0f141b; --glow: rgba(251, 146, 60, .14);
   --navy: #0b1220; --callout: #2a1d16; --notice-bg: #3a2c08; --notice-text: #f2c35b;
   --l-proteccion: #fbbf24; --l-servicios: #34d399; --l-logica: #a78bfa; --l-fisica: #60a5fa;
+  --ok: #4ade80; --panel: #1f2833;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -21,6 +23,7 @@
     --accent: #fb923c; --on-accent: #0f141b; --glow: rgba(251, 146, 60, .14);
     --navy: #0b1220; --callout: #2a1d16; --notice-bg: #3a2c08; --notice-text: #f2c35b;
     --l-proteccion: #fbbf24; --l-servicios: #34d399; --l-logica: #a78bfa; --l-fisica: #60a5fa;
+    --ok: #4ade80; --panel: #1f2833;
     color-scheme: dark;
   }
 }
@@ -138,3 +141,92 @@ td { border-bottom: 1px solid var(--line); padding: 10px 12px; vertical-align: t
 .term { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; background: var(--surface); }
 .term dt { font-weight: 700; } .term dd { margin: 4px 0 0; }
 .scenario { margin-top: 40px; }
+
+/* Learning page: the route card spans the whole row */
+.card--destacada { grid-column: 1 / -1; border-color: var(--accent); }
+.card--destacada h3 { font-size: 24px; }
+.card--destacada .stats { margin-top: 6px; padding-top: 14px; gap: 28px; }
+
+/* Learning route (ruta/): modules, rooms, tasks and questions */
+button { font: inherit; font-size: 15px; cursor: pointer; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 6px 14px; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { cursor: default; opacity: .6; }
+button.enlace { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; }
+.insignia { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); }
+.progreso { display: flex; align-items: center; gap: 12px; margin: 12px 0; }
+.progreso progress { flex: 1; height: 10px; accent-color: var(--accent); }
+.progreso-texto { font-size: 14px; color: var(--muted); white-space: nowrap; }
+.ruta-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.modulos { padding: 0; list-style: none; display: grid; gap: 16px; margin-top: 32px; }
+.modulo { border: 1px solid var(--line); border-radius: 16px; padding: 16px 22px; background: var(--surface); }
+.modulo h2 { margin: 4px 0; font-size: 22px; }
+.temario { color: var(--muted); }
+.objetivos { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 20px; margin: 16px 0; }
+.objetivos ul { margin: 6px 0 0; }
+.tarea { border: 1px solid var(--line); border-radius: 16px; padding: 4px 22px 14px; margin: 24px 0; background: var(--surface); }
+.tarea.completa { border-color: var(--ok); }
+.tarea-cabecera { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.tarea-cabecera h2 { margin: 12px 0 4px; font-size: 21px; flex: 1; }
+.tarea-num { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.tarea-estado { font-size: 14px; font-weight: 600; color: var(--ok); }
+.tarea-pie { margin: 12px 0 0; }
+.tarea pre { overflow-x: auto; background: var(--panel); padding: 10px 12px; border-radius: 10px; font-size: 15px; }
+.pregunta { background: var(--panel); border-radius: 12px; padding: 12px 14px; margin: 16px 0 8px; }
+.pregunta-texto { display: block; font-weight: 600; }
+.pregunta input { display: block; width: 100%; margin: 8px 0; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-weight: 400; }
+.pregunta input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pregunta.correcta input { border-color: var(--ok); }
+.pregunta-estado { margin: 6px 0 0; font-size: 15px; min-height: 1em; }
+.pregunta.correcta .pregunta-estado { color: var(--ok); font-weight: 600; }
+.pregunta-pista { margin-top: 6px; font-size: 15px; color: var(--muted); }
+.pregunta-pista p { margin: 4px 0 0; }
+.pasos li { margin: 4px 0; }
+.sala-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
+
+/* Route topology: each module is a coloured segment, each room a device, cables light up as rooms are completed.
+   The light colours read as text on a surface; both dark selectors switch to lighter ones, like the tokens. */
+.seg-0 { --seg: #2563eb; } .seg-1 { --seg: #0f766e; } .seg-2 { --seg: #7c3aed; }
+.seg-3 { --seg: #c2410c; } .seg-4 { --seg: #be123c; } .seg-5 { --seg: #4d7c0f; }
+:root[data-theme="dark"] .seg-0 { --seg: #60a5fa; } :root[data-theme="dark"] .seg-1 { --seg: #2dd4bf; } :root[data-theme="dark"] .seg-2 { --seg: #a78bfa; }
+:root[data-theme="dark"] .seg-3 { --seg: #fb923c; } :root[data-theme="dark"] .seg-4 { --seg: #fb7185; } :root[data-theme="dark"] .seg-5 { --seg: #a3e635; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .seg-0 { --seg: #60a5fa; } :root:not([data-theme="light"]) .seg-1 { --seg: #2dd4bf; } :root:not([data-theme="light"]) .seg-2 { --seg: #a78bfa; }
+  :root:not([data-theme="light"]) .seg-3 { --seg: #fb923c; } :root:not([data-theme="light"]) .seg-4 { --seg: #fb7185; } :root:not([data-theme="light"]) .seg-5 { --seg: #a3e635; }
+}
+.topologia { position: relative; margin-top: 32px; }
+.cables { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 0; }
+.cable { fill: none; stroke: var(--line); stroke-width: 3; stroke-linejoin: round; }
+.cable.encendido { stroke: var(--seg); stroke-dasharray: 10 6; animation: trafico 1.2s linear infinite; }
+@keyframes trafico { to { stroke-dashoffset: -16; } }
+.segmento { position: relative; z-index: 1; margin-bottom: 8px; }
+.segmento-cabecera { position: relative; background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--seg); border-radius: 16px; padding: 16px 22px; margin-top: 16px; }
+.segmento-cabecera h2 { margin: 4px 0; font-size: 22px; }
+.segmento-cabecera h2 a { color: var(--text); text-decoration: none; }
+.segmento-cabecera h2 a:hover { color: var(--accent); }
+.segmento-cabecera p { margin: 4px 0; }
+.vlan { float: right; font: 600 12px/1.6 var(--mono); color: var(--seg); border: 1px solid var(--seg); border-radius: 6px; padding: 0 8px; }
+.nodos { list-style: none; margin: 0; padding: 36px 0 28px; display: grid; gap: 44px; }
+.nodo { position: relative; z-index: 1; display: flex; align-items: center; gap: 16px; width: 62%; margin-left: 6%; }
+.nodo:nth-child(even) { margin-left: auto; margin-right: 6%; flex-direction: row-reverse; text-align: right; }
+.nodo-equipo { flex: none; position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 16px; background: var(--surface); border: 2px solid var(--line); color: var(--muted); transition: transform .15s, border-color .15s; }
+.nodo-equipo .icono { width: 38px; height: 38px; }
+.nodo:hover .nodo-equipo { transform: translateY(-2px); border-color: var(--seg); }
+.nodo.completa .nodo-equipo, .nodo.en-curso .nodo-equipo, .nodo.siguiente .nodo-equipo { border-color: var(--seg); color: var(--seg); }
+.nodo.completa .nodo-equipo { background: color-mix(in srgb, var(--seg) 14%, var(--surface)); }
+.led { position: absolute; top: 7px; right: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.nodo.completa .led { background: var(--ok); box-shadow: 0 0 6px var(--ok); }
+.nodo.en-curso .led { background: #d97706; }
+.nodo.siguiente .led { background: var(--accent); animation: parpadeo 1.4s ease-in-out infinite; }
+@keyframes parpadeo { 50% { opacity: .25; } }
+.nodo-texto { display: flex; flex-direction: column; min-width: 0; }
+.nodo-texto a { font-weight: 600; color: var(--text); text-decoration: none; }
+.nodo-texto a:hover { color: var(--accent); text-decoration: underline; }
+.nodo-texto .muted { font-size: 14px; }
+.nodo-estado { font-size: 13px; font-weight: 600; color: var(--seg); }
+@media (max-width: 640px) {
+  .nodo, .nodo:nth-child(even) { width: 100%; margin: 0; flex-direction: row; text-align: left; }
+  .vlan { float: none; display: inline-block; margin-left: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cable.encendido, .nodo.siguiente .led { animation: none; }
+}

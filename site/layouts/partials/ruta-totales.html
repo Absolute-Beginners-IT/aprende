@@ -1,0 +1,10 @@
+{{- /* Returns {salas, total} for a list of modules, used by the route and module progress bars. */ -}}
+{{- $salas := slice -}}
+{{- $total := 0 -}}
+{{- range . -}}
+  {{- range .Pages -}}
+    {{- $salas = $salas | append .RelPermalink -}}
+    {{- $total = add $total (len (findRE `data-tarea="` .Content)) -}}
+  {{- end -}}
+{{- end -}}
+{{- return (dict "salas" $salas "total" $total) -}}

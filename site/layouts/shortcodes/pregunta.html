@@ -1,0 +1,21 @@
+{{- /*
+  Checkable question: {{< pregunta texto="…" respuesta="dns|el dns" pista="…" >}}
+  Accepted answers are separated by "|" and published only as SHA-256 hashes of the normalised text
+  (lower case, trimmed, single spaces), the same normalisation ruta.js applies to what the learner types.
+  The placeholder shows the shape of the first answer, as TryHackMe does.
+*/ -}}
+{{- $variantes := split (.Get "respuesta") "|" -}}
+{{- $hashes := slice -}}
+{{- range $variantes -}}
+  {{- $hashes = $hashes | append (. | lower | strings.TrimSpace | replaceRE `\s+` " " | sha256) -}}
+{{- end -}}
+{{- $formato := index $variantes 0 | strings.TrimSpace | replaceRE `[^\s.,:/\-]` "*" -}}
+<div class="pregunta" data-hashes="{{ delimit $hashes " " }}">
+<label class="pregunta-texto">{{ .Get "texto" | markdownify }}
+<input type="text" autocomplete="off" spellcheck="false" placeholder="Formato: {{ $formato }}"></label>
+<button type="button" class="pregunta-comprobar">Comprobar</button>
+<p class="pregunta-estado" aria-live="polite"></p>
+{{- with .Get "pista" }}
+<details class="pregunta-pista"><summary>Pista</summary><p>{{ . | markdownify }}</p></details>
+{{- end }}
+</div>

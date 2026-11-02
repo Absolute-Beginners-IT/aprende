@@ -6,7 +6,6 @@
 {{ $guias := 0 }}{{ range hugo.Data.guias.procedures }}{{ $guias = add $guias (len .) }}{{ end }}
 {{ $marcas := slice }}{{ range hugo.Data.guias.platforms }}{{ $marcas = $marcas | append .name }}{{ end }}
 {{ $herramientas := len (hugo.Data.herramientas | default slice) }}
-{{ $primera := index (where site.RegularPages "Section" "lecciones").ByWeight 0 }}
 
 <section class="hero">
   <div>
@@ -14,8 +13,8 @@
     <h1>Entiende la infraestructura de tu empresa y <span class="accent">cámbiala sin romper nada.</span></h1>
     <p class="lead">Un mapa interactivo de una pyme típica, guías paso a paso con vuelta atrás y herramientas para aplicarlo en tu propia red. Gratis, sin registro y con tus datos solo en tu navegador.</p>
     <p class="actions">
-      <a class="cta" href="{{ site.Params.appURL }}">Explorar el mapa <span aria-hidden="true">→</span></a>
-      {{ with $primera }}<a class="cta cta--ghost" href="{{ .RelPermalink }}">Empezar por la lección 1</a>{{ end }}
+      {{ with site.GetPage "/ruta" }}<a class="cta" href="{{ .RelPermalink }}">Empieza la ruta de aprendizaje <span aria-hidden="true">→</span></a>{{ end }}
+      <a class="cta cta--ghost" href="{{ site.Params.appURL }}">Explorar el mapa</a>
     </p>
     <ul class="stats">
       <li><b>{{ $tipos }}</b><span>tipos de equipo</span></li>
@@ -69,7 +68,7 @@
   <p class="label">Cómo usarla</p>
   <h2>Tres pasos, sin prisas</h2>
   <ol class="steps">
-    <li><b>Entiende las piezas</b>Empieza por la lección 1 y ten el mapa abierto al lado: cada concepto se ve en su sitio.</li>
+    <li><b>Entiende las piezas</b>Sigue la ruta de aprendizaje y ten el mapa abierto al lado: cada concepto se ve en su sitio.</li>
     <li><b>Mira tu caso</b>Compara tu infraestructura con la de referencia y repasa los {{ $escenarios }} escenarios de incidencias paso a paso.</li>
     <li><b>Cambia con red de seguridad</b>Sigue la guía de tu marca, verifica cada paso y ten preparada la vuelta atrás. Guarda el registro del cambio para tu ticket.</li>
   </ol>
