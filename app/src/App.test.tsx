@@ -35,7 +35,6 @@ describe('App', () => {
     expect(nav.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href')])).toEqual([
       ['Inicio', '../'],
       ['Aprender', '../aprender/'],
-      ['Mapa', '#mapa'],
       ['Mi infraestructura', '#mi-infraestructura'],
       ['Guías', './guias/'],
       ['Herramientas', '../herramientas/'],
@@ -43,7 +42,7 @@ describe('App', () => {
   });
 
   it('marks the current section in the navigation', () => {
-    for (const [hash, current, sub] of [['', 'Mapa', 'Mapa'], ['#escenarios', 'Mapa', 'Escenarios'], ['#mi-infraestructura', 'Mi infraestructura', null]] as const) {
+    for (const [hash, current, sub] of [['', 'Aprender', 'Mapa'], ['#escenarios', 'Aprender', 'Escenarios'], ['#mi-infraestructura', 'Mi infraestructura', null]] as const) {
       location.hash = hash;
       const { unmount } = render(<App />);
       const nav = within(screen.getAllByRole('navigation', { name: 'Secciones' })[0]);
@@ -63,6 +62,12 @@ describe('App', () => {
       ['Inventario', '#mi-infraestructura', 'page'],
       ['Red y VLAN', './guias/#/plan', null],
     ]);
+  });
+
+  it('presents the reference map as part of Aprender, with a way back to it', () => {
+    render(<App />);
+    expect(screen.getByText('Aprender · Mapa de referencia')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Volver a Aprender' }).getAttribute('href')).toBe('../aprender/');
   });
 
   it('offers only the map and the scenarios as map views, since the glossary lives in the guide', () => {

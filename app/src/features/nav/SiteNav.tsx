@@ -1,7 +1,7 @@
 import navegacion from '@content/navegacion.json';
 import { ThemeToggle } from '../theme/ThemeToggle';
 
-export type Section = 'inicio' | 'aprender' | 'mapa' | 'infra' | 'guias' | 'herramientas';
+export type Section = 'inicio' | 'aprender' | 'infra' | 'guias' | 'herramientas';
 
 /**
  * The website's sections come from content/navegacion.json, shared with the site and the guides.
