@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalog } from '../../content/catalog'
+import { INVENTORY_STORAGE_KEY } from './inventoryImport'
 import { PlannerPage } from './PlannerPage'
 import { twoSwitchPlan } from './planFixtures'
 import { PLAN_STORAGE_KEY } from './usePlan'
@@ -264,5 +265,56 @@ describe('PlannerPage', () => {
     await openTab(user, /^Puertos/)
 
     expect(screen.queryByRole('textbox', { name: 'Puerto 1' })).not.toBeInTheDocument()
+  })
+
+  it('brings the switches of «Mi infraestructura» and says what is left to fill in', async () => {
+    localStorage.setItem(
+      INVENTORY_STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: 'core',
+          nombre: 'SW-CORE',
+          tipo: 'switch',
+          criticidad: 'Alta',
+          monitorizado: true,
+          marca: 'Aruba',
+          modelo: 'CX 6100',
+        },
+        {
+          id: 'p1',
+          nombre: 'SW-P1',
+          tipo: 'switch',
+          criticidad: 'Media',
+          monitorizado: false,
+          marca: 'HPE',
+          modelo: '2530',
+          uplinks: ['core'],
+        },
+        { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
+      ]),
+    )
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+
+    expect(screen.getByText('Tienes 2 switches en el inventario.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Se han traído 2 switches (SW-CORE y SW-P1) y 1 enlace del inventario. En Enlaces, indica qué puerto de cada switch los une. En Switches, elige el modelo de SW-P1: no es ninguno de los que cubre el manual.',
+    )
+    await openTab(user, /^Switches/)
+    expect(screen.getByRole('textbox', { name: 'Nombre del switch 1' })).toHaveValue('SW-CORE')
+    expect(screen.getByRole('textbox', { name: 'Nombre del switch 2' })).toHaveValue('SW-P1')
+    expect(JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY) ?? '{}').links).toHaveLength(1)
+
+    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
+    expect(screen.getByRole('status')).toHaveTextContent('Todos los switches del inventario ya están en el plan.')
+  })
+
+  it('offers nothing to bring when this browser has no switches in the inventory', () => {
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([{ id: 'fw', nombre: 'FW01', tipo: 'firewall' }]))
+    render(<PlannerPage catalog={catalog} />)
+
+    expect(screen.queryByRole('button', { name: 'Traer switches del inventario' })).not.toBeInTheDocument()
   })
 })

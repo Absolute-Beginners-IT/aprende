@@ -102,4 +102,14 @@ describe('InventoryPage', () => {
     render(<InventoryPage repository={repo} />);
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido leer el inventario guardado: SecurityError');
   });
+
+  it('links each switch to the network planner, where its VLANs and ports are designed', async () => {
+    render(<InventoryPage repository={memoryRepository([
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true },
+      { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
+    ])} />);
+    const links = await screen.findAllByRole('link', { name: 'Planificar VLAN y puertos' });
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute('href')).toBe('./guias/#/plan');
+  });
 });

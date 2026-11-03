@@ -1,6 +1,8 @@
 import { type KeyboardEvent, useId, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
+import type { NetworkPlan } from '../../domain/networkPlan'
 import { buildPlanGuide } from './buildPlanGuide'
+import { addInventorySwitches, readInventorySwitches } from './inventoryImport'
 import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
 import { PlanTools } from './PlanTools'
@@ -43,6 +45,62 @@ function IssueList({
         </li>
       ))}
     </ul>
+  )
+}
+
+const listNames = (names: string[]) =>
+  names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names.at(-1)}` : (names[0] ?? '')
+
+function importSummary({ added, unknownModel, links }: ReturnType<typeof addInventorySwitches>): string {
+  if (added.length === 0 && links === 0) return 'Todos los switches del inventario ya están en el plan.'
+  const switches = added.length === 1 ? `el switch ${added[0]}` : `${added.length} switches (${listNames(added)})`
+  const linkText = links === 1 ? '1 enlace' : `${links} enlaces`
+  const brought = added.length === 0 ? linkText : links > 0 ? `${switches} y ${linkText}` : switches
+  return [
+    `Se han traído ${brought} del inventario.`,
+    links > 0 ? 'En Enlaces, indica qué puerto de cada switch los une.' : '',
+    unknownModel.length > 0
+      ? `En Switches, elige el modelo de ${listNames(unknownModel)}: no es ninguno de los que cubre el manual.`
+      : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+}
+
+/** Brings the switches written down in «Mi infraestructura»; hidden when this browser has none (or no inventory). */
+function InventoryImport({
+  plan,
+  catalog,
+  onChange,
+}: {
+  plan: NetworkPlan
+  catalog: Catalog
+  onChange: (plan: NetworkPlan) => void
+}) {
+  const [summary, setSummary] = useState('')
+  const devices = readInventorySwitches()
+  if (devices.length === 0) return null
+
+  const onImport = () => {
+    const result = addInventorySwitches(plan, devices, catalog)
+    if (result.added.length > 0 || result.links > 0) onChange(result.plan)
+    setSummary(importSummary(result))
+  }
+
+  return (
+    <div className="plan-inventory">
+      <button type="button" className="plan-add" onClick={onImport}>
+        Traer switches del inventario
+      </button>
+      <span className="muted">
+        {devices.length === 1 ? 'Tienes 1 switch' : `Tienes ${devices.length} switches`} en el inventario.
+      </span>
+      {summary && (
+        <p role="status" className="plan-inventory__status">
+          {summary}
+        </p>
+      )}
+    </div>
   )
 }
 
@@ -100,6 +158,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
         </p>
         <PlanTools plan={plan} onChange={setPlan} />
+        <InventoryImport plan={plan} catalog={catalog} onChange={setPlan} />
       </header>
 
       {plan.switches.length > 0 && (

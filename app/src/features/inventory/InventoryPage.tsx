@@ -5,6 +5,7 @@ import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { parseInventoryCsv, slugify, toInventoryCsv } from '../../domain/inventoryCsv';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
 import { content, typeOf } from '../../content';
+import { PLANNER_URL } from '../../config';
 
 const LEVEL = { crit: 'Urgente', warn: 'Pendiente', info: 'Dato' } as const;
 
@@ -128,6 +129,7 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
                         <button type="button" className="chip" aria-pressed={d.monitorizado} onClick={() => void toggleMonitored(d)}>{d.monitorizado ? 'Monitorizado' : 'Sin monitorizar'}</button>
                         <button type="button" className="chip" onClick={() => void remove(d)} aria-label={`Borrar ${d.nombre}`}>Borrar</button>
                       </span>
+                      {d.tipo === 'switch' && <a className="plan-link" href={PLANNER_URL}>Planificar VLAN y puertos</a>}
                       {snippets.map(s => (
                         <details key={s.nombre} className="vendor">
                           <summary>{s.nombre}</summary>

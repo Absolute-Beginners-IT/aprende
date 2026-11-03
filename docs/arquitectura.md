@@ -21,7 +21,7 @@ El proyecto separa tres responsabilidades: portada y contenido público estátic
 | --- | --- | --- |
 | `example.com` | Ruta de aprendizaje (módulos, salas y tareas), glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
 | `app.example.com` | Mapa por capas y modo "Mi infraestructura" | `npm run build` → Cloudflare Pages |
-| `app.example.com/guias/` | Guías de switching por marca y planificador de red | `npm run build` en `guias/`, integradas con `git subtree` (ver ADR 0004) |
+| `app.example.com/guias/` | Guías de switching por marca y planificador de red (pestaña «Red y VLAN» de «Mi infraestructura») | `npm run build` en `guias/`, integradas con `git subtree` (ver ADR 0004) |
 | `api.example.com` | Cuentas, progreso, inventarios compartidos | **No se construye todavía** (ver ADR 0002) |
 
 ## Contenido compartido
@@ -45,6 +45,8 @@ La app no sabe dónde se guardan los datos del alumno:
 - Futuro: `httpInventoryRepository.ts` contra `api.example.com`, con el mismo contrato.
 
 Los componentes siguen el patrón contenedor/presentación: `MapPage`, `ScenariosPage` e `InventoryPage` gestionan el estado, y `ReferenceMap` y `NodeDetail` solo pintan. La lógica del modo «Mi infraestructura» vive en funciones puras con tests: `domain/inventoryAnalysis.ts` (carencias frente a una pyme típica) y `domain/inventoryCsv.ts` (importación y exportación con protección contra fórmulas de hoja de cálculo).
+
+«Mi infraestructura» se reparte entre dos aplicaciones que se ven como una sección con dos pestañas: **Inventario** (`app/`) y **Red y VLAN** (el planificador de `guias/`, en `#/plan`). Las dos se sirven desde el mismo origen, así que comparten el almacenamiento del navegador: el planificador lee el inventario de la clave `mapa-infra:inventario` (`guias/src/features/planner/inventoryImport.ts`) para traer los switches, su modelo, su IP y sus conexiones. Si cambia el formato del inventario, hay que revisar ese lector.
 
 ## Despliegue (cuando toque)
 
