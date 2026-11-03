@@ -8,7 +8,7 @@ import type { Device } from '../domain/types';
 export interface InventoryRepository {
   list(): Promise<Device[]>;
   save(device: Device): Promise<void>;
-  /** Saves several devices together: either all of them are stored or, on failure, none is. */
-  saveAll(devices: Device[]): Promise<void>;
+  /** Saves several devices and removes others as one change: on failure, nothing is stored. */
+  saveAll(devices: Device[], removedIds?: string[]): Promise<void>;
   remove(id: string): Promise<void>;
 }

@@ -15,7 +15,7 @@ function memoryRepository(initial: Device[] = []): InventoryRepository & { devic
     devices,
     async list() { return [...devices.values()]; },
     async save(d) { devices.set(d.id, d); },
-    async saveAll(ds) { for (const d of ds) devices.set(d.id, d); },
+    async saveAll(ds, removed = []) { for (const d of ds) devices.set(d.id, d); for (const id of removed) devices.delete(id); },
     async remove(id) { devices.delete(id); },
   };
 }
@@ -182,5 +182,31 @@ describe('InfraMapPage', () => {
 
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
     expect([...repo.devices.values()]).toEqual(original);
+  });
+
+  it('removes a device and the uplinks that pointed to it together or not at all', async () => {
+    const original: Device[] = [
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true },
+      { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+      { id: 'acc2', nombre: 'ACC2', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+    ];
+    const repo = memoryRepository(original);
+    let writes = 0;
+    repo.save = async d => { if (++writes > 1) throw new Error('QuotaExceededError'); repo.devices.set(d.id, d); };
+    repo.saveAll = async () => { throw new Error('QuotaExceededError'); };
+    render(<InfraMapPage repository={repo} />);
+    fireEvent.click((await openFicha('CORE')).getByRole('button', { name: 'Borrar equipo' }));
+
+    expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
+    expect([...repo.devices.values()]).toEqual(original);
+  });
+
+  it('removes connections with a single write of every device that changes', async () => {
+    const repo = memoryRepository(network());
+    repo.save = async () => { throw new Error('a connection must not be removed device by device'); };
+    render(<InfraMapPage repository={repo} />);
+    fireEvent.click((await openFicha('CORE')).getByRole('button', { name: /Quitar/ }));
+
+    await waitFor(() => expect(repo.devices.get('core')?.uplinks).toEqual([]));
   });
 });

@@ -134,7 +134,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       for (const [a, b] of pairs) {
         for (const d of disconnectDevices(current, a, b)) { changed.set(d.id, d); current = current.map(x => (x.id === d.id ? d : x)); }
       }
-      for (const d of changed.values()) await repository.save(d);
+      await repository.saveAll([...changed.values()]);
     }, success);
   };
 
@@ -172,8 +172,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   };
   const remove = async (d: Device) => {
     const removed = await persist(async () => {
-      for (const u of withoutDevice(await repository.list(), d.id)) await repository.save(u);
-      await repository.remove(d.id);
+      // The device and the uplinks that pointed to it go in one write: never a half-deleted device.
+      await repository.saveAll(withoutDevice(await repository.list(), d.id), [d.id]);
     }, `${d.nombre} borrado.`);
     if (removed) setSelectedId(null);
   };

@@ -13,7 +13,7 @@ function memoryRepository(initial: Device[] = []): InventoryRepository & { devic
     devices,
     async list() { return [...devices.values()]; },
     async save(d) { devices.set(d.id, d); },
-    async saveAll(ds) { for (const d of ds) devices.set(d.id, d); },
+    async saveAll(ds, removed = []) { for (const d of ds) devices.set(d.id, d); for (const id of removed) devices.delete(id); },
     async remove(id) { devices.delete(id); },
   };
 }
