@@ -106,9 +106,15 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       return Math.round(c.position!.x) !== stored?.x || Math.round(c.position!.y) !== stored?.y;
     });
     if (moved.length) void persist(async () => {
-      // Devices still placed by the map are pinned where they are first, or the move would make them reflow onto each other.
-      for (const d of placeUnplaced(await repository.list())) await repository.save(d);
-      for (const c of moved) await edit(c.id, d => moveDevice(d, c.position!));
+      // Devices still placed by the map are pinned where they are, or the move would make them reflow onto each other.
+      // Pins and moves go in one write, so a full storage never leaves the move half saved.
+      const current = await repository.list();
+      const changed = new Map(placeUnplaced(current).map(d => [d.id, d]));
+      for (const c of moved) {
+        const device = changed.get(c.id) ?? current.find(d => d.id === c.id);
+        if (device) changed.set(c.id, moveDevice(device, c.position!));
+      }
+      await repository.saveAll([...changed.values()]);
     }, '');
   };
 

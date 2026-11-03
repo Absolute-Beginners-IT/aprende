@@ -15,6 +15,7 @@ function memoryRepository(initial: Device[] = []): InventoryRepository & { devic
     devices,
     async list() { return [...devices.values()]; },
     async save(d) { devices.set(d.id, d); },
+    async saveAll(ds) { for (const d of ds) devices.set(d.id, d); },
     async remove(id) { devices.delete(id); },
   };
 }
@@ -162,5 +163,24 @@ describe('InfraMapPage', () => {
     expect(repo.devices.get('esx01')?.posicion).toEqual({ x: 190, y: 220 });
     expect(repo.devices.get('fw01')?.posicion).toEqual({ x: 0, y: 0 });
     expect(repo.devices.get('acc1')?.posicion).not.toEqual({ x: 190, y: 220 });
+  });
+
+  it('leaves every stored device as it was when a move cannot be saved', async () => {
+    const original: Device[] = [
+      { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true, uplinks: ['fw01'] },
+      { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+    ];
+    const repo = memoryRepository(original);
+    // The browser storage fills up after one more write: a move must not be left half saved.
+    let writes = 0;
+    repo.save = async d => { if (++writes > 1) throw new Error('QuotaExceededError'); repo.devices.set(d.id, d); };
+    repo.saveAll = async () => { throw new Error('QuotaExceededError'); };
+    const { container } = render(<InfraMapPage repository={repo} />);
+    fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
+    fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
+
+    expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
+    expect([...repo.devices.values()]).toEqual(original);
   });
 });
