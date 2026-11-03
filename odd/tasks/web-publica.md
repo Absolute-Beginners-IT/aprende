@@ -20,7 +20,7 @@ Objetivo: publicar el proyecto como prototipo honesto, con la arquitectura de tr
 | T3 | S3 | inline | hecho | aviso en `site/`, `app/` y `guias/` (guias#1 traído con `subtree pull`); página «Qué es esto»; app 36/36, guías 244/244 |
 | T4 | S4 | inline | hecho (PR aprende#3, 15c79a1; revisado en vivo) | `toolkit/catalogo.json` + `site/scripts/descargas.mjs` (huellas calculadas al publicar); tests del script en rojo y luego en verde (4/4); página `/herramientas/` revisada en el navegador: 15 descargas sin enlaces rotos y huella coincidente; cabecera sin desbordar en 375 px |
 | T5 | S3 | inline | pendiente (requiere cuentas del usuario) | — |
-| T6 | S1 | inline | pendiente | — |
+| T6 | S1 | inline | hecho (rama `feat/vendor-configs`) | commit 83304a8 del repo archivado aplicado sin conflictos; tests primero: RED 3 tests + módulo ausente → GREEN 59/59; `tsc` y build; en el navegador, un firewall Fortinet añadido en «Mi infraestructura» muestra «FortiGate (FortiOS 7.4, 7.6 y 8.0) · SNMPv3» |
 
 T1 Manuales integrado en `guias/` con `git subtree`, con sus pruebas y su build funcionando dentro de este repo · T2 despliegue en GitHub Pages: `site/` en la raíz, `app/` en `/app/` y `guias/` en `/app/guias/` · T3 aviso de prototipo en todas las páginas y página «Qué es esto» · T4 apartado de herramientas con descargas y SHA-256 · T5 analítica sin cookies y formulario de opinión · T6 configuraciones por fabricante en Mi infraestructura (rama `feat/vendor-config-inventory` del repo archivado).
 

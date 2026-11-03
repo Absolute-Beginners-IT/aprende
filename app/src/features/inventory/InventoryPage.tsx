@@ -3,6 +3,7 @@ import type { Device } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { parseInventoryCsv, slugify, toInventoryCsv } from '../../domain/inventoryCsv';
+import { snippetsForDevice } from '../../domain/vendorSnippets';
 import { content, typeOf } from '../../content';
 
 const LEVEL = { crit: 'Urgente', warn: 'Pendiente', info: 'Dato' } as const;
@@ -39,10 +40,14 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
     if (devices.some(d => d.id === id)) { setMessage(`Ya existe un equipo llamado ${nombre}.`); return; }
     const uplink = String(data.get('uplink') ?? '');
     const finSoporte = String(data.get('finSoporte') ?? '');
+    const marca = String(data.get('marca') ?? '').trim();
+    const modelo = String(data.get('modelo') ?? '').trim();
     await persist(() => repository.save({
       id, nombre, tipo: String(data.get('tipo')),
       criticidad: String(data.get('criticidad')) as Device['criticidad'],
       monitorizado: data.get('monitorizado') === 'on',
+      ...(marca ? { marca } : {}),
+      ...(modelo ? { modelo } : {}),
       ...(uplink ? { uplinks: [uplink] } : {}),
       ...(finSoporte ? { finSoporte } : {}),
     }), `${nombre} añadido.`);
@@ -91,6 +96,8 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
             <h2>Añadir equipo</h2>
             <label>Nombre<input name="nombre" required placeholder="FW01" /></label>
             <label>Tipo<select name="tipo" defaultValue="switch">{content.tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}</select></label>
+            <label>Marca<input name="marca" placeholder="Fortinet" /></label>
+            <label>Modelo<input name="modelo" placeholder="FortiGate 60F" /></label>
             <label>Criticidad<select name="criticidad" defaultValue="Media"><option>Alta</option><option>Media</option><option>Baja</option></select></label>
             <label>Conectado a<select name="uplink" defaultValue=""><option value="">— Ninguno —</option>{sorted.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}</select></label>
             <label>Fin de soporte<input name="finSoporte" type="date" /></label>
@@ -111,15 +118,25 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
             <h2>Tus equipos ({devices.length})</h2>
             {devices.length === 0 ? <p className="muted">Todavía no has añadido ningún equipo.</p> : (
               <ul className="devices">
-                {sorted.map(d => (
-                  <li key={d.id}>
-                    <span><b>{d.nombre}</b> <span className="muted">· {typeOf(d.tipo).nombre}{d.uplinks?.length ? ` · conectado a ${d.uplinks.map(nameOf).join(', ')}` : ''}</span></span>
-                    <span className="row">
-                      <button type="button" className="chip" aria-pressed={d.monitorizado} onClick={() => void toggleMonitored(d)}>{d.monitorizado ? 'Monitorizado' : 'Sin monitorizar'}</button>
-                      <button type="button" className="chip" onClick={() => void remove(d)} aria-label={`Borrar ${d.nombre}`}>Borrar</button>
-                    </span>
-                  </li>
-                ))}
+                {sorted.map(d => {
+                  const marcaModelo = [d.marca, d.modelo].filter(Boolean).join(' ');
+                  const snippets = snippetsForDevice(d, content.fabricantes);
+                  return (
+                    <li key={d.id}>
+                      <span><b>{d.nombre}</b> <span className="muted">· {typeOf(d.tipo).nombre}{marcaModelo ? ` · ${marcaModelo}` : ''}{d.uplinks?.length ? ` · conectado a ${d.uplinks.map(nameOf).join(', ')}` : ''}</span></span>
+                      <span className="row">
+                        <button type="button" className="chip" aria-pressed={d.monitorizado} onClick={() => void toggleMonitored(d)}>{d.monitorizado ? 'Monitorizado' : 'Sin monitorizar'}</button>
+                        <button type="button" className="chip" onClick={() => void remove(d)} aria-label={`Borrar ${d.nombre}`}>Borrar</button>
+                      </span>
+                      {snippets.map(s => (
+                        <details key={s.nombre} className="vendor">
+                          <summary>{s.nombre}</summary>
+                          <pre>{s.configuracion}</pre>
+                        </details>
+                      ))}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

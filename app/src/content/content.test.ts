@@ -30,6 +30,14 @@ describe('shared content integrity', () => {
     }
   });
 
+  it('ties every vendor configuration to known device types and a valid pattern', () => {
+    for (const f of content.fabricantes) {
+      expect(f.tipos?.length, `tipos de ${f.nombre}`).toBeGreaterThan(0);
+      for (const t of f.tipos) expect(tipoIds, `tipo de ${f.nombre}`).toContain(t);
+      expect(() => new RegExp(f.patron, f.flags), `patrón de ${f.nombre}`).not.toThrow();
+    }
+  });
+
   it('keeps the content free of company-specific references', () => {
     const text = JSON.stringify(content).toLowerCase();
     for (const word of ['ninjaone', 'consultoría', 'vuestro']) expect(text, word).not.toContain(word);
