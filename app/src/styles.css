@@ -91,7 +91,11 @@ input, select, textarea { font: inherit; font-size: 14px; color: var(--text); ba
 textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .notice { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border-left: 4px solid var(--accent); border-radius: 0 10px 10px 0; padding: 10px 14px; margin: 12px 0; }
 .devices { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.devices li { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.devices li { min-width: 0; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+/* min-width: 0 lets the long config lines scroll inside the <pre> instead of widening the page. */
+.vendor { flex-basis: 100%; min-width: 0; font-size: 14px; }
+.vendor summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.vendor pre { margin: 6px 0 0; padding: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow-x: auto; font-size: 13px; }
 .findings { list-style: none; padding: 0; display: grid; gap: 8px; }
 .finding { border-left: 4px solid var(--other); padding: 4px 10px; }
 .finding.crit { border-color: #dc2626; } .finding.warn { border-color: #d97706; }

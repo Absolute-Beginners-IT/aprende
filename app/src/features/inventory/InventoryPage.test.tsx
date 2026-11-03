@@ -51,6 +51,27 @@ describe('InventoryPage', () => {
     expect(repo.devices.get('fw01')?.monitorizado).toBe(true);
   });
 
+  it('saves the brand and model from the form and shows the configuration for that brand', async () => {
+    const repo = memoryRepository();
+    render(<InventoryPage repository={repo} />);
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'FW01' } });
+    fireEvent.change(screen.getByLabelText('Tipo'), { target: { value: 'firewall' } });
+    fireEvent.change(screen.getByLabelText('Marca'), { target: { value: 'Fortinet' } });
+    fireEvent.change(screen.getByLabelText('Modelo'), { target: { value: 'FortiGate 60F' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
+    expect(await screen.findByText('FortiGate (FortiOS 7.4, 7.6 y 8.0) · SNMPv3')).toBeTruthy();
+    expect(screen.getByText(/config system snmp sysinfo/)).toBeTruthy();
+    expect(screen.getByText(/Fortinet FortiGate 60F/)).toBeTruthy();
+    expect(repo.devices.get('fw01')).toMatchObject({ marca: 'Fortinet', modelo: 'FortiGate 60F' });
+  });
+
+  it('shows the configuration for imported devices and nothing for unknown brands', async () => {
+    render(<InventoryPage repository={memoryRepository()} />);
+    await importCsv('Nombre;Tipo;Marca;Modelo\nCORE;switch;HPE Aruba;6300M\nSRV;servidor;Genérica;X1');
+    expect(await screen.findByText('HPE Aruba AOS-CX · SNMPv3')).toBeTruthy();
+    expect(screen.getAllByText(/· SNMPv3|· API|· Redfish/)).toHaveLength(1);
+  });
+
   it('shows the gap analysis for the imported inventory', async () => {
     render(<InventoryPage repository={memoryRepository()} />);
     await importCsv('Nombre;Tipo\nCORE;switch');
