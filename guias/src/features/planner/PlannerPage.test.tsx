@@ -317,4 +317,17 @@ describe('PlannerPage', () => {
 
     expect(screen.queryByRole('button', { name: 'Traer switches del inventario' })).not.toBeInTheDocument()
   })
+
+  it('says «se ha traído» when only one switch arrives', async () => {
+    localStorage.setItem(
+      INVENTORY_STORAGE_KEY,
+      JSON.stringify([{ id: 'core', nombre: 'SW-CORE', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100' }]),
+    )
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+
+    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
+
+    expect(screen.getByRole('status')).toHaveTextContent(/^Se ha traído el switch SW-CORE del inventario\.$/)
+  })
 })

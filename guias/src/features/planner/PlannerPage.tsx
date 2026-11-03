@@ -56,8 +56,10 @@ function importSummary({ added, unknownModel, links }: ReturnType<typeof addInve
   const switches = added.length === 1 ? `el switch ${added[0]}` : `${added.length} switches (${listNames(added)})`
   const linkText = links === 1 ? '1 enlace' : `${links} enlaces`
   const brought = added.length === 0 ? linkText : links > 0 ? `${switches} y ${linkText}` : switches
+  // One item alone takes a singular verb; two switches, two links or a switch plus links take the plural.
+  const plural = added.length > 1 || links > 1 || (added.length > 0 && links > 0)
   return [
-    `Se han traído ${brought} del inventario.`,
+    `Se ${plural ? 'han' : 'ha'} traído ${brought} del inventario.`,
     links > 0 ? 'En Enlaces, indica qué puerto de cada switch los une.' : '',
     unknownModel.length > 0
       ? `En Switches, elige el modelo de ${listNames(unknownModel)}: no es ninguno de los que cubre el manual.`
