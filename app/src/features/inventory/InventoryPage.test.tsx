@@ -42,6 +42,14 @@ describe('InventoryPage', () => {
     expect(await screen.findByText('Tus equipos (3)')).toBeTruthy();
   });
 
+  it('keeps the place on the map of a device that a CSV import overwrites', async () => {
+    const repo = memoryRepository([{ id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false, posicion: { x: 40, y: 120 } }]);
+    render(<InventoryPage repository={repo} />);
+    expect(await screen.findByText('Tus equipos (1)')).toBeTruthy();
+    await importCsv('Nombre;Tipo;Monitorizado\nFW01;firewall;Sí');
+    expect(repo.devices.get('fw01')).toMatchObject({ monitorizado: true, posicion: { x: 40, y: 120 } });
+  });
+
   it('combines rows that resolve to the same device and says so instead of over-counting', async () => {
     const repo = memoryRepository();
     render(<InventoryPage repository={repo} />);

@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { App } from './App';
 import { content } from './content';
+import { mockReactFlow } from './features/inventory/reactFlowTestSetup';
+
+mockReactFlow();
 
 // Same key and values as the switching guides, so one choice applies to the whole website.
 const THEME_KEY = 'switching-manual:theme';
@@ -54,14 +57,30 @@ describe('App', () => {
     }
   });
 
-  it('shows «Mi infraestructura» as two tabs: this inventory and the network planner of the guides', () => {
+  it('shows «Mi infraestructura» as three tabs: the map, the list and the network planner of the guides', () => {
+    for (const [hash, current] of [['#mi-infraestructura', 'Mapa'], ['#mi-infraestructura/lista', 'Lista']] as const) {
+      location.hash = hash;
+      const { unmount } = render(<App />);
+      const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }));
+      expect(tabs.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]), hash).toEqual([
+        ['Mapa', '#mi-infraestructura', current === 'Mapa' ? 'page' : null],
+        ['Lista', '#mi-infraestructura/lista', current === 'Lista' ? 'page' : null],
+        ['Red y VLAN', './guias/#/plan', null],
+      ]);
+      unmount();
+    }
+  });
+
+  it('opens the editable map by default and the device list in «Lista»', async () => {
     location.hash = '#mi-infraestructura';
+    const { unmount } = render(<App />);
+    expect(await screen.findByRole('region', { name: 'Mapa de tu infraestructura' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Importar' })).toBeNull();
+    unmount();
+    location.hash = '#mi-infraestructura/lista';
     render(<App />);
-    const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }));
-    expect(tabs.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')])).toEqual([
-      ['Inventario', '#mi-infraestructura', 'page'],
-      ['Red y VLAN', './guias/#/plan', null],
-    ]);
+    expect(screen.getByRole('button', { name: 'Importar' })).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Mapa de tu infraestructura' })).toBeNull();
   });
 
   it('presents the reference map as part of Aprender, with a way back to it', () => {

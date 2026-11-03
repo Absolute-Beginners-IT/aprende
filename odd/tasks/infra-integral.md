@@ -15,9 +15,9 @@ Rama: `feat/infra-integral` · Entrega: un PR por entrega (`ask-on-risk`) · Pru
 
 | ID | Specs | Ruta | Estado | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S1, S5 | inline | pendiente | |
-| T2 | S2, S3, S4 | inline | pendiente | |
-| T3 | S2, S3, S4, S5 | inline | pendiente | |
+| T1 | S1, S5 | inline | hecho: RED 3 tests → GREEN 62/62, scripts 14/14, build Hugo | 107aee1 |
+| T2 | S2, S3, S4 | inline | hecho: RED (módulo inexistente) → GREEN 10/10, app 72/72, tsc | 0d87497 |
+| T3 | S2, S3, S4, S5 | delegada (respaldo de contexto del padre) | hecho: RED 4 tests + suite nueva → GREEN 87/87, tsc, build; comprobación del padre 87/87 | (commit T3) |
 
 - T1: `content/navegacion.json` sin «Mapa»; Aprender enlaza al mapa de referencia; la app marca «Aprender» en el mapa y los escenarios.
 - T2: funciones puras del mapa (posición automática por niveles, conectar, desconectar, mover) con tests.
@@ -29,3 +29,5 @@ Rama: `feat/infra-integral` · Entrega: un PR por entrega (`ask-on-risk`) · Pru
 - L2: maqueta aprobada con ajustes: «Me encaja mas la 1 y la parte de Mapa esta enfocada a enseñar por lo que la meteria dentro de aprender»; después «Sí, empieza».
 - L3: decisión de alcance: el inventario ya modela las conexiones (`uplinks`), así que la entrega 1 no cambia el formato guardado; solo añade `posicion` opcional. Evita una migración de datos y mantiene el botón «Traer switches del inventario» de las guías.
 - L4: dependencia nueva `@xyflow/react` fijada a 12.12.0 (24-09-2026); la 12.12.1 salió el 02-11-2026 y se descarta por reciente. Riesgo: ítem 5 (dependencias).
+- L5: T3 delegada a un escritor por el respaldo de contexto (sesión larga del padre); superficie: `app/package.json`, `app/package-lock.json`, `app/src/App.tsx`, `app/src/App.test.tsx`, `app/src/routing.ts`, `app/src/routing.test.ts`, `app/src/styles.css`, `app/src/features/inventory/**`.
+- L6: escritor de T3 terminado. Diff dentro de la superficie. Decisiones: escrituras en cola en `useInventory.persist` (evita que ediciones rápidas de la ficha se pisen; afecta también a la Lista), selección controlada por la app, nodos `deletable: false` (Supr solo quita conexiones), posiciones guardadas desde `onNodesChange` (arrastre y flechas). Pendiente: unir soltando sobre el cuerpo del equipo (solo de punto a punto).

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { MapPage } from './features/map/MapPage';
 import { ScenariosPage } from './features/scenarios/ScenariosPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
+import { InfraMapPage } from './features/inventory/InfraMapPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
@@ -13,6 +14,13 @@ import { parseHash, scenarioHash, type Route } from './routing';
 const MAP_VIEWS = [
   ['mapa', 'Mapa'],
   ['escenarios', 'Escenarios'],
+] as const;
+
+// «Mi infraestructura» is one workspace: the editable map, the device list and the network planner of the guides.
+const INFRA_VIEWS = [
+  ['#mi-infraestructura', 'Mapa'],
+  ['#mi-infraestructura/lista', 'Lista'],
+  [PLANNER_URL, 'Red y VLAN'],
 ] as const;
 
 const routeFromHash = (): Route => parseHash(location.hash);
@@ -39,6 +47,7 @@ export function App() {
   }, []);
 
   const inventory = view === 'mi-infraestructura';
+  const infraHash = route.infraView === 'lista' ? '#mi-infraestructura/lista' : '#mi-infraestructura';
 
   return (
     <>
@@ -51,11 +60,12 @@ export function App() {
         {inventory ? (
           <header className="head">
             <span className="label">Mi infraestructura</span>
-            <h1>Compara tu red con la de una pyme típica</h1>
-            <p className="muted">Apunta tus equipos o importa tu inventario y descubre qué te falta. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
+            <h1>Dibuja el mapa de tu red</h1>
+            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
             <nav className="tabs" aria-label="Mi infraestructura">
-              <a href="#mi-infraestructura" className="tab" aria-current="page">Inventario</a>
-              <a href={PLANNER_URL} className="tab">Red y VLAN</a>
+              {INFRA_VIEWS.map(([href, label]) => (
+                <a key={href} href={href} className="tab" aria-current={href === infraHash ? 'page' : undefined}>{label}</a>
+              ))}
             </nav>
           </header>
         ) : (
@@ -76,7 +86,7 @@ export function App() {
         <main>
           {view === 'mapa' && <MapPage />}
           {view === 'escenarios' && <ScenariosPage scenarioId={route.scenarioId} onChoose={id => { location.hash = scenarioHash(id); }} />}
-          {inventory && <InventoryPage repository={repository} />}
+          {inventory && (route.infraView === 'lista' ? <InventoryPage repository={repository} /> : <InfraMapPage repository={repository} />)}
         </main>
       </div>
     </>

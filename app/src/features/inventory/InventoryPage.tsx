@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import type { Device } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
@@ -6,27 +6,13 @@ import { parseInventoryCsv, slugify, toInventoryCsv } from '../../domain/invento
 import { snippetsForDevice } from '../../domain/vendorSnippets';
 import { content, typeOf } from '../../content';
 import { PLANNER_URL } from '../../config';
-
-const LEVEL = { crit: 'Urgente', warn: 'Pendiente', info: 'Dato' } as const;
+import { errorText, useInventory } from './useInventory';
+import { FindingList } from './FindingList';
 
 /** Container for the learner's own inventory: persistence through the repository port only. */
 export function InventoryPage({ repository }: { repository: InventoryRepository }) {
-  const [devices, setDevices] = useState<Device[]>([]);
+  const { devices, message, setMessage, persist } = useInventory(repository);
   const [csv, setCsv] = useState('');
-  const [message, setMessage] = useState('');
-
-  const errorText = (e: unknown) => (e instanceof Error ? e.message : String(e));
-  const reload = async () => {
-    try { setDevices(await repository.list()); }
-    catch (e) { setMessage(`No se ha podido leer el inventario guardado: ${errorText(e)}`); }
-  };
-  // Every write goes through here so a full or blocked browser storage is reported, never swallowed.
-  const persist = async (write: () => Promise<void>, success: string) => {
-    try { await write(); setMessage(success); }
-    catch (e) { setMessage(`No se ha podido guardar en este navegador: ${errorText(e)}`); }
-    await reload();
-  };
-  useEffect(() => { void reload(); }, [repository]);
 
   const findings = useMemo(() => analyzeInventory(devices, new Date()), [devices]);
   const sorted = [...devices].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
@@ -62,9 +48,11 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
     const parsed = parseInventoryCsv(csv);
     if (!parsed.length) { setMessage('No se encontró ningún equipo. Revisa que el CSV tenga cabecera.'); return; }
     // Rows whose names slugify to the same id are one device: keep the last row, as the store would.
-    const unique = [...new Map(parsed.map(d => [d.id, d])).values()];
+    // The CSV has no place on the map: an overwritten device stays where the learner put it.
+    const existing = new Map(devices.map(d => [d.id, d]));
+    const unique = [...new Map(parsed.map(d => [d.id, d])).values()]
+      .map(d => (existing.get(d.id)?.posicion ? { ...d, posicion: existing.get(d.id)!.posicion } : d));
     const repeated = parsed.length - unique.length;
-    const existing = new Set(devices.map(d => d.id));
     const updated = unique.filter(d => existing.has(d.id)).length;
     const summary = `${unique.length} equipos importados (nuevos: ${unique.length - updated}, actualizados: ${updated}).`
       + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '')
@@ -147,7 +135,7 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
           <h2>Qué te falta</h2>
           {devices.length === 0 && <p className="muted">Añade tus equipos y aquí verás qué falta comparado con una pyme típica: copias, alta disponibilidad, SAI, monitorización y soporte.</p>}
           {devices.length > 0 && findings.length === 0 && <p>No se detecta ninguna carencia. ¡Buen trabajo!</p>}
-          <ul className="findings">{findings.map(f => <li key={f.mensaje} className={`finding ${f.nivel}`}><b>{LEVEL[f.nivel]}</b> {f.mensaje}</li>)}</ul>
+          <FindingList findings={findings} />
         </aside>
       </div>
     </section>
