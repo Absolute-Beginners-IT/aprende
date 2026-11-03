@@ -70,9 +70,20 @@ export function withoutDevice(devices: Device[], id: string): Device[] {
 }
 
 const whole = (position: Position): Position => ({ x: Math.round(position.x), y: Math.round(position.y) });
+const isPlace = (position: Position) => Number.isFinite(position.x) && Number.isFinite(position.y);
 
+/** The device in its new place; a position that is not a pair of numbers leaves it where it was. */
 export function moveDevice(device: Device, position: Position): Device {
-  return { ...device, posicion: whole(position) };
+  return isPlace(position) ? { ...device, posicion: whole(position) } : device;
+}
+
+/**
+ * The devices the map placed on its own, pinned to the spot they show now. Saved together with the first move,
+ * so placing one device by hand never makes the others reflow onto it.
+ */
+export function placeUnplaced(devices: Device[]): Device[] {
+  const positions = layoutDevices(devices);
+  return devices.filter(d => !d.posicion).map(d => ({ ...d, posicion: whole(positions.get(d.id)!) }));
 }
 
 /** A device of a type dropped on the map, named after the type with the first number not in use. */
@@ -82,5 +93,5 @@ export function newDevice(tipo: string, typeName: string, devices: Device[], pos
   let n = 1;
   while (names.has(`${typeName} ${n}`.toLowerCase()) || ids.has(slugify(`${typeName} ${n}`))) n++;
   const nombre = `${typeName} ${n}`;
-  return { id: slugify(nombre), nombre, tipo, criticidad: 'Media', monitorizado: false, posicion: whole(position) };
+  return { id: slugify(nombre), nombre, tipo, criticidad: 'Media', monitorizado: false, posicion: whole(isPlace(position) ? position : { x: 0, y: 0 }) };
 }

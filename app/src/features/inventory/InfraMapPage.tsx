@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 import type { Device, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
-import { GRID, connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, newDevice, withoutDevice } from '../../domain/infraMap';
+import { GRID, connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, placeUnplaced, newDevice, withoutDevice } from '../../domain/infraMap';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
@@ -24,7 +24,7 @@ const DIRECTION: Record<string, string> = { up: 'arriba', down: 'abajo', left: '
 const ARIA_LABELS: Partial<AriaLabelConfig> = {
   'node.a11yDescription.default': 'Pulsa Intro o Espacio para seleccionar el equipo y abrir su ficha.',
   'node.a11yDescription.keyboardDisabled': 'Pulsa Intro o Espacio para seleccionar el equipo y abrir su ficha. Después puedes moverlo con las flechas.',
-  'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) => `Equipo movido hacia ${DIRECTION[direction] ?? direction}.Nueva posición: x ${x}, y ${y}.`,
+  'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) => `Equipo movido hacia ${DIRECTION[direction] ?? direction}. Nueva posición: x ${x}, y ${y}.`,
   'edge.a11yDescription.default': 'Pulsa Intro o Espacio para seleccionar la conexión y Supr para quitarla.',
   'controls.ariaLabel': 'Controles del mapa',
   'controls.zoomIn.ariaLabel': 'Acercar',
@@ -105,7 +105,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       const stored = byId.get(c.id)?.posicion;
       return Math.round(c.position!.x) !== stored?.x || Math.round(c.position!.y) !== stored?.y;
     });
-    if (moved.length) void persist(async () => { for (const c of moved) await edit(c.id, d => moveDevice(d, c.position!)); }, '');
+    if (moved.length) void persist(async () => {
+      // Devices still placed by the map are pinned where they are first, or the move would make them reflow onto each other.
+      for (const d of placeUnplaced(await repository.list())) await repository.save(d);
+      for (const c of moved) await edit(c.id, d => moveDevice(d, c.position!));
+    }, '');
   };
 
   const onEdgesChange = (changes: EdgeChange[]) => setEdges(es => applyEdgeChanges(changes, es));

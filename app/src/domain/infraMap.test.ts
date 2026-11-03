@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Device } from './types';
-import { connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, newDevice, withoutDevice, GRID } from './infraMap';
+import { connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, newDevice, placeUnplaced, withoutDevice, GRID } from './infraMap';
 
 const dev = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
 
@@ -65,6 +65,19 @@ describe('withoutDevice', () => {
 describe('moveDevice', () => {
   it('stores the position in whole pixels', () => {
     expect(moveDevice(dev('core'), { x: 10.6, y: -3.2 }).posicion).toEqual({ x: 11, y: -3 });
+  });
+});
+
+describe('placeUnplaced', () => {
+  it('pins every device the map placed on its own to the spot it shows now', () => {
+    const devices = [dev('fw', { posicion: { x: 500, y: 40 } }), dev('a'), dev('b')];
+    expect(placeUnplaced(devices)).toEqual([dev('a', { posicion: { x: 0, y: 0 } }), dev('b', { posicion: { x: GRID.col, y: 0 } })]);
+  });
+});
+
+describe('moveDevice with a broken position', () => {
+  it('ignores coordinates that are not numbers', () => {
+    expect(moveDevice(dev('core', { posicion: { x: 5, y: 6 } }), { x: Number.NaN, y: 2 }).posicion).toEqual({ x: 5, y: 6 });
   });
 });
 

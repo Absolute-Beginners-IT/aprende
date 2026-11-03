@@ -146,4 +146,21 @@ describe('InfraMapPage', () => {
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
     expect(repo.devices.get('core')?.nombre).toBe('CORE');
   });
+
+  it('keeps every other device in its place when the first device of an old inventory is moved', async () => {
+    const repo = memoryRepository([
+      { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true, uplinks: ['fw01'] },
+      { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+      { id: 'esx01', nombre: 'ESX01', tipo: 'hipervisor', criticidad: 'Alta', monitorizado: true, uplinks: ['core'] },
+    ]);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
+    fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
+
+    await waitFor(() => expect(repo.devices.get('acc1')?.posicion).toBeTruthy());
+    expect(repo.devices.get('esx01')?.posicion).toEqual({ x: 190, y: 220 });
+    expect(repo.devices.get('fw01')?.posicion).toEqual({ x: 0, y: 0 });
+    expect(repo.devices.get('acc1')?.posicion).not.toEqual({ x: 190, y: 220 });
+  });
 });
