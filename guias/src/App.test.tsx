@@ -52,7 +52,7 @@ describe('App', () => {
     }
   })
 
-  it('on the website, shows the planner as the second tab of «Mi infraestructura»', () => {
+  it('on the website, shows the planner as a tab of «Mi infraestructura», after the map and the list', () => {
     vi.stubEnv(
       'VITE_SITE_NAV',
       JSON.stringify([
@@ -67,7 +67,11 @@ describe('App', () => {
       expect(site.getByRole('link', { name: 'Mi infraestructura' })).toHaveAttribute('aria-current', 'page')
       expect(site.getByRole('link', { name: 'Guías' })).not.toHaveAttribute('aria-current')
       const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }))
-      expect(tabs.getByRole('link', { name: 'Inventario' })).toHaveAttribute('href', '../#mi-infraestructura')
+      expect(tabs.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+        ['Mapa', '../#mi-infraestructura'],
+        ['Lista', '../#mi-infraestructura/lista'],
+        ['Red y VLAN', '#/plan'],
+      ])
       expect(tabs.getByRole('link', { name: 'Red y VLAN' })).toHaveAttribute('aria-current', 'page')
       expect(screen.queryByRole('link', { name: 'Planificador de red' })).not.toBeInTheDocument()
       unmount()
