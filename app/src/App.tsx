@@ -5,7 +5,7 @@ import { InventoryPage } from './features/inventory/InventoryPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
-import { GUIDE_URL } from './config';
+import { GUIDE_URL, PLANNER_URL } from './config';
 import { parseHash, scenarioHash, type Route } from './routing';
 
 // The map and its scenarios are one section ("Mapa"); "Mi infraestructura" is its own section.
@@ -51,7 +51,11 @@ export function App() {
           <header className="head">
             <span className="label">Mi infraestructura</span>
             <h1>Compara tu red con la de una pyme típica</h1>
-            <p className="muted">Apunta tus equipos o importa tu inventario y descubre qué te falta.</p>
+            <p className="muted">Apunta tus equipos o importa tu inventario y descubre qué te falta. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
+            <nav className="tabs" aria-label="Mi infraestructura">
+              <a href="#mi-infraestructura" className="tab" aria-current="page">Inventario</a>
+              <a href={PLANNER_URL} className="tab">Red y VLAN</a>
+            </nav>
           </header>
         ) : (
           <>

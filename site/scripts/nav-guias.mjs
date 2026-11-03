@@ -13,7 +13,8 @@ function desdeGuias(ruta) {
 }
 
 export function navegacionParaGuias(navegacion) {
-  return navegacion.map(e => ({ label: e.nombre, href: desdeGuias(e.ruta), ...(e.id === 'guias' ? { current: true } : {}) }));
+  // The id lets a page of the guides mark another section, such as the planner under «Mi infraestructura».
+  return navegacion.map(e => ({ id: e.id, label: e.nombre, href: desdeGuias(e.ruta), ...(e.id === 'guias' ? { current: true } : {}) }));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv[1])) {

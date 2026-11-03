@@ -11,12 +11,12 @@ const navegacion = JSON.parse(readFileSync(join(raiz, 'content', 'navegacion.jso
 
 test('turns the shared navigation into links relative to /app/guias/, with the guides marked as current', () => {
   assert.deepEqual(navegacionParaGuias(navegacion), [
-    { label: 'Inicio', href: '../../' },
-    { label: 'Aprender', href: '../../aprender/' },
-    { label: 'Mapa', href: '../#mapa' },
-    { label: 'Mi infraestructura', href: '../#mi-infraestructura' },
-    { label: 'Guías', href: './', current: true },
-    { label: 'Herramientas', href: '../../herramientas/' },
+    { id: 'inicio', label: 'Inicio', href: '../../' },
+    { id: 'aprender', label: 'Aprender', href: '../../aprender/' },
+    { id: 'mapa', label: 'Mapa', href: '../#mapa' },
+    { id: 'infra', label: 'Mi infraestructura', href: '../#mi-infraestructura' },
+    { id: 'guias', label: 'Guías', href: './', current: true },
+    { id: 'herramientas', label: 'Herramientas', href: '../../herramientas/' },
   ]);
 });
 
@@ -25,6 +25,7 @@ test('the shared navigation has unique ids, starts at the home page and names ev
   assert.equal(navegacion[0].ruta, '', 'the first entry is the home page (the brand links to it)');
   for (const e of navegacion) assert.ok(e.nombre?.trim() && typeof e.ruta === 'string', e.id);
   assert.ok(navegacion.some(e => e.id === 'guias'), 'the guides need their own entry to be marked as current');
+  assert.ok(navegacion.some(e => e.id === 'infra'), 'the network planner of the guides is shown under «Mi infraestructura»');
 });
 
 test('the guides keep the files the landing page counts (procedures per brand and named platforms)', () => {

@@ -1284,6 +1284,45 @@ thead th {
   margin: 0;
 }
 
+.plan-inventory {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+}
+
+.plan-inventory__status {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* Same look as the tabs of the app's inventory page: both are halves of «Mi infraestructura». */
+.infra-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.infra-tabs a {
+  padding: 0.5rem 0.9rem;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.infra-tabs a:hover {
+  color: var(--text);
+}
+
+.infra-tabs a[aria-current="page"] {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
 .plan-templates ul {
   display: grid;
   gap: 0.6rem;

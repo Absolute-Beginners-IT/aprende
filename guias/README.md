@@ -31,7 +31,7 @@ muestra qué guías están contrastadas, cuáles faltan por probar y cuáles con
 
 ### Planificador de red
 
-El **Planificador de red** de la cabecera (`#/plan`) sirve para diseñar o documentar la red de una empresa y sacar los
+El **Planificador de red** (`#/plan`) sirve para diseñar o documentar la red de una empresa y sacar los
 pasos de cada switch:
 
 1. En **VLAN**, empieza con una plantilla o añade las VLAN una a una, con su propósito. Marca una como Gestión.
@@ -40,6 +40,8 @@ pasos de cada switch:
 4. En **Puertos**, asigna los puertos de acceso a su VLAN.
 5. En **Guía**, si todo encaja, tienes los pasos de cada switch, del núcleo hacia fuera, con los comandos de su marca ya
    rellenos. «Abrir la guía con estos datos» lleva a la guía completa con los valores puestos.
+
+En la web del proyecto, el planificador no está en la cabecera del manual: es la pestaña **Red y VLAN** de «Mi infraestructura», junto al inventario. Si en el inventario de ese navegador hay switches, el botón **Traer switches del inventario** los añade al plan con su modelo (cuando es uno de los del manual), su IP y un enlace por cada conexión entre switches; los puertos de cada enlace los indicas tú. En el archivo independiente, el planificador sigue en la cabecera.
 
 El mapa de la red se dibuja solo a partir del plan. El plan se guarda en el navegador y se puede exportar e importar como
 JSON. No cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos.

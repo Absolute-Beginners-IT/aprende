@@ -55,6 +55,16 @@ describe('App', () => {
     }
   });
 
+  it('shows «Mi infraestructura» as two tabs: this inventory and the network planner of the guides', () => {
+    location.hash = '#mi-infraestructura';
+    render(<App />);
+    const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }));
+    expect(tabs.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')])).toEqual([
+      ['Inventario', '#mi-infraestructura', 'page'],
+      ['Red y VLAN', './guias/#/plan', null],
+    ]);
+  });
+
   it('offers only the map and the scenarios as map views, since the glossary lives in the guide', () => {
     render(<App />);
     const tabs = within(screen.getByRole('navigation', { name: 'Vistas del mapa' }));

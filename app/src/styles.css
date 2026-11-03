@@ -75,6 +75,8 @@ h1 { margin: 6px 0; font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-
 .tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin: 16px 0 4px; }
 .tab { padding: 8px 14px; color: var(--muted); text-decoration: none; border-bottom: 3px solid transparent; font-weight: 600; }
 .tab[aria-current="page"] { color: var(--text); border-bottom-color: var(--accent); }
+.head .tabs { margin-bottom: 0; }
+.plan-link { font-size: 14px; font-weight: 600; }
 .node.dim, .link.dim { opacity: .25; }
 .node.lit rect { stroke-width: 3.2; fill: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

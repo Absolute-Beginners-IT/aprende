@@ -52,6 +52,42 @@ describe('App', () => {
     }
   })
 
+  it('on the website, shows the planner as the second tab of «Mi infraestructura»', () => {
+    vi.stubEnv(
+      'VITE_SITE_NAV',
+      JSON.stringify([
+        { id: 'inicio', label: 'Inicio', href: '../../' },
+        { id: 'infra', label: 'Mi infraestructura', href: '../#mi-infraestructura' },
+        { id: 'guias', label: 'Guías', href: './', current: true },
+      ]),
+    )
+    try {
+      const { unmount } = openAt('#/plan')
+      const site = within(screen.getByRole('navigation', { name: 'Secciones de la web' }))
+      expect(site.getByRole('link', { name: 'Mi infraestructura' })).toHaveAttribute('aria-current', 'page')
+      expect(site.getByRole('link', { name: 'Guías' })).not.toHaveAttribute('aria-current')
+      const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }))
+      expect(tabs.getByRole('link', { name: 'Inventario' })).toHaveAttribute('href', '../#mi-infraestructura')
+      expect(tabs.getByRole('link', { name: 'Red y VLAN' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.queryByRole('link', { name: 'Planificador de red' })).not.toBeInTheDocument()
+      unmount()
+
+      openAt('#/f')
+      expect(
+        within(screen.getByRole('navigation', { name: 'Secciones de la web' })).getByRole('link', { name: 'Guías' }),
+      ).toHaveAttribute('aria-current', 'page')
+      expect(screen.queryByRole('navigation', { name: 'Mi infraestructura' })).not.toBeInTheDocument()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
+  it('keeps the planner in its own header when built on its own', () => {
+    openAt('#/plan')
+    expect(screen.getByRole('link', { name: 'Planificador de red' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('navigation', { name: 'Mi infraestructura' })).not.toBeInTheDocument()
+  })
+
   it('ignores a VITE_SITE_NAV that is not a valid list of links', () => {
     for (const value of ['not json', '{"label":"Inicio"}', '[{"label":"Inicio"}]']) {
       vi.stubEnv('VITE_SITE_NAV', value)

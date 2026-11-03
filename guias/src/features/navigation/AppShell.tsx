@@ -19,6 +19,20 @@ interface AppShellProps {
   children: ReactNode
 }
 
+const INFRA_SECTION = 'infra'
+
+/** Same two tabs as the app's inventory page, so both halves of «Mi infraestructura» read as one section. */
+function InfraTabs({ inventoryHref }: { inventoryHref: string }) {
+  return (
+    <nav className="infra-tabs" aria-label="Mi infraestructura">
+      <a href={inventoryHref}>Inventario</a>
+      <a href={planHref} aria-current="page">
+        Red y VLAN
+      </a>
+    </nav>
+  )
+}
+
 const isTypingTarget = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
@@ -62,6 +76,9 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
 
   // Set only when the manual is built inside a larger website; the standalone file has no site to navigate.
   const siteLinks = readSiteNav(import.meta.env.VITE_SITE_NAV)
+  // On the website the planner is the second tab of «Mi infraestructura», next to the app's inventory.
+  const inventoryHref = siteLinks.find((link) => link.id === INFRA_SECTION)?.href
+  const plannerInSite = inventoryHref !== undefined
 
   return (
     <div className="shell">
@@ -70,7 +87,9 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         Saltar al contenido
       </button>
       <PrototypeNotice />
-      {siteLinks.length > 0 && <SiteNav links={siteLinks} />}
+      {siteLinks.length > 0 && (
+        <SiteNav links={siteLinks} currentId={plannerInSite && route.name === 'plan' ? INFRA_SECTION : undefined} />
+      )}
       <header className="shell__header">
         <a className="shell__title" href="#/">
           Manual de Switching
@@ -79,9 +98,11 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
           <a href={fundamentalsHref()} aria-current={onFundamentals ? 'page' : undefined}>
             Fundamentos
           </a>
-          <a href={planHref} aria-current={route.name === 'plan' ? 'page' : undefined}>
-            Planificador de red
-          </a>
+          {!plannerInSite && (
+            <a href={planHref} aria-current={route.name === 'plan' ? 'page' : undefined}>
+              Planificador de red
+            </a>
+          )}
         </nav>
         <PlatformTabs catalog={catalog} activePlatform={acrossBrands ? '' : activePlatform} task={task} />
         <button ref={searchButton} type="button" className="shell__search" onClick={() => setSearchOpen(true)}>
@@ -107,6 +128,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
           )}
         </aside>
         <main ref={mainContent} className="shell__main" tabIndex={-1}>
+          {plannerInSite && route.name === 'plan' && <InfraTabs inventoryHref={inventoryHref} />}
           {children}
         </main>
       </div>

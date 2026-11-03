@@ -1,4 +1,6 @@
-interface SiteLink {
+export interface SiteLink {
+  /** Section id from the website's content/navegacion.json. */
+  id?: string
   label: string
   href: string
   current?: boolean
@@ -22,8 +24,9 @@ export function readSiteNav(raw: string | undefined): SiteLink[] {
 /**
  * Top bar of the website that embeds the manual; the standalone file is built without it.
  * The first link is the website's home page: the brand on the left points to it.
+ * `currentId` overrides the section marked at build time, for pages that belong to another section.
  */
-export function SiteNav({ links }: { links: SiteLink[] }) {
+export function SiteNav({ links, currentId }: { links: SiteLink[]; currentId?: string }) {
   return (
     <div className="site-bar">
       <a className="site-bar__brand" href={links[0]?.href}>
@@ -31,7 +34,11 @@ export function SiteNav({ links }: { links: SiteLink[] }) {
       </a>
       <nav className="site-bar__nav" aria-label="Secciones de la web">
         {links.map((link) => (
-          <a key={link.href} href={link.href} aria-current={link.current ? 'page' : undefined}>
+          <a
+            key={link.href}
+            href={link.href}
+            aria-current={(currentId ? link.id === currentId : link.current) ? 'page' : undefined}
+          >
             {link.label}
           </a>
         ))}

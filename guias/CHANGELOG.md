@@ -13,9 +13,13 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Barra de navegación de la web que contiene el manual, cuando se compila dentro de ella (variable `VITE_SITE_NAV`, con
   la lista de enlaces en JSON). Sustituye al enlace «← Volver a la web» y a la variable `VITE_HOME_URL`. El archivo
   independiente no la muestra.
+- Planificador: botón «Traer switches del inventario», que añade al plan los switches apuntados en «Mi infraestructura»
+  de la web, con su modelo, su IP y sus conexiones.
 
 ### Cambiado
 
+- En la web, el planificador de red es la pestaña «Red y VLAN» de «Mi infraestructura» y sale de la cabecera del
+  manual. El archivo independiente lo mantiene en la cabecera.
 - Colores y tipografía alineados con la web del proyecto: acento naranja (más oscuro en el tema claro para mantener el
   contraste) y los mismos fondos, textos y bordes.
 
