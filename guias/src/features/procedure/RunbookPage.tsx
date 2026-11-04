@@ -1,6 +1,6 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { extractParamIds, type ParamValues, renderCommand } from '../../domain/renderCommand'
-import type { Concept, Platform, Procedure, RiskLevel, StatusLevel } from '../../domain/schema'
+import type { Concept, Param, Platform, Procedure, RiskLevel, StatusLevel } from '../../domain/schema'
 import { validateParam } from '../../domain/validateParam'
 import { useStoredState } from '../../lib/useStoredState'
 import { Badge } from '../../ui/Badge'
@@ -8,8 +8,11 @@ import { CommandBlock } from '../../ui/CommandBlock'
 import { CopyButton } from '../../ui/CopyButton'
 import { Section } from '../../ui/Section'
 import { RISK_LABELS, STATUS_LABELS } from '../labels'
+import { platformFor, readInventorySwitches } from '../planner/inventoryImport'
 import { ChangeRecordSection } from './ChangeRecordSection'
 import { buildChangeRecord, changeRecordFileName, EMPTY_RECORD, type RecordFields } from './changeRecord'
+import { DevicePicker } from './DevicePicker'
+import { DEVICE_PARAM_IDS, deviceValues } from './deviceValues'
 import { runbookStorageKey } from './runbookStorage'
 
 interface RunbookPageProps {
@@ -18,6 +21,8 @@ interface RunbookPageProps {
   procedure: Procedure
   /** Runbooks for this same task on the other brands. */
   alternatives?: { name: string; href: string }[]
+  /** Inventory device to open the runbook with (`?equipo=<id>`); ignored unless it is a switch of this model. */
+  deviceId?: string
 }
 
 const RISK_TONES: Record<RiskLevel, 'ok' | 'warn' | 'danger'> = { low: 'ok', medium: 'warn', high: 'danger' }
@@ -42,6 +47,8 @@ function StepCommands({ manual, manualLabel, lines, copyLabel, ready }: StepComm
   return <CommandBlock lines={lines} copyLabel={copyLabel} ready={ready} />
 }
 
+const labelsOf = (params: Param[]) => params.map((param) => param.label)
+
 // Sections the user jumps between while working; "Fuentes" is reference material and stays out.
 const WORKING_SECTIONS = [
   { key: 'data', title: 'Tus datos' },
@@ -51,7 +58,7 @@ const WORKING_SECTIONS = [
   { key: 'rollback', title: 'Vuelta atrás' },
 ] as const
 
-export function RunbookPage({ platform, concept, procedure, alternatives = [] }: RunbookPageProps) {
+export function RunbookPage({ platform, concept, procedure, alternatives = [], deviceId }: RunbookPageProps) {
   const baseId = useId()
   const sectionId = (key: (typeof WORKING_SECTIONS)[number]['key']) => `${baseId}-${key}`
   const storageKey = runbookStorageKey(procedure.platform, procedure.task)
@@ -66,6 +73,36 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
   const [storedRecord, setRecord] = useStoredState<RecordFields>(`${storageKey}:record`, EMPTY_RECORD)
   // Fills fields a record saved by an older version may lack.
   const record = { ...EMPTY_RECORD, ...storedRecord }
+
+  // Read once, like the stored values: the inventory is edited on another page of the website.
+  const [inventory] = useState(readInventorySwitches)
+  const devices = inventory.filter((device) => platformFor(device, [platform]) === platform.id)
+  const [chosenDevice, setChosenDevice] = useState(() =>
+    devices.some((device) => device.id === deviceId) ? (deviceId ?? '') : '',
+  )
+  const [filledIds, setFilledIds] = useState<string[]>()
+  const fillable = procedure.params.filter((param) => param.type !== 'secret' && DEVICE_PARAM_IDS.includes(param.id))
+
+  // Overwrites only what the device provides; the other values and the secrets stay as they are.
+  const chooseDevice = (id: string) => {
+    setChosenDevice(id)
+    const device = devices.find((item) => item.id === id)
+    if (!device) {
+      setFilledIds(undefined)
+      return
+    }
+    const filled = deviceValues(device, procedure)
+    setStoredValues({ ...plainValues, ...filled })
+    setFilledIds(Object.keys(filled))
+  }
+
+  // Opened from a device's page: its values go in once, as if the user had picked it.
+  const pendingDevice = useRef(chosenDevice)
+  useEffect(() => {
+    if (!pendingDevice.current) return
+    chooseDevice(pendingDevice.current)
+    pendingDevice.current = ''
+  })
 
   const errors = Object.fromEntries(
     procedure.params.map((param) => [param.id, validateParam(param, values[param.id] ?? '', values)]),
@@ -90,6 +127,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
     setSecrets({})
     setDoneSteps([])
     setRecord(EMPTY_RECORD)
+    setChosenDevice('')
+    setFilledIds(undefined)
   }
 
   const renderRecord = () => {
@@ -182,7 +221,18 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [] }:
           </button>
         }
       >
-        {procedure.params.length === 0 && <p className="muted">Esta guía no necesita datos tuyos.</p>}
+        {procedure.params.length === 0 ? (
+          <p className="muted">Esta guía no necesita datos tuyos.</p>
+        ) : (
+          <DevicePicker
+            inventory={inventory}
+            devices={devices}
+            value={chosenDevice}
+            onChange={chooseDevice}
+            fillable={labelsOf(fillable)}
+            filled={filledIds && labelsOf(procedure.params.filter((param) => filledIds.includes(param.id)))}
+          />
+        )}
         <form className="params" onSubmit={(event) => event.preventDefault()}>
           {procedure.params.map((param) => {
             const value = values[param.id] ?? ''

@@ -1,8 +1,7 @@
 import type { Catalog } from '../../domain/buildCatalog'
 import { type NetworkPlan, orderFromCore, type PlanSwitch } from '../../domain/networkPlan'
 import type { Concept, Param, Platform, Procedure } from '../../domain/schema'
-import { validateParam } from '../../domain/validateParam'
-import { resolveParam, type StepContext } from './resolveParam'
+import { resolveParam, resolveValidValues, type StepContext } from './resolveParam'
 
 /** Runbooks the planner composes, in the order they are applied on each switch. */
 export const PLAN_TASKS = ['vlan-create', 'port-trunk', 'mgmt-ip', 'port-access']
@@ -49,16 +48,8 @@ function buildStep(
   title: string,
   context: StepContext,
 ): GuideStep {
-  const values: Record<string, string> = {}
-  for (const param of procedure.params) {
-    const value = resolveParam(param, context)?.trim()
-    if (value) values[param.id] = value
-  }
   // Same rule as the runbook page: a value the runbook would reject is never shown as runnable.
-  for (const param of procedure.params) {
-    const value = values[param.id]
-    if (value !== undefined && validateParam(param, value, values) !== null) delete values[param.id]
-  }
+  const values = resolveValidValues(procedure.params, (param) => resolveParam(param, context))
   const pending = procedure.params.filter((param) => param.required && values[param.id] === undefined)
   return { key, title, concept, procedure, values, pending }
 }

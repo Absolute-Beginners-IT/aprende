@@ -46,6 +46,19 @@ En la web del proyecto, el planificador no está en la cabecera del manual: es l
 El mapa de la red se dibuja solo a partir del plan. El plan se guarda en el navegador y se puede exportar e importar como
 JSON. No cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos.
 
+### Rellenar una guía con un equipo de tu inventario
+
+En la web del proyecto, si en el inventario de «Mi infraestructura» de ese navegador hay switches, cada guía muestra en
+**Tus datos** el desplegable **Rellenar con un equipo de mi infraestructura**. Solo lista los switches del modelo de
+esa guía. Al elegir uno se ponen los valores que se pueden sacar del equipo y que la guía acepta: su IP de gestión (con
+prefijo en Aruba y MikroTik; dirección y, si el inventario tiene el prefijo, máscara en Cisco y Ruijie) y su ubicación.
+Se sustituyen solo esos valores; los demás, y las claves, los escribes tú. **Ninguno, lo escribo yo** deja los valores
+como están. Si hay switches pero ninguno de ese modelo, la guía lo indica; sin inventario, como en el archivo
+independiente, el desplegable no aparece.
+
+La dirección `#/p/<marca>/<tarea>?equipo=<id>` abre la guía con ese equipo ya elegido y sus valores puestos (el `<id>`
+del inventario va codificado para URL). Si el equipo no existe o es de otro modelo, la guía se abre sin rellenar nada.
+
 Los valores y los pasos marcados se guardan en el navegador de ese ordenador. Las claves (como las de SNMPv3) se
 piden en campos aparte que solo viven en memoria: rellenan los comandos, pero no se guardan en el navegador y salen
 como `********` en el registro del cambio.
@@ -74,7 +87,13 @@ npm run lint       # solo lint (Biome)
 npm run check      # lint, formato y orden de imports (Biome)
 npm run format     # aplica el formato y los arreglos automáticos del lint
 npm run build      # genera dist/index.html
+npm run guide-index  # regenera ../content/guias-indice.json a partir del catálogo
 ```
+
+La web del proyecto conoce las guías por `content/guias-indice.json` (en la raíz del repositorio), sin importar el
+catálogo: marcas con el patrón que reconoce sus modelos, bloques y tareas con las marcas que tienen guía. Si cambias
+marcas, tareas o sus títulos, ejecuta `npm run guide-index` y sube el archivo: `npm test` (y el CI) falla mientras el
+índice no coincida con el catálogo.
 
 Si el manual se publica dentro de otra web, compílalo con `VITE_SITE_NAV`, una lista JSON con la navegación de esa web
 (`[{"label": "Inicio", "href": "../../"}, {"label": "Guías", "href": "./", "current": true}, …]`): aparece entonces

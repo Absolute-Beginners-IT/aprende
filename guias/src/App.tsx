@@ -60,14 +60,15 @@ function Page({ route, recents, activePlatform }: PageProps) {
       return other ? [{ name: other.name, href: runbookHref(other.id, concept.id) }] : []
     })
 
-  // The key resets per-runbook state when the user moves between runbooks.
+  // The key resets per-runbook state when the user moves between runbooks, or opens one from another device.
   return (
     <RunbookPage
-      key={`${platform.id}/${concept.id}`}
+      key={`${platform.id}/${concept.id}?${route.deviceId ?? ''}`}
       platform={platform}
       concept={concept}
       procedure={procedure}
       alternatives={alternatives}
+      deviceId={route.deviceId}
     />
   )
 }

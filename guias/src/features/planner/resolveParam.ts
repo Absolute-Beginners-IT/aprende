@@ -1,5 +1,6 @@
 import { prefixToMask } from '../../domain/networkPlan'
 import type { Param } from '../../domain/schema'
+import { validateParam } from '../../domain/validateParam'
 
 /** What the plan knows for one step, in brand-neutral terms. */
 export interface StepContext {
@@ -73,4 +74,24 @@ export function resolveParam(param: Param, context: StepContext): string | undef
   return (DIRECT_IDS as readonly string[]).includes(param.id)
     ? context[param.id as (typeof DIRECT_IDS)[number]]
     : undefined
+}
+
+/**
+ * The values `resolve` gives to `params`, keeping only those the runbook accepts: a value the runbook would
+ * reject is never shown as runnable. Secrets are never filled.
+ */
+export function resolveValidValues(
+  params: Param[],
+  resolve: (param: Param) => string | undefined,
+): Record<string, string> {
+  const values: Record<string, string> = {}
+  for (const param of params) {
+    const value = param.type === 'secret' ? undefined : resolve(param)?.trim()
+    if (value) values[param.id] = value
+  }
+  for (const param of params) {
+    const value = values[param.id]
+    if (value !== undefined && validateParam(param, value, values) !== null) delete values[param.id]
+  }
+  return values
 }

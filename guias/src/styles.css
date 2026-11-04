@@ -1432,3 +1432,8 @@ thead th {
     display: none;
   }
 }
+
+.device-picker {
+  max-width: 32rem;
+  margin-bottom: 1rem;
+}

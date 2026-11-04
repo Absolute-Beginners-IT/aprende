@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan, PlanLink, PlanSwitch } from '../../domain/networkPlan'
+import { matchPlatform } from '../../domain/platformPatterns'
 import { nextId } from './usePlan'
 
 /**
@@ -9,7 +10,7 @@ import { nextId } from './usePlan'
  */
 export const INVENTORY_STORAGE_KEY = 'mapa-infra:inventario'
 
-// Only the fields the planner uses; keys stay in Spanish because they mirror the inventory.
+// Only the fields the planner and the runbooks use; keys stay in Spanish because they mirror the inventory.
 const InventoryDeviceSchema = z.object({
   id: z.string().min(1),
   nombre: z.string(),
@@ -18,6 +19,7 @@ const InventoryDeviceSchema = z.object({
   modelo: z.string().optional(),
   firmware: z.string().optional(),
   ip: z.string().optional(),
+  ubicacion: z.string().optional(),
   uplinks: z.array(z.string()).optional(),
 })
 
@@ -41,21 +43,13 @@ export function readInventorySwitches(): InventorySwitch[] {
   }
 }
 
-// Brand plus the model line each platform's runbooks were written for. A brand alone is not enough:
-// an Aruba 2930F runs AOS-S and a Catalyst 9200 runs IOS-XE, where these commands would be wrong.
-const PLATFORM_PATTERNS: Record<string, RegExp> = {
-  'aruba-aoscx': /aos-?cx|\bcx\s?\d{4}|\b(4100i|6[0-4]\d\d[a-z]{0,2}|8[1-4]\d\d)\b/i,
-  'cisco-c1300': /\bc1300\b|\b(catalyst|cisco)\s*1300\b|\bcatalyst\s*1300-/i,
-  'mikrotik-routeros': /\bcrs\d|routeros/i,
-  'ruijie-reyee': /reyee|\brg-nbs|\bnbs\d/i,
-}
-
-function platformFor(device: InventorySwitch, catalog: Catalog): string {
+/** The platform whose runbooks fit this switch's brand and model, among `platforms`; '' when none does. */
+export function platformFor(device: InventorySwitch, platforms: readonly { id: string }[]): string {
   const text = [device.marca, device.modelo, device.firmware].filter(Boolean).join(' ')
-  const match = Object.entries(PLATFORM_PATTERNS).find(
-    ([id, pattern]) => pattern.test(text) && catalog.platforms.some((platform) => platform.id === id),
+  return matchPlatform(
+    text,
+    platforms.map((platform) => platform.id),
   )
-  return match?.[0] ?? ''
 }
 
 export interface InventoryImport {
@@ -88,7 +82,7 @@ export function addInventorySwitches(plan: NetworkPlan, devices: InventorySwitch
     const name = device.nombre.trim()
     if (known.has(nameKey(name))) continue
     known.add(nameKey(name))
-    const platform = platformFor(device, catalog)
+    const platform = platformFor(device, catalog.platforms)
     switches.push({
       id: nextId('sw', switches),
       name,
