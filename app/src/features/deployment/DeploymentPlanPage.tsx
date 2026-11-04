@@ -4,7 +4,7 @@ import { deploymentPlan, planStepIds } from '../../domain/deploymentPlan';
 import { content } from '../../content';
 import { GUIDES_URL } from '../../config';
 import { errorText, useInventory } from '../inventory/useInventory';
-import { readProgress, writeProgress, type Progress } from './deploymentProgress';
+import { doneSteps, readProgress, writeProgress, type Progress } from './deploymentProgress';
 import { PlanDeviceCard } from './PlanDeviceCard';
 
 /** Container for the deployment plan: the plan is worked out from the inventory, the progress kept in browser storage. */
@@ -15,13 +15,13 @@ export function DeploymentPlanPage({ repository, storage }: { repository: Invent
   const plan = useMemo(() => deploymentPlan(devices, content, GUIDES_URL), [devices]);
 
   // Saved steps of devices no longer in the inventory, or of steps the plan no longer has, are not counted.
-  const doneOf = (deviceId: string) => new Set(progress[deviceId] ?? []);
+  const doneOf = (deviceId: string) => new Set(doneSteps(progress, deviceId));
   const total = plan.reduce((sum, d) => sum + planStepIds(d).length, 0);
   const done = plan.reduce((sum, d) => sum + planStepIds(d).filter(id => doneOf(d.id).has(id)).length, 0);
 
   // The box only changes once the browser has kept the change, so what is ticked is always what is saved.
   const toggle = (deviceId: string, stepId: string) => {
-    const current = progress[deviceId] ?? [];
+    const current = doneSteps(progress, deviceId);
     const next = { ...progress, [deviceId]: current.includes(stepId) ? current.filter(id => id !== stepId) : [...current, stepId] };
     try { writeProgress(storage, next); setProgress(next); setMessage(''); }
     catch (e) { setMessage(`No se ha podido guardar el progreso en este navegador: ${errorText(e)}`); }

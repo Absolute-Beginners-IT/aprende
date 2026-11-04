@@ -2,6 +2,7 @@ import type { Device, DeviceType, GuideIndex, VendorSnippet } from './types';
 import { guidesForDevice, type DeviceGuides } from './deviceGuides';
 import { snippetsForDevice } from './vendorSnippets';
 import { levelFinder } from './infraMap';
+import { slugify } from './inventoryCsv';
 
 // The deployment plan of «Mi infraestructura»: the learner's devices in the order they are set up, each with what to
 // configure (its guides), watch (its type's monitoring) and maintain (its type's tasks). Nothing here is new content:
@@ -72,7 +73,8 @@ export function deploymentPlan(devices: Device[], sources: PlanSources, guidesBa
         guias,
         configurar: configSteps(guias),
         vigilar: watchSteps(d, type, sources.fabricantes),
-        mantener: (type?.actuaciones ?? []).map((a, i) => ({ id: `mantener:${i}`, texto: a.que, detalles: [a.frecuencia] })),
+        // Named after the task, not its position, so reordering tipos.json never ticks another task.
+        mantener: (type?.actuaciones ?? []).map(a => ({ id: `mantener:${slugify(a.que)}`, texto: a.que, detalles: [a.frecuencia] })),
       };
     });
 }

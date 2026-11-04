@@ -17,5 +17,8 @@ export function readProgress(storage: KeyValueStorage): Progress {
   }
 }
 
+/** The done steps of one device. Only own keys count: ids such as «constructor» or «__proto__» are names built into objects. */
+export const doneSteps = (progress: Progress, deviceId: string): string[] => (Object.hasOwn(progress, deviceId) ? progress[deviceId] : []);
+
 /** Throws when the browser refuses the write, so the page can say so. */
 export const writeProgress = (storage: KeyValueStorage, progress: Progress) => storage.setItem(PROGRESS_KEY, JSON.stringify(progress));

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { deploymentPlan, DEPLOYMENT_ORDER, planStepIds } from './deploymentPlan';
 import { content } from '../content';
 import type { Device } from './types';
+import { slugify } from './inventoryCsv';
 
 const BASE = './guias/';
 const dev = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
@@ -93,7 +94,7 @@ describe('deploymentPlan Vigilar and Mantener', () => {
 
   it('turns each maintenance task of the type into a step with its frequency', () => {
     const [p] = plan([dev('sw01')]);
-    expect(p.mantener).toEqual(tipo('switch').actuaciones.map((a, i) => ({ id: `mantener:${i}`, texto: a.que, detalles: [a.frecuencia] })));
+    expect(p.mantener).toEqual(tipo('switch').actuaciones.map(a => ({ id: `mantener:${slugify(a.que)}`, texto: a.que, detalles: [a.frecuencia] })));
   });
 
   it('gives every step of a device a distinct id', () => {

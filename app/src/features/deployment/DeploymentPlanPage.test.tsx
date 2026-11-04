@@ -123,4 +123,13 @@ describe('DeploymentPlanPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Imprimir' }));
     expect(print).toHaveBeenCalledOnce();
   });
+
+  it('handles a device whose id is also a name built into JavaScript objects', async () => {
+    renderPage([dev('constructor', { nombre: 'Constructor' }), dev('__proto__', { nombre: '__proto__', uplinks: ['constructor'] })]);
+    await screen.findAllByRole('article');
+    const first = card('1. Constructor');
+    fireEvent.click(first.getAllByRole('checkbox')[0]);
+    expect((first.getAllByRole('checkbox')[0] as HTMLInputElement).checked).toBe(true);
+    expect((card('2. __proto__').getAllByRole('checkbox')[0] as HTMLInputElement).checked).toBe(false);
+  });
 });

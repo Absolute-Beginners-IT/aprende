@@ -15,10 +15,11 @@ Rama: `feat/plan-despliegue` (desde main e566651) · Entrega: un PR · Pruebas: 
 
 | ID | Specs | Ruta | Estado | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S1–S5 | delegada (un escritor: `app/` y la pestaña en `guias/`) | hecho: RED (rutas, pestañas, módulos nuevos) → GREEN app 130/130, guías 307/307, tsc, build; comprobación del padre igual | (commit T1) |
+| T1 | S1–S5 | delegada (un escritor: `app/` y la pestaña en `guias/`) | hecho: RED (rutas, pestañas, módulos nuevos) → GREEN app 130/130, guías 307/307, tsc, build; comprobación del padre igual | 796c1e0, corrección en el commit siguiente |
 
 ## Log
 
 - L1 (2026-11-04): «Sí, entrega 4»; maqueta del plan aprobada: «Sí, así (Recomendado)».
 - L2: un escritor por el respaldo de contexto (sesión larga del padre); la pestaña de las guías es una línea ligada al mismo cambio, así que va con él.
 - L3: escritor terminado, diff dentro de la superficie. Decisiones: `levelFinder` exportado de `infraMap.ts` y compartido por el mapa y el plan; progreso en `mapa-infra:despliegue` con el mismo almacenamiento que el inventario; si falla la escritura, la casilla no se marca y se avisa; `GuideNote` compartido entre la ficha y el plan; CSS de impresión. El escritor dejó abierto un `vite preview` (puerto 4179) y otro del escritor de la entrega 2 (puerto 4785).
+- L4: verificación independiente (base e566651, entrega 796c1e0): S2–S5 cumplidas y diferencial idéntico (`layoutDevices`, rutas, notas de la ficha); S1 con un bloqueante: un equipo con id `constructor` o `__proto__` (basta con llamarlo así) rompía la página del plan. Corregido con `doneSteps` (solo claves propias); RED con el mismo `TypeError` → GREEN, app 131/131. También: los pasos de mantenimiento se identifican por el texto de la tarea (`mantener:<tarea>`), no por su posición, y una «y» doble del README. Avisos no corregidos: un equipo suelto va antes que un firewall que cuelga de Internet (Internet cuenta como nivel 0, es intencionado y la página lo explica); Configurar incluye 10 de las 19 tareas (las de montaje inicial).
