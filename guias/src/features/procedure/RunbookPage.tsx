@@ -86,14 +86,18 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
   const fillable = procedure.params.filter((param) => param.type !== 'secret' && DEVICE_PARAM_IDS.includes(param.id))
 
   // Overwrites only what the device provides; the other values and the secrets stay as they are.
-  const chooseDevice = (id: string) => {
+  // `keepEdits` (opening from a device's page) never replaces a value the user typed or corrected.
+  const chooseDevice = (id: string, keepEdits = false) => {
     setChosenDevice(id)
     const device = devices.find((item) => item.id === id)
     if (!device) {
       setFilledIds(undefined)
       return
     }
-    const filled = deviceValues(device, procedure)
+    const edited = (key: string) => key in plainValues && plainValues[key] !== deviceFill[key]
+    const filled = Object.fromEntries(
+      Object.entries(deviceValues(device, procedure)).filter(([key]) => !keepEdits || !edited(key)),
+    )
     // Values the previous device filled and nobody changed since belong to that device: they go.
     const kept = Object.fromEntries(Object.entries(plainValues).filter(([key, value]) => deviceFill[key] !== value))
     setStoredValues({ ...kept, ...filled })
@@ -101,11 +105,11 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
     setFilledIds(Object.keys(filled))
   }
 
-  // Opened from a device's page: its values go in once, as if the user had picked it.
+  // Opened from a device's page: its values go in once, as if the user had picked it, without undoing their edits.
   const pendingDevice = useRef(chosenDevice)
   useEffect(() => {
     if (!pendingDevice.current) return
-    chooseDevice(pendingDevice.current)
+    chooseDevice(pendingDevice.current, true)
     pendingDevice.current = ''
   })
 

@@ -586,6 +586,19 @@ describe('RunbookPage filled from «Mi infraestructura»', () => {
     expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
   })
 
+  it("keeps the user's correction when the runbook is opened again for the same device", async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    const first = renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+    await user.clear(screen.getByLabelText('IP de gestión con prefijo'))
+    await user.type(screen.getByLabelText('IP de gestión con prefijo'), '192.168.99.20/24')
+    first.unmount()
+
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.20/24')
+  })
+
   it('offers only the switches of this model, starting with «Ninguno, lo escribo yo»', () => {
     storeInventory()
     renderRunbook('aruba-aoscx', 'mgmt-ip')
