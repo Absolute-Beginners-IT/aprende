@@ -267,67 +267,106 @@ describe('PlannerPage', () => {
     expect(screen.queryByRole('textbox', { name: 'Puerto 1' })).not.toBeInTheDocument()
   })
 
-  it('brings the switches of «Mi infraestructura» and says what is left to fill in', async () => {
-    localStorage.setItem(
-      INVENTORY_STORAGE_KEY,
-      JSON.stringify([
-        {
-          id: 'core',
-          nombre: 'SW-CORE',
-          tipo: 'switch',
-          criticidad: 'Alta',
-          monitorizado: true,
-          marca: 'Aruba',
-          modelo: 'CX 6100',
-        },
-        {
-          id: 'p1',
-          nombre: 'SW-P1',
-          tipo: 'switch',
-          criticidad: 'Media',
-          monitorizado: false,
-          marca: 'HPE',
-          modelo: '2530',
-          uplinks: ['core'],
-        },
-        { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
-      ]),
-    )
-    const user = userEvent.setup()
-    render(<PlannerPage catalog={catalog} />)
+  describe('with switches in «Mi infraestructura»', () => {
+    const inventory = [
+      { id: 'core', nombre: 'SW-CORE', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100', ip: '192.168.99.2/24' },
+      { id: 'p1', nombre: 'SW-P1', tipo: 'switch', marca: 'HPE', modelo: '2530', uplinks: ['core'] },
+      { id: 'fw', nombre: 'FW01', tipo: 'firewall' },
+    ].map((item) => ({ criticidad: 'Media', monitorizado: false, ...item }))
+    const seedInventory = () => localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory))
+    const storedPlan = () => JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY) ?? '{}')
 
-    expect(screen.getByText('Tienes 2 switches en el inventario.')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
+    it('shows the inventory switches with their name and address, which only «Mi infraestructura» changes', async () => {
+      seedInventory()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Se han traído 2 switches (SW-CORE y SW-P1) y 1 enlace del inventario. En Enlaces, indica qué puerto de cada switch los une. En Switches, elige el modelo de SW-P1: no es ninguno de los que cubre el manual.',
-    )
-    await openTab(user, /^Switches/)
-    expect(screen.getByRole('textbox', { name: 'Nombre del switch 1' })).toHaveValue('SW-CORE')
-    expect(screen.getByRole('textbox', { name: 'Nombre del switch 2' })).toHaveValue('SW-P1')
-    expect(JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY) ?? '{}').links).toHaveLength(1)
+      await openTab(user, /^Switches/)
 
-    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
-    expect(screen.getByRole('status')).toHaveTextContent('Todos los switches del inventario ya están en el plan.')
-  })
+      const table = screen.getByRole('table', { name: 'Switches del plan' })
+      expect(within(table).getByText('SW-CORE')).toBeInTheDocument()
+      expect(within(table).getByText('192.168.99.2/24')).toBeInTheDocument()
+      expect(within(table).getByText('SW-P1')).toBeInTheDocument()
+      expect(screen.queryByRole('textbox', { name: 'Nombre del switch 1' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('textbox', { name: 'IP de gestión del switch 1' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Añadir switch' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Quitar el switch/ })).not.toBeInTheDocument()
+      expect(screen.getByText(/salen de Mi infraestructura/)).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Traer switches del inventario' })).not.toBeInTheDocument()
+    })
 
-  it('offers nothing to bring when this browser has no switches in the inventory', () => {
-    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([{ id: 'fw', nombre: 'FW01', tipo: 'firewall' }]))
-    render(<PlannerPage catalog={catalog} />)
+    it('lets the user pick the model only when brand and model match none of the manual', async () => {
+      seedInventory()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
 
-    expect(screen.queryByRole('button', { name: 'Traer switches del inventario' })).not.toBeInTheDocument()
-  })
+      await openTab(user, /^Switches/)
 
-  it('says «se ha traído» when only one switch arrives', async () => {
-    localStorage.setItem(
-      INVENTORY_STORAGE_KEY,
-      JSON.stringify([{ id: 'core', nombre: 'SW-CORE', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100' }]),
-    )
-    const user = userEvent.setup()
-    render(<PlannerPage catalog={catalog} />)
+      expect(screen.getByRole('combobox', { name: 'Modelo del switch 1' })).toBeDisabled()
+      const second = screen.getByRole('combobox', { name: 'Modelo del switch 2' })
+      expect(second).toBeEnabled()
+      await user.selectOptions(second, 'cisco-c1300')
+      const pairs = storedPlan().switches.map((item: { deviceId: string; platform: string }) => [
+        item.deviceId,
+        item.platform,
+      ])
+      expect(pairs).toEqual([
+        ['core', 'aruba-aoscx'],
+        ['p1', 'cisco-c1300'],
+      ])
+    })
 
-    await user.click(screen.getByRole('button', { name: 'Traer switches del inventario' }))
+    it('takes the links from the connections and keeps the ports the user writes', async () => {
+      seedInventory()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
 
-    expect(screen.getByRole('status')).toHaveTextContent(/^Se ha traído el switch SW-CORE del inventario\.$/)
+      await openTab(user, /^Enlaces/)
+
+      expect(screen.queryByRole('button', { name: 'Añadir enlace' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^Quitar el enlace/ })).not.toBeInTheDocument()
+      expect(screen.queryByRole('combobox', { name: 'Switch A del enlace 1' })).not.toBeInTheDocument()
+      await user.type(screen.getByRole('textbox', { name: 'Puerto A del enlace 1' }), '1/1/49')
+      expect(storedPlan().links).toEqual([
+        { id: 'ln-1', a: { switch: 'sw-1', interface: '1/1/49' }, b: { switch: 'sw-2', interface: '' }, nativeVlan: 1 },
+      ])
+    })
+
+    it('keeps the plan made before, matching its switches by name, and names the ones the inventory lacks', () => {
+      seedInventory()
+      const plan = twoSwitchPlan()
+      plan.switches.push({ id: 'sw-3', name: 'sw-core', platform: '', mgmtIp: '', gateway: '192.168.99.1', bridge: '' })
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan))
+      render(<PlannerPage catalog={catalog} />)
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'nucleo y planta1 están en el plan pero no en Mi infraestructura, así que no se muestran. Para recuperarlos con sus enlaces y puertos, añádelos allí con el mismo nombre.',
+      )
+      const stored = storedPlan()
+      const rows = stored.switches.map((item: { id: string; name: string; deviceId?: string; gateway: string }) => [
+        item.id,
+        item.name,
+        item.deviceId,
+        item.gateway,
+      ])
+      expect(rows).toEqual([
+        ['sw-3', 'SW-CORE', 'core', '192.168.99.1'],
+        ['sw-4', 'SW-P1', 'p1', ''],
+        ['sw-1', 'nucleo', undefined, '192.168.99.1'],
+        ['sw-2', 'planta1', undefined, '192.168.99.1'],
+      ])
+      expect(stored.ports).toEqual(plan.ports)
+      expect(stored.links).toContainEqual(plan.links[0])
+    })
+
+    it('works as before when the inventory has no switch', () => {
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([{ id: 'fw', nombre: 'FW01', tipo: 'firewall' }]))
+      seed()
+      render(<PlannerPage catalog={catalog} />)
+
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      expect(screen.queryByText(/salen de Mi infraestructura/)).not.toBeInTheDocument()
+      expect(storedPlan()).toEqual(twoSwitchPlan())
+    })
   })
 })

@@ -13,8 +13,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Barra de navegación de la web que contiene el manual, cuando se compila dentro de ella (variable `VITE_SITE_NAV`, con
   la lista de enlaces en JSON). Sustituye al enlace «← Volver a la web» y a la variable `VITE_HOME_URL`. El archivo
   independiente no la muestra.
-- Planificador: botón «Traer switches del inventario», que añade al plan los switches apuntados en «Mi infraestructura»
-  de la web, con su modelo, su IP y sus conexiones.
+- Planificador: si «Mi infraestructura» de la web tiene switches en el mismo navegador, son los switches del plan, con
+  su nombre, su IP, su modelo (cuando es uno de los del manual) y un enlace por cada conexión entre ellos. Se cambian
+  allí; el plan guarda solo lo suyo (VLAN, puertos de cada enlace, VLAN nativa, puertos de acceso, puerta de enlace y
+  bridge) y cada switch lleva el id del equipo (`deviceId`). Un plan anterior se asocia por nombre y sus switches que no
+  están en el inventario se ocultan sin borrarse. Sin switches en el inventario, el planificador funciona como antes.
 - En cada guía, el desplegable «Rellenar con un equipo de mi infraestructura» pone en «Tus datos» lo que se puede
   sacar de un switch de ese modelo apuntado en «Mi infraestructura»: su IP de gestión (con prefijo, o la dirección y la
   máscara, según la marca) y su ubicación, solo si pasan la validación de la guía. El resto, y las claves, los escribes

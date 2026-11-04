@@ -1,8 +1,9 @@
-import { type KeyboardEvent, useId, useState } from 'react'
+import { type KeyboardEvent, useEffect, useId, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan } from '../../domain/networkPlan'
 import { buildPlanGuide } from './buildPlanGuide'
-import { addInventorySwitches, readInventorySwitches } from './inventoryImport'
+import { readInventorySwitches } from './inventoryImport'
+import { combineWithInventory, storeCombined } from './inventoryPlan'
 import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
 import { PlanTools } from './PlanTools'
@@ -51,65 +52,31 @@ function IssueList({
 const listNames = (names: string[]) =>
   names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names.at(-1)}` : (names[0] ?? '')
 
-function importSummary({ added, unknownModel, links }: ReturnType<typeof addInventorySwitches>): string {
-  if (added.length === 0 && links === 0) return 'Todos los switches del inventario ya están en el plan.'
-  const switches = added.length === 1 ? `el switch ${added[0]}` : `${added.length} switches (${listNames(added)})`
-  const linkText = links === 1 ? '1 enlace' : `${links} enlaces`
-  const brought = added.length === 0 ? linkText : links > 0 ? `${switches} y ${linkText}` : switches
-  // One item alone takes a singular verb; two switches, two links or a switch plus links take the plural.
-  const plural = added.length > 1 || links > 1 || (added.length > 0 && links > 0)
-  return [
-    `Se ${plural ? 'han' : 'ha'} traído ${brought} del inventario.`,
-    links > 0 ? 'En Enlaces, indica qué puerto de cada switch los une.' : '',
-    unknownModel.length > 0
-      ? `En Switches, elige el modelo de ${listNames(unknownModel)}: no es ninguno de los que cubre el manual.`
-      : '',
-  ]
-    .filter(Boolean)
-    .join(' ')
-}
-
-/** Brings the switches written down in «Mi infraestructura»; hidden when this browser has none (or no inventory). */
-function InventoryImport({
-  plan,
-  catalog,
-  onChange,
-}: {
-  plan: NetworkPlan
-  catalog: Catalog
-  onChange: (plan: NetworkPlan) => void
-}) {
-  const [summary, setSummary] = useState('')
-  const devices = readInventorySwitches()
-  if (devices.length === 0) return null
-
-  const onImport = () => {
-    const result = addInventorySwitches(plan, devices, catalog)
-    if (result.added.length > 0 || result.links > 0) onChange(result.plan)
-    setSummary(importSummary(result))
-  }
-
-  return (
-    <div className="plan-inventory">
-      <button type="button" className="plan-add" onClick={onImport}>
-        Traer switches del inventario
-      </button>
-      <span className="muted">
-        {devices.length === 1 ? 'Tienes 1 switch' : `Tienes ${devices.length} switches`} en el inventario.
-      </span>
-      {summary && (
-        <p role="status" className="plan-inventory__status">
-          {summary}
-        </p>
-      )}
-    </div>
-  )
+/** Why some switches of the plan are out of sight, and how to get them back. */
+function hiddenNotice(names: string[]): string {
+  return names.length === 1
+    ? `${names[0]} está en el plan pero no en Mi infraestructura, así que no se muestra. Para recuperarlo con sus enlaces y puertos, añádelo allí con el mismo nombre.`
+    : `${listNames(names)} están en el plan pero no en Mi infraestructura, así que no se muestran. Para recuperarlos con sus enlaces y puertos, añádelos allí con el mismo nombre.`
 }
 
 /** Describe the network once and get the steps for each switch, in its brand's runbooks. */
 export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const baseId = useId()
-  const [plan, setPlan] = usePlan()
+  const [stored, setStored] = usePlan()
+  // With switches in «Mi infraestructura» (same browser), they and their connections come from there.
+  const devices = readInventorySwitches()
+  const combined = devices.length > 0 ? combineWithInventory(stored, devices, catalog) : undefined
+  const plan = combined?.plan ?? stored
+  const setPlan = (next: NetworkPlan) => setStored(combined ? storeCombined(stored, next) : next)
+  const inventory = combined && { deducedModels: combined.deducedModels }
+
+  // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id.
+  const storedText = JSON.stringify(stored)
+  const syncedText = combined ? JSON.stringify(storeCombined(stored, combined.plan)) : storedText
+  useEffect(() => {
+    if (syncedText !== storedText) setStored(JSON.parse(syncedText))
+  }, [syncedText, storedText, setStored])
+
   const [tab, setTab] = useState<TabKey>('vlans')
   const issues = validatePlan(plan, catalog)
   // A plan not started yet is not wrong: the editors stay quiet and only the guide says what is missing.
@@ -143,7 +110,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
     return (
       <>
         {own.length > 0 && <IssueList issues={own} label="Puntos por corregir en esta sección" />}
-        <Editor plan={plan} catalog={catalog} onChange={setPlan} />
+        <Editor plan={plan} catalog={catalog} onChange={setPlan} inventory={inventory} />
       </>
     )
   }
@@ -159,8 +126,12 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
         <p className="muted">
           El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
         </p>
-        <PlanTools plan={plan} onChange={setPlan} />
-        <InventoryImport plan={plan} catalog={catalog} onChange={setPlan} />
+        <PlanTools plan={stored} onChange={setStored} />
+        {combined && combined.hidden.length > 0 && (
+          <p role="status" className="plan-inventory__status">
+            {hiddenNotice(combined.hidden)}
+          </p>
+        )}
       </header>
 
       {plan.switches.length > 0 && (
