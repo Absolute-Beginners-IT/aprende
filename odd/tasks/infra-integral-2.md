@@ -16,9 +16,9 @@ Rama: `feat/infra-guias-ficha` (desde main 60dbed1) · Entrega: un PR · Pruebas
 
 | ID | Specs | Ruta | Estado | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S2, S4, S6 | delegada (escritor `guias/`) | hecho: RED (rutas 4, RunbookPage 8, App 1, módulos nuevos) → GREEN guías 289/289, tsc, build; comprobación del padre 289/289 | (commit T1-T2) |
-| T2 | S3 | delegada (mismo escritor `guias/`) | hecho: índice con `toMatchFileSnapshot`, `npm run guide-index` lo regenera | (commit T1-T2) |
-| T3 | S1, S3, S5, S6 | delegada (escritor `app/`, después de T1-T2) | pendiente | |
+| T1 | S2, S4, S6 | delegada (escritor `guias/`) | hecho: RED (rutas 4, RunbookPage 8, App 1, módulos nuevos) → GREEN guías 289/289, tsc, build; comprobación del padre 289/289 | 6a4b11b |
+| T2 | S3 | delegada (mismo escritor `guias/`) | hecho: índice con `toMatchFileSnapshot`, `npm run guide-index` lo regenera | 6a4b11b |
+| T3 | S1, S3, S5, S6 | delegada (escritor `app/`, después de T1-T2) | hecho: RED (módulo y 3 tests de ficha) → GREEN; test de coherencia del índice añadido por el padre; app 106/106, tsc, build | (commit T3) |
 
 - T1: «Rellenar con un equipo de mi infraestructura» en la guía; ruta con `?equipo=<id>`; valores deducidos del equipo reutilizando `resolveParam`.
 - T2: índice `content/guias-indice.json` (plataformas con su patrón de marca y modelo, tareas con título, bloque y plataformas) generado por un script de `guias/`, con test de que está al día.
@@ -30,3 +30,4 @@ Rama: `feat/infra-guias-ficha` (desde main 60dbed1) · Entrega: un PR · Pruebas
 - L2: mapa del explorador: el planificador ya rellena una guía escribiendo `switching-manual:<p>/<t>:values` y navegando a `#/p/<p>/<t>`; `parseRoute` no admite `?…`; no hay parámetro de nombre de equipo; la IP de gestión es `ipCidr` (Aruba, MikroTik) o `ipAddress` + `mask` (Cisco, Ruijie); `PLATFORM_PATTERNS` solo existe, sin exportar, en `guias/src/features/planner/inventoryImport.ts`; la app no importa nada de `guias/`.
 - L3: escritores delegados por el respaldo de contexto (sesión larga del padre). T3 depende del índice de T2 y de la ruta de T1, así que va después.
 - L4: escritor de guías terminado, diff dentro de la superficie. Decisiones: patrones de plataforma movidos a `guias/src/domain/platformPatterns.ts`; regla común `resolveValidValues` para planificador y equipo; el equipo rellena solo `ipCidr`, `ipAddress`, `mask`, `switchIp` y `location` (nunca inventa prefijo; los nombres de copia no se deducen); `?equipo=` leído con `URLSearchParams`. Cambio de comportamiento aceptado: `#/plan?x=1` ya no da «no encontrado», abre el planificador.
+- L5: escritor de la app terminado, diff dentro de la superficie. El test de coherencia del índice vive en `app/src/content/content.test.ts` (ruta mal indicada al escritor); lo añadió el padre. «Planificar VLAN y puertos» se mantiene justo después de la sección de guías.

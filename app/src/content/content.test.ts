@@ -73,4 +73,14 @@ describe('shared content integrity', () => {
     }
     for (const z of referencia.zonas) for (const n of z.nodos) expect(nodoIds, `nodo en ${z.id}`).toContain(n);
   });
+
+  it('ties every guide task to a known group and platform, and every platform pattern compiles', () => {
+    const { plataformas, grupos, tareas } = content.guias;
+    const grupoIds = new Set(ids(grupos)), plataformaIds = new Set(ids(plataformas));
+    for (const t of tareas) {
+      expect(grupoIds, `grupo de ${t.id}`).toContain(t.grupo);
+      for (const p of t.plataformas) expect(plataformaIds, `plataforma de ${t.id}`).toContain(p);
+    }
+    for (const p of plataformas) expect(() => new RegExp(p.patron, p.flags), `patrón de ${p.id}`).not.toThrow();
+  });
 });

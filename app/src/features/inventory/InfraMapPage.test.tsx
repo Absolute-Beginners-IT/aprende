@@ -76,6 +76,37 @@ describe('InfraMapPage', () => {
     expect(f.queryByRole('link', { name: 'Planificar VLAN y puertos' })).toBeNull();
   });
 
+  it('lists the guides of a covered switch, grouped, opening each one with the device filled in', async () => {
+    const access: Device = { id: 'sw acceso/1', nombre: 'ACCESO', tipo: 'switch', criticidad: 'Media', monitorizado: false, marca: 'HPE Aruba', modelo: '6100 24G' };
+    render(<InfraMapPage repository={memoryRepository([...network(), access])} />);
+    const f = await openFicha('ACCESO');
+    const section = within(f.getByRole('region', { name: 'Guías para este equipo' }));
+    expect(section.getByRole('heading', { level: 3, name: 'Guías para este equipo' })).toBeTruthy();
+    expect(section.getByText('Para tu Aruba CX 6100, con sus datos ya puestos:')).toBeTruthy();
+    expect(section.getByText('Puesta en marcha y acceso')).toBeTruthy();
+    expect(section.getByText('Seguridad y resiliencia')).toBeTruthy();
+    const backup = section.getByRole('link', { name: 'Guardar una copia de la configuración' });
+    expect(backup.getAttribute('href')).toBe('./guias/#/p/aruba-aoscx/config-backup?equipo=sw%20acceso%2F1');
+    const links = section.getAllByRole('link');
+    expect(links).toHaveLength(19);
+    for (const link of links) expect(link.getAttribute('href')).toMatch(/\?equipo=sw%20acceso%2F1$/);
+    expect(f.getByRole('link', { name: 'Planificar VLAN y puertos' })).toBeTruthy();
+  });
+
+  it('tells which models the guides cover when the switch has no known brand and model', async () => {
+    render(<InfraMapPage repository={memoryRepository(network())} />);
+    const section = within((await openFicha('CORE')).getByRole('region', { name: 'Guías para este equipo' }));
+    expect(section.getByText('Indica la marca y el modelo para ver sus guías. Las guías cubren: Aruba CX 6100, Cisco Catalyst 1300, MikroTik CRS317 y Ruijie NBS3200.')).toBeTruthy();
+    expect(section.queryAllByRole('link')).toHaveLength(0);
+  });
+
+  it('says the guides for other device types come later', async () => {
+    render(<InfraMapPage repository={memoryRepository(network())} />);
+    const section = within((await openFicha('FW01')).getByRole('region', { name: 'Guías para este equipo' }));
+    expect(section.getByText('Las guías de este tipo de equipo llegarán más adelante; de momento cubren switches.')).toBeTruthy();
+    expect(section.queryAllByRole('link')).toHaveLength(0);
+  });
+
   it('renames a device from its ficha and keeps its id, so its connections stay', async () => {
     const repo = memoryRepository(network());
     render(<InfraMapPage repository={repo} />);

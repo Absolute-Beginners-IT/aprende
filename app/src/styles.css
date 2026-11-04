@@ -140,6 +140,13 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .detail .infra-links { list-style: none; padding: 0; display: grid; gap: 6px; }
 .infra-links li { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .infra-hints { font-size: 14px; color: var(--muted); }
+/* «Guías para este equipo» in the narrow ficha column: one collapsible list of runbook links per group. */
+.device-guides { display: grid; gap: 6px; min-width: 0; font-size: 14px; }
+.device-guides p { margin: 0; overflow-wrap: anywhere; }
+.device-guides details { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--bg); }
+.device-guides summary { cursor: pointer; color: var(--accent); font-weight: 600; }
+.detail .device-guides ul { margin: 6px 0 2px; display: grid; gap: 4px; }
+.device-guides a { overflow-wrap: anywhere; }
 .infra-delete { justify-self: start; margin-top: 16px; border-color: #dc2626; color: #dc2626; }
 @media (max-width: 1100px) { .infra-workspace { grid-template-columns: 190px minmax(0, 1fr); } .infra-workspace > .infra-inspector { grid-column: 1 / -1; } }
 @media (max-width: 760px) {

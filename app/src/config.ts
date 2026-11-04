@@ -3,6 +3,9 @@
 // Set VITE_GUIDE_URL at build time (ending in '/') when the guide is deployed somewhere else.
 export const GUIDE_URL = import.meta.env.VITE_GUIDE_URL || '../';
 
-// The network planner of the switching guides, served at <base>/app/guias/. On the website it is the second tab of
-// «Mi infraestructura», so the inventory links straight to it.
-export const PLANNER_URL = './guias/#/plan';
+// The switching guides, served at <base>/app/guias/; a device's ficha links to its runbooks there.
+export const GUIDES_URL = './guias/';
+
+// The network planner of the switching guides. On the website it is the second tab of «Mi infraestructura»,
+// so the inventory links straight to it.
+export const PLANNER_URL = `${GUIDES_URL}#/plan`;
