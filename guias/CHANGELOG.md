@@ -15,6 +15,15 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
   independiente no la muestra.
 - Planificador: botón «Traer switches del inventario», que añade al plan los switches apuntados en «Mi infraestructura»
   de la web, con su modelo, su IP y sus conexiones.
+- En cada guía, el desplegable «Rellenar con un equipo de mi infraestructura» pone en «Tus datos» lo que se puede
+  sacar de un switch de ese modelo apuntado en «Mi infraestructura»: su IP de gestión (con prefijo, o la dirección y la
+  máscara, según la marca) y su ubicación, solo si pasan la validación de la guía. El resto, y las claves, los escribes
+  tú. «Ninguno, lo escribo yo» deja los valores como están. Si el navegador no tiene inventario, no aparece.
+- Dirección `#/p/<marca>/<tarea>?equipo=<id>`: abre la guía con ese equipo del inventario ya elegido y sus valores
+  puestos. Así la ficha de cada equipo de la web puede enlazar a sus guías.
+- Índice de las guías para la web, `content/guias-indice.json` en la raíz del repositorio: marcas con el patrón que
+  reconoce sus modelos, bloques y tareas con las marcas que tienen guía. Se genera con `npm run guide-index` y
+  `npm test` falla si no coincide con el catálogo.
 
 ### Cambiado
 

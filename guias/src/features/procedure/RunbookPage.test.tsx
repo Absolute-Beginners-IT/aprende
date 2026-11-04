@@ -1,6 +1,8 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { catalog } from '../../content/catalog'
 import { ConceptSchema, PlatformSchema, ProcedureSchema } from '../../domain/schema'
+import { INVENTORY_STORAGE_KEY } from '../planner/inventoryImport'
 import { RunbookPage } from './RunbookPage'
 
 const status = { level: 'docs-checked', reviewed: '2026-10-13', firmware: 'AOS-CX 10.15' }
@@ -519,5 +521,202 @@ describe('RunbookPage', () => {
 
     expect(print).toHaveBeenCalledOnce()
     print.mockRestore()
+  })
+})
+
+describe('RunbookPage filled from «Mi infraestructura»', () => {
+  const PICKER = 'Rellenar con un equipo de mi infraestructura'
+  const inventory = [
+    { id: 'fw01', nombre: 'FW01', tipo: 'firewall', ip: '192.168.99.1/24' },
+    { id: 'sw-core', nombre: 'SW-CORE', tipo: 'switch', marca: 'HPE Aruba', modelo: '6300M', ip: '192.168.99.2/24' },
+    { id: 'sw-sala', nombre: 'SW-SALA', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100', ubicacion: 'CPD-Rack2' },
+    { id: 'sw-planta', nombre: 'SW-PLANTA', tipo: 'switch', marca: 'Cisco', modelo: 'C1300-48P', ip: '10.0.0.3' },
+    { id: 'sw-almacen', nombre: 'SW-ALMACEN', tipo: 'switch', marca: 'Cisco', modelo: 'C1300-24P', ip: '10.0.0.4/16' },
+  ]
+  const storeInventory = (devices: unknown[] = inventory) =>
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(devices))
+
+  const fromCatalog = (platformId: string, task: string) => {
+    const brand = catalog.platforms.find((item) => item.id === platformId)
+    const idea = catalog.concepts.find((item) => item.id === task)
+    const runbook = catalog.procedures.find((item) => item.platform === platformId && item.task === task)
+    if (!brand || !idea || !runbook) throw new Error(`No runbook ${platformId}/${task}`)
+    return { platform: brand, concept: idea, procedure: runbook }
+  }
+  const renderRunbook = (platformId: string, task: string, deviceId?: string) =>
+    render(<RunbookPage {...fromCatalog(platformId, task)} deviceId={deviceId} />)
+  const storedValues = (platformId: string, task: string) =>
+    JSON.parse(localStorage.getItem(`switching-manual:${platformId}/${task}:values`) ?? '{}')
+
+  it('clears what the previous device filled when the next one cannot provide it', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.type(screen.getByLabelText('Puerta de enlace'), '192.168.99.254')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
+    expect(screen.getByLabelText('Puerta de enlace')).toHaveValue('192.168.99.254')
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toEqual({ gateway: '192.168.99.254' })
+  })
+
+  it('keeps a value the user changed after a device filled it', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+    await user.clear(screen.getByLabelText('IP de gestión con prefijo'))
+    await user.type(screen.getByLabelText('IP de gestión con prefijo'), '192.168.99.20/24')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.20/24')
+  })
+
+  it("does not carry one device's values into the runbook opened for another device", () => {
+    storeInventory()
+    const first = renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.2/24')
+    first.unmount()
+
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
+  })
+
+  it("keeps the user's correction when the runbook is opened again for the same device", async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    const first = renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+    await user.clear(screen.getByLabelText('IP de gestión con prefijo'))
+    await user.type(screen.getByLabelText('IP de gestión con prefijo'), '192.168.99.20/24')
+    first.unmount()
+
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.20/24')
+  })
+
+  it('offers only the switches of this model, starting with «Ninguno, lo escribo yo»', () => {
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+
+    const picker = screen.getByLabelText(PICKER)
+    expect(
+      within(picker)
+        .getAllByRole('option')
+        .map((option) => option.textContent),
+    ).toEqual(['Ninguno, lo escribo yo', 'SW-CORE (192.168.99.2/24)', 'SW-SALA'])
+    expect(picker).toHaveValue('')
+    expect(within(section('Tus datos')).getByText(/«IP de gestión con prefijo»/)).toHaveTextContent(
+      'el resto lo escribes tú',
+    )
+  })
+
+  it('fills the management IP with its prefix and keeps the other values', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.type(screen.getByLabelText('Puerta de enlace'), '192.168.99.254')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.2/24')
+    expect(screen.getByLabelText('Puerta de enlace')).toHaveValue('192.168.99.254')
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toMatchObject({
+      ipCidr: '192.168.99.2/24',
+      gateway: '192.168.99.254',
+    })
+    expect(within(section('Tus datos')).getByText(/Puesto desde SW-CORE/)).toHaveTextContent(
+      'Puesto desde SW-CORE: «IP de gestión con prefijo». El resto lo escribes tú.',
+    )
+  })
+
+  it('fills the address alone when the device has no prefix, and the mask when it has one', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('cisco-c1300', 'mgmt-ip')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-planta')
+    expect(screen.getByLabelText('IP de gestión')).toHaveValue('10.0.0.3')
+    expect(screen.getByLabelText('Máscara de red')).toHaveValue('')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-almacen')
+    expect(screen.getByLabelText('IP de gestión')).toHaveValue('10.0.0.4')
+    expect(screen.getByLabelText('Máscara de red')).toHaveValue('255.255.0.0')
+  })
+
+  it('leaves the secrets as typed and never stores them', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'snmp-monitoring')
+    const [authKey] = fromCatalog('aruba-aoscx', 'snmp-monitoring').procedure.params.filter(
+      (param) => param.type === 'secret',
+    )
+    if (!authKey) throw new Error('fixture')
+    await user.type(screen.getByLabelText(authKey.label), 'clave-secreta-1')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-sala')
+
+    expect(screen.getByLabelText('Ubicación del switch')).toHaveValue('CPD-Rack2')
+    expect(screen.getByLabelText(authKey.label)).toHaveValue('clave-secreta-1')
+    expect(JSON.stringify(localStorage)).not.toContain('clave-secreta-1')
+  })
+
+  it('keeps the values as they are when the user goes back to «Ninguno, lo escribo yo»', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), '')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.2/24')
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toMatchObject({ ipCidr: '192.168.99.2/24' })
+  })
+
+  it('opens with the device of the address chosen and its values filled', () => {
+    storeInventory()
+    localStorage.setItem('switching-manual:aruba-aoscx/mgmt-ip:values', JSON.stringify({ gateway: '192.168.99.254' }))
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+
+    expect(screen.getByLabelText(PICKER)).toHaveValue('sw-core')
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.2/24')
+    expect(screen.getByLabelText('Puerta de enlace')).toHaveValue('192.168.99.254')
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toEqual({ gateway: '192.168.99.254', ipCidr: '192.168.99.2/24' })
+  })
+
+  it('ignores a device of the address that is unknown or of another model', () => {
+    storeInventory()
+    localStorage.setItem('switching-manual:aruba-aoscx/mgmt-ip:values', JSON.stringify({ ipCidr: '10.9.9.9/24' }))
+
+    for (const deviceId of ['no-existe', 'sw-planta', 'fw01']) {
+      const { unmount } = renderRunbook('aruba-aoscx', 'mgmt-ip', deviceId)
+      expect(screen.getByLabelText(PICKER)).toHaveValue('')
+      expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('10.9.9.9/24')
+      unmount()
+    }
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toEqual({ ipCidr: '10.9.9.9/24' })
+  })
+
+  it('says so when the inventory has switches but none of this model', () => {
+    storeInventory(inventory.filter((device) => device.marca !== 'Cisco'))
+    renderRunbook('cisco-c1300', 'mgmt-ip')
+
+    expect(screen.queryByLabelText(PICKER)).not.toBeInTheDocument()
+    expect(within(section('Tus datos')).getByText('En tu inventario no hay switches de este modelo.')).toHaveClass(
+      'muted',
+    )
+  })
+
+  it('shows nothing about the inventory when this browser has no switches in it', () => {
+    storeInventory([inventory[0]])
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+
+    expect(screen.queryByLabelText(PICKER)).not.toBeInTheDocument()
+    expect(screen.queryByText('En tu inventario no hay switches de este modelo.')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
   })
 })

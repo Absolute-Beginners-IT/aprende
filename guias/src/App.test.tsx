@@ -224,6 +224,24 @@ describe('App', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('opens a runbook from a device of the inventory with its values, marking the runbook as current', () => {
+    localStorage.setItem(
+      'mapa-infra:inventario',
+      JSON.stringify([
+        { id: 'sw core', nombre: 'SW-CORE', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100', ip: '10.1.1.2/24' },
+      ]),
+    )
+    openAt('#/p/aruba-aoscx/mgmt-ip?equipo=sw%20core')
+
+    expect(screen.getByLabelText('Rellenar con un equipo de mi infraestructura')).toHaveValue('sw core')
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('10.1.1.2/24')
+    expect(within(brands()).getByRole('link', { name: 'Aruba CX 6100' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tasks()).getByRole('link', { name: 'Configurar la IP de gestión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
   it('explains when the address does not match any runbook', async () => {
     openAt('#/p/aruba-aoscx/does-not-exist')
 

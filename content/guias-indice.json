@@ -1,0 +1,257 @@
+{
+  "plataformas": [
+    {
+      "id": "aruba-aoscx",
+      "nombre": "Aruba CX 6100",
+      "fabricante": "HPE Aruba Networking",
+      "patron": "aos-?cx|\\bcx\\s?\\d{4}|\\b(4100i|6[0-4]\\d\\d[a-z]{0,2}|8[1-4]\\d\\d)\\b",
+      "flags": "i"
+    },
+    {
+      "id": "cisco-c1300",
+      "nombre": "Cisco Catalyst 1300",
+      "fabricante": "Cisco",
+      "patron": "\\bc1300\\b|\\b(catalyst|cisco)\\s*1300\\b|\\bcatalyst\\s*1300-",
+      "flags": "i"
+    },
+    {
+      "id": "mikrotik-routeros",
+      "nombre": "MikroTik CRS317",
+      "fabricante": "MikroTik",
+      "patron": "\\bcrs\\d|routeros",
+      "flags": "i"
+    },
+    {
+      "id": "ruijie-reyee",
+      "nombre": "Ruijie NBS3200",
+      "fabricante": "Ruijie Reyee",
+      "patron": "reyee|\\brg-nbs|\\bnbs\\d",
+      "flags": "i"
+    }
+  ],
+  "grupos": [
+    {
+      "id": "setup-access",
+      "nombre": "Puesta en marcha y acceso"
+    },
+    {
+      "id": "vlans-ports",
+      "nombre": "VLANs y puertos"
+    },
+    {
+      "id": "monitoring",
+      "nombre": "Monitorización"
+    },
+    {
+      "id": "security-resilience",
+      "nombre": "Seguridad y resiliencia"
+    }
+  ],
+  "tareas": [
+    {
+      "id": "config-backup",
+      "titulo": "Guardar una copia de la configuración",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "config-restore",
+      "titulo": "Restaurar una configuración guardada",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "mgmt-ip",
+      "titulo": "Configurar la IP de gestión",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "user-admin",
+      "titulo": "Crear un usuario administrador",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros"
+      ]
+    },
+    {
+      "id": "ssh-access",
+      "titulo": "Activar el acceso por SSH y cerrar Telnet",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros"
+      ]
+    },
+    {
+      "id": "firmware-upgrade",
+      "titulo": "Actualizar el firmware",
+      "grupo": "setup-access",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "vlan-create",
+      "titulo": "Crear una VLAN",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "port-access",
+      "titulo": "Asignar un puerto de acceso a una VLAN",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "port-trunk",
+      "titulo": "Configurar un puerto trunk",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "lag-create",
+      "titulo": "Crear una agregación de enlaces (LAG con LACP)",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "poe-port",
+      "titulo": "Reiniciar un dispositivo PoE y fijar su prioridad",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "ntp-client",
+      "titulo": "Sincronizar la hora con NTP",
+      "grupo": "monitoring",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "syslog-remote",
+      "titulo": "Enviar los registros a un servidor syslog",
+      "grupo": "monitoring",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "snmp-monitoring",
+      "titulo": "Activar SNMP para la monitorización",
+      "grupo": "monitoring",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "lldp-neighbors",
+      "titulo": "Ver qué hay conectado con LLDP",
+      "grupo": "monitoring",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "stp-edge-protection",
+      "titulo": "Proteger contra bucles con Spanning Tree",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "dhcp-snooping",
+      "titulo": "Bloquear servidores DHCP falsos (DHCP snooping)",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "port-security",
+      "titulo": "Limitar los equipos de un puerto (port security)",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros"
+      ]
+    },
+    {
+      "id": "mgmt-acl",
+      "titulo": "Limitar el acceso de gestión con una ACL",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "aruba-aoscx",
+        "cisco-c1300",
+        "mikrotik-routeros",
+        "ruijie-reyee"
+      ]
+    }
+  ]
+}

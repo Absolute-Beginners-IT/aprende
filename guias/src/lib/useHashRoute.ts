@@ -3,15 +3,21 @@ import { useSyncExternalStore } from 'react'
 export type Route =
   | { name: 'home' }
   | { name: 'platform'; platform: string }
-  | { name: 'runbook'; platform: string; task: string }
+  /** `deviceId` is an inventory device whose values the runbook opens with (`?equipo=<id>`). */
+  | { name: 'runbook'; platform: string; task: string; deviceId?: string }
   | { name: 'fundamentals' }
   | { name: 'fundamental'; article: string }
   | { name: 'status' }
   | { name: 'plan' }
   | { name: 'not-found' }
 
+// Only a runbook reads its query; any other query, or an unknown key, is ignored.
+const DEVICE_QUERY_KEY = 'equipo'
+
 export function parseRoute(hash: string): Route {
-  const segments = hash.replace(/^#\/?/, '').split('/').filter(Boolean)
+  // Splits at the first «?» only: the query itself may hold more.
+  const [path = '', query = ''] = hash.replace(/^#\/?/, '').split(/\?(.*)/s)
+  const segments = path.split('/').filter(Boolean)
   const [root, second, third, ...rest] = segments
 
   if (root === undefined) return { name: 'home' }
@@ -22,11 +28,15 @@ export function parseRoute(hash: string): Route {
   }
   const [platform, task] = [second, third]
   if (root !== 'p' || platform === undefined || rest.length > 0) return { name: 'not-found' }
-  return task === undefined ? { name: 'platform', platform } : { name: 'runbook', platform, task }
+  if (task === undefined) return { name: 'platform', platform }
+  // URLSearchParams decodes the id and never throws on a broken escape.
+  const deviceId = new URLSearchParams(query).get(DEVICE_QUERY_KEY)
+  return deviceId ? { name: 'runbook', platform, task, deviceId } : { name: 'runbook', platform, task }
 }
 
 export const platformHref = (platform: string) => `#/p/${platform}`
-export const runbookHref = (platform: string, task: string) => `#/p/${platform}/${task}`
+export const runbookHref = (platform: string, task: string, deviceId?: string) =>
+  `#/p/${platform}/${task}${deviceId ? `?${DEVICE_QUERY_KEY}=${encodeURIComponent(deviceId)}` : ''}`
 export const statusHref = '#/status'
 export const planHref = '#/plan'
 export const fundamentalsHref = (article?: string) => (article ? `#/f/${article}` : '#/f')

@@ -4,6 +4,7 @@ import {
   addInventorySwitches,
   INVENTORY_STORAGE_KEY,
   inventorySwitches,
+  platformFor,
   readInventorySwitches,
 } from './inventoryImport'
 import { twoSwitchPlan } from './planFixtures'
@@ -46,6 +47,11 @@ describe('inventorySwitches', () => {
   it('keeps only the switches and skips entries with an unexpected shape', () => {
     const names = inventorySwitches([...inventory, { nombre: 'sin id', tipo: 'switch' }, 'basura']).map((d) => d.nombre)
     expect(names).toEqual(['SW-PLANTA', 'SW-CORE', 'SW-VIEJO'])
+  })
+
+  it('keeps the location of a switch when the inventory has one', () => {
+    const [device] = inventorySwitches([{ id: 'a', nombre: 'A', tipo: 'switch', ubicacion: 'CPD-Rack2' }])
+    expect(device?.ubicacion).toBe('CPD-Rack2')
   })
 
   it('returns nothing when the stored inventory is not a list', () => {
@@ -128,5 +134,20 @@ describe('addInventorySwitches', () => {
     expect(platformOf('Ruijie', 'RG-NBS3200-48GT4XS-P')).toBe('ruijie-reyee')
     expect(platformOf('Cisco', 'Catalyst 9200')).toBe('')
     expect(platformOf('HPE Aruba', '2930F')).toBe('')
+  })
+})
+
+describe('platformFor', () => {
+  it('tells the platform of a switch only among the platforms it is given', () => {
+    const [aruba] = inventorySwitches([{ id: 'a', nombre: 'A', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100' }])
+    if (!aruba) throw new Error('fixture')
+
+    expect(platformFor(aruba, catalog.platforms)).toBe('aruba-aoscx')
+    expect(
+      platformFor(
+        aruba,
+        catalog.platforms.filter((item) => item.id !== 'aruba-aoscx'),
+      ),
+    ).toBe('')
   })
 })

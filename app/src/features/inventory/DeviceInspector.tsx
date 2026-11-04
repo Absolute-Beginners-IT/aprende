@@ -1,12 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { Device } from '../../domain/types';
 import type { Finding } from '../../domain/inventoryAnalysis';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
+import { guidesForDevice } from '../../domain/deviceGuides';
 import { content } from '../../content';
-import { PLANNER_URL } from '../../config';
+import { GUIDES_URL, PLANNER_URL } from '../../config';
 import { FindingList } from './FindingList';
 
 type OptionalText = 'marca' | 'modelo' | 'ip';
+
+const listFormat = new Intl.ListFormat('es', { type: 'conjunction' });
+
+/** The runbooks of the guides for this device, opened with its values filled in; or why there are none yet. */
+function DeviceGuidesSection({ device }: { device: Device }) {
+  const guides = guidesForDevice(device, content.guias, GUIDES_URL);
+  const titleId = useId();
+  return (
+    <section className="device-guides" aria-labelledby={titleId}>
+      <h3 id={titleId}>Guías para este equipo</h3>
+      {guides.estado === 'tipo-sin-guias' && <p className="muted">Las guías de este tipo de equipo llegarán más adelante; de momento cubren switches.</p>}
+      {guides.estado === 'modelo-desconocido' && <p className="muted">Indica la marca y el modelo para ver sus guías. Las guías cubren: {listFormat.format(guides.plataformas.map(p => p.nombre))}.</p>}
+      {guides.estado === 'cubierto' && <>
+        <p>Para tu {guides.plataforma.nombre}, con sus datos ya puestos:</p>
+        {guides.grupos.map((g, i) => (
+          <details key={g.id} open={i === 0}>
+            <summary>{g.nombre}</summary>
+            <ul>{g.tareas.map(t => <li key={t.id}><a href={t.href}>{t.titulo}</a></li>)}</ul>
+          </details>
+        ))}
+      </>}
+    </section>
+  );
+}
 
 /** A text box that saves when it loses focus or on Enter; it goes back to the stored value when the save fails. */
 function TextField({ label, value, placeholder, required, onCommit }: {
@@ -64,6 +89,7 @@ export function DeviceInspector({ device, connections, findings, onChange, onRen
           ))}
         </ul>
       )}
+      <DeviceGuidesSection device={device} />
       {device.tipo === 'switch' && <p><a className="plan-link" href={PLANNER_URL}>Planificar VLAN y puertos</a></p>}
       {findings.length > 0 && <><h3>Qué le falta</h3><FindingList findings={findings} /></>}
       {snippets.length > 0 && <h3>Monitorización</h3>}
