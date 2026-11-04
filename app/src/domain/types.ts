@@ -40,7 +40,10 @@ export interface Severity { id: string; nombre: string; nivel: 'crit' | 'warn' |
 /** Monitoring setup for a brand; `patron` is matched against brand, model and firmware, `tipos` limits it to device types. */
 export interface VendorSnippet { patron: string; flags: string; tipos: string[]; nombre: string; configuracion: string }
 /** Index of the switching guides (`content/guias-indice.json`, generated from `guias/`): `patron` is matched like `VendorSnippet`'s. */
-export interface GuidePlatform { id: string; nombre: string; fabricante: string; patron: string; flags: string }
+/** Kinds of element the guides cover (`tipo`), mirroring `DEVICE_TYPES` in `guias/src/domain/schema.ts`. */
+export const GUIDE_DEVICE_TYPES = ['switch', 'firewall', 'hypervisor', 'storage'] as const;
+export type GuideDeviceType = (typeof GUIDE_DEVICE_TYPES)[number];
+export interface GuidePlatform { id: string; nombre: string; fabricante: string; tipo: GuideDeviceType; patron: string; flags: string }
 export interface GuideGroup { id: string; nombre: string }
 export interface GuideTask { id: string; titulo: string; grupo: string; plataformas: string[] }
 export interface GuideIndex { plataformas: GuidePlatform[]; grupos: GuideGroup[]; tareas: GuideTask[] }

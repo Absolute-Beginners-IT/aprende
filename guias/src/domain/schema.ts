@@ -7,6 +7,8 @@ const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/)
 export const TASK_GROUPS = ['setup-access', 'vlans-ports', 'monitoring', 'security-resilience'] as const
 export const RISK_LEVELS = ['low', 'medium', 'high'] as const
 export const STATUS_LEVELS = ['unverified', 'docs-checked', 'lab-tested'] as const
+// Kinds of infrastructure element the library covers; the guides' sidebar and home page are grouped by them.
+export const DEVICE_TYPES = ['switch', 'firewall', 'hypervisor', 'storage'] as const
 
 const SourceSchema = z.object({ title: text, url: z.url() })
 
@@ -92,6 +94,7 @@ export const PlatformSchema = z
     id,
     vendor: text,
     name: text,
+    deviceType: z.enum(DEVICE_TYPES),
     os: text,
     models: z.array(text).min(1),
     summary: text,
@@ -129,6 +132,7 @@ export type Fundamental = z.infer<typeof FundamentalSchema>
 export type TaskGroup = (typeof TASK_GROUPS)[number]
 export type RiskLevel = (typeof RISK_LEVELS)[number]
 export type StatusLevel = (typeof STATUS_LEVELS)[number]
+export type DeviceType = (typeof DEVICE_TYPES)[number]
 
 /** Placeholder ids used anywhere in a procedure's commands that no param declares. */
 export function findUndeclaredParams(procedure: Procedure): string[] {

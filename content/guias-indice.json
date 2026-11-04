@@ -4,6 +4,7 @@
       "id": "aruba-aoscx",
       "nombre": "Aruba CX 6100",
       "fabricante": "HPE Aruba Networking",
+      "tipo": "switch",
       "patron": "aos-?cx|\\bcx\\s?\\d{4}|\\b(4100i|6[0-4]\\d\\d[a-z]{0,2}|8[1-4]\\d\\d)\\b",
       "flags": "i"
     },
@@ -11,6 +12,7 @@
       "id": "cisco-c1300",
       "nombre": "Cisco Catalyst 1300",
       "fabricante": "Cisco",
+      "tipo": "switch",
       "patron": "\\bc1300\\b|\\b(catalyst|cisco)\\s*1300\\b|\\bcatalyst\\s*1300-",
       "flags": "i"
     },
@@ -18,6 +20,7 @@
       "id": "mikrotik-routeros",
       "nombre": "MikroTik CRS317",
       "fabricante": "MikroTik",
+      "tipo": "switch",
       "patron": "\\bcrs\\d|routeros",
       "flags": "i"
     },
@@ -25,6 +28,7 @@
       "id": "ruijie-reyee",
       "nombre": "Ruijie NBS3200",
       "fabricante": "Ruijie Reyee",
+      "tipo": "switch",
       "patron": "reyee|\\brg-nbs|\\bnbs\\d",
       "flags": "i"
     }

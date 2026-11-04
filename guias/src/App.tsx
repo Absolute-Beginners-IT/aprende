@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { catalog } from './content/catalog'
 import { HomePage } from './features/catalog/HomePage'
+import { LibraryHome } from './features/catalog/LibraryHome'
 import { PlatformPage } from './features/catalog/PlatformPage'
 import { FundamentalPage } from './features/fundamentals/FundamentalPage'
 import { FundamentalsPage } from './features/fundamentals/FundamentalsPage'
 import { AppShell } from './features/navigation/AppShell'
+import { readSiteNav } from './features/navigation/SiteNav'
 import { describeRunbook, type RunbookHit } from './features/navigation/searchIndex'
 import { useRecents } from './features/navigation/useRecents'
 import { PlannerPage } from './features/planner/PlannerPage'
@@ -31,7 +33,11 @@ interface PageProps {
 }
 
 function Page({ route, recents, activePlatform }: PageProps) {
-  if (route.name === 'home') return <HomePage recents={recents} />
+  if (route.name === 'home') {
+    // Inside the website the home page is the library by device type; the standalone file keeps its own.
+    const embedded = readSiteNav(import.meta.env.VITE_SITE_NAV).length > 0
+    return embedded ? <LibraryHome catalog={catalog} recents={recents} /> : <HomePage recents={recents} />
+  }
   if (route.name === 'not-found') return <NotFound />
   if (route.name === 'fundamentals') return <FundamentalsPage catalog={catalog} />
   if (route.name === 'status') return <StatusPage catalog={catalog} />

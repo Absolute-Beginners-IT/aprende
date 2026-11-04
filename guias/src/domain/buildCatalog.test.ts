@@ -4,6 +4,7 @@ const platform = `
 id: aruba-aoscx
 vendor: HPE Aruba Networking
 name: Aruba 6100
+deviceType: switch
 os: AOS-CX
 models: [6100 48G 4SFP+]
 summary: Switch de acceso de capa 2.

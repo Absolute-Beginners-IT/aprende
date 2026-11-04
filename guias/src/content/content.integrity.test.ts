@@ -1,3 +1,5 @@
+import { DEVICE_TYPES } from '../domain/schema'
+import { DEVICE_TYPE_LABELS } from '../features/labels'
 import { catalog } from './catalog'
 
 // Validation itself happens while the catalog is built; these checks pin what the manual must contain.
@@ -12,6 +14,14 @@ describe('content catalog', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
     expect(new Set(ids)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee']))
+  })
+
+  it('declares a known device type with a label for every platform; the four current ones are switches', () => {
+    for (const platform of catalog.platforms) {
+      expect(DEVICE_TYPES, platform.id).toContain(platform.deviceType)
+      expect(DEVICE_TYPE_LABELS[platform.deviceType], platform.id).toBeTruthy()
+    }
+    expect(new Set(catalog.platforms.map((item) => item.deviceType))).toEqual(new Set(['switch']))
   })
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(

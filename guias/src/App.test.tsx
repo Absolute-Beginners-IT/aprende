@@ -501,3 +501,199 @@ describe('quick search', () => {
     )
   })
 })
+
+describe('inside the website', () => {
+  const library = () => within(screen.getByRole('navigation', { name: 'Biblioteca' }))
+  const switchPlatforms = ['Aruba CX 6100', 'Cisco Catalyst 1300', 'MikroTik CRS317', 'Ruijie NBS3200']
+  const upcomingTypes = ['Firewalls', 'Virtualización', 'Almacenamiento']
+
+  beforeEach(() => {
+    vi.stubEnv(
+      'VITE_SITE_NAV',
+      JSON.stringify([
+        { id: 'inicio', label: 'Inicio', href: '../../' },
+        { id: 'infra', label: 'Mi infraestructura', href: '../#mi-infraestructura' },
+        { id: 'guias', label: 'Guías', href: './', current: true },
+      ]),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('drops the manual header for a slim toolbar with the search, the theme and the sidebar toggle', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/aruba-aoscx')
+
+    expect(screen.queryByRole('link', { name: 'Manual de Switching' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Marcas' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Herramientas' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Tareas' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Buscar Ctrl K' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Tema:/ })).toBeInTheDocument()
+
+    const toggle = screen.getByRole('button', { name: 'Guías' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+  })
+
+  it('shows the library by device type: the switches with their brands, the other types coming soon', () => {
+    openAt('#/status')
+
+    const switches = within(library().getByRole('group', { name: 'Switches' }))
+    for (const name of switchPlatforms) {
+      const id = catalog.platforms.find((platform) => platform.name === name)?.id
+      expect(switches.getByRole('link', { name })).toHaveAttribute('href', `#/p/${id}`)
+    }
+    for (const type of upcomingTypes) {
+      const group = library().getByRole('group', { name: type })
+      expect(group).toHaveTextContent('Próximamente')
+      expect(within(group).queryByRole('link')).not.toBeInTheDocument()
+    }
+    expect(library().getByRole('link', { name: 'Fundamentos' })).toHaveAttribute('href', '#/f')
+    expect(library().getByRole('link', { name: 'Estado del contenido' })).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('expands the brand in use with its tasks grouped, and marks the open runbook', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/cisco-c1300/vlan-create')
+
+    const brand = library().getByRole('link', { name: 'Cisco Catalyst 1300' }).closest('li') as HTMLElement
+    expect(within(brand).getByRole('navigation', { name: 'Tareas' })).toBe(tasks())
+    expect(within(tasks()).getByRole('list', { name: 'VLANs y puertos' })).toBeInTheDocument()
+    expect(within(tasks()).getByRole('link', { name: 'Crear una VLAN' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tasks()).getByRole('link', { name: 'Crear una VLAN' })).toHaveAttribute(
+      'href',
+      '#/p/cisco-c1300/vlan-create',
+    )
+
+    await user.click(within(tasks()).getByRole('link', { name: 'Configurar la IP de gestión' }))
+
+    expect(await screen.findByRole('heading', { level: 1, name: /Configurar la IP de gestión/ })).toBeInTheDocument()
+    expect(within(tasks()).getByRole('link', { name: 'Configurar la IP de gestión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('marks the brand sheet as the current page when it is open', () => {
+    openAt('#/p/mikrotik-routeros')
+
+    expect(library().getByRole('link', { name: 'MikroTik CRS317' })).toHaveAttribute('aria-current', 'page')
+    expect(within(tasks()).getAllByRole('link').length).toBeGreaterThan(1)
+  })
+
+  it('keeps the articles under «Fundamentos» on the fundamentals pages', () => {
+    openAt('#/f/what-is-a-switch')
+
+    const articles = within(library().getByRole('navigation', { name: 'Artículos' }))
+    expect(articles.getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual(
+      catalog.fundamentals.map((item) => `#/f/${item.id}`),
+    )
+    expect(articles.getByRole('link', { name: 'Qué es un switch y para qué sirve' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('shows «Red y VLAN» as part of «Mi infraestructura», without the library', () => {
+    openAt('#/plan')
+
+    expect(screen.queryByRole('navigation', { name: 'Biblioteca' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Buscar Ctrl K' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Guías' })).not.toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Mi infraestructura' })).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('navigation', { name: 'Secciones de la web' })).getByRole('link', {
+        name: 'Mi infraestructura',
+      }),
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('opens the library home with one card per device type, the recent runbooks and the background reading', () => {
+    localStorage.setItem('switching-manual:recents', JSON.stringify(['aruba-aoscx/port-trunk']))
+    openAt('#/')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Guías' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Manual de Switching' })).not.toBeInTheDocument()
+    expect(screen.getByText(/ficha de un equipo en «Mi infraestructura»/)).toBeInTheDocument()
+
+    const cards = within(screen.getByRole('list', { name: 'Tipos de equipo' }))
+    const switches = cards.getByRole('heading', { name: 'Switches' }).closest('li') as HTMLElement
+    const switchTasks = new Set(catalog.procedures.map((item) => item.task)).size
+    expect(switches).toHaveTextContent(`${switchTasks} tareas`)
+    for (const platform of catalog.platforms) {
+      const guides = catalog.procedures.filter((item) => item.platform === platform.id).length
+      const link = within(switches).getByRole('link', { name: new RegExp(`^${platform.name}`) })
+      expect(link).toHaveAttribute('href', `#/p/${platform.id}`)
+      expect(link).toHaveTextContent(`${guides} guías`)
+    }
+    for (const type of upcomingTypes) {
+      expect(cards.getByRole('heading', { name: type }).closest('li')).toHaveTextContent('Próximamente')
+    }
+
+    const main = within(screen.getByRole('main'))
+    expect(within(main.getByRole('list', { name: 'Recientes' })).getByRole('link')).toHaveAttribute(
+      'href',
+      '#/p/aruba-aoscx/port-trunk',
+    )
+    expect(main.getByRole('link', { name: 'fundamentos' })).toHaveAttribute('href', '#/f')
+    expect(main.getByRole('link', { name: 'estado del contenido' })).toHaveAttribute('href', '#/status')
+  })
+
+  it('keeps the quick search, with Ctrl+K and with the slash key', async () => {
+    const user = userEvent.setup()
+    openAt('#/')
+
+    await user.keyboard('{Control>}k{/Control}')
+    expect(screen.getByRole('dialog', { name: 'Buscar guías' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: 'Buscar guías' })).not.toBeInTheDocument()
+
+    await user.keyboard('/')
+    expect(screen.getByRole('dialog', { name: 'Buscar guías' })).toBeInTheDocument()
+  })
+
+  it('opens a runbook from a device of the inventory with its values', () => {
+    localStorage.setItem(
+      'mapa-infra:inventario',
+      JSON.stringify([
+        { id: 'sw core', nombre: 'SW-CORE', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100', ip: '10.1.1.2/24' },
+      ]),
+    )
+    openAt('#/p/aruba-aoscx/mgmt-ip?equipo=sw%20core')
+
+    expect(screen.getByLabelText('Rellenar con un equipo de mi infraestructura')).toHaveValue('sw core')
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('10.1.1.2/24')
+    expect(within(tasks()).getByRole('link', { name: 'Configurar la IP de gestión' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+})
+
+describe('built on its own', () => {
+  it('keeps the manual header, the brand tabs and the task sidebar, without the library', () => {
+    openAt('#/p/aruba-aoscx')
+
+    expect(screen.getByRole('link', { name: 'Manual de Switching' })).toHaveAttribute('href', '#/')
+    expect(within(brands()).getAllByRole('link')).toHaveLength(catalog.platforms.length)
+    expect(
+      within(screen.getByRole('navigation', { name: 'Herramientas' })).getByRole('link', { name: 'Fundamentos' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tareas' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Buscar Ctrl K' })).toBeInTheDocument()
+    expect(within(tasks()).getByRole('link', { name: 'Ficha del equipo' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByRole('navigation', { name: 'Biblioteca' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Guías' })).not.toBeInTheDocument()
+  })
+
+  it('keeps its own home page', () => {
+    openAt('#/')
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Manual de Switching' })).toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: 'Tipos de equipo' })).not.toBeInTheDocument()
+  })
+})

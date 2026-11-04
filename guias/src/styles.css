@@ -418,9 +418,32 @@ kbd {
   font-size: 0.72rem;
 }
 
+/* Inside the website there is no sticky header: the site bar scrolls away and the sidebar sticks to the top. */
+.shell.shell--site {
+  --header-height: 0px;
+}
+
+.shell__body--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Slim row above the page, in place of the manual's header: sidebar toggle, search and theme. */
+.shell__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 900px) {
   .shell__toggle {
     display: block;
+  }
+
+  /* In the library toolbar the toggle goes first, apart from the search and the theme. */
+  .shell__toolbar .shell__toggle {
+    margin-right: auto;
   }
 
   /* Brands drop to a second, scrollable row instead of shrinking to nothing. */
@@ -1037,6 +1060,7 @@ thead th {
   }
 
   .shell__header,
+  .shell__toolbar,
   .shell__sidebar,
   .shell__footer,
   .skip-link,
@@ -1436,4 +1460,155 @@ thead th {
 .device-picker {
   max-width: 32rem;
   margin-bottom: 1rem;
+}
+
+/* Home page of the library: one card per device type. */
+.library-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.library-card {
+  padding: 1.1rem 1.3rem;
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+}
+
+.library-card h2 {
+  margin: 0;
+}
+
+.library-card__meta {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.library-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-card a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.2rem 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.library-card a span {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.library-card a:hover {
+  background: var(--border);
+}
+
+.library-card--soon {
+  border-style: dashed;
+  border-color: var(--border);
+  background: transparent;
+  box-shadow: none;
+}
+
+.library-card--soon h2,
+.library-card--soon .library-card__meta {
+  color: var(--muted);
+}
+
+/* Library tree: device type → brand → tasks. Brands and tasks share the task list's look, indented a step. */
+.library-nav__type + .library-nav__type,
+.library-nav__more {
+  margin-top: 0.9rem;
+}
+
+.library-nav__heading {
+  margin: 0 0 0.25rem;
+  padding: 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.library-nav ul,
+.library-nav ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.library-nav__soon {
+  margin: 0;
+  padding: 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.library-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.93rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.library-nav__brand:hover {
+  background: var(--border);
+}
+
+.library-nav__brand[aria-current="page"] {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+/* A chevron that points down on the open brand. */
+.library-nav__type .library-nav__brand::before {
+  content: "›";
+  display: inline-block;
+  width: 0.6rem;
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.library-nav__type .library-nav__brand--open::before {
+  transform: rotate(90deg);
+}
+
+.library-nav__brand[aria-current="page"]::before {
+  color: inherit;
+}
+
+.library-nav .task-nav {
+  margin: 0.15rem 0 0.4rem 0.9rem;
+  padding-left: 0.4rem;
+  border-left: 1px solid var(--border);
+}
+
+.library-nav .task-nav__group p {
+  margin-top: 0.6rem;
+}
+
+.library-nav .task-nav a {
+  font-size: 0.88rem;
 }

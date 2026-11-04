@@ -12,6 +12,7 @@ describe('buildGuideIndex', () => {
       id: 'aruba-aoscx',
       nombre: 'Aruba CX 6100',
       fabricante: 'HPE Aruba Networking',
+      tipo: 'switch',
       patron: PLATFORM_PATTERNS['aruba-aoscx']?.source,
       flags: 'i',
     })
