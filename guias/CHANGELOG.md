@@ -54,6 +54,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
   para copiar. Las claves de autenticación y de cifrado se escriben en «Tus datos»: rellenan el comando, pero solo viven
   en memoria (no se guardan en el navegador y se borran al recargar) y salen como `********` en el registro del cambio.
 
+### Corregido
+
+- Dentro de la web, la barra de navegación se queda fija arriba al hacer scroll, como en el resto de páginas; la lista
+  de tareas y el índice de secciones quedan justo debajo.
+
 ## [1.1.0] - 2026-10-16
 
 Planificador de red: del diseño de la red a los pasos de cada switch.
