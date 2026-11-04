@@ -588,6 +588,29 @@ describe('inside the website', () => {
     )
   })
 
+  it('folds and unfolds the tasks of a brand with its own button, without leaving the page', async () => {
+    const user = userEvent.setup()
+    openAt('#/p/cisco-c1300/vlan-create')
+
+    const fold = library().getByRole('button', { name: 'Tareas de Cisco Catalyst 1300' })
+    expect(fold).toHaveAttribute('aria-expanded', 'true')
+    await user.click(fold)
+    expect(fold).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('navigation', { name: 'Tareas' })).not.toBeInTheDocument()
+    expect(window.location.hash).toBe('#/p/cisco-c1300/vlan-create')
+
+    const aruba = library().getByRole('button', { name: 'Tareas de Aruba CX 6100' })
+    expect(aruba).toHaveAttribute('aria-expanded', 'false')
+    await user.click(aruba)
+    expect(aruba).toHaveAttribute('aria-expanded', 'true')
+    expect(within(tasks()).getByRole('link', { name: 'Crear una VLAN' })).toHaveAttribute(
+      'href',
+      '#/p/aruba-aoscx/vlan-create',
+    )
+    await user.click(fold)
+    expect(fold).toHaveAttribute('aria-expanded', 'true')
+  })
+
   it('marks the brand sheet as the current page when it is open', () => {
     openAt('#/p/mikrotik-routeros')
 

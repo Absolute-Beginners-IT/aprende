@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
 import { DEVICE_TYPES, type DeviceType } from '../../domain/schema'
 import { fundamentalsHref, platformHref, type Route, statusHref } from '../../lib/useHashRoute'
@@ -17,11 +17,12 @@ interface DeviceTypeGroupProps {
   type: DeviceType
   catalog: Catalog
   route: Route
-  /** Brand shown open, with its tasks; none on the fundamentals pages. */
-  expanded?: string
+  /** Brands whose tasks are shown. */
+  open: Set<string>
+  onToggle: (platform: string) => void
 }
 
-function DeviceTypeGroup({ type, catalog, route, expanded }: DeviceTypeGroupProps) {
+function DeviceTypeGroup({ type, catalog, route, open, onToggle }: DeviceTypeGroupProps) {
   const headingId = useId()
   const platforms = catalog.platforms.filter((platform) => platform.deviceType === type)
   const onSheet = (platform: string) => route.name === 'platform' && route.platform === platform
@@ -39,20 +40,28 @@ function DeviceTypeGroup({ type, catalog, route, expanded }: DeviceTypeGroupProp
         <ul role="list">
           {platforms.map((platform) => (
             <li key={platform.id}>
-              <a
-                className={
-                  platform.id === expanded ? 'library-nav__brand library-nav__brand--open' : 'library-nav__brand'
-                }
-                href={platformHref(platform.id)}
-                aria-current={onSheet(platform.id) ? 'page' : undefined}
-              >
-                {platform.name}
-              </a>
-              {platform.id === expanded && (
+              <div className="library-nav__row">
+                {/* The name opens the brand's sheet; this button only folds or unfolds its tasks. */}
+                <button
+                  type="button"
+                  className="library-nav__fold"
+                  aria-expanded={open.has(platform.id)}
+                  aria-label={`Tareas de ${platform.name}`}
+                  onClick={() => onToggle(platform.id)}
+                />
+                <a
+                  className="library-nav__brand"
+                  href={platformHref(platform.id)}
+                  aria-current={onSheet(platform.id) ? 'page' : undefined}
+                >
+                  {platform.name}
+                </a>
+              </div>
+              {open.has(platform.id) && (
                 <TaskNav
                   catalog={catalog}
                   platform={platform.id}
-                  task={route.name === 'runbook' ? route.task : undefined}
+                  task={route.name === 'runbook' && route.platform === platform.id ? route.task : undefined}
                   onSheet={onSheet(platform.id)}
                   withSheet={false}
                 />
@@ -69,13 +78,23 @@ function DeviceTypeGroup({ type, catalog, route, expanded }: DeviceTypeGroupProp
 export function LibraryNav({ catalog, route, activePlatform }: LibraryNavProps) {
   const article = route.name === 'fundamental' ? route.article : undefined
   const onFundamentals = route.name === 'fundamentals' || article !== undefined
-  // Only one branch of the tree is open at a time: on the fundamentals pages it is theirs.
+  // The brand in use opens on its own (not on the fundamentals pages); the user folds or unfolds any brand after that.
   const expanded = onFundamentals ? undefined : activePlatform
+  const [open, setOpen] = useState(() => new Set(expanded ? [expanded] : []))
+  useEffect(() => {
+    if (expanded) setOpen((current) => (current.has(expanded) ? current : new Set(current).add(expanded)))
+  }, [expanded])
+  const toggle = (platform: string) =>
+    setOpen((current) => {
+      const next = new Set(current)
+      if (!next.delete(platform)) next.add(platform)
+      return next
+    })
 
   return (
     <nav className="library-nav" aria-label="Biblioteca">
       {DEVICE_TYPES.map((type) => (
-        <DeviceTypeGroup key={type} type={type} catalog={catalog} route={route} expanded={expanded} />
+        <DeviceTypeGroup key={type} type={type} catalog={catalog} route={route} open={open} onToggle={toggle} />
       ))}
       <div className="library-nav__more">
         <a

@@ -1582,21 +1582,47 @@ thead th {
   color: var(--surface);
 }
 
-/* A chevron that points down on the open brand. */
-.library-nav__type .library-nav__brand::before {
+/* The fold button sits before the brand name: a chevron that points down while the brand's tasks are shown. */
+.library-nav__row {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.library-nav__row .library-nav__brand {
+  flex: 1;
+  min-width: 0;
+}
+
+.library-nav__fold {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.library-nav__fold::before {
   content: "›";
   display: inline-block;
-  width: 0.6rem;
-  color: var(--muted);
   transition: transform 0.15s;
 }
 
-.library-nav__type .library-nav__brand--open::before {
+.library-nav__fold[aria-expanded="true"]::before {
   transform: rotate(90deg);
 }
 
-.library-nav__brand[aria-current="page"]::before {
-  color: inherit;
+.library-nav__fold:hover {
+  color: var(--text);
+}
+
+.library-nav__fold:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .library-nav .task-nav {
