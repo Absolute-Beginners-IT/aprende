@@ -15,8 +15,8 @@ Rama: `feat/guias-marco` (desde main ecbcad5) · Entrega: un PR · Pruebas: Vite
 
 | ID | Specs | Ruta | Estado | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S2 | delegada (escritor `guias/`) | hecho: RED 3 tests guías + 1 app → GREEN | (commit) |
-| T2 | S1, S3, S4, S5 | delegada (mismo escritor `guias/`) | hecho: RED 7 tests → GREEN guías 306/306, app 106/106, tsc, build; comprobación del padre igual | (commit) |
+| T1 | S2 | delegada (escritor `guias/`) | hecho: RED 3 tests guías + 1 app → GREEN | 2b52be1 |
+| T2 | S1, S3, S4, S5 | delegada (mismo escritor `guias/`) | hecho: RED 7 tests → GREEN guías 306/306, app 106/106, tsc, build; comprobación del padre igual | 2b52be1 |
 
 - T1: campo de tipo de equipo en las plataformas (esquema, YAML, índice regenerado).
 - T2: marco de la biblioteca cuando hay barra de la web: árbol por tipo → marca → tareas, portada de la biblioteca por tipo, barra de herramientas con búsqueda y tema; planificador sin árbol; archivo independiente sin cambios.
@@ -26,3 +26,5 @@ Rama: `feat/guias-marco` (desde main ecbcad5) · Entrega: un PR · Pruebas: Vite
 - L1 (2026-11-04): «entrega 3»; decisión: «Nuevo marco en Guías (Recomendado)».
 - L2: un solo escritor por el respaldo de contexto (sesión larga del padre); T1 y T2 tocan la misma aplicación y van juntas.
 - L3: escritor terminado, diff dentro de la superficie. Decisiones: dentro de la web no se pinta la cabecera del manual; barra de herramientas con «Guías» (solo en pantallas estrechas), «Buscar Ctrl K» y tema; árbol «Biblioteca» con grupos por tipo, la marca activa desplegada reutilizando `TaskNav`; en fundamentos se despliega la lista de artículos bajo «Fundamentos»; `#/plan` sin árbol ni barra. Riesgo: ninguno de la lista (el índice gana una clave nueva, `tipo`, que la app ya admite).
+- L4: comprobación del padre en la web montada como en `pages.yml`: portada «Guías» con la tarjeta «Switches» (4 marcas, 19 tareas) y los tipos «Próximamente»; árbol «Biblioteca» con la marca activa desplegada; sin cabecera del manual; a 375 px sin desbordamiento horizontal y el botón «Guías» abre el árbol; `#/plan` sin biblioteca y con «Mapa | Lista | Red y VLAN»; consola limpia. Añadido por el padre: título de la pestaña «Guías · sysadmin junior» o «Red y VLAN · sysadmin junior» dentro de la web (1bc2c96, RED → GREEN, guías 307/307).
+- L5: evaluación nativa del rango ecbcad5..HEAD: riesgo medio, `review_due` falso (`under_budget`); sin revisión. Riesgo: ninguno de la lista, así que sin verificador independiente.
