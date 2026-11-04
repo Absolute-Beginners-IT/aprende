@@ -31,10 +31,13 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
       used.add(own.id)
     }
   }
+  // A switch whose device is gone (deleted and created again, with a new id) is matched by name like a new one.
+  const present = new Set(devices.map((device) => device.id))
+  const free = (item: PlanSwitch) => item.deviceId === undefined || !present.has(item.deviceId)
   for (const device of devices) {
     if (byDevice.has(device.id)) continue
     const named = stored.switches.find(
-      (item) => item.deviceId === undefined && !used.has(item.id) && nameKey(item.name) === nameKey(device.nombre),
+      (item) => free(item) && !used.has(item.id) && nameKey(item.name) === nameKey(device.nombre),
     )
     if (named) {
       byDevice.set(device.id, named)
@@ -44,7 +47,7 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
 
   // New switches take ids no stored switch uses, hidden ones included, so saving never merges two of them.
   const taken: { id: string }[] = [...stored.switches]
-  const deviceIds = new Set(devices.map((device) => device.id))
+  const deviceIds = present
   const hangsFromSwitch = (device: InventorySwitch) => (device.uplinks ?? []).some((id) => deviceIds.has(id))
   const fresh = devices
     .filter((device) => !byDevice.has(device.id))

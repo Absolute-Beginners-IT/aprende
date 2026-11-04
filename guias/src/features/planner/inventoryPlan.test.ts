@@ -74,6 +74,21 @@ describe('combineWithInventory', () => {
     expect(hidden).toEqual([])
   })
 
+  it('recovers a hidden switch by name when its device is created again with another id', () => {
+    const sync = (stored: NetworkPlan, items: InventorySwitch[]) =>
+      storeCombined(stored, combineWithInventory(stored, items, catalog).plan)
+    const onlyCore = coreAndFloor.filter((item) => item.id !== 'inv-planta')
+    const recreated = coreAndFloor.map((item) => (item.id === 'inv-planta' ? { ...item, id: 'inv-planta-2' } : item))
+
+    const gone = sync(sync(twoSwitchPlan(), coreAndFloor), onlyCore)
+    const { plan, hidden } = combineWithInventory(gone, recreated, catalog)
+
+    expect(hidden).toEqual([])
+    expect(plan.switches.find((item) => item.id === 'sw-2')?.deviceId).toBe('inv-planta-2')
+    expect(plan.links).toEqual(twoSwitchPlan().links)
+    expect(plan.ports).toEqual(twoSwitchPlan().ports)
+  })
+
   it('keeps the model the user chose when brand and model match none of the manual', () => {
     const stored: NetworkPlan = {
       ...EMPTY_PLAN,
