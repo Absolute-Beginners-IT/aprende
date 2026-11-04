@@ -523,7 +523,7 @@ describe('inside the website', () => {
     vi.unstubAllEnvs()
   })
 
-  it('drops the manual header for a slim toolbar with the search, the theme and the sidebar toggle', async () => {
+  it('drops the manual header for a slim toolbar with the search and the sidebar toggle', async () => {
     const user = userEvent.setup()
     openAt('#/p/aruba-aoscx')
 
@@ -547,6 +547,42 @@ describe('inside the website', () => {
 
     openAt('#/plan')
     expect(document.title).toBe('Red y VLAN · sysadmin junior')
+  })
+
+  it('draws the same top bar as the rest of the website: sections, a folding menu and the theme button', async () => {
+    const user = userEvent.setup()
+    for (const hash of ['#/p/aruba-aoscx', '#/plan']) {
+      const { unmount } = openAt(hash)
+
+      const bar = within(
+        screen.getByRole('navigation', { name: 'Secciones de la web' }).closest('header') as HTMLElement,
+      )
+      expect(bar.getByRole('link', { name: /sysadmin junior/ })).toHaveAttribute('href', '../../')
+      expect(bar.getByRole('navigation', { name: 'Secciones de la web' })).toBeInTheDocument()
+      const menu = bar.getByText('Menú')
+      expect(menu.tagName).toBe('SUMMARY')
+      const folded = within(bar.getByRole('navigation', { name: 'Menú de secciones' }))
+      expect(folded.getAllByRole('link').map((link) => link.textContent)).toEqual([
+        'Inicio',
+        'Mi infraestructura',
+        'Guías',
+      ])
+      expect(screen.getAllByRole('button', { name: /^Tema:/ })).toHaveLength(1)
+      expect(bar.getByRole('button', { name: /^Tema:/ })).toHaveTextContent('Tema: Sistema')
+      await user.click(bar.getByRole('button', { name: /^Tema:/ }))
+      expect(document.documentElement).toHaveAttribute('data-theme', 'light')
+      expect(bar.getByRole('button', { name: /^Tema:/ })).toHaveTextContent('Tema: Claro')
+      unmount()
+      localStorage.clear()
+      document.documentElement.removeAttribute('data-theme')
+    }
+  })
+
+  it('links the prototype notice to the website page that explains it, as the other pages do', () => {
+    openAt('#/p/aruba-aoscx')
+
+    const notice = within(screen.getByRole('note', { name: 'Aviso de prototipo' }))
+    expect(notice.getByRole('link', { name: 'Qué es esto' })).toHaveAttribute('href', '../../que-es-esto/')
   })
 
   it('shows the library by device type: the switches with their brands, the other types coming soon', () => {

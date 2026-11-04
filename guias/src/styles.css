@@ -111,11 +111,17 @@ p {
 
 .prototype-notice {
   margin: 0;
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
+  padding: 7px 16px;
+  font-size: 14px;
+  line-height: 1.5;
   color: var(--warn);
   background: var(--warn-bg);
   text-align: center;
+}
+
+.prototype-notice a {
+  color: inherit;
+  font-weight: 600;
 }
 
 .shell__header {
@@ -131,27 +137,30 @@ p {
   background: var(--surface);
 }
 
-/* Bar of the website that embeds the manual (VITE_SITE_NAV): same look as the website's own top bar. */
+/*
+ * Bar of the website that embeds the manual (VITE_SITE_NAV). It copies the website's own top bar
+ * (site/assets/css/site.css and app/src/styles.css, `.top`) value by value, so it does not jump when you
+ * move between sections: brand, sections, a folding menu on narrow screens and the theme button.
+ */
 .site-bar {
   position: sticky;
   top: 0;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 16px;
   box-sizing: border-box;
   height: var(--site-bar-height);
-  padding: 0 1.25rem;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(10px);
-  overflow-x: auto;
-  scrollbar-width: thin;
+  line-height: 1.5;
 }
 
 .site-bar__brand {
-  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
-  font-size: 0.9rem;
+  font-family: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   text-decoration: none;
@@ -164,15 +173,15 @@ p {
 
 .site-bar__nav {
   display: flex;
-  gap: 0.25rem;
+  gap: 4px;
   margin: 0 auto;
 }
 
 .site-bar__nav a {
-  padding: 0.3rem 0.75rem;
+  padding: 6px 12px;
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 15px;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -186,6 +195,87 @@ p {
   color: var(--surface);
   background: var(--accent);
   font-weight: 600;
+}
+
+.site-bar__theme {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.site-bar__menu {
+  display: none;
+  position: relative;
+  margin-left: auto;
+}
+
+.site-bar__menu summary {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  font-size: 14px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.site-bar__menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.site-bar__menu .site-bar__nav {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 230px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.site-bar__menu .site-bar__nav a {
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .site-bar > .site-bar__nav {
+    display: none;
+  }
+
+  .site-bar__menu {
+    display: block;
+  }
+}
+
+/* Narrow phones: brand, menu and theme button fit in one row, as on the website. */
+@media (max-width: 420px) {
+  .site-bar {
+    gap: 8px;
+    padding: 10px 16px;
+  }
+
+  .site-bar__brand {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .site-bar__theme,
+  .site-bar__menu summary {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }
 
 .shell__title {
@@ -428,8 +518,15 @@ kbd {
 
 /* Inside the website the site bar is the sticky header, as on the other pages: the sidebar sticks right below it. */
 .shell.shell--site {
-  --site-bar-height: 3.25rem;
+  --site-bar-height: 60px;
   --header-height: var(--site-bar-height);
+}
+
+/* Narrow phones: the bar loses 5px of padding, as on the website. */
+@media (max-width: 420px) {
+  .shell.shell--site {
+    --site-bar-height: 55px;
+  }
 }
 
 .shell__body--full {

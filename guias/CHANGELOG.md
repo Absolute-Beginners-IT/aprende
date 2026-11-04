@@ -58,6 +58,9 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 - Dentro de la web, la barra de navegación se queda fija arriba al hacer scroll, como en el resto de páginas; la lista
   de tareas y el índice de secciones quedan justo debajo.
+- Dentro de la web, la barra de navegación y el aviso de prototipo son iguales que en el resto de secciones (mismas
+  medidas, menú plegable en pantallas estrechas, botón «Tema» y enlace «Qué es esto»), así que la barra ya no da un salto
+  al cambiar de sección. El botón del tema pasa de la barra fina de la biblioteca a la barra de la web.
 
 ## [1.1.0] - 2026-10-16
 

@@ -41,9 +41,10 @@ code { font-family: var(--mono); font-size: .9em; }
 .accent { color: var(--accent); }
 
 /* Prototype notice, header and navigation */
-.prototype-notice { margin: 0; padding: 7px 16px; font-size: 14px; text-align: center; background: var(--notice-bg); color: var(--notice-text); }
+/* The notice and the top bar set their own line height, the same as the app and the guides, so the bar does not jump between sections. */
+.prototype-notice { margin: 0; padding: 7px 16px; font-size: 14px; line-height: 1.5; text-align: center; background: var(--notice-bg); color: var(--notice-text); }
 .prototype-notice a { color: inherit; font-weight: 600; }
-.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px; padding: 12px 20px; line-height: 1.5; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .brand { font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none; white-space: nowrap; }
 .brand__mark { color: var(--accent); }
 .nav { display: flex; gap: 4px; margin: 0 auto; }

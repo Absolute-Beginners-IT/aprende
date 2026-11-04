@@ -37,8 +37,8 @@ Las guías se ven de dos formas:
   Switching», «Fundamentos», «Planificador de red», una pestaña por marca, «Buscar» y el tema; en el lateral, las
   tareas de la marca elegida.
 - **Dentro de la web del proyecto** (`/app/guias/`): las guías son una sección más de la web. No tienen cabecera
-  propia: arriba está la barra de la web y, encima de cada página, una barra fina con **Buscar** (`Ctrl+K`), el tema y,
-  en pantallas estrechas, el botón **Guías** que abre el lateral. El lateral es la biblioteca por tipo de equipo:
+  propia: arriba está la barra de la web, igual que en el resto de secciones (con el menú plegable en pantallas estrechas
+  y el botón **Tema**), y encima de cada página, una barra fina con **Buscar** (`Ctrl+K`) y, en pantallas estrechas, el botón **Guías** que abre el lateral. El lateral es la biblioteca por tipo de equipo:
   **Switches** con sus marcas (la marca en uso se despliega con sus tareas), los tipos que aún no tienen guías
   (Firewalls, Virtualización y Almacenamiento) como «Próximamente», y los enlaces a **Fundamentos** y **Estado del
   contenido**. La portada muestra una tarjeta por tipo de equipo. **Red y VLAN** (el planificador) pertenece a «Mi
