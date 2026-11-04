@@ -133,12 +133,20 @@ p {
 
 /* Bar of the website that embeds the manual (VITE_SITE_NAV): same look as the website's own top bar. */
 .site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.6rem 1.25rem;
+  box-sizing: border-box;
+  height: var(--site-bar-height);
+  padding: 0 1.25rem;
   border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
   overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .site-bar__brand {
@@ -418,9 +426,10 @@ kbd {
   font-size: 0.72rem;
 }
 
-/* Inside the website there is no sticky header: the site bar scrolls away and the sidebar sticks to the top. */
+/* Inside the website the site bar is the sticky header, as on the other pages: the sidebar sticks right below it. */
 .shell.shell--site {
-  --header-height: 0px;
+  --site-bar-height: 3.25rem;
+  --header-height: var(--site-bar-height);
 }
 
 .shell__body--full {
