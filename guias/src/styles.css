@@ -1186,6 +1186,12 @@ thead th {
   min-width: 5rem;
 }
 
+.plan-fixed {
+  display: inline-block;
+  padding: 0.35rem 0;
+  font-weight: 600;
+}
+
 .plan-core {
   display: inline-block;
   margin-top: 0.2rem;

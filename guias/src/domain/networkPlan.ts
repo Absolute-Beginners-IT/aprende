@@ -16,6 +16,8 @@ export const PlanVlanSchema = z.object({
 
 export const PlanSwitchSchema = z.object({
   id: z.string().min(1),
+  /** Id of the device in «Mi infraestructura» this switch is; absent for a switch that only the plan knows. */
+  deviceId: z.string().optional(),
   name: z.string(),
   /** Id of a platform of the catalog. */
   platform: z.string(),

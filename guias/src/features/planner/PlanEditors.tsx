@@ -12,10 +12,17 @@ import { PLAN_TEMPLATES } from './planTemplates'
 import { nextId } from './usePlan'
 import { interfaceParam } from './validatePlan'
 
+/** Present when the switches and links come from «Mi infraestructura», which is then the only place to change them. */
+export interface InventoryView {
+  /** Switches whose model follows from their brand and model in the inventory. */
+  deducedModels: ReadonlySet<string>
+}
+
 export interface EditorProps {
   plan: NetworkPlan
   catalog: Catalog
   onChange: (plan: NetworkPlan) => void
+  inventory?: InventoryView
 }
 
 /** Number inputs give "" while the user is typing; NaN would not survive storage as JSON. */
@@ -173,7 +180,7 @@ export function VlanEditor({ plan, onChange }: EditorProps) {
   )
 }
 
-export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
+export function SwitchEditor({ plan, catalog, onChange, inventory }: EditorProps) {
   const update = (index: number, patch: Partial<PlanSwitch>) =>
     onChange({ ...plan, switches: replaceAt(plan.switches, index, patch) })
   const add = () =>
@@ -206,6 +213,12 @@ export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
       <p className="muted">
         El primero de la lista es el núcleo: la guía empieza por él y sigue hacia los switches que cuelgan de él.
       </p>
+      {inventory && (
+        <p className="muted">
+          Los switches, sus nombres, sus IP y cómo se conectan salen de Mi infraestructura: cámbialos allí. Aquí indicas
+          lo que solo sabe el plan.
+        </p>
+      )}
       {plan.switches.length > 0 && (
         <div className="plan-table">
           <table aria-label="Switches del plan">
@@ -225,18 +238,23 @@ export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
               {plan.switches.map((item, index) => (
                 <tr key={item.id}>
                   <td>
-                    <input
-                      aria-label={`Nombre del switch ${index + 1}`}
-                      placeholder="Ej.: planta1"
-                      value={item.name}
-                      spellCheck={false}
-                      onChange={(event) => update(index, { name: event.target.value })}
-                    />
+                    {inventory ? (
+                      <span className="plan-fixed">{item.name}</span>
+                    ) : (
+                      <input
+                        aria-label={`Nombre del switch ${index + 1}`}
+                        placeholder="Ej.: planta1"
+                        value={item.name}
+                        spellCheck={false}
+                        onChange={(event) => update(index, { name: event.target.value })}
+                      />
+                    )}
                     {index === 0 && <span className="plan-core">Núcleo</span>}
                   </td>
                   <td>
                     <select
                       aria-label={`Modelo del switch ${index + 1}`}
+                      disabled={inventory?.deducedModels.has(item.id)}
                       value={item.platform}
                       onChange={(event) => update(index, { platform: event.target.value })}
                     >
@@ -249,13 +267,21 @@ export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
                     </select>
                   </td>
                   <td>
-                    <input
-                      aria-label={`IP de gestión del switch ${index + 1}`}
-                      placeholder="Ej.: 192.168.99.2/24"
-                      value={item.mgmtIp}
-                      spellCheck={false}
-                      onChange={(event) => update(index, { mgmtIp: event.target.value })}
-                    />
+                    {inventory ? (
+                      item.mgmtIp ? (
+                        <span className="plan-fixed">{item.mgmtIp}</span>
+                      ) : (
+                        <span className="muted">Sin IP</span>
+                      )
+                    ) : (
+                      <input
+                        aria-label={`IP de gestión del switch ${index + 1}`}
+                        placeholder="Ej.: 192.168.99.2/24"
+                        value={item.mgmtIp}
+                        spellCheck={false}
+                        onChange={(event) => update(index, { mgmtIp: event.target.value })}
+                      />
+                    )}
                   </td>
                   <td>
                     <input
@@ -285,14 +311,16 @@ export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
                         Hacer núcleo
                       </button>
                     )}
-                    <button
-                      type="button"
-                      className="link-button"
-                      aria-label={`Quitar el switch ${item.name.trim() || index + 1}`}
-                      onClick={() => remove(item.id)}
-                    >
-                      Quitar
-                    </button>
+                    {!inventory && (
+                      <button
+                        type="button"
+                        className="link-button"
+                        aria-label={`Quitar el switch ${item.name.trim() || index + 1}`}
+                        onClick={() => remove(item.id)}
+                      >
+                        Quitar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -300,14 +328,16 @@ export function SwitchEditor({ plan, catalog, onChange }: EditorProps) {
           </table>
         </div>
       )}
-      <button type="button" className="plan-add" onClick={add}>
-        Añadir switch
-      </button>
+      {!inventory && (
+        <button type="button" className="plan-add" onClick={add}>
+          Añadir switch
+        </button>
+      )}
     </>
   )
 }
 
-export function LinkEditor({ plan, catalog, onChange }: EditorProps) {
+export function LinkEditor({ plan, catalog, onChange, inventory }: EditorProps) {
   const update = (index: number, patch: Partial<PlanLink>) =>
     onChange({ ...plan, links: replaceAt(plan.links, index, patch) })
   const [first, second] = plan.switches
@@ -331,6 +361,12 @@ export function LinkEditor({ plan, catalog, onChange }: EditorProps) {
         Cada enlace entre dos switches se configura como trunk en los dos extremos y lleva todas las VLAN del plan. La
         VLAN nativa es la misma en ambos lados.
       </p>
+      {inventory && (
+        <p className="muted">
+          Los enlaces son las conexiones entre switches de Mi infraestructura: únelos o sepáralos en su Mapa. Aquí
+          indicas qué puerto de cada switch usan.
+        </p>
+      )}
       {plan.links.length > 0 && (
         <div className="plan-table">
           <table aria-label="Enlaces del plan">
@@ -355,6 +391,7 @@ export function LinkEditor({ plan, catalog, onChange }: EditorProps) {
                       plan={plan}
                       catalog={catalog}
                       label={`${end.toUpperCase()} del enlace ${index + 1}`}
+                      fixedSwitch={Boolean(inventory)}
                       endpoint={link[end]}
                       onChange={(endpoint) => update(index, { [end]: endpoint })}
                     />
@@ -370,14 +407,16 @@ export function LinkEditor({ plan, catalog, onChange }: EditorProps) {
                     />
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      className="link-button"
-                      aria-label={`Quitar el enlace ${index + 1}`}
-                      onClick={() => onChange({ ...plan, links: plan.links.filter((item) => item.id !== link.id) })}
-                    >
-                      Quitar
-                    </button>
+                    {!inventory && (
+                      <button
+                        type="button"
+                        className="link-button"
+                        aria-label={`Quitar el enlace ${index + 1}`}
+                        onClick={() => onChange({ ...plan, links: plan.links.filter((item) => item.id !== link.id) })}
+                      >
+                        Quitar
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -385,10 +424,18 @@ export function LinkEditor({ plan, catalog, onChange }: EditorProps) {
           </table>
         </div>
       )}
-      <button type="button" className="plan-add" onClick={add} disabled={plan.switches.length < 2}>
-        Añadir enlace
-      </button>
-      {plan.switches.length < 2 && <p className="muted">Hacen falta al menos dos switches para unirlos.</p>}
+      {inventory ? (
+        plan.links.length === 0 && (
+          <p className="muted">Todavía no hay switches unidos entre sí en Mi infraestructura.</p>
+        )
+      ) : (
+        <>
+          <button type="button" className="plan-add" onClick={add} disabled={plan.switches.length < 2}>
+            Añadir enlace
+          </button>
+          {plan.switches.length < 2 && <p className="muted">Hacen falta al menos dos switches para unirlos.</p>}
+        </>
+      )}
     </>
   )
 }
@@ -397,24 +444,33 @@ function EndpointCells({
   plan,
   catalog,
   label,
+  fixedSwitch,
   endpoint,
   onChange,
 }: {
   plan: NetworkPlan
   catalog: Catalog
   label: string
+  /** The switch is set by the inventory's connection; only the port is chosen here. */
+  fixedSwitch: boolean
   endpoint: PlanLink['a']
   onChange: (endpoint: PlanLink['a']) => void
 }) {
   return (
     <>
       <td>
-        <SwitchSelect
-          plan={plan}
-          value={endpoint.switch}
-          label={`Switch ${label}`}
-          onChange={(id) => onChange({ ...endpoint, switch: id })}
-        />
+        {fixedSwitch ? (
+          <span className="plan-fixed">
+            {plan.switches.find((item) => item.id === endpoint.switch)?.name ?? endpoint.switch}
+          </span>
+        ) : (
+          <SwitchSelect
+            plan={plan}
+            value={endpoint.switch}
+            label={`Switch ${label}`}
+            onChange={(id) => onChange({ ...endpoint, switch: id })}
+          />
+        )}
       </td>
       <td>
         <input
