@@ -116,7 +116,6 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
         <div className="shell__toolbar">
           {sidebarToggle('Guías')}
           {searchButtonElement}
-          <ThemeToggle />
         </div>
       )}
       {plannerInSite && route.name === 'plan' && <InfraTabs inventoryHref={inventoryHref} />}
@@ -180,7 +179,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
       <button type="button" className="skip-link" onClick={() => mainContent.current?.focus()}>
         Saltar al contenido
       </button>
-      <PrototypeNotice />
+      <PrototypeNotice aboutHref={embedded ? `${siteLinks[0]?.href ?? ''}que-es-esto/` : undefined} />
       {embedded && (
         <SiteNav links={siteLinks} currentId={plannerInSite && route.name === 'plan' ? INFRA_SECTION : undefined} />
       )}

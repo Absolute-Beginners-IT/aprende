@@ -1,6 +1,6 @@
 import { THEMES, type Theme, useTheme } from '../../lib/useTheme'
 
-const THEME_LABELS: Record<Theme, string> = { system: 'Sistema', light: 'Claro', dark: 'Oscuro' }
+export const THEME_LABELS: Record<Theme, string> = { system: 'Sistema', light: 'Claro', dark: 'Oscuro' }
 
 const ICONS: Record<Theme, string> = {
   // A screen: follow the operating system.
