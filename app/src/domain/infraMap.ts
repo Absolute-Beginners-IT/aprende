@@ -16,10 +16,10 @@ export function connectionsOf(devices: Device[]): Connection[] {
 }
 
 /**
- * Where each device goes: its own `posicion` when it has one; otherwise a row by how far it hangs from a device
- * with no uplinks (the edge of the network goes on top), spread by name within the row.
+ * How far a device hangs from a device with no uplinks to devices in the inventory: 0 is the edge of the network.
+ * Worked out on demand and remembered; the map uses it for its rows and the deployment plan for its order.
  */
-export function layoutDevices(devices: Device[]): Map<string, Position> {
+export function levelFinder(devices: Device[]): (id: string) => number {
   const byId = new Map(devices.map(d => [d.id, d]));
   const level = new Map<string, number>();
   const visiting = new Set<string>();
@@ -35,7 +35,15 @@ export function layoutDevices(devices: Device[]): Map<string, Position> {
     level.set(id, value);
     return value;
   };
+  return levelOf;
+}
 
+/**
+ * Where each device goes: its own `posicion` when it has one; otherwise a row by how far it hangs from a device
+ * with no uplinks (the edge of the network goes on top), spread by name within the row.
+ */
+export function layoutDevices(devices: Device[]): Map<string, Position> {
+  const levelOf = levelFinder(devices);
   const positions = new Map<string, Position>();
   const rows = new Map<number, Device[]>();
   for (const d of devices) {

@@ -22,7 +22,7 @@ interface AppShellProps {
 
 const INFRA_SECTION = 'infra'
 
-/** Same tabs as the app's «Mi infraestructura» (map, list), so the planner reads as part of that section. */
+/** Same tabs as the app's «Mi infraestructura» (map, list, deployment plan), so the planner reads as part of that section. */
 function InfraTabs({ inventoryHref }: { inventoryHref: string }) {
   return (
     <nav className="infra-tabs" aria-label="Mi infraestructura">
@@ -31,6 +31,7 @@ function InfraTabs({ inventoryHref }: { inventoryHref: string }) {
       <a href={planHref} aria-current="page">
         Red y VLAN
       </a>
+      <a href={`${inventoryHref}/plan`}>Plan de despliegue</a>
     </nav>
   )
 }

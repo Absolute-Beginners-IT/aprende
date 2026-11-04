@@ -57,8 +57,8 @@ describe('App', () => {
     }
   });
 
-  it('shows «Mi infraestructura» as three tabs: the map, the list and the network planner of the guides', () => {
-    for (const [hash, current] of [['#mi-infraestructura', 'Mapa'], ['#mi-infraestructura/lista', 'Lista']] as const) {
+  it('shows «Mi infraestructura» as four tabs: the map, the list, the network planner of the guides and the deployment plan', () => {
+    for (const [hash, current] of [['#mi-infraestructura', 'Mapa'], ['#mi-infraestructura/lista', 'Lista'], ['#mi-infraestructura/plan', 'Plan de despliegue']] as const) {
       location.hash = hash;
       const { unmount } = render(<App />);
       const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }));
@@ -66,6 +66,7 @@ describe('App', () => {
         ['Mapa', '#mi-infraestructura', current === 'Mapa' ? 'page' : null],
         ['Lista', '#mi-infraestructura/lista', current === 'Lista' ? 'page' : null],
         ['Red y VLAN', './guias/#/plan', null],
+        ['Plan de despliegue', '#mi-infraestructura/plan', current === 'Plan de despliegue' ? 'page' : null],
       ]);
       unmount();
     }
@@ -81,6 +82,20 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByRole('button', { name: 'Importar' })).toBeTruthy();
     expect(screen.queryByRole('region', { name: 'Mapa de tu infraestructura' })).toBeNull();
+  });
+
+  it('opens the deployment plan in «Plan de despliegue», built from the saved inventory', async () => {
+    localStorage.setItem('mapa-infra:inventario', JSON.stringify([
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: false, uplinks: ['fw'] },
+      { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false },
+    ]));
+    location.hash = '#mi-infraestructura/plan';
+    render(<App />);
+    const cards = await screen.findAllByRole('article');
+    expect(cards.map(c => within(c).getByRole('heading', { level: 3 }).textContent)).toEqual(['1. FW01', '2. CORE']);
+    expect(screen.getByRole('button', { name: 'Imprimir' })).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Mapa de tu infraestructura' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Importar' })).toBeNull();
   });
 
   it('presents the reference map as part of Aprender, with a way back to it', () => {

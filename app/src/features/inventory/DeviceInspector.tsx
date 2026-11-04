@@ -6,10 +6,9 @@ import { guidesForDevice } from '../../domain/deviceGuides';
 import { content } from '../../content';
 import { GUIDES_URL, PLANNER_URL } from '../../config';
 import { FindingList } from './FindingList';
+import { GuideNote } from './GuideNote';
 
 type OptionalText = 'marca' | 'modelo' | 'ip';
-
-const listFormat = new Intl.ListFormat('es', { type: 'conjunction' });
 
 /** The runbooks of the guides for this device, opened with its values filled in; or why there are none yet. */
 function DeviceGuidesSection({ device }: { device: Device }) {
@@ -18,8 +17,7 @@ function DeviceGuidesSection({ device }: { device: Device }) {
   return (
     <section className="device-guides" aria-labelledby={titleId}>
       <h3 id={titleId}>Guías para este equipo</h3>
-      {guides.estado === 'tipo-sin-guias' && <p className="muted">Las guías de este tipo de equipo llegarán más adelante; de momento cubren switches.</p>}
-      {guides.estado === 'modelo-desconocido' && <p className="muted">Indica la marca y el modelo para ver sus guías. Las guías cubren: {listFormat.format(guides.plataformas.map(p => p.nombre))}.</p>}
+      <GuideNote guides={guides} />
       {guides.estado === 'cubierto' && <>
         <p>Para tu {guides.plataforma.nombre}, con sus datos ya puestos:</p>
         {guides.grupos.map((g, i) => (

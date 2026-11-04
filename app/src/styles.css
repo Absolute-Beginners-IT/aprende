@@ -153,3 +153,41 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
   .infra-workspace { grid-template-columns: minmax(0, 1fr); }
   .infra-canvas { height: 440px; }
 }
+/* «Plan de despliegue»: one card per device, with Configurar | Vigilar | Mantener side by side on wide screens. */
+.deployment { display: grid; gap: 12px; min-width: 0; margin-top: 16px; }
+.deployment > p { margin: 0; }
+.plan-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.plan-toolbar h2 { margin: 0; font-size: 22px; }
+.plan-progress { display: grid; gap: 6px; }
+.plan-progress p { margin: 0; font-weight: 600; }
+.plan-progress__bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.plan-progress__bar > span { display: block; height: 100%; background: var(--accent); transition: width .2s; }
+.plan-devices { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.plan-device { min-width: 0; }
+.plan-device__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; margin-bottom: 12px; }
+.plan-device__head h3 { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.plan-device__head p { flex-basis: 100%; margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+.plan-device__num { color: var(--accent); font-family: var(--mono); }
+.plan-device__count { font-size: 13px; white-space: nowrap; }
+.plan-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.plan-columns section { min-width: 0; font-size: 14px; }
+.plan-columns h4 { margin: 0 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.plan-columns p { margin: 0 0 6px; overflow-wrap: anywhere; }
+.plan-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.plan-steps li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 8px; align-items: start; }
+.plan-steps input { margin: 3px 0 0; padding: 0; accent-color: var(--accent); }
+.plan-steps label, .plan-steps a { overflow-wrap: anywhere; }
+.plan-steps a { color: var(--accent); }
+.plan-step__detail { grid-column: 2; font-size: 13px; overflow-wrap: anywhere; }
+.plan-empty p { margin: 0; }
+@media (max-width: 760px) { .plan-columns { grid-template-columns: minmax(0, 1fr); } }
+/* Printing the plan: only the plan, in light colours, three columns and no card split across pages. */
+@media print {
+  :root[data-theme], :root:not([data-theme]) { --bg: #fff; --surface: #fff; --text: #000; --muted: #444; --line: #bbb; --accent: #9a3412; color-scheme: light; }
+  .prototype-notice, .top, .tabs, .notice, .deployment button { display: none; }
+  .head .muted { display: none; }
+  .wrap { max-width: none; padding: 0; }
+  .plan-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .plan-device { break-inside: avoid; }
+  .plan-progress__bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
