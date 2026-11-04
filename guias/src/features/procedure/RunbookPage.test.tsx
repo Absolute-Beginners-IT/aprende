@@ -548,6 +548,44 @@ describe('RunbookPage filled from «Mi infraestructura»', () => {
   const storedValues = (platformId: string, task: string) =>
     JSON.parse(localStorage.getItem(`switching-manual:${platformId}/${task}:values`) ?? '{}')
 
+  it('clears what the previous device filled when the next one cannot provide it', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.type(screen.getByLabelText('Puerta de enlace'), '192.168.99.254')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
+    expect(screen.getByLabelText('Puerta de enlace')).toHaveValue('192.168.99.254')
+    expect(storedValues('aruba-aoscx', 'mgmt-ip')).toEqual({ gateway: '192.168.99.254' })
+  })
+
+  it('keeps a value the user changed after a device filled it', async () => {
+    const user = userEvent.setup()
+    storeInventory()
+    renderRunbook('aruba-aoscx', 'mgmt-ip')
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-core')
+    await user.clear(screen.getByLabelText('IP de gestión con prefijo'))
+    await user.type(screen.getByLabelText('IP de gestión con prefijo'), '192.168.99.20/24')
+
+    await user.selectOptions(screen.getByLabelText(PICKER), 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.20/24')
+  })
+
+  it("does not carry one device's values into the runbook opened for another device", () => {
+    storeInventory()
+    const first = renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-core')
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('192.168.99.2/24')
+    first.unmount()
+
+    renderRunbook('aruba-aoscx', 'mgmt-ip', 'sw-sala')
+
+    expect(screen.getByLabelText('IP de gestión con prefijo')).toHaveValue('')
+  })
+
   it('offers only the switches of this model, starting with «Ninguno, lo escribo yo»', () => {
     storeInventory()
     renderRunbook('aruba-aoscx', 'mgmt-ip')

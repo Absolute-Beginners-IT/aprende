@@ -81,6 +81,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
     devices.some((device) => device.id === deviceId) ? (deviceId ?? '') : '',
   )
   const [filledIds, setFilledIds] = useState<string[]>()
+  // What the last chosen device wrote, kept across visits so the next device never inherits it.
+  const [deviceFill, setDeviceFill] = useStoredState<Record<string, string>>(`${storageKey}:device`, {})
   const fillable = procedure.params.filter((param) => param.type !== 'secret' && DEVICE_PARAM_IDS.includes(param.id))
 
   // Overwrites only what the device provides; the other values and the secrets stay as they are.
@@ -92,7 +94,10 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
       return
     }
     const filled = deviceValues(device, procedure)
-    setStoredValues({ ...plainValues, ...filled })
+    // Values the previous device filled and nobody changed since belong to that device: they go.
+    const kept = Object.fromEntries(Object.entries(plainValues).filter(([key, value]) => deviceFill[key] !== value))
+    setStoredValues({ ...kept, ...filled })
+    setDeviceFill(filled)
     setFilledIds(Object.keys(filled))
   }
 
@@ -129,6 +134,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
     setRecord(EMPTY_RECORD)
     setChosenDevice('')
     setFilledIds(undefined)
+    setDeviceFill({})
   }
 
   const renderRecord = () => {
