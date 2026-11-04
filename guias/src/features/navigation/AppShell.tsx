@@ -88,6 +88,10 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
   const embedded = siteLinks.length > 0
   // «Red y VLAN» belongs to «Mi infraestructura», not to the library: no tree and no library toolbar there.
   const libraryFrame = embedded && route.name !== 'plan'
+  // Inside the website the browser tab is named after its section; the offline file keeps the manual's name.
+  useEffect(() => {
+    if (embedded) document.title = `${route.name === 'plan' ? 'Red y VLAN' : 'Guías'} · sysadmin junior`
+  }, [embedded, route.name])
 
   const searchButtonElement = (
     <button ref={searchButton} type="button" className="shell__search" onClick={() => setSearchOpen(true)}>

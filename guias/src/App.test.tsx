@@ -539,6 +539,15 @@ describe('inside the website', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
   })
 
+  it('names the browser tab after the section of the website, not after the offline manual', () => {
+    const { unmount } = openAt('#/p/aruba-aoscx')
+    expect(document.title).toBe('Guías · sysadmin junior')
+    unmount()
+
+    openAt('#/plan')
+    expect(document.title).toBe('Red y VLAN · sysadmin junior')
+  })
+
   it('shows the library by device type: the switches with their brands, the other types coming soon', () => {
     openAt('#/status')
 
