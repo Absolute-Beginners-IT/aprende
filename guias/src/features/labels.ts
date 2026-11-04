@@ -1,11 +1,19 @@
 import type { VlanPurpose } from '../domain/networkPlan'
-import type { RiskLevel, StatusLevel, TaskGroup } from '../domain/schema'
+import type { DeviceType, RiskLevel, StatusLevel, TaskGroup } from '../domain/schema'
 
 export const GROUP_LABELS: Record<TaskGroup, string> = {
   'setup-access': 'Puesta en marcha y acceso',
   'vlans-ports': 'VLANs y puertos',
   monitoring: 'Monitorización',
   'security-resilience': 'Seguridad y resiliencia',
+}
+
+// Plural, as they head the library's sections.
+export const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
+  switch: 'Switches',
+  firewall: 'Firewalls',
+  hypervisor: 'Virtualización',
+  storage: 'Almacenamiento',
 }
 
 export const RISK_LABELS: Record<RiskLevel, string> = {

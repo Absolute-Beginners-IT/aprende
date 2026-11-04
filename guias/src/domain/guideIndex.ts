@@ -1,13 +1,13 @@
 import type { Catalog } from './buildCatalog'
 import { PLATFORM_PATTERNS } from './platformPatterns'
-import { TASK_GROUPS, type TaskGroup } from './schema'
+import { type DeviceType, TASK_GROUPS, type TaskGroup } from './schema'
 
 /**
  * What the website's app knows about the guides (content/guias-indice.json), so it can link a device to its
  * runbooks without importing the catalog. Keys are in Spanish, like the rest of the app's content.
  */
 export interface GuideIndex {
-  plataformas: { id: string; nombre: string; fabricante: string; patron: string; flags: string }[]
+  plataformas: { id: string; nombre: string; fabricante: string; tipo: DeviceType; patron: string; flags: string }[]
   grupos: { id: TaskGroup; nombre: string }[]
   tareas: { id: string; titulo: string; grupo: TaskGroup; plataformas: string[] }[]
 }
@@ -20,6 +20,7 @@ export function buildGuideIndex(catalog: Catalog, groupLabels: Record<TaskGroup,
       id: platform.id,
       nombre: platform.name,
       fabricante: platform.vendor,
+      tipo: platform.deviceType,
       patron: pattern.source,
       flags: pattern.flags,
     }

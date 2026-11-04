@@ -1,9 +1,10 @@
-import { findUndeclaredParams, PlatformSchema, ProcedureSchema } from './schema'
+import { DEVICE_TYPES, findUndeclaredParams, PlatformSchema, ProcedureSchema } from './schema'
 
 const basePlatform = () => ({
   id: 'ruijie-reyee',
   vendor: 'Ruijie',
   name: 'Ruijie NBS3200',
+  deviceType: 'switch',
   os: 'ReyeeOS',
   models: ['RG-NBS3200-48GT4XS-P'],
   summary: 'Switch gestionado por web.',
@@ -14,6 +15,16 @@ const basePlatform = () => ({
 })
 
 describe('PlatformSchema', () => {
+  it('requires a known device type, so the library can group platforms by it', () => {
+    const { deviceType: _, ...withoutType } = basePlatform()
+
+    expect(PlatformSchema.safeParse({ ...withoutType, management: 'web' }).success).toBe(false)
+    expect(PlatformSchema.safeParse({ ...basePlatform(), management: 'web', deviceType: 'router' }).success).toBe(false)
+    for (const deviceType of DEVICE_TYPES) {
+      expect(PlatformSchema.parse({ ...basePlatform(), management: 'web', deviceType }).deviceType).toBe(deviceType)
+    }
+  })
+
   it('requires CLI modes for a platform managed from the command line', () => {
     expect(PlatformSchema.safeParse({ ...basePlatform(), management: 'cli', cliModes: [] }).success).toBe(false)
   })

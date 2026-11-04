@@ -1,6 +1,7 @@
 id: cisco-c1300
 vendor: Cisco
 name: Cisco Catalyst 1300
+deviceType: switch
 os: Firmware Catalyst 1300
 models:
   - C1300-48 con PoE (variante exacta por confirmar en la etiqueta)

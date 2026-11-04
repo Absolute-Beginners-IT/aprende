@@ -1,6 +1,7 @@
 id: ruijie-reyee
 vendor: Ruijie Reyee
 name: Ruijie NBS3200
+deviceType: switch
 os: ReyeeOS
 models:
   - RG-NBS3200-48GT4XS-P

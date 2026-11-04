@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { content } from './index';
+import { GUIDE_DEVICE_TYPES } from '../domain/types';
 
 const ids = (items: { id: string }[]) => items.map(i => i.id);
 const duplicates = (values: string[]) => values.filter((v, i) => values.indexOf(v) !== i);
@@ -82,5 +83,6 @@ describe('shared content integrity', () => {
       for (const p of t.plataformas) expect(plataformaIds, `plataforma de ${t.id}`).toContain(p);
     }
     for (const p of plataformas) expect(() => new RegExp(p.patron, p.flags), `patrón de ${p.id}`).not.toThrow();
+    for (const p of plataformas) expect(GUIDE_DEVICE_TYPES, `tipo de ${p.id}`).toContain(p.tipo);
   });
 });

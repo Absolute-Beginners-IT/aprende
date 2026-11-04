@@ -24,8 +24,18 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Índice de las guías para la web, `content/guias-indice.json` en la raíz del repositorio: marcas con el patrón que
   reconoce sus modelos, bloques y tareas con las marcas que tienen guía. Se genera con `npm run guide-index` y
   `npm test` falla si no coincide con el catálogo.
+- Tipo de equipo en cada ficha de marca (`deviceType`: `switch`, `firewall`, `hypervisor` o `storage`); las cuatro
+  marcas actuales son switches. El índice para la web lo incluye en cada marca (`tipo`).
 
 ### Cambiado
+
+- En la web, las guías se ven como una sección más: sin la cabecera del manual ni las pestañas de marca. Arriba queda
+  la barra de la web y, encima de cada página, una barra fina con «Buscar» (`Ctrl+K`), el tema y, en pantallas
+  estrechas, el botón «Guías» que abre el lateral. El lateral es la biblioteca por tipo de equipo: «Switches» con sus
+  marcas (la marca en uso se despliega con sus tareas), «Firewalls», «Virtualización» y «Almacenamiento» como
+  «Próximamente», y los enlaces a «Fundamentos» y «Estado del contenido». La portada es la biblioteca, con una tarjeta
+  por tipo de equipo. «Red y VLAN» no muestra la biblioteca, porque pertenece a «Mi infraestructura». El archivo
+  independiente se ve como hasta ahora.
 
 - En la web, el planificador de red es la pestaña «Red y VLAN» de «Mi infraestructura» y sale de la cabecera del
   manual. El archivo independiente lo mantiene en la cabecera.

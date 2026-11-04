@@ -11,9 +11,11 @@ interface TaskNavProps {
   task?: string
   /** True when the brand sheet itself is the page being shown. */
   onSheet: boolean
+  /** Whether to lead with a link to the brand sheet; the library tree already links it from the brand's name. */
+  withSheet?: boolean
 }
 
-export function TaskNav({ catalog, platform, task, onSheet }: TaskNavProps) {
+export function TaskNav({ catalog, platform, task, onSheet, withSheet = true }: TaskNavProps) {
   const baseId = useId()
   const runbooks = catalog.concepts.flatMap((concept) => {
     const procedure = catalog.procedures.find((item) => item.platform === platform && item.task === concept.id)
@@ -23,9 +25,11 @@ export function TaskNav({ catalog, platform, task, onSheet }: TaskNavProps) {
 
   return (
     <nav className="task-nav" aria-label="Tareas">
-      <a className="task-nav__sheet" href={platformHref(platform)} aria-current={onSheet ? 'page' : undefined}>
-        Ficha del equipo
-      </a>
+      {withSheet && (
+        <a className="task-nav__sheet" href={platformHref(platform)} aria-current={onSheet ? 'page' : undefined}>
+          Ficha del equipo
+        </a>
+      )}
       {TASK_GROUPS.filter((group) => inGroup(group).length > 0).map((group) => {
         const headingId = `${baseId}-${group}`
         return (

@@ -2,9 +2,28 @@ import { useId } from 'react'
 import { fundamentalsHref, runbookHref, statusHref } from '../../lib/useHashRoute'
 import type { RunbookHit } from '../navigation/searchIndex'
 
-export function HomePage({ recents }: { recents: RunbookHit[] }) {
+/** The runbooks opened most recently, newest first; nothing until the user opens one. */
+export function RecentRunbooks({ recents }: { recents: RunbookHit[] }) {
   const recentsId = useId()
+  if (recents.length === 0) return null
 
+  return (
+    <section className="section">
+      <h2 id={recentsId}>Recientes</h2>
+      <ul className="recents" aria-labelledby={recentsId}>
+        {recents.map((hit) => (
+          <li key={`${hit.platform}/${hit.task}`}>
+            <a href={runbookHref(hit.platform, hit.task)}>
+              <strong>{hit.title}</strong> <span>{hit.platformName}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+export function HomePage({ recents }: { recents: RunbookHit[] }) {
   return (
     <div>
       <header className="page-header">
@@ -22,20 +41,7 @@ export function HomePage({ recents }: { recents: RunbookHit[] }) {
           probar.
         </p>
       </header>
-      {recents.length > 0 && (
-        <section className="section">
-          <h2 id={recentsId}>Recientes</h2>
-          <ul className="recents" aria-labelledby={recentsId}>
-            {recents.map((hit) => (
-              <li key={`${hit.platform}/${hit.task}`}>
-                <a href={runbookHref(hit.platform, hit.task)}>
-                  <strong>{hit.title}</strong> <span>{hit.platformName}</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <RecentRunbooks recents={recents} />
     </div>
   )
 }

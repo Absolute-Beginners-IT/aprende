@@ -29,6 +29,24 @@ diseño de la red.
 El tema claro u oscuro se cambia con el botón de la cabecera. El **Estado del contenido**, enlazado en el pie de página,
 muestra qué guías están contrastadas, cuáles faltan por probar y cuáles conviene revisar.
 
+### Dentro de la web y sin conexión
+
+Las guías se ven de dos formas:
+
+- **Archivo sin conexión** (`dist/index.html` o el HTML de cada release): cabecera con el título «Manual de
+  Switching», «Fundamentos», «Planificador de red», una pestaña por marca, «Buscar» y el tema; en el lateral, las
+  tareas de la marca elegida.
+- **Dentro de la web del proyecto** (`/app/guias/`): las guías son una sección más de la web. No tienen cabecera
+  propia: arriba está la barra de la web y, encima de cada página, una barra fina con **Buscar** (`Ctrl+K`), el tema y,
+  en pantallas estrechas, el botón **Guías** que abre el lateral. El lateral es la biblioteca por tipo de equipo:
+  **Switches** con sus marcas (la marca en uso se despliega con sus tareas), los tipos que aún no tienen guías
+  (Firewalls, Virtualización y Almacenamiento) como «Próximamente», y los enlaces a **Fundamentos** y **Estado del
+  contenido**. La portada muestra una tarjeta por tipo de equipo. **Red y VLAN** (el planificador) pertenece a «Mi
+  infraestructura» y se ve sin la biblioteca.
+
+Las direcciones, la búsqueda, el tema, los recientes y el rellenado con un equipo del inventario funcionan igual en
+las dos.
+
 ### Planificador de red
 
 El **Planificador de red** (`#/plan`) sirve para diseñar o documentar la red de una empresa y sacar los
@@ -91,14 +109,16 @@ npm run guide-index  # regenera ../content/guias-indice.json a partir del catál
 ```
 
 La web del proyecto conoce las guías por `content/guias-indice.json` (en la raíz del repositorio), sin importar el
-catálogo: marcas con el patrón que reconoce sus modelos, bloques y tareas con las marcas que tienen guía. Si cambias
+catálogo: marcas con su tipo de equipo y el patrón que reconoce sus modelos, bloques y tareas con las marcas que tienen guía. Si cambias
 marcas, tareas o sus títulos, ejecuta `npm run guide-index` y sube el archivo: `npm test` (y el CI) falla mientras el
 índice no coincida con el catálogo.
 
 Si el manual se publica dentro de otra web, compílalo con `VITE_SITE_NAV`, una lista JSON con la navegación de esa web
 (`[{"label": "Inicio", "href": "../../"}, {"label": "Guías", "href": "./", "current": true}, …]`): aparece entonces
-una barra con esos enlaces encima de la cabecera. El primer enlace tiene que ser la portada de esa web: el nombre de la
-barra apunta a él. Sin la variable, o si no es una lista válida, el archivo independiente no la muestra.
+una barra con esos enlaces y las guías cambian al marco de la biblioteca (ver «Dentro de la web y sin conexión»). El
+primer enlace tiene que ser la portada de esa web: el nombre de la barra apunta a él. Si un enlace lleva
+`"id": "infra"`, el planificador pasa a ser la pestaña «Red y VLAN» de esa sección. Sin la variable, o si no es una
+lista válida, se compila el archivo independiente, sin barra y con su cabecera.
 
 Cada pull request a `main` pasa por el CI de GitHub Actions: `check`, `typecheck`, `test` y `build`. Al crear una
 etiqueta `vX.Y.Z`, el workflow de release publica el HTML en GitHub.
@@ -109,7 +129,7 @@ El contenido vive en YAML, separado del código:
 
 | Carpeta | Contiene |
 |---------|----------|
-| `src/content/platforms/` | Una ficha por marca: sistema, modelos, cómo se guarda la configuración y redes de seguridad. |
+| `src/content/platforms/` | Una ficha por marca: tipo de equipo (`deviceType`), sistema, modelos, cómo se guarda la configuración y redes de seguridad. |
 | `src/content/concepts/` | Una tarea por archivo: qué es, riesgos y requisitos, comunes a todas las marcas. |
 | `src/content/procedures/<marca>/<tarea>.yaml` | La guía de esa tarea en esa marca. |
 | `src/content/fundamentals/` | Artículos de fundamentos. |

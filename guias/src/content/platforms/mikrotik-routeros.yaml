@@ -1,6 +1,7 @@
 id: mikrotik-routeros
 vendor: MikroTik
 name: MikroTik CRS317
+deviceType: switch
 os: RouterOS
 models:
   - CRS317-1G-16S+RM
