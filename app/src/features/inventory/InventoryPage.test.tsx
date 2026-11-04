@@ -13,6 +13,7 @@ function memoryRepository(initial: Device[] = []): InventoryRepository & { devic
     devices,
     async list() { return [...devices.values()]; },
     async save(d) { devices.set(d.id, d); },
+    async saveAll(ds, removed = []) { for (const d of ds) devices.set(d.id, d); for (const id of removed) devices.delete(id); },
     async remove(id) { devices.delete(id); },
   };
 }
@@ -40,6 +41,14 @@ describe('InventoryPage', () => {
       .toBe('2 equipos importados (nuevos: 1, actualizados: 1). Los equipos que ya existían se han sobrescrito con los datos del CSV.');
     expect(repo.devices.get('fw01')?.monitorizado).toBe(true);
     expect(await screen.findByText('Tus equipos (3)')).toBeTruthy();
+  });
+
+  it('keeps the place on the map of a device that a CSV import overwrites', async () => {
+    const repo = memoryRepository([{ id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false, posicion: { x: 40, y: 120 } }]);
+    render(<InventoryPage repository={repo} />);
+    expect(await screen.findByText('Tus equipos (1)')).toBeTruthy();
+    await importCsv('Nombre;Tipo;Monitorizado\nFW01;firewall;Sí');
+    expect(repo.devices.get('fw01')).toMatchObject({ monitorizado: true, posicion: { x: 40, y: 120 } });
   });
 
   it('combines rows that resolve to the same device and says so instead of over-counting', async () => {

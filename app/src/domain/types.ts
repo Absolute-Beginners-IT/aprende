@@ -80,6 +80,8 @@ export interface ReferenceModel {
   zonas: Zone[];
 }
 
+export interface Position { x: number; y: number }
+
 /** A device in the learner's own inventory ("Mi infraestructura" mode). */
 export interface Device {
   id: string;
@@ -96,4 +98,6 @@ export interface Device {
   firmware?: string;
   finSoporte?: string;
   notas?: string;
+  /** Where the learner placed it on the map; without it the map places it on its own. */
+  posicion?: Position;
 }

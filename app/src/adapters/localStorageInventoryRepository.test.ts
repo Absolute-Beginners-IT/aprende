@@ -46,4 +46,28 @@ describe('localStorage inventory repository', () => {
     storage.setItem('mapa-infra:inventario', '{"a":1}');
     expect(await createLocalStorageInventoryRepository(storage).list()).toEqual([]);
   });
+
+  it('saves several devices in a single write, replacing those with the same id', async () => {
+    const storage = new MemoryStorage();
+    const repo = createLocalStorageInventoryRepository(storage);
+    await repo.save(device('core'));
+    let writes = 0;
+    const setItem = storage.setItem.bind(storage);
+    storage.setItem = (key: string, value: string) => { writes++; setItem(key, value); };
+    await repo.saveAll([device('core', { monitorizado: true }), device('acc1')]);
+    expect(writes).toBe(1);
+    expect(await repo.list()).toEqual([device('core', { monitorizado: true }), device('acc1')]);
+  });
+
+  it('saves some devices and removes others in the same single write', async () => {
+    const storage = new MemoryStorage();
+    const repo = createLocalStorageInventoryRepository(storage);
+    await repo.saveAll([device('core'), device('acc1', { uplinks: ['core'] })]);
+    let writes = 0;
+    const setItem = storage.setItem.bind(storage);
+    storage.setItem = (key: string, value: string) => { writes++; setItem(key, value); };
+    await repo.saveAll([device('acc1', { uplinks: [] })], ['core']);
+    expect(writes).toBe(1);
+    expect(await repo.list()).toEqual([device('acc1', { uplinks: [] })]);
+  });
 });

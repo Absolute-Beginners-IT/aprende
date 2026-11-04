@@ -13,7 +13,6 @@ test('turns the shared navigation into links relative to /app/guias/, with the g
   assert.deepEqual(navegacionParaGuias(navegacion), [
     { id: 'inicio', label: 'Inicio', href: '../../' },
     { id: 'aprender', label: 'Aprender', href: '../../aprender/' },
-    { id: 'mapa', label: 'Mapa', href: '../#mapa' },
     { id: 'infra', label: 'Mi infraestructura', href: '../#mi-infraestructura' },
     { id: 'guias', label: 'Guías', href: './', current: true },
     { id: 'herramientas', label: 'Herramientas', href: '../../herramientas/' },

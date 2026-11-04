@@ -23,6 +23,11 @@ export function createLocalStorageInventoryRepository(storage: KeyValueStorage):
     async save(device) {
       write([...read().filter(d => d.id !== device.id), device]);
     },
+    async saveAll(devices, removedIds = []) {
+      // One setItem: if the browser refuses the write, the stored inventory stays exactly as it was.
+      const dropped = new Set([...devices.map(d => d.id), ...removedIds]);
+      write([...read().filter(d => !dropped.has(d.id)), ...devices]);
+    },
     async remove(id) {
       write(read().filter(d => d.id !== id));
     },

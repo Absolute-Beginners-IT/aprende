@@ -19,6 +19,13 @@
     <span class="go">Empieza la ruta →</span>
   </a>
   {{ end }}
+  {{/* The reference map lives in the app, but it teaches: it is presented here, next to the scenarios it hosts. */}}
+  <a class="card" href="{{ site.Params.appURL }}#mapa">
+    <span class="label">Mapa de referencia</span>
+    <h3>La red de una pyme típica</h3>
+    <p>Todas las piezas de una infraestructura en su sitio, por capas: pulsa cada una para ver qué es, para qué sirve y qué pasa si falla.</p>
+    <span class="go">Abrir el mapa →</span>
+  </a>
   {{ with site.GetPage "/escenarios" }}
   <a class="card" href="{{ .RelPermalink }}">
     <span class="label">Escenarios</span>

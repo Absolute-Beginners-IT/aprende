@@ -2,17 +2,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { MapPage } from './features/map/MapPage';
 import { ScenariosPage } from './features/scenarios/ScenariosPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
+import { InfraMapPage } from './features/inventory/InfraMapPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
 import { GUIDE_URL, PLANNER_URL } from './config';
 import { parseHash, scenarioHash, type Route } from './routing';
 
-// The map and its scenarios are one section ("Mapa"); "Mi infraestructura" is its own section.
+// The reference map and its scenarios are one view of Aprender; "Mi infraestructura" is its own section.
 // The glossary lives only in the guide: the old #glosario link opens the map (see routing.ts).
 const MAP_VIEWS = [
   ['mapa', 'Mapa'],
   ['escenarios', 'Escenarios'],
+] as const;
+
+// «Mi infraestructura» is one workspace: the editable map, the device list and the network planner of the guides.
+const INFRA_VIEWS = [
+  ['#mi-infraestructura', 'Mapa'],
+  ['#mi-infraestructura/lista', 'Lista'],
+  [PLANNER_URL, 'Red y VLAN'],
 ] as const;
 
 const routeFromHash = (): Route => parseHash(location.hash);
@@ -39,29 +47,32 @@ export function App() {
   }, []);
 
   const inventory = view === 'mi-infraestructura';
+  const infraHash = route.infraView === 'lista' ? '#mi-infraestructura/lista' : '#mi-infraestructura';
 
   return (
     <>
       <p className="prototype-notice" role="note" aria-label="Aviso de prototipo">
         <b>Prototipo en desarrollo:</b> el contenido se está revisando y no sustituye a la documentación oficial del fabricante ni a una prueba en laboratorio. <a href="../que-es-esto/">Qué es esto</a>
       </p>
-      <SiteNav current={inventory ? 'infra' : 'mapa'} />
+      {/* The reference map and its scenarios teach, so they belong to Aprender; «Mi infraestructura» is the learner's own network. */}
+      <SiteNav current={inventory ? 'infra' : 'aprender'} />
       <div className="wrap">
         {inventory ? (
           <header className="head">
             <span className="label">Mi infraestructura</span>
-            <h1>Compara tu red con la de una pyme típica</h1>
-            <p className="muted">Apunta tus equipos o importa tu inventario y descubre qué te falta. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
+            <h1>Dibuja el mapa de tu red</h1>
+            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
             <nav className="tabs" aria-label="Mi infraestructura">
-              <a href="#mi-infraestructura" className="tab" aria-current="page">Inventario</a>
-              <a href={PLANNER_URL} className="tab">Red y VLAN</a>
+              {INFRA_VIEWS.map(([href, label]) => (
+                <a key={href} href={href} className="tab" aria-current={href === infraHash ? 'page' : undefined}>{label}</a>
+              ))}
             </nav>
           </header>
         ) : (
           <>
             <header className="head">
-              <span className="label">Mapa</span>
-              <h1>Mapa de infraestructura</h1>
+              <span className="label">Aprender · Mapa de referencia</span> <a className="back" href={`${GUIDE_URL}aprender/`}>Volver a Aprender</a>
+              <h1>La red de una pyme típica</h1>
               <p className="muted">{content.referencia.descripcion} Activa y desactiva las capas para ver cómo encaja cada pieza.</p>
               <p className="muted">Aquí se practica. Para aprender los conceptos paso a paso, sigue la <a href={`${GUIDE_URL}ruta/`}>ruta de aprendizaje</a> de la guía; si una palabra no te suena, búscala en el <a href={`${GUIDE_URL}glosario/`}>glosario</a>.</p>
             </header>
@@ -75,7 +86,7 @@ export function App() {
         <main>
           {view === 'mapa' && <MapPage />}
           {view === 'escenarios' && <ScenariosPage scenarioId={route.scenarioId} onChoose={id => { location.hash = scenarioHash(id); }} />}
-          {inventory && <InventoryPage repository={repository} />}
+          {inventory && (route.infraView === 'lista' ? <InventoryPage repository={repository} /> : <InfraMapPage repository={repository} />)}
         </main>
       </div>
     </>
