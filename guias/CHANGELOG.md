@@ -26,6 +26,8 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
   `npm test` falla si no coincide con el catálogo.
 - Tipo de equipo en cada ficha de marca (`deviceType`: `switch`, `firewall`, `hypervisor` o `storage`); las cuatro
   marcas actuales son switches. El índice para la web lo incluye en cada marca (`tipo`).
+- En la web, el planificador muestra la cuarta pestaña de «Mi infraestructura», «Plan de despliegue», después de
+  «Red y VLAN»: el orden queda «Mapa | Lista | Red y VLAN | Plan de despliegue», como en la app.
 
 ### Cambiado
 

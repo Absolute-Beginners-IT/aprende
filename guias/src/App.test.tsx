@@ -52,7 +52,7 @@ describe('App', () => {
     }
   })
 
-  it('on the website, shows the planner as a tab of «Mi infraestructura», after the map and the list', () => {
+  it('on the website, shows the planner as a tab of «Mi infraestructura», after the map and the list and before the deployment plan', () => {
     vi.stubEnv(
       'VITE_SITE_NAV',
       JSON.stringify([
@@ -71,6 +71,7 @@ describe('App', () => {
         ['Mapa', '../#mi-infraestructura'],
         ['Lista', '../#mi-infraestructura/lista'],
         ['Red y VLAN', '#/plan'],
+        ['Plan de despliegue', '../#mi-infraestructura/plan'],
       ])
       expect(tabs.getByRole('link', { name: 'Red y VLAN' })).toHaveAttribute('aria-current', 'page')
       expect(screen.queryByRole('link', { name: 'Planificador de red' })).not.toBeInTheDocument()

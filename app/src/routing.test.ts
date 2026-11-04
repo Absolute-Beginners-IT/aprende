@@ -23,6 +23,12 @@ describe('parseHash', () => {
     expect(parseHash('#mapa/lista')).toEqual({ view: 'mapa' });
   });
 
+  it('opens the deployment plan of «Mi infraestructura» with /plan', () => {
+    expect(parseHash('#mi-infraestructura/plan')).toEqual({ view: 'mi-infraestructura', infraView: 'plan' });
+    expect(parseHash('#mapa/plan')).toEqual({ view: 'mapa' });
+    expect(parseHash('#escenarios/plan')).toEqual({ view: 'escenarios', scenarioId: 'plan' });
+  });
+
   it('builds the shareable hash of a scenario', () => {
     expect(scenarioHash('sin-internet')).toBe('#escenarios/sin-internet');
     expect(parseHash(scenarioHash('sin-internet'))).toEqual({ view: 'escenarios', scenarioId: 'sin-internet' });

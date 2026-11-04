@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Device } from './types';
-import { connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, newDevice, placeUnplaced, withoutDevice, GRID } from './infraMap';
+import { connectDevices, connectionsOf, disconnectDevices, levelFinder, layoutDevices, moveDevice, newDevice, placeUnplaced, withoutDevice, GRID } from './infraMap';
 
 const dev = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
 
@@ -11,6 +11,14 @@ describe('connectionsOf', () => {
       { id: 'core->fw', from: 'core', to: 'fw' },
       { id: 'p1->core', from: 'p1', to: 'core' },
     ]);
+  });
+});
+
+describe('levelFinder', () => {
+  it('counts how far a device hangs from one with no uplinks, ignoring missing devices and loops', () => {
+    const levelOf = levelFinder([dev('p1', { uplinks: ['core'] }), dev('core', { uplinks: ['fw', 'gone'] }), dev('fw'), dev('a', { uplinks: ['b'] }), dev('b', { uplinks: ['a'] })]);
+    expect(['fw', 'core', 'p1'].map(levelOf)).toEqual([0, 1, 2]);
+    expect(['a', 'b'].map(levelOf)).toEqual([2, 1]);
   });
 });
 

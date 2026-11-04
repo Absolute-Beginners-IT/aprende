@@ -3,6 +3,7 @@ import { MapPage } from './features/map/MapPage';
 import { ScenariosPage } from './features/scenarios/ScenariosPage';
 import { InventoryPage } from './features/inventory/InventoryPage';
 import { InfraMapPage } from './features/inventory/InfraMapPage';
+import { DeploymentPlanPage } from './features/deployment/DeploymentPlanPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
@@ -16,11 +17,13 @@ const MAP_VIEWS = [
   ['escenarios', 'Escenarios'],
 ] as const;
 
-// «Mi infraestructura» is one workspace: the editable map, the device list and the network planner of the guides.
+// «Mi infraestructura» is one workspace: the editable map, the device list, the network planner of the guides
+// and the deployment plan. The guides' planner shows the same tabs (guias/src/features/navigation/AppShell.tsx).
 const INFRA_VIEWS = [
   ['#mi-infraestructura', 'Mapa'],
   ['#mi-infraestructura/lista', 'Lista'],
   [PLANNER_URL, 'Red y VLAN'],
+  ['#mi-infraestructura/plan', 'Plan de despliegue'],
 ] as const;
 
 const routeFromHash = (): Route => parseHash(location.hash);
@@ -39,7 +42,8 @@ function browserStorage(): Pick<Storage, 'getItem' | 'setItem'> {
 export function App() {
   const [route, setRoute] = useState<Route>(routeFromHash);
   const { view } = route;
-  const repository = useMemo(() => createLocalStorageInventoryRepository(browserStorage()), []);
+  const storage = useMemo(browserStorage, []);
+  const repository = useMemo(() => createLocalStorageInventoryRepository(storage), [storage]);
   useEffect(() => {
     const onHash = () => setRoute(routeFromHash());
     window.addEventListener('hashchange', onHash);
@@ -47,7 +51,7 @@ export function App() {
   }, []);
 
   const inventory = view === 'mi-infraestructura';
-  const infraHash = route.infraView === 'lista' ? '#mi-infraestructura/lista' : '#mi-infraestructura';
+  const infraHash = route.infraView ? `#mi-infraestructura/${route.infraView}` : '#mi-infraestructura';
 
   return (
     <>
@@ -61,7 +65,7 @@ export function App() {
           <header className="head">
             <span className="label">Mi infraestructura</span>
             <h1>Dibuja el mapa de tu red</h1>
-            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos.</p>
+            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos. El <b>Plan de despliegue</b> te dice en qué orden montar tus equipos y qué configurar, vigilar y mantener en cada uno.</p>
             <nav className="tabs" aria-label="Mi infraestructura">
               {INFRA_VIEWS.map(([href, label]) => (
                 <a key={href} href={href} className="tab" aria-current={href === infraHash ? 'page' : undefined}>{label}</a>
@@ -86,7 +90,9 @@ export function App() {
         <main>
           {view === 'mapa' && <MapPage />}
           {view === 'escenarios' && <ScenariosPage scenarioId={route.scenarioId} onChoose={id => { location.hash = scenarioHash(id); }} />}
-          {inventory && (route.infraView === 'lista' ? <InventoryPage repository={repository} /> : <InfraMapPage repository={repository} />)}
+          {inventory && !route.infraView && <InfraMapPage repository={repository} />}
+          {inventory && route.infraView === 'lista' && <InventoryPage repository={repository} />}
+          {inventory && route.infraView === 'plan' && <DeploymentPlanPage repository={repository} storage={storage} />}
         </main>
       </div>
     </>
