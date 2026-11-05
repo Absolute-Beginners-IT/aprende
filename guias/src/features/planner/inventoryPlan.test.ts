@@ -233,7 +233,23 @@ describe('advisories of the first delivery', () => {
       ['a', ''],
       ['b', ''],
     ])
-    expect(hidden).toEqual(['nucleo', 'planta1'])
+    // planta1 is in the inventory, twice: only nucleo is really missing.
+    expect(hidden).toEqual(['nucleo'])
     expect(duplicates).toEqual(['planta1'])
+  })
+
+  it('keeps the switches of a shared name when the hidden ones are discarded', () => {
+    const twins = devices([
+      { id: 'a', nombre: 'planta1', tipo: 'switch' },
+      { id: 'b', nombre: 'PLANTA1', tipo: 'switch' },
+    ])
+    const stored = twoSwitchPlan()
+    const { plan, duplicates } = combineWithInventory(stored, twins, catalog)
+
+    const kept = discardHidden(stored, plan, duplicates)
+
+    expect(kept.switches.map((item) => item.name)).toContain('planta1')
+    expect(kept.switches.map((item) => item.name)).not.toContain('nucleo')
+    expect(kept.ports).toEqual(stored.ports)
   })
 })
