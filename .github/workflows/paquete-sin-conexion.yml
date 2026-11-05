@@ -1,0 +1,49 @@
+# Publishes the offline package as a GitHub release when a tag sin-conexion-* is pushed: the standalone guides
+# (one HTML that works from disk) and the toolkit files of the catalog, with their SHA-256 and a LEEME.txt.
+# It does not depend on GitHub Pages, so the guides and tools stay available if the website stops.
+#   git tag sin-conexion-2026-11-05 && git push origin sin-conexion-2026-11-05
+name: Offline package
+
+on:
+  push:
+    tags: ['sin-conexion-*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # Actions are pinned to a commit so a moved tag cannot change what runs; the comment names its release.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Standalone guides (no website bar)
+        working-directory: guias
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          node --test "site/scripts/*.test.mjs"
+          node site/scripts/paquete.mjs "$TAG" dist/aprende-sin-conexion
+          (cd dist && zip -qr "aprende-sin-conexion-${TAG}.zip" aprende-sin-conexion)
+          cp dist/aprende-sin-conexion/guias.html "dist/guias-${TAG}.html"
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" "dist/aprende-sin-conexion-${TAG}.zip" "dist/guias-${TAG}.html" \
+            --title "Guías y herramientas sin conexión (${TAG})" \
+            --notes "Descomprime el zip y abre LEEME.txt. guias.html funciona con doble clic, sin internet; las herramientas están en herramientas/ y SHA256SUMS.txt tiene la huella de cada archivo. El HTML suelto son las mismas guías, para quien solo quiera eso."

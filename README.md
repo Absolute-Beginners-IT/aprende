@@ -34,10 +34,19 @@ node --test "site/scripts/*.test.mjs"      # tests de los scripts de la portada 
 
 Las guías se editan directamente en `guias/`. Sus repos de origen (`guias` y `Manual-Switches`) están archivados ([ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)).
 
-Para consultarlas sin conexión, compílalas sin la barra de la web y abre el archivo desde el disco:
+### Guías y herramientas sin conexión
+
+El [paquete sin conexión](https://github.com/Absolute-Beginners-IT/aprende/releases/latest) es un zip con las guías en un solo `guias.html` (se abre con doble clic, sin internet), las herramientas del catálogo de `toolkit/`, `SHA256SUMS.txt` y un `LEEME.txt`. Se publica como release de GitHub al subir una etiqueta `sin-conexion-*`:
 
 ```bash
-cd guias && npm ci && npm run build        # deja guias/dist/index.html, un único archivo que funciona sin conexión
+git tag sin-conexion-2026-11-05 && git push origin sin-conexion-2026-11-05
+```
+
+Para armarlo en local:
+
+```bash
+cd guias && npm ci && npm run build        # guías autónomas, sin la barra de la web
+node site/scripts/paquete.mjs prueba       # deja el paquete en dist/aprende-sin-conexion/
 ```
 
 ## Contenido
