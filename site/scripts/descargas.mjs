@@ -14,7 +14,11 @@ function rutaSegura(toolkit, ruta) {
   return destino;
 }
 
-export function generarDescargas({ raiz, destinoArchivos, destinoDatos }) {
+/**
+ * `prefijoRuta` is where each file is linked from: the site serves them under herramientas/descargas/, the offline
+ * package under herramientas/. Without `destinoDatos`, the list is only returned, not written.
+ */
+export function generarDescargas({ raiz, destinoArchivos, destinoDatos, prefijoRuta = 'herramientas/descargas/' }) {
   const toolkit = join(raiz, 'toolkit');
   const catalogo = JSON.parse(readFileSync(join(toolkit, 'catalogo.json'), 'utf8'));
 
@@ -46,15 +50,17 @@ export function generarDescargas({ raiz, destinoArchivos, destinoDatos }) {
       const contenido = readFileSync(origen);
       return {
         nombre: basename(ruta),
-        ruta: `herramientas/descargas/${ruta}`,
+        ruta: `${prefijoRuta}${ruta}`,
         sha256: createHash('sha256').update(contenido).digest('hex'),
         bytes: contenido.length,
       };
     }),
   }));
 
-  mkdirSync(dirname(destinoDatos), { recursive: true });
-  writeFileSync(destinoDatos, JSON.stringify(datos, null, 2));
+  if (destinoDatos) {
+    mkdirSync(dirname(destinoDatos), { recursive: true });
+    writeFileSync(destinoDatos, JSON.stringify(datos, null, 2));
+  }
   return datos;
 }
 

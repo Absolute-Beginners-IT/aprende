@@ -28,7 +28,7 @@ Las guías y las herramientas se tienen que poder consultar sin conexión y aunq
 - el toolkit sigue siendo archivos sueltos en `toolkit/`, sin depender de la web;
 - este repo es la copia de respaldo: con clonarlo se tiene todo.
 
-Pendiente: publicar un paquete sin conexión (las guías en un solo HTML y el toolkit) como descarga que no dependa de GitHub Pages, por ejemplo en una release de GitHub. El punto de partida es `guias/.github/workflows/release.yml`, que ya publicaba el HTML de las guías al crear una etiqueta en su repo original. Dentro de este repo no se ejecuta, como tampoco `ci.yml`, porque GitHub solo lanza los workflows de la raíz: hay que llevarlo a `.github/workflows/` y ajustarlo a la carpeta `guias/`.
+El paquete sin conexión se publica como release de GitHub, que no depende de GitHub Pages: al subir una etiqueta `sin-conexion-*`, el workflow `.github/workflows/paquete-sin-conexion.yml` compila las guías autónomas y arma con `site/scripts/paquete.mjs` un zip con `guias.html`, las herramientas del catálogo, `SHA256SUMS.txt` y `LEEME.txt`. Los workflows que trajeron las guías en `guias/.github/workflows/` no se ejecutan dentro de este repo, porque GitHub solo lanza los de la raíz.
 
 ## Por qué no otras opciones
 
