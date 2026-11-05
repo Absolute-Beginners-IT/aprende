@@ -9,9 +9,6 @@ export type DeviceGuides =
   | { estado: 'modelo-desconocido'; plataformas: GuidePlatform[] }
   | { estado: 'tipo-sin-guias' };
 
-// The guides only cover switches today; the platform is found with the same rule the guides use.
-const GUIDED_TYPE = 'switch';
-
 /** The platform of a device from its brand, model and firmware: the first one in the index whose pattern matches. */
 function platformOf(device: Device, platforms: GuidePlatform[]): GuidePlatform | undefined {
   const text = [device.marca, device.modelo, device.firmware].filter(Boolean).join(' ');
@@ -21,9 +18,11 @@ function platformOf(device: Device, platforms: GuidePlatform[]): GuidePlatform |
 
 /** The guides of a device, each linking to its runbook with the device chosen (`<base>#/p/<platform>/<task>?equipo=<id>`). */
 export function guidesForDevice(device: Device, index: GuideIndex, base: string): DeviceGuides {
-  if (device.tipo !== GUIDED_TYPE) return { estado: 'tipo-sin-guias' };
-  const plataforma = platformOf(device, index.plataformas);
-  if (!plataforma) return { estado: 'modelo-desconocido', plataformas: index.plataformas };
+  // Only platforms of the device's own type count: a FortiGate pattern says nothing about a switch.
+  const plataformas = index.plataformas.filter(p => p.tipo === device.tipo);
+  if (plataformas.length === 0) return { estado: 'tipo-sin-guias' };
+  const plataforma = platformOf(device, plataformas);
+  if (!plataforma) return { estado: 'modelo-desconocido', plataformas };
   const equipo = encodeURIComponent(device.id);
   const grupos = index.grupos.map(g => ({
     id: g.id,

@@ -30,8 +30,8 @@ const network = [
   dev('isp', { nombre: 'Internet', tipo: 'internet' }),
 ];
 const stepsOf = (tipo: string) => { const t = content.tipos.find(x => x.id === tipo)!; return (t.alertas.length ? 2 : 1) + t.actuaciones.length; };
-// FW01 has no guides; CORE (Aruba CX 6100) has the ten deployment guides.
-const TOTAL = stepsOf('firewall') + 10 + stepsOf('switch');
+// FW01 (FortiGate) has three deployment guides; CORE (Aruba CX 6100) has ten.
+const TOTAL = stepsOf('firewall') + 3 + 10 + stepsOf('switch');
 
 const renderPage = (devices: Device[] = network, storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage) =>
   render(<DeploymentPlanPage repository={memoryRepository(devices)} storage={storage} />);
@@ -60,11 +60,17 @@ describe('DeploymentPlanPage', () => {
     expect(core.getByText(switchType.actuaciones[0].frecuencia)).toBeTruthy();
   });
 
-  it('explains in Configurar why a device has no guides, as its ficha does', async () => {
+  it('links the guides of a FortiGate firewall in Configurar', async () => {
     renderPage();
     await screen.findAllByRole('article');
-    expect(card('1. FW01').getByText('Las guías de este tipo de equipo llegarán más adelante; de momento cubren switches.')).toBeTruthy();
-    expect(card('1. FW01').queryAllByRole('link')).toHaveLength(0);
+    expect(card('1. FW01').getByRole('link', { name: 'Sincronizar la hora con NTP' }).getAttribute('href')).toBe('./guias/#/p/fortinet-fortigate/ntp-client?equipo=fw');
+  });
+
+  it('explains in Configurar why a device has no guides, as its ficha does', async () => {
+    renderPage([dev('srv', { nombre: 'SRV01', tipo: 'servidor' })]);
+    await screen.findAllByRole('article');
+    expect(card('1. SRV01').getByText('Las guías de este tipo de equipo llegarán más adelante.')).toBeTruthy();
+    expect(card('1. SRV01').queryAllByRole('link')).toHaveLength(0);
   });
 
   it('saves a ticked step in this browser, counts it and keeps it after reloading', async () => {

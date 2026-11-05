@@ -10,18 +10,28 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('covers the four platforms used at the company', () => {
+  it('covers the four switches used at the company and the FortiGate firewall', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
-    expect(new Set(ids)).toEqual(new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee']))
+    expect(new Set(ids)).toEqual(
+      new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee', 'fortinet-fortigate']),
+    )
   })
 
-  it('declares a known device type with a label for every platform; the four current ones are switches', () => {
+  it('declares a known device type with a label for every platform: four switches and one firewall', () => {
     for (const platform of catalog.platforms) {
       expect(DEVICE_TYPES, platform.id).toContain(platform.deviceType)
       expect(DEVICE_TYPE_LABELS[platform.deviceType], platform.id).toBeTruthy()
     }
-    expect(new Set(catalog.platforms.map((item) => item.deviceType))).toEqual(new Set(['switch']))
+    const typeOf = (id: string) => catalog.platforms.find((item) => item.id === id)?.deviceType
+    expect(typeOf('fortinet-fortigate')).toBe('firewall')
+    expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
+  })
+
+  it('starts the FortiGate with the backup, time and log runbooks', () => {
+    const tasks = catalog.procedures.filter((item) => item.platform === 'fortinet-fortigate').map((item) => item.task)
+
+    expect(new Set(tasks)).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote']))
   })
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(

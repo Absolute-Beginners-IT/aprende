@@ -2,6 +2,7 @@ import type { Catalog } from '../../domain/buildCatalog'
 import { inSubnet, type NetworkPlan, orderFromCore } from '../../domain/networkPlan'
 import type { Param } from '../../domain/schema'
 import { isCidr, isIpv4, validateParam } from '../../domain/validateParam'
+import { switchPlatforms } from './inventoryImport'
 import { INTERFACE_PARAM_IDS } from './resolveParam'
 
 export type PlanSection = 'vlans' | 'switches' | 'links' | 'ports'
@@ -72,7 +73,7 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
   const addressOwner = new Map<string, string>()
   for (const item of plan.switches) {
     const name = nameOf(item.id)
-    if (!catalog.platforms.some((platform) => platform.id === item.platform)) {
+    if (!switchPlatforms(catalog).some((platform) => platform.id === item.platform)) {
       add('switches', `Elige el modelo de ${name} entre los del manual.`)
     }
     const mgmtIp = item.mgmtIp.trim()

@@ -1,0 +1,78 @@
+platform: fortinet-fortigate
+task: config-backup
+summary: >-
+  Guarda la configuración completa de un FortiGate en un servidor TFTP de la
+  empresa, para poder volver a ella si un cambio sale mal.
+risk:
+  level: low
+  reason: Hacer la copia no modifica la configuración ni afecta al tráfico.
+params:
+  - id: tftpServer
+    label: IP del servidor TFTP
+    type: ipv4
+    example: 192.168.10.40
+  - id: backupName
+    label: Nombre del archivo
+    type: text
+    example: fgt60f-antes-cambio.conf
+    pattern: '^[A-Za-z0-9._-]{1,60}$'
+    patternHint: Hasta 60 caracteres; letras, números, punto, guion y guion bajo.
+preflight:
+  - text: >-
+      Comprueba que el servidor TFTP está en marcha y acepta archivos nuevos desde la
+      IP del FortiGate.
+  - text: >-
+      La copia contiene información sensible de la red. Ten decidido dónde vas a
+      guardarla después.
+  - text: >-
+      Si el FortiGate tiene VDOM activados, escribe antes config global para copiar
+      la configuración de todo el equipo.
+steps:
+  - title: Enviar la copia al servidor TFTP
+    commands:
+      - execute backup config tftp {{backupName}} {{tftpServer}}
+    explanation: >-
+      Envía la configuración completa al servidor {{tftpServer}} con el nombre
+      {{backupName}}.
+    warning: >-
+      Sin contraseña, el archivo queda sin cifrar. Para cifrarlo añade una
+      contraseña al final del comando; esta guía no la guarda, anótala en el gestor
+      de contraseñas de la empresa.
+    breakdown:
+      - token: execute backup config tftp
+        meaning: Copia la configuración a un servidor TFTP.
+      - token: '{{backupName}}'
+        meaning: Nombre que tendrá el archivo en el servidor.
+      - token: '{{tftpServer}}'
+        meaning: Dirección del servidor TFTP.
+  - title: Guardar la copia en su sitio
+    manual: true
+    explanation: >-
+      Mueve {{backupName}} del servidor TFTP al repositorio de copias de la empresa.
+      El TFTP no pide usuario ni contraseña, así que no conviene dejar ahí copias
+      con datos de la red.
+verification:
+  - expect: >-
+      En el servidor TFTP aparece {{backupName}} con la fecha y hora de ahora y un
+      tamaño mayor que cero.
+rollback:
+  summary: >-
+    No hay nada que deshacer en el FortiGate. Si la copia no hace falta, se borra del
+    servidor TFTP.
+  steps:
+    - title: Borrar la copia del servidor
+      manual: true
+      explanation: Borra {{backupName}} del servidor TFTP. No toca la configuración del FortiGate.
+sources:
+  - title: FortiOS 7.4 CLI Reference — execute backup
+    url: https://docs.fortinet.com/document/fortigate/7.4.7/cli-reference/229031989/execute-backup
+  - title: FortiOS 7.4 Administration Guide — Configuration backups
+    url: https://docs.fortinet.com/document/fortigate/7.4.2/administration-guide/702257/configuration-backups
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: FortiOS 7.4
+  notes: >-
+    La forma execute backup config tftp con el archivo, el servidor y una contraseña
+    opcional está contrastada con la referencia oficial. El mensaje que muestra el
+    equipo al terminar no se ha contrastado. Falta probarla en un FortiGate real.

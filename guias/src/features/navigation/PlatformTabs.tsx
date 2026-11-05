@@ -12,9 +12,13 @@ export function PlatformTabs({ catalog, activePlatform, task }: PlatformTabsProp
   const hasTask = (platform: string) =>
     catalog.procedures.some((procedure) => procedure.platform === platform && procedure.task === task)
 
+  // Brands of the same kind of device as the one open: a firewall is not an alternative to a switch.
+  const deviceType = catalog.platforms.find((platform) => platform.id === activePlatform)?.deviceType
+  const platforms = catalog.platforms.filter((platform) => !deviceType || platform.deviceType === deviceType)
+
   return (
     <nav className="brand-tabs" aria-label="Marcas">
-      {catalog.platforms.map((platform) => (
+      {platforms.map((platform) => (
         <a
           key={platform.id}
           href={task && hasTask(platform.id) ? runbookHref(platform.id, task) : platformHref(platform.id)}

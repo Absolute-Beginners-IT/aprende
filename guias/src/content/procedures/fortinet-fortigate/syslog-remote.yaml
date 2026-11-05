@@ -1,0 +1,72 @@
+platform: fortinet-fortigate
+task: syslog-remote
+summary: >-
+  Envía los registros de un FortiGate a un servidor syslog por UDP 514, con los
+  valores de fábrica de FortiOS 7.4.
+risk:
+  level: low
+  reason: Enviar registros no afecta al tráfico ni al acceso de gestión.
+params:
+  - id: serverIp
+    label: IP del servidor syslog
+    type: ipv4
+    example: 192.168.10.30
+preflight:
+  - text: >-
+      Mira si ya se envían registros a algún servidor. Si status está en enable con
+      otro servidor, esta guía lo sustituye: confirma antes que ya no hace falta.
+    command: show log syslogd setting
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
+    command: get system status
+  - text: Confirma con quien administra el servidor syslog que acepta mensajes desde la IP del FortiGate.
+steps:
+  - title: Entrar en la configuración de syslog
+    commands:
+      - config log syslogd setting
+    explanation: El prompt cambia a (setting).
+  - title: Activar el envío al servidor
+    commands:
+      - set status enable
+      - set server {{serverIp}}
+    explanation: >-
+      Envía los registros a {{serverIp}}. Sin cambiar nada más usa UDP en el puerto
+      514 y la categoría (facility) local7, que son los valores de fábrica.
+    breakdown:
+      - token: set status enable
+        meaning: Activa el envío al servidor syslog remoto. De fábrica está desactivado.
+      - token: set server {{serverIp}}
+        meaning: IP o nombre del servidor syslog.
+  - title: Aplicar y salir
+    commands:
+      - end
+    explanation: Aplica los cambios y vuelve al nivel superior. No hace falta guardar aparte.
+  - title: Comprobar la llegada en el servidor
+    manual: true
+    explanation: >-
+      Provoca un registro inofensivo, por ejemplo cerrando la sesión y volviendo a
+      entrar, y búscalo en el servidor syslog filtrando por la IP del FortiGate.
+verification:
+  - command: show log syslogd setting
+    expect: Aparecen set status enable y set server {{serverIp}}.
+rollback:
+  summary: Deja de enviar registros al servidor syslog.
+  steps:
+    - title: Desactivar el envío
+      commands:
+        - config log syslogd setting
+        - set status disable
+        - end
+      explanation: Desactiva el envío, que vuelve a quedar como de fábrica.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: FortiOS 7.4 CLI Reference — config log syslogd setting
+    url: https://docs.fortinet.com/document/fortigate/7.4.0/cli-reference/405620/config-log-syslogd-setting
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: FortiOS 7.4
+  notes: >-
+    status (desactivado de fábrica), server, mode (udp de fábrica), port (514 de
+    fábrica) y facility (local7 de fábrica) están contrastados con la referencia
+    oficial. Que get system status muestre la hora no se ha contrastado. Falta
+    probarla en un FortiGate real.

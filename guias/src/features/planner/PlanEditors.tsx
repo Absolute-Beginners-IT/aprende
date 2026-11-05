@@ -8,6 +8,7 @@ import {
   VLAN_PURPOSES,
 } from '../../domain/networkPlan'
 import { PURPOSE_LABELS } from '../labels'
+import { switchPlatforms } from './inventoryImport'
 import { PLAN_TEMPLATES } from './planTemplates'
 import { nextId } from './usePlan'
 import { interfaceParam } from './validatePlan'
@@ -259,7 +260,7 @@ export function SwitchEditor({ plan, catalog, onChange, inventory }: EditorProps
                       onChange={(event) => update(index, { platform: event.target.value })}
                     >
                       <option value="">Elige…</option>
-                      {catalog.platforms.map((platform) => (
+                      {switchPlatforms(catalog).map((platform) => (
                         <option key={platform.id} value={platform.id}>
                           {platform.name}
                         </option>

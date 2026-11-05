@@ -8,6 +8,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Primer equipo que no es un switch: el firewall FortiGate (FortiOS 7.4), con las guías para guardar una copia de la
+  configuración, sincronizar la hora con NTP y enviar los registros a un servidor syslog. Sale en la biblioteca en
+  «Firewalls». Sus pestañas de marca y «Misma tarea en otra marca» solo enlazan equipos del mismo tipo, el
+  planificador y el desplegable «Rellenar con un equipo de mi infraestructura» siguen siendo solo para switches, y las
+  tareas de NTP, syslog y copia de la configuración hablan ahora del «equipo» en lugar del «switch».
 - Aviso fijo en todas las páginas: el manual es un prototipo en desarrollo y no sustituye a la documentación oficial
   del fabricante ni a una prueba en laboratorio.
 - Barra de navegación de la web que contiene el manual, cuando se compila dentro de ella (variable `VITE_SITE_NAV`, con

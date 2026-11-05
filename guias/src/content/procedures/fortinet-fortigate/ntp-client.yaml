@@ -1,0 +1,84 @@
+platform: fortinet-fortigate
+task: ntp-client
+summary: >-
+  Activa la sincronización de la hora de un FortiGate, que en FortiOS 7.4 viene
+  desactivada de fábrica, y la apunta al servidor de tiempo de la empresa en lugar
+  del de FortiGuard.
+risk:
+  level: low
+  reason: Sincronizar la hora no afecta al tráfico ni al acceso de gestión.
+params:
+  - id: ntpServer
+    label: Servidor de tiempo
+    type: text
+    example: 192.168.10.5
+    pattern: '^[A-Za-z0-9.-]{1,63}$'
+    patternHint: Una IP o un nombre de equipo, sin espacios y de hasta 63 caracteres.
+    help: Si usas un nombre, el FortiGate necesita tener configurado un servidor DNS.
+preflight:
+  - text: >-
+      Mira la configuración actual de NTP. Si ya hay un servidor con el número 1 en
+      la lista, esta guía lo sustituye: anota cuál era por si hay que volver atrás.
+    command: show system ntp
+steps:
+  - title: Entrar en la sección de NTP
+    commands:
+      - config system ntp
+    explanation: El prompt cambia a (ntp).
+  - title: Activar la sincronización con un servidor propio
+    commands:
+      - set ntpsync enable
+      - set type custom
+    explanation: >-
+      Activa la sincronización, que de fábrica está desactivada, y elige un servidor
+      propio en lugar del de FortiGuard.
+    breakdown:
+      - token: set ntpsync enable
+        meaning: Pone en hora el equipo sincronizando con un servidor NTP.
+      - token: set type custom
+        meaning: Usa los servidores de la lista ntpserver. El valor de fábrica, fortiguard, usa el de Fortinet.
+  - title: Añadir el servidor de tiempo
+    commands:
+      - config ntpserver
+      - edit 1
+      - set server {{ntpServer}}
+      - next
+      - end
+    explanation: Crea la entrada 1 de la lista de servidores con {{ntpServer}} y la guarda.
+  - title: Aplicar y salir
+    commands:
+      - end
+    explanation: Aplica los cambios de la sección y vuelve al nivel superior. No hace falta guardar aparte.
+verification:
+  - command: diagnose sys ntp status
+    expect: >-
+      Aparece {{ntpServer}} como servidor y el equipo dice que está sincronizado.
+      Puede tardar unos minutos.
+rollback:
+  summary: Quita el servidor añadido y vuelve a usar el servidor de FortiGuard.
+  steps:
+    - title: Volver al servidor de FortiGuard
+      commands:
+        - config system ntp
+        - set type fortiguard
+        - config ntpserver
+        - delete 1
+        - end
+        - end
+      explanation: >-
+        Borra la entrada 1 y vuelve al servidor de Fortinet. Si antes la
+        sincronización estaba desactivada, añade set ntpsync disable antes del último
+        end.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: FortiOS 7.4 CLI Reference — config system ntp
+    url: https://docs.fortinet.com/document/fortigate/7.4.0/cli-reference/110620/config-system-ntp
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: FortiOS 7.4
+  notes: >-
+    ntpsync (desactivado de fábrica), type (fortiguard de fábrica o custom) y la
+    lista ntpserver están contrastados con la referencia oficial. El comando de
+    comprobación diagnose sys ntp status y su salida no aparecen en la página
+    consultada. Falta probarla en un FortiGate real.
