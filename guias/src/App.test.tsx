@@ -409,9 +409,10 @@ describe('quick search', () => {
       'Cisco Catalyst 1300',
       'FortiGate',
       'MikroTik CRS317',
+      'Proxmox VE',
       'Ruijie NBS3200',
     ])
-    expect(within(rows[4] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
+    expect(within(rows[5] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
   })
 
   it('shows an article with its sections and links its tasks to the brand in use', () => {
@@ -544,7 +545,7 @@ describe('quick search', () => {
 describe('inside the website', () => {
   const library = () => within(screen.getByRole('navigation', { name: 'Biblioteca' }))
   const switchPlatforms = ['Aruba CX 6100', 'Cisco Catalyst 1300', 'MikroTik CRS317', 'Ruijie NBS3200']
-  const upcomingTypes = ['Virtualización', 'Almacenamiento']
+  const upcomingTypes = ['Almacenamiento']
 
   beforeEach(() => {
     vi.stubEnv(
@@ -631,6 +632,8 @@ describe('inside the website', () => {
       const id = catalog.platforms.find((platform) => platform.name === name)?.id
       expect(switches.getByRole('link', { name })).toHaveAttribute('href', `#/p/${id}`)
     }
+    const virtualization = within(library().getByRole('group', { name: 'Virtualización' }))
+    expect(virtualization.getByRole('link', { name: 'Proxmox VE' })).toHaveAttribute('href', '#/p/proxmox-ve')
     const firewalls = within(library().getByRole('group', { name: 'Firewalls' }))
     expect(firewalls.getByRole('link', { name: 'FortiGate' })).toHaveAttribute('href', '#/p/fortinet-fortigate')
     for (const type of upcomingTypes) {
@@ -731,7 +734,10 @@ describe('inside the website', () => {
 
     const cards = within(screen.getByRole('list', { name: 'Tipos de equipo' }))
     const switches = cards.getByRole('heading', { name: 'Switches' }).closest('li') as HTMLElement
-    const switchTasks = new Set(catalog.procedures.map((item) => item.task)).size
+    const switchIds = new Set(catalog.platforms.filter((item) => item.deviceType === 'switch').map((item) => item.id))
+    const switchTasks = new Set(
+      catalog.procedures.filter((item) => switchIds.has(item.platform)).map((item) => item.task),
+    ).size
     expect(switches).toHaveTextContent(`${switchTasks} tareas`)
     for (const platform of catalog.platforms.filter((item) => item.deviceType === 'switch')) {
       const guides = catalog.procedures.filter((item) => item.platform === platform.id).length
@@ -739,6 +745,9 @@ describe('inside the website', () => {
       expect(link).toHaveAttribute('href', `#/p/${platform.id}`)
       expect(link).toHaveTextContent(`${guides} guías`)
     }
+    const virtualization = cards.getByRole('heading', { name: 'Virtualización' }).closest('li') as HTMLElement
+    expect(virtualization).toHaveTextContent('1 marca · 5 tareas')
+    expect(within(virtualization).getByRole('link', { name: /^Proxmox VE/ })).toHaveTextContent('5 guías')
     const firewalls = cards.getByRole('heading', { name: 'Firewalls' }).closest('li') as HTMLElement
     expect(firewalls).toHaveTextContent('1 marca · 3 tareas')
     expect(within(firewalls).getByRole('link', { name: /^FortiGate/ })).toHaveTextContent('3 guías')

@@ -1,0 +1,92 @@
+platform: proxmox-ve
+task: user-admin
+summary: >-
+  Crea en Proxmox VE 9 un usuario con nombre propio en el reino de Proxmox (pve),
+  dentro de un grupo de administradores, para no trabajar con root.
+risk:
+  level: medium
+  reason: >-
+    Añade una cuenta con control total del nodo y sus máquinas virtuales. No afecta a
+    las cuentas existentes, pero una contraseña débil compromete todo.
+params:
+  - id: userName
+    label: Nombre del usuario
+    type: text
+    example: jconde
+    pattern: '^(?!root$)[a-z][a-z0-9._-]{0,31}$'
+    patternHint: Empieza por letra; minúsculas, números, punto, guion y guion bajo; no puede ser root.
+  - id: groupName
+    label: Grupo de administradores
+    type: text
+    example: admin
+    pattern: '^[A-Za-z][A-Za-z0-9_-]{0,31}$'
+    patternHint: Empieza por letra; letras, números, guion y guion bajo.
+preflight:
+  - text: Mira qué usuarios existen ya.
+    command: pveum user list
+  - text: Ten la contraseña decidida y guardada en el gestor de contraseñas de la empresa.
+  - text: No cierres tu sesión de root hasta comprobar que la cuenta nueva entra.
+steps:
+  - title: Crear el grupo de administradores
+    commands:
+      - pveum group add {{groupName}} -comment "Administradores"
+    explanation: >-
+      Crea el grupo {{groupName}}. Si ya existe, el comando da un error y puedes seguir
+      con el paso siguiente.
+  - title: Darle al grupo el rol de administrador
+    commands:
+      - pveum acl modify / -group {{groupName}} -role Administrator
+    explanation: >-
+      Da al grupo el rol Administrator, con todos los permisos, en la raíz (/), que
+      cubre todo el nodo o el clúster.
+    breakdown:
+      - token: acl modify /
+        meaning: Cambia los permisos de la raíz, que se heredan en todo lo demás.
+      - token: -role Administrator
+        meaning: Rol con todos los privilegios.
+  - title: Crear el usuario y añadirlo al grupo
+    commands:
+      - pveum user add {{userName}}@pve -group {{groupName}}
+    explanation: >-
+      Crea {{userName}} en el reino pve, el de los usuarios propios de Proxmox, ya
+      dentro del grupo {{groupName}}.
+  - title: Poner la contraseña
+    commands:
+      - pveum passwd {{userName}}@pve
+    explanation: El comando pide la contraseña dos veces sin mostrarla.
+    warning: No escribas la contraseña en el comando; quedaría en el historial de la consola.
+  - title: Activar la verificación en dos pasos
+    manual: true
+    explanation: >-
+      Entra en la interfaz web con la cuenta nueva y, en el menú de tu usuario, añade
+      un segundo factor (TOTP). Proxmox permite activarlo aunque el reino no lo exija.
+verification:
+  - command: pveum user list
+    expect: Aparece {{userName}}@pve en el grupo {{groupName}}.
+  - expect: >-
+      En la interfaz web puedes entrar como {{userName}}, con el reino Proxmox VE
+      authentication server, y ves todo el nodo.
+rollback:
+  summary: Borra el usuario creado y, si no lo usa nadie más, el grupo.
+  steps:
+    - title: Borrar el usuario y el grupo
+      commands:
+        - pveum user delete {{userName}}@pve
+        - pveum group delete {{groupName}}
+      explanation: Borra la cuenta y el grupo. No borres un grupo que ya existía antes.
+  lockoutRecovery: >-
+    root@pam siempre puede entrar por la consola del servidor o por SSH: el reino Linux
+    PAM no depende de estos usuarios.
+sources:
+  - title: Proxmox VE 9 — User Management
+    url: https://pve.proxmox.com/pve-docs/chapter-pveum.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    pveum group add, pveum acl modify con el rol Administrator, pveum user add,
+    pveum passwd y la opción -group están contrastados con la documentación oficial,
+    igual que el acceso garantizado de root en el reino PAM. pveum user list y los
+    comandos de borrado no aparecen en las partes consultadas. Falta probarla en un
+    Proxmox real.

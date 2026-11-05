@@ -33,6 +33,14 @@
       "flags": "i"
     },
     {
+      "id": "proxmox-ve",
+      "nombre": "Proxmox VE",
+      "fabricante": "Proxmox",
+      "tipo": "hypervisor",
+      "patron": "proxmox|\\bpve\\b",
+      "flags": "i"
+    },
+    {
       "id": "ruijie-reyee",
       "nombre": "Ruijie NBS3200",
       "fabricante": "Ruijie Reyee",
@@ -61,6 +69,14 @@
   ],
   "tareas": [
     {
+      "id": "os-install",
+      "titulo": "Instalar el sistema",
+      "grupo": "setup-access",
+      "plataformas": [
+        "proxmox-ve"
+      ]
+    },
+    {
       "id": "config-backup",
       "titulo": "Guardar una copia de la configuración",
       "grupo": "setup-access",
@@ -69,6 +85,7 @@
         "cisco-c1300",
         "fortinet-fortigate",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },
@@ -101,7 +118,8 @@
       "plataformas": [
         "aruba-aoscx",
         "cisco-c1300",
-        "mikrotik-routeros"
+        "mikrotik-routeros",
+        "proxmox-ve"
       ]
     },
     {
@@ -188,6 +206,7 @@
         "cisco-c1300",
         "fortinet-fortigate",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },
@@ -200,6 +219,7 @@
         "cisco-c1300",
         "fortinet-fortigate",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },

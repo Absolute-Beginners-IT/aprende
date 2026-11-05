@@ -10,22 +10,39 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('covers the four switches used at the company and the FortiGate firewall', () => {
+  it('covers the four switches used at the company, the FortiGate firewall and the Proxmox VE hypervisor', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
     expect(new Set(ids)).toEqual(
-      new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee', 'fortinet-fortigate']),
+      new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee', 'fortinet-fortigate', 'proxmox-ve']),
     )
   })
 
-  it('declares a known device type with a label for every platform: four switches and one firewall', () => {
+  it('declares a known device type with a label for every platform: four switches, a firewall and a hypervisor', () => {
     for (const platform of catalog.platforms) {
       expect(DEVICE_TYPES, platform.id).toContain(platform.deviceType)
       expect(DEVICE_TYPE_LABELS[platform.deviceType], platform.id).toBeTruthy()
     }
     const typeOf = (id: string) => catalog.platforms.find((item) => item.id === id)?.deviceType
     expect(typeOf('fortinet-fortigate')).toBe('firewall')
+    expect(typeOf('proxmox-ve')).toBe('hypervisor')
     expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
+  })
+
+  it('starts Proxmox VE with its installation, the admin user, time, logs and the configuration backup', () => {
+    const tasks = catalog.procedures.filter((item) => item.platform === 'proxmox-ve').map((item) => item.task)
+
+    expect(new Set(tasks)).toEqual(
+      new Set(['os-install', 'user-admin', 'ntp-client', 'syslog-remote', 'config-backup']),
+    )
+  })
+
+  it('puts the installation first among the setup tasks and rates it as high risk, since it erases the disk', () => {
+    const setup = catalog.concepts.filter((item) => item.group === 'setup-access').map((item) => item.id)
+    expect(setup[0]).toBe('os-install')
+    for (const procedure of catalog.procedures.filter((item) => item.task === 'os-install')) {
+      expect(procedure.risk.level, procedure.platform).toBe('high')
+    }
   })
 
   it('starts the FortiGate with the backup, time and log runbooks', () => {

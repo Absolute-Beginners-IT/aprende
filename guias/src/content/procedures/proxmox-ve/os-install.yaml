@@ -1,0 +1,117 @@
+platform: proxmox-ve
+task: os-install
+summary: >-
+  Instala Proxmox VE 9 en un servidor desde un USB con el instalador gráfico y lo
+  deja accesible en su interfaz web, en el puerto 8006 de la IP de gestión.
+risk:
+  level: high
+  reason: >-
+    El instalador borra por completo el disco elegido. Elegir el disco equivocado
+    destruye sus datos sin vuelta atrás.
+params:
+  - id: hostName
+    label: Nombre completo del equipo
+    type: text
+    example: pve1.empresa.local
+    pattern: '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$'
+    patternHint: Un nombre con dominio (FQDN), en minúsculas, por ejemplo pve1.empresa.local.
+  - id: ipCidr
+    label: IP de gestión con prefijo
+    type: cidr
+    example: 192.168.99.20/24
+  - id: gateway
+    label: Puerta de enlace
+    type: ipv4
+    example: 192.168.99.1
+  - id: dnsServer
+    label: Servidor DNS
+    type: ipv4
+    example: 192.168.10.5
+preflight:
+  - text: >-
+      Comprueba que el servidor tiene la virtualización activada en la BIOS o UEFI
+      (Intel VT o AMD-V) y al menos 2 GB de memoria para Proxmox VE, más la que vayan a
+      usar las máquinas virtuales.
+  - text: >-
+      Descarga la imagen ISO de Proxmox VE 9 desde la web oficial
+      (https://www.proxmox.com/en/downloads) y comprueba su huella SHA-256 con la que
+      publica la propia página.
+  - text: >-
+      Confirma que {{ipCidr}} está libre en la red de gestión, y que nada del disco
+      donde vas a instalar hace falta: se va a borrar entero.
+steps:
+  - title: Preparar el USB de instalación
+    manual: true
+    explanation: >-
+      En Windows usa Etcher, o Rufus en modo DD: cuando Rufus pregunte por otra versión
+      de GRUB, contesta No y elige el modo DD en la ventana siguiente. En Linux,
+      localiza el USB con lsblk y copia la imagen con dd bs=1M conv=fdatasync
+      if=./proxmox-ve_*.iso of=/dev/XYZ, cambiando /dev/XYZ por el USB.
+    warning: >-
+      Comprueba dos veces el destino: escribir la imagen en el disco equivocado lo
+      borra.
+  - title: Arrancar el servidor desde el USB
+    manual: true
+    explanation: >-
+      Conecta el USB, arranca el servidor y elige el USB en el menú de arranque de la
+      BIOS o UEFI. En el menú del instalador, elige la instalación gráfica.
+  - title: Elegir el disco de destino
+    manual: true
+    explanation: >-
+      Acepta la licencia y elige el disco donde instalar. Con el botón Options eliges
+      el sistema de archivos: ext4 es el valor por defecto; ZFS permite un espejo
+      entre dos discos y necesita más memoria (en torno a 1 GB por cada TB usado).
+    warning: Todo lo que haya en el disco elegido se borra.
+  - title: Indicar la ubicación, la contraseña y el correo
+    manual: true
+    explanation: >-
+      Revisa el país, la zona horaria y la distribución del teclado, que el
+      instalador suele detectar solo. Escribe la contraseña de root (al menos 12
+      caracteres, aunque el mínimo sea 8), guárdala en el gestor de contraseñas de la
+      empresa y pon el correo al que llegarán los avisos del servidor.
+  - title: Configurar la red de gestión
+    manual: true
+    explanation: >-
+      Elige la tarjeta de red conectada a la red de gestión (las que tienen enlace
+      aparecen con un círculo relleno) y escribe el nombre {{hostName}}, la IP
+      {{ipCidr}}, la puerta de enlace {{gateway}} y el DNS {{dnsServer}}.
+  - title: Instalar y reiniciar
+    manual: true
+    explanation: >-
+      Revisa el resumen y pulsa Install. Al terminar, quita el USB y deja que el
+      servidor reinicie desde el disco.
+verification:
+  - command: pveversion
+    expect: En la consola del servidor, muestra la versión instalada de Proxmox VE 9.
+  - command: hostname -f
+    expect: Devuelve {{hostName}}.
+  - expect: >-
+      Desde otro equipo de la red de gestión se abre la interfaz web: https://, la IP
+      de {{ipCidr}} sin el prefijo y :8006 (por ejemplo https://192.168.99.20:8006).
+      Entras como root, con el reino Linux PAM y la contraseña que elegiste.
+rollback:
+  summary: >-
+    No hay vuelta atrás: el instalador borró el disco. Para recuperar lo que había,
+    hace falta la copia que se hizo antes.
+  steps:
+    - title: Reinstalar o restaurar desde la copia
+      manual: true
+      explanation: >-
+        Si la instalación salió mal, repítela desde el USB. Si había datos en el disco,
+        solo se recuperan desde una copia hecha antes de instalar.
+  lockoutRecovery: >-
+    Si no llegas a la interfaz web, entra desde la consola física del servidor como
+    root y revisa la IP con ip -br addr y la configuración en /etc/network/interfaces.
+sources:
+  - title: Proxmox VE 9 — Installation
+    url: https://pve.proxmox.com/pve-docs/chapter-pve-installation.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Requisitos, preparación del USB (Etcher, Rufus en modo DD y dd), disco y sistema
+    de archivos, contraseña, correo, red y acceso en el puerto 8006 contrastados con
+    la documentación oficial de Proxmox VE 9.2. Los nombres exactos de los campos de
+    la pantalla de red no aparecen en las partes consultadas. Falta probarla en un
+    servidor real.

@@ -8,8 +8,8 @@ import { slugify } from './inventoryCsv';
 // configure (its guides), watch (its type's monitoring) and maintain (its type's tasks). Nothing here is new content:
 // it is the inventory read against the type knowledge, the vendor configurations and the guide index.
 
-/** Guides of a switch in the order they are applied when it is first set up; a platform without one skips it. */
-export const DEPLOYMENT_ORDER = ['mgmt-ip', 'user-admin', 'ssh-access', 'ntp-client', 'vlan-create', 'port-trunk', 'port-access', 'snmp-monitoring', 'syslog-remote', 'config-backup'] as const;
+/** Guides of a device in the order they are applied when it is first set up; a platform without one skips it. */
+export const DEPLOYMENT_ORDER = ['os-install', 'mgmt-ip', 'user-admin', 'ssh-access', 'ntp-client', 'vlan-create', 'port-trunk', 'port-access', 'snmp-monitoring', 'syslog-remote', 'config-backup'] as const;
 
 /** One thing to do on a device; `id` is stable, so the progress saved in the browser keeps pointing to it. */
 export interface PlanStep { id: string; texto: string; detalles: string[]; href?: string }

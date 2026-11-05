@@ -32,7 +32,7 @@ describe('guidesForDevice', () => {
     expect(g.grupos[0].tareas[0]).toEqual({
       id: 'config-backup', titulo: 'Guardar una copia de la configuración', href: './guias/#/p/aruba-aoscx/config-backup?equipo=sw01',
     });
-    expect(g.grupos.flatMap(gr => gr.tareas)).toHaveLength(content.guias.tareas.length);
+    expect(g.grupos.flatMap(gr => gr.tareas)).toHaveLength(content.guias.tareas.filter(t => t.plataformas.includes('aruba-aoscx')).length);
   });
 
   it('encodes the device id in the link', () => {
@@ -94,6 +94,6 @@ describe('guidesForDevice', () => {
     const nas = of(dev('almacenamiento', { modelo: 'Nas 2' }));
     expect(nas.estado === 'cubierto' && nas.plataforma.id).toBe('nas');
     const unknown = of(dev('hipervisor', { modelo: 'Otro' }));
-    expect(unknown.estado === 'modelo-desconocido' && unknown.plataformas.map(p => p.id)).toEqual(['virt']);
+    expect(unknown.estado === 'modelo-desconocido' && unknown.plataformas.map(p => p.id)).toEqual(['proxmox-ve', 'virt']);
   });
 });

@@ -6,6 +6,7 @@ export const PLATFORM_PATTERNS: Record<string, RegExp> = {
   'mikrotik-routeros': /\bcrs\d|routeros/i,
   'ruijie-reyee': /reyee|\brg-nbs|\bnbs\d/i,
   'fortinet-fortigate': /fortigate|fortios|\bfgt-?\d/i,
+  'proxmox-ve': /proxmox|\bpve\b/i,
 }
 
 /** The first of `platformIds` whose pattern recognises the brand and model text, or '' when none does. */

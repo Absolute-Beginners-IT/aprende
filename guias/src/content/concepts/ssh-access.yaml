@@ -1,7 +1,7 @@
 id: ssh-access
 title: Activar el acceso por SSH y cerrar Telnet
 group: setup-access
-order: 5
+order: 6
 summary: Deja el switch administrable por SSH, que cifra la sesión, y desactiva Telnet, que no la cifra.
 explanation: >-
   SSH y Telnet dan lo mismo: una consola remota del switch. La diferencia es que
