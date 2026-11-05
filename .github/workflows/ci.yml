@@ -54,6 +54,8 @@ jobs:
       - run: npm test
       # The standalone build, the one the offline package ships; it also type checks.
       - run: npm run build
+      # The build the website deploys, with its navigation bar (as pages.yml does).
+      - run: VITE_SITE_NAV="$(node ../site/scripts/nav-guias.mjs)" npm run build
 
   site:
     runs-on: ubuntu-24.04
