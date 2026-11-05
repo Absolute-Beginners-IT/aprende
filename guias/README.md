@@ -1,6 +1,6 @@
-# Manual de Switching
+# Guías de infraestructura
 
-Guías interactivas para configurar switches de forma segura: eliges la marca y la tarea, escribes tus valores y
+Antes «Manual de Switching». Guías interactivas para configurar switches y firewalls de forma segura: eliges la marca y la tarea, escribes tus valores y
 obtienes los comandos listos para copiar, con los riesgos, la verificación y la vuelta atrás de cada cambio. Es un
 único archivo HTML que funciona sin conexión.
 
