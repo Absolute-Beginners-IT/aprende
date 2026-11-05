@@ -1,0 +1,60 @@
+id: proxmox-ve
+vendor: Proxmox
+name: Proxmox VE
+deviceType: hypervisor
+os: Proxmox VE 9 (Debian 13)
+models:
+  - Proxmox VE 9 en un servidor x86-64 con Intel VT o AMD-V
+summary: >-
+  Plataforma de virtualización de código abierto basada en Debian, para máquinas
+  virtuales (KVM) y contenedores (LXC). Se gestiona desde su interfaz web, en el
+  puerto 8006, o desde la consola del nodo. Las guías usan la consola, salvo la
+  instalación, que se hace con el instalador gráfico.
+cliModes:
+  - name: Consola del nodo
+    prompt: 'root@pve1:~#'
+    enter: >-
+      Por SSH como root, o con el botón Shell del nodo en la interfaz web. Es una
+      consola Linux (bash) normal.
+    description: >-
+      Desde aquí se usan las herramientas de Proxmox (pveum para usuarios, qm para
+      máquinas virtuales, vzdump para copias) y las de Debian (apt, systemctl,
+      journalctl).
+configPersistence: >-
+  No hay un paso equivalente a write memory. La configuración propia de Proxmox
+  (usuarios, permisos, máquinas virtuales, almacenamiento) vive en /etc/pve, un
+  sistema de archivos que Proxmox guarda en su base de datos y replica entre los
+  nodos de un clúster. La del sistema Debian (red, hora, registros) está en archivos
+  de /etc y se aplica al reiniciar el servicio correspondiente.
+safetyNets:
+  - name: Copia de la configuración del nodo
+    description: >-
+      Antes de un cambio, guarda /etc/pve y la configuración de red en un archivo y
+      sácalo del servidor. La guía «Guardar una copia de la configuración» explica
+      cómo hacerlo.
+    commands:
+      - tar -czf /root/pve-config.tar.gz /etc/pve /etc/network/interfaces /etc/hosts
+  - name: Snapshot de una máquina virtual
+    description: >-
+      Antes de tocar una máquina virtual, una snapshot permite volver a su estado
+      exacto. No sustituye a una copia: vive en el mismo almacenamiento.
+    commands:
+      - qm snapshot <vmid> <nombre>
+      - qm rollback <vmid> <nombre>
+sources:
+  - title: Proxmox VE 9 — Installation
+    url: https://pve.proxmox.com/pve-docs/chapter-pve-installation.html
+  - title: Proxmox VE 9 — Host System Administration
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+  - title: Proxmox VE 9 — User Management
+    url: https://pve.proxmox.com/pve-docs/chapter-pveum.html
+  - title: Proxmox VE 9 — Proxmox Cluster File System (pmxcfs)
+    url: https://pve.proxmox.com/pve-docs/chapter-pmxcfs.html
+status:
+  level: unverified
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Marcada sin verificar. La instalación, los usuarios y la hora están contrastados
+    con la documentación oficial de Proxmox VE 9.2; los comandos de snapshot (qm) y la
+    copia con tar se han escrito sin contrastar. Falta probarla en un Proxmox real.

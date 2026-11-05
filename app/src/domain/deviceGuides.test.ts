@@ -32,7 +32,7 @@ describe('guidesForDevice', () => {
     expect(g.grupos[0].tareas[0]).toEqual({
       id: 'config-backup', titulo: 'Guardar una copia de la configuración', href: './guias/#/p/aruba-aoscx/config-backup?equipo=sw01',
     });
-    expect(g.grupos.flatMap(gr => gr.tareas)).toHaveLength(content.guias.tareas.length);
+    expect(g.grupos.flatMap(gr => gr.tareas)).toHaveLength(content.guias.tareas.filter(t => t.plataformas.includes('aruba-aoscx')).length);
   });
 
   it('encodes the device id in the link', () => {
@@ -80,5 +80,20 @@ describe('guidesForDevice', () => {
   it('has no guides yet for a device type no platform covers, even with a covered model', () => {
     expect(guides(dev('router', { marca: 'MikroTik', modelo: 'CRS317', firmware: 'RouterOS 7' }))).toEqual({ estado: 'tipo-sin-guias' });
     expect(guides(dev('servidor', { marca: 'Fortinet', modelo: 'FortiGate 60F' }))).toEqual({ estado: 'tipo-sin-guias' });
+  });
+  it('matches the inventory type names with the guides ones (hipervisor, almacenamiento)', () => {
+    const extra = (id: string, nombre: string, tipo: 'hypervisor' | 'storage', patron: string) => ({ id, nombre, fabricante: nombre, tipo, patron, flags: 'i' });
+    const index = {
+      ...content.guias,
+      plataformas: [...content.guias.plataformas, extra('virt', 'Virt', 'hypervisor', 'virt'), extra('nas', 'Nas', 'storage', 'nas')],
+      tareas: content.guias.tareas.map(t => (t.id === 'ntp-client' ? { ...t, plataformas: [...t.plataformas, 'virt', 'nas'] } : t)),
+    };
+    const of = (d: Device) => guidesForDevice(d, index, BASE);
+    const host = of(dev('hipervisor', { id: 'pve1', modelo: 'Virt 8' }));
+    expect(host.estado === 'cubierto' && host.plataforma.id).toBe('virt');
+    const nas = of(dev('almacenamiento', { modelo: 'Nas 2' }));
+    expect(nas.estado === 'cubierto' && nas.plataforma.id).toBe('nas');
+    const unknown = of(dev('hipervisor', { modelo: 'Otro' }));
+    expect(unknown.estado === 'modelo-desconocido' && unknown.plataformas.map(p => p.id)).toEqual(['proxmox-ve', 'virt']);
   });
 });

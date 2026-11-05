@@ -1,7 +1,7 @@
 id: config-restore
 title: Restaurar una configuración guardada
 group: setup-access
-order: 2
+order: 3
 summary: Devuelve el switch a un estado anterior a partir de una copia hecha previamente.
 explanation: >-
   Restaurar sustituye la configuración actual por la de una copia. Es la vuelta atrás

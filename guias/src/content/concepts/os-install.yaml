@@ -1,0 +1,19 @@
+id: os-install
+title: Instalar el sistema
+group: setup-access
+order: 1
+summary: Instala el sistema operativo en un equipo nuevo o que se reutiliza, desde un USB, y lo deja accesible por la red de gestión.
+explanation: >-
+  Es el primer paso con un equipo que todavía no tiene sistema, o con uno que se
+  reutiliza y se quiere dejar limpio. La instalación borra el disco elegido, así que
+  antes hay que estar seguro de que no queda nada que haga falta. Al terminar, el
+  equipo arranca con una dirección de gestión fija y desde ahí se sigue con el resto
+  de guías: usuarios, hora, registros y copias.
+risks:
+  - La instalación borra por completo el disco elegido; elegir el disco equivocado destruye sus datos.
+  - Una IP de gestión repetida o en la red equivocada deja el equipo sin acceso remoto hasta corregirla desde su consola.
+  - Instalar desde una imagen descargada de otro sitio que no sea la web oficial puede meter software alterado.
+prerequisites:
+  - Un USB de al menos 8 GB, que se va a borrar, y acceso físico al equipo con pantalla y teclado.
+  - La IP de gestión, la puerta de enlace, el DNS y el nombre del equipo decididos y libres en la red.
+  - Haber sacado del equipo cualquier dato que haga falta conservar.

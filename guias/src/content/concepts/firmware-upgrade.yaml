@@ -1,7 +1,7 @@
 id: firmware-upgrade
 title: Actualizar el firmware
 group: setup-access
-order: 6
+order: 7
 summary: Instala una versión nueva del sistema operativo del switch conservando la anterior como vuelta atrás.
 explanation: >-
   El firmware es el sistema operativo del switch. Se actualiza para corregir fallos

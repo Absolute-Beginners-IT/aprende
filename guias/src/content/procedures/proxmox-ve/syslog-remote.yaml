@@ -1,0 +1,79 @@
+platform: proxmox-ve
+task: syslog-remote
+summary: >-
+  Envía los registros de un nodo Proxmox VE 9 a un servidor syslog por UDP 514 con
+  rsyslog, que lee el registro del sistema (journald) y lo reenvía.
+risk:
+  level: low
+  reason: Enviar registros no afecta a las máquinas virtuales ni al acceso de gestión.
+params:
+  - id: serverIp
+    label: IP del servidor syslog
+    type: ipv4
+    example: 192.168.10.30
+preflight:
+  - text: >-
+      Mira si rsyslog ya está en marcha. Las instalaciones recientes de Debian solo
+      usan journald, así que puede no estar instalado.
+    command: systemctl is-active rsyslog
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
+    command: timedatectl
+  - text: Confirma con quien administra el servidor syslog que acepta mensajes desde la IP del nodo.
+steps:
+  - title: Instalar rsyslog
+    commands:
+      - apt update
+      - apt install rsyslog
+    explanation: >-
+      Instala rsyslog desde los repositorios de Debian. Si ya estaba instalado, apt lo
+      dice y no cambia nada.
+  - title: Indicar el servidor syslog
+    commands:
+      - echo '*.* @{{serverIp}}:514' > /etc/rsyslog.d/90-servidor-remoto.conf
+    explanation: >-
+      Crea un archivo propio que envía todos los mensajes a {{serverIp}}. Con una sola
+      @ se envían por UDP; con @@ irían por TCP.
+    breakdown:
+      - token: '*.*'
+        meaning: Todos los orígenes (facility) y todas las severidades.
+      - token: '@{{serverIp}}:514'
+        meaning: Servidor remoto por UDP, en el puerto 514.
+  - title: Reiniciar rsyslog
+    commands:
+      - systemctl restart rsyslog
+    explanation: Aplica la configuración nueva.
+  - title: Comprobar la llegada en el servidor
+    manual: true
+    explanation: >-
+      Después de enviar el mensaje de prueba de la verificación, búscalo en el
+      servidor syslog filtrando por la IP del nodo.
+verification:
+  - command: logger "Prueba de syslog desde $(hostname)"
+    expect: El mensaje llega al servidor syslog con el nombre del nodo.
+  - command: systemctl is-active rsyslog
+    expect: Responde active.
+rollback:
+  summary: Deja de enviar registros al servidor syslog.
+  steps:
+    - title: Quitar el archivo y reiniciar rsyslog
+      commands:
+        - rm /etc/rsyslog.d/90-servidor-remoto.conf
+        - systemctl restart rsyslog
+      explanation: >-
+        Quita el reenvío. rsyslog queda instalado; si no lo quieres, desinstálalo con
+        apt remove rsyslog.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: rsyslog — Forwarding Logs
+    url: https://www.rsyslog.com/doc/configuration/actions.html
+  - title: Proxmox VE 9 — Host System Administration
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+status:
+  level: unverified
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Marcada sin verificar. La documentación de Proxmox VE no explica el envío de
+    registros a un servidor remoto; la guía sigue la configuración habitual de rsyslog
+    en Debian, sin contrastar con la página citada. Tampoco se ha comprobado si
+    Proxmox VE 9 trae rsyslog instalado. Falta probarla en un Proxmox real.

@@ -1,0 +1,71 @@
+platform: proxmox-ve
+task: config-backup
+summary: >-
+  Guarda en un archivo la configuración de un nodo Proxmox VE 9 (/etc/pve y la de red)
+  y lo saca del servidor. No incluye los discos de las máquinas virtuales, que se
+  copian con vzdump.
+risk:
+  level: low
+  reason: Crear el archivo solo lee la configuración; no cambia nada ni afecta a las máquinas virtuales.
+params:
+  - id: backupName
+    label: Nombre de la copia
+    type: text
+    example: pve1-antes-cambio
+    pattern: '^[A-Za-z0-9_-]{1,60}$'
+    patternHint: Hasta 60 caracteres; letras, números, guion y guion bajo, sin extensión.
+preflight:
+  - text: >-
+      La copia contiene información sensible (usuarios, permisos y configuración de las
+      máquinas virtuales). Ten decidido dónde vas a guardarla fuera del servidor.
+  - text: Comprueba que hay espacio libre en /root.
+    command: df -h /root
+steps:
+  - title: Crear el archivo con la configuración
+    commands:
+      - tar -czf /root/{{backupName}}.tar.gz /etc/pve /etc/network/interfaces /etc/hosts /etc/hostname
+    explanation: >-
+      Guarda en /root/{{backupName}}.tar.gz la configuración de Proxmox (/etc/pve) y la
+      del sistema que hace falta para rehacer el nodo: la red, el nombre y la tabla de
+      equipos. tar avisa de que quita la / inicial de las rutas; es normal.
+    breakdown:
+      - token: tar -czf
+        meaning: Crea (c) un archivo comprimido (z) con este nombre (f).
+      - token: /etc/pve
+        meaning: Usuarios, permisos, almacenamiento y configuración de las máquinas virtuales.
+      - token: /etc/network/interfaces
+        meaning: Configuración de red del nodo, puentes y VLAN incluidos.
+  - title: Sacar la copia del servidor
+    manual: true
+    explanation: >-
+      Desde otro equipo, descarga el archivo por SFTP o con scp
+      root@<IP del nodo>:/root/{{backupName}}.tar.gz . y guárdalo en el repositorio de
+      copias de la empresa. Una copia que solo está en el servidor no sirve si se
+      estropea su disco.
+verification:
+  - command: tar -tzf /root/{{backupName}}.tar.gz | head -20
+    expect: Lista rutas que empiezan por etc/pve/ y etc/network/interfaces.
+  - command: ls -lh /root/{{backupName}}.tar.gz
+    expect: El archivo existe, con la fecha de ahora y un tamaño mayor que cero.
+rollback:
+  summary: >-
+    No hay nada que deshacer en la configuración. Si el archivo no hace falta, se borra
+    del servidor.
+  steps:
+    - title: Borrar el archivo creado
+      commands:
+        - rm /root/{{backupName}}.tar.gz
+      explanation: Borra la copia del servidor. No toca la configuración.
+sources:
+  - title: Proxmox VE 9 — Proxmox Cluster File System (pmxcfs)
+    url: https://pve.proxmox.com/pve-docs/chapter-pmxcfs.html
+status:
+  level: unverified
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Marcada sin verificar. La documentación oficial no describe cómo copiar la
+    configuración del nodo: solo explica, para recuperar un nodo perdido, que hay que
+    llevar /var/lib/pve-cluster/config.db a otro servidor. Esta guía copia con tar los
+    archivos que se ven en /etc/pve, sin contrastar. Restaurar no es copiar los
+    archivos de vuelta sin más. Falta probarla en un Proxmox real.

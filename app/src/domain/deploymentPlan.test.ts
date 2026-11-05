@@ -58,8 +58,15 @@ describe('deploymentPlan Configurar', () => {
   it('lists the guides of a covered switch in deployment order, linked with the device chosen', () => {
     const [p] = plan([dev('sw01', { marca: 'HPE Aruba', modelo: '6100 24G' })]);
     expect(p.guias.estado).toBe('cubierto');
-    expect(p.configurar.map(s => s.id)).toEqual(DEPLOYMENT_ORDER.map(t => `config:${t}`));
+    // The Aruba guides have no installation: every other task of the deployment order is listed.
+    expect(p.configurar.map(s => s.id)).toEqual(DEPLOYMENT_ORDER.filter(t => t !== 'os-install').map(t => `config:${t}`));
     expect(p.configurar[0]).toEqual({ id: 'config:mgmt-ip', texto: 'Configurar la IP de gestión', detalles: [], href: './guias/#/p/aruba-aoscx/mgmt-ip?equipo=sw01' });
+  });
+
+  it('starts a Proxmox VE host with its installation', () => {
+    const [p] = plan([dev('pve1', { tipo: 'hipervisor', marca: 'Proxmox', modelo: 'VE 9' })]);
+    expect(p.configurar.map(s => s.id)).toEqual(['config:os-install', 'config:user-admin', 'config:ntp-client', 'config:syslog-remote', 'config:config-backup']);
+    expect(p.configurar[0]).toMatchObject({ texto: 'Instalar el sistema', href: './guias/#/p/proxmox-ve/os-install?equipo=pve1' });
   });
 
   it('lists the guides of a FortiGate firewall in deployment order', () => {

@@ -8,6 +8,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Primer equipo de virtualización: Proxmox VE 9, en «Virtualización», con la guía de instalación (nueva tarea
+  «Instalar el sistema», la primera de «Puesta en marcha y acceso») y las de crear un usuario administrador,
+  sincronizar la hora con NTP, enviar los registros a un servidor syslog y guardar una copia de la configuración. La
+  tarea del usuario administrador habla ahora del «equipo» en lugar del «switch».
 - Primer equipo que no es un switch: el firewall FortiGate (FortiOS 7.4), con las guías para guardar una copia de la
   configuración, sincronizar la hora con NTP y enviar los registros a un servidor syslog. Sale en la biblioteca en
   «Firewalls». Sus pestañas de marca y «Misma tarea en otra marca» solo enlazan equipos del mismo tipo, el

@@ -1,0 +1,65 @@
+platform: proxmox-ve
+task: ntp-client
+summary: >-
+  Hace que un nodo Proxmox VE 9 tome la hora del servidor de tiempo de la empresa con
+  chrony, el servicio de hora que trae instalado.
+risk:
+  level: low
+  reason: >-
+    Sincronizar la hora no afecta a las máquinas virtuales ni al acceso de gestión. En
+    un clúster, todos los nodos deben usar el mismo servidor.
+params:
+  - id: ntpServer
+    label: Servidor de tiempo
+    type: text
+    example: 192.168.10.5
+    pattern: '^[A-Za-z0-9.-]{1,253}$'
+    patternHint: Una IP o un nombre de equipo, sin espacios.
+    help: Si usas un nombre, el nodo tiene que resolverlo con su DNS.
+preflight:
+  - text: Mira qué servidores de tiempo usa ahora el nodo.
+    command: grep -E '^(server|pool)' /etc/chrony/chrony.conf
+  - text: En un clúster, aplica el mismo servidor en todos los nodos.
+steps:
+  - title: Añadir el servidor de tiempo
+    commands:
+      - echo 'server {{ntpServer}} iburst' >> /etc/chrony/chrony.conf
+    explanation: >-
+      Añade {{ntpServer}} a la configuración de chrony. Con iburst, la primera
+      sincronización tarda segundos en vez de minutos.
+    warning: >-
+      Si quieres usar solo el servidor de la empresa, comenta con # las líneas pool o
+      server que ya hubiera en el archivo.
+  - title: Reiniciar el servicio de hora
+    commands:
+      - systemctl restart chronyd
+    explanation: Aplica la configuración nueva.
+verification:
+  - command: journalctl --since -1h -u chrony
+    expect: Aparece una línea Selected source con {{ntpServer}}. Puede tardar unos minutos.
+  - command: chronyc sources
+    expect: '{{ntpServer}} aparece en la lista, y el marcado con ^* es el servidor que se usa.'
+rollback:
+  summary: Quita el servidor añadido y vuelve a los servidores que tenía.
+  steps:
+    - title: Quitar el servidor y reiniciar el servicio
+      commands:
+        - sed -i '/^server {{ntpServer}} iburst$/d' /etc/chrony/chrony.conf
+        - systemctl restart chronyd
+      explanation: >-
+        Borra la línea añadida. Si comentaste otras líneas, quítales el # para
+        recuperarlas.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: Proxmox VE 9 — Host System Administration (Time Synchronization)
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-05'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    chrony como servicio de hora, el archivo /etc/chrony/chrony.conf, la línea server
+    con iburst, el reinicio con systemctl restart chronyd y la comprobación con
+    journalctl (Selected source) están contrastados con la documentación oficial. La
+    salida de chronyc sources no aparece en la página consultada. Falta probarla en
+    un Proxmox real.

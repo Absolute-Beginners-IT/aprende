@@ -1,7 +1,7 @@
 id: mgmt-ip
 title: Configurar la IP de gestión
 group: setup-access
-order: 3
+order: 4
 summary: Asigna al switch una dirección IP fija y una puerta de enlace para poder administrarlo por red.
 explanation: >-
   Un switch de capa 2 no necesita IP para conmutar tráfico; la necesita para que tú
