@@ -1430,7 +1430,11 @@ thead th {
 
 .plan-inventory__status {
   flex-basis: 100%;
-  margin: 0;
+  margin: 0.75rem 0 0;
+}
+
+.plan-inventory__status p {
+  margin: 0 0 0.25rem;
 }
 
 /* Same look as the tabs of the app's inventory page: both are halves of «Mi infraestructura». */
