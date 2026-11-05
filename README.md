@@ -1,3 +1,5 @@
+> **Repositorio archivado.** El proyecto continúa en [Absolute-Beginners-IT/aprende](https://github.com/Absolute-Beginners-IT/aprende), que se creó a partir de este repositorio el 30 de octubre de 2026 y tiene todo su contenido (web, aplicación, toolkit y documentación), ampliado. Aquí se conservan el historial y la carpeta `legacy/` con el mapa original.
+
 # Guía del administrador de sistemas junior
 
 Guía interactiva para dar los primeros pasos como administrador de sistemas: qué hay en una infraestructura, cómo se vigila y cómo se actúa sobre ella. El núcleo es un **mapa de infraestructura por capas** (física, lógica, servicios y protección) en el que cada pieza explica qué es, para qué sirve, qué pasa si falla, los errores típicos, qué vigilar, qué alertas crear y qué mantenimiento necesita.
