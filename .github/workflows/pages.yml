@@ -57,7 +57,11 @@ jobs:
           npm test
           # Only the build gets the website's navigation (content/navegacion.json, relative to /app/guias/),
           # so the tests see the standalone default.
-          VITE_SITE_NAV="$(node ../site/scripts/nav-guias.mjs)" npm run build
+          # A failure here must stop the step: inside the build command it would go unnoticed, and an empty or
+          # rejected list builds the standalone file without a word. The bar has to be in the built page.
+          nav="$(node ../site/scripts/nav-guias.mjs)"
+          VITE_SITE_NAV="$nav" npm run build
+          grep -qF '"current":true' <<<"$nav" && grep -qF "$nav" dist/index.html || { echo "::error::The guides were built without the website bar"; exit 1; }
 
       - name: Tool downloads (copied from toolkit/ with their SHA-256)
         run: |

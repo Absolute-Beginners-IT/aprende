@@ -55,7 +55,13 @@ jobs:
       # The standalone build, the one the offline package ships; it also type checks.
       - run: npm run build
       # The build the website deploys, with its navigation bar (as pages.yml does).
-      - run: VITE_SITE_NAV="$(node ../site/scripts/nav-guias.mjs)" npm run build
+      - name: Build with the website bar
+        run: |
+          # A failure here must stop the step: inside the build command it would go unnoticed, and an empty or
+          # rejected list builds the standalone file without a word. The bar has to be in the built page.
+          nav="$(node ../site/scripts/nav-guias.mjs)"
+          VITE_SITE_NAV="$nav" npm run build
+          grep -qF '"current":true' <<<"$nav" && grep -qF "$nav" dist/index.html || { echo "::error::The guides were built without the website bar"; exit 1; }
 
   site:
     runs-on: ubuntu-24.04
