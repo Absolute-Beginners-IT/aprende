@@ -10,8 +10,12 @@ obtienes los comandos listos para copiar, con los riesgos, la verificación y la
 | Cisco | Catalyst 1300 | Línea de comandos |
 | MikroTik | CRS317 (RouterOS 7) | Línea de comandos |
 | Ruijie Reyee | NBS3200 | Interfaz web |
+| Fortinet | FortiGate (FortiOS 7.4), firewall | Línea de comandos |
 
-Incluye 72 guías en 19 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
+El FortiGate es el primer equipo que no es un switch: de momento tiene tres guías (copia de la configuración, NTP y
+syslog) y no entra en el planificador, que solo trabaja con switches.
+
+Incluye 75 guías en 19 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
 7 artículos de fundamentos y un planificador de red que genera los pasos de cada switch a partir del
 diseño de la red.
 
@@ -72,7 +76,7 @@ esa guía. Al elegir uno se ponen los valores que se pueden sacar del equipo y q
 prefijo en Aruba y MikroTik; dirección y, si el inventario tiene el prefijo, máscara en Cisco y Ruijie) y su ubicación.
 Se sustituyen solo esos valores; los demás, y las claves, los escribes tú. **Ninguno, lo escribo yo** deja los valores
 como están. Si hay switches pero ninguno de ese modelo, la guía lo indica; sin inventario, como en el archivo
-independiente, el desplegable no aparece.
+independiente, el desplegable no aparece. Las guías del FortiGate no lo muestran, porque solo rellena datos de switches.
 
 La dirección `#/p/<marca>/<tarea>?equipo=<id>` abre la guía con ese equipo ya elegido y sus valores puestos (el `<id>`
 del inventario va codificado para URL). Si el equipo no existe o es de otro modelo, la guía se abre sin rellenar nada.

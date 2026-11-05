@@ -62,6 +62,12 @@ describe('deploymentPlan Configurar', () => {
     expect(p.configurar[0]).toEqual({ id: 'config:mgmt-ip', texto: 'Configurar la IP de gestión', detalles: [], href: './guias/#/p/aruba-aoscx/mgmt-ip?equipo=sw01' });
   });
 
+  it('lists the guides of a FortiGate firewall in deployment order', () => {
+    const [p] = plan([dev('fw', { tipo: 'firewall', marca: 'Fortinet', modelo: 'FortiGate 60F' })]);
+    expect(p.configurar.map(s => s.id)).toEqual(['config:ntp-client', 'config:syslog-remote', 'config:config-backup']);
+    expect(p.configurar[0].href).toBe('./guias/#/p/fortinet-fortigate/ntp-client?equipo=fw');
+  });
+
   it('only lists the guides the platform has', () => {
     const [p] = plan([dev('sw01', { marca: 'Ruijie', modelo: 'RG-NBS3200-24GT4XS' })]);
     expect(p.configurar.map(s => s.id)).toEqual(['mgmt-ip', 'ntp-client', 'vlan-create', 'port-trunk', 'port-access', 'snmp-monitoring', 'syslog-remote', 'config-backup'].map(t => `config:${t}`));
@@ -71,7 +77,7 @@ describe('deploymentPlan Configurar', () => {
     const [unknown] = plan([dev('sw01', { marca: 'Genérica', modelo: 'X1' })]);
     expect(unknown.guias.estado).toBe('modelo-desconocido');
     expect(unknown.configurar).toEqual([]);
-    const [other] = plan([dev('fw', { tipo: 'firewall', marca: 'Fortinet', modelo: 'FortiGate 60F' })]);
+    const [other] = plan([dev('srv', { tipo: 'servidor', marca: 'Dell', modelo: 'PowerEdge R650' })]);
     expect(other.guias.estado).toBe('tipo-sin-guias');
     expect(other.configurar).toEqual([]);
   });

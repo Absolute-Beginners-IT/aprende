@@ -75,7 +75,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
   const record = { ...EMPTY_RECORD, ...storedRecord }
 
   // Read once, like the stored values: the inventory is edited on another page of the website.
-  const [inventory] = useState(readInventorySwitches)
+  // Only switches can be picked from the inventory, so the picker stays away from the runbooks of other devices.
+  const [inventory] = useState(() => (platform.deviceType === 'switch' ? readInventorySwitches() : []))
   const devices = inventory.filter((device) => platformFor(device, [platform]) === platform.id)
   const [chosenDevice, setChosenDevice] = useState(() =>
     devices.some((device) => device.id === deviceId) ? (deviceId ?? '') : '',
@@ -404,7 +405,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
         </ol>
         {procedure.rollback.lockoutRecovery && (
           <div className="lockout">
-            <h3>Si pierdes el acceso al switch</h3>
+            <h3>Si pierdes el acceso al equipo</h3>
             <p>{fill(procedure.rollback.lockoutRecovery)}</p>
           </div>
         )}

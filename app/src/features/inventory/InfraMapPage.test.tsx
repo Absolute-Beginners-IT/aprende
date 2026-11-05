@@ -100,10 +100,17 @@ describe('InfraMapPage', () => {
     expect(section.queryAllByRole('link')).toHaveLength(0);
   });
 
-  it('says the guides for other device types come later', async () => {
+  it('links the guides of a FortiGate firewall from its ficha', async () => {
     render(<InfraMapPage repository={memoryRepository(network())} />);
     const section = within((await openFicha('FW01')).getByRole('region', { name: 'Guías para este equipo' }));
-    expect(section.getByText('Las guías de este tipo de equipo llegarán más adelante; de momento cubren switches.')).toBeTruthy();
+    expect(section.getByRole('link', { name: 'Sincronizar la hora con NTP' }).getAttribute('href')).toBe('./guias/#/p/fortinet-fortigate/ntp-client?equipo=fw01');
+  });
+
+  it('says the guides for other device types come later', async () => {
+    const devices: Device[] = [...network(), { id: 'srv01', nombre: 'SRV01', tipo: 'servidor', criticidad: 'Media', monitorizado: false, uplinks: ['core'] }];
+    render(<InfraMapPage repository={memoryRepository(devices)} />);
+    const section = within((await openFicha('SRV01')).getByRole('region', { name: 'Guías para este equipo' }));
+    expect(section.getByText('Las guías de este tipo de equipo llegarán más adelante.')).toBeTruthy();
     expect(section.queryAllByRole('link')).toHaveLength(0);
   });
 

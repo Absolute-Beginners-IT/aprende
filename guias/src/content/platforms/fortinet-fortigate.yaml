@@ -1,0 +1,70 @@
+id: fortinet-fortigate
+vendor: Fortinet
+name: FortiGate
+deviceType: firewall
+os: FortiOS 7.4
+models:
+  - FortiGate 40F
+  - FortiGate 60F
+  - FortiGate 80F
+summary: >-
+  Firewall de Fortinet con sistema operativo FortiOS. Se gestiona desde su interfaz
+  web o desde la consola (CLI), que se abre por SSH o desde el botón de consola de
+  la propia web. Las guías usan la consola: los mismos comandos sirven para toda la
+  gama con FortiOS 7.4.
+cliModes:
+  - name: Nivel superior
+    prompt: 'FGT60F #'
+    enter: Es donde se llega al iniciar sesión. El prompt muestra el nombre del equipo.
+    description: >-
+      Desde aquí se consultan datos con get, show y diagnose, y se lanzan acciones
+      con execute, como hacer una copia de la configuración.
+  - name: Edición de una sección
+    prompt: 'FGT60F (ntp) #'
+    enter: >-
+      Con config seguido de la sección, por ejemplo config system ntp. El prompt
+      muestra el nombre de la sección.
+    description: >-
+      Se cambian valores con set y se vuelven a los de fábrica con unset. Con end se
+      aplican los cambios y se vuelve al nivel superior.
+  - name: Edición de una entrada
+    prompt: 'FGT60F (1) #'
+    enter: >-
+      Dentro de una tabla, como la lista de servidores NTP, con edit seguido del
+      número o el nombre de la entrada. Si no existe, se crea.
+    description: Con next se guarda la entrada y se vuelve a la tabla; con end se sale de todo.
+configPersistence: >-
+  No hay un paso equivalente a write memory: los cambios se aplican y se guardan al
+  escribir end (o next en una entrada). Si se sale con abort en lugar de end, los
+  cambios de esa sección se descartan.
+safetyNets:
+  - name: Salir sin aplicar
+    description: >-
+      Dentro de una sección, abort sale sin aplicar los cambios hechos desde el
+      último end o next. Sirve para echarse atrás antes de confirmar.
+    commands:
+      - abort
+  - name: Copia de la configuración
+    description: >-
+      Guarda la configuración completa en un servidor TFTP o FTP antes de un cambio,
+      para poder volver a ella si algo sale mal. La guía «Guardar una copia de la
+      configuración» explica cómo hacerla.
+    commands:
+      - execute backup config tftp <archivo> <servidor>
+sources:
+  - title: FortiOS 7.4 CLI Reference — config system ntp
+    url: https://docs.fortinet.com/document/fortigate/7.4.0/cli-reference/110620/config-system-ntp
+  - title: FortiOS 7.4 CLI Reference — execute backup
+    url: https://docs.fortinet.com/document/fortigate/7.4.7/cli-reference/229031989/execute-backup
+  - title: FortiOS 7.4 Administration Guide — Configuration backups
+    url: https://docs.fortinet.com/document/fortigate/7.4.2/administration-guide/702257/configuration-backups
+status:
+  level: unverified
+  reviewed: '2026-11-05'
+  firmware: FortiOS 7.4
+  notes: >-
+    Marcada sin verificar. Los comandos de las guías están contrastados con la
+    referencia oficial de FortiOS 7.4, pero los prompts de esta ficha y el
+    comportamiento de abort se han escrito de memoria y no se han contrastado. Con
+    VDOM activados, los comandos de sistema se escriben después de config global.
+    Falta probarla en un FortiGate real.

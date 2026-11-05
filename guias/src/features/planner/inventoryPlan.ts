@@ -1,6 +1,6 @@
 import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan, PlanLink, PlanSwitch } from '../../domain/networkPlan'
-import { type InventorySwitch, nameKey, platformFor } from './inventoryImport'
+import { type InventorySwitch, nameKey, platformFor, switchPlatforms } from './inventoryImport'
 import { nextId } from './usePlan'
 
 export interface CombinedPlan {
@@ -73,7 +73,7 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
   const deducedModels = new Set<string>()
   const fromDevice = (device: InventorySwitch): PlanSwitch => {
     const base = byDevice.get(device.id) as PlanSwitch
-    const deduced = platformFor(device, catalog.platforms)
+    const deduced = platformFor(device, switchPlatforms(catalog))
     if (deduced) deducedModels.add(base.id)
     return {
       ...base,

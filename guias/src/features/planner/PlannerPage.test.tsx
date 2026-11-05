@@ -255,6 +255,18 @@ describe('PlannerPage', () => {
     confirm.mockRestore()
   })
 
+  it('offers only switch models for a switch of the plan', async () => {
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+
+    await openTab(user, /^Switches/)
+    await user.click(screen.getByRole('button', { name: 'Añadir switch' }))
+
+    const options = within(screen.getByRole('combobox', { name: 'Modelo del switch 1' })).getAllByRole('option')
+    expect(options.map((option) => option.textContent)).not.toContain('FortiGate')
+    expect(options.length).toBeGreaterThan(4)
+  })
+
   it('removes the links and ports of a switch that is deleted', async () => {
     seed()
     const user = userEvent.setup()

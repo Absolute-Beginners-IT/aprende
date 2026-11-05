@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { matchPlatform } from '../../domain/platformPatterns'
+import type { Platform } from '../../domain/schema'
 
 /**
  * Where the website's «Mi infraestructura» (app/src/adapters/localStorageInventoryRepository.ts) keeps its inventory.
@@ -48,6 +49,10 @@ export function platformFor(device: InventorySwitch, platforms: readonly { id: s
     platforms.map((platform) => platform.id),
   )
 }
+
+/** The platforms the planner works with: a plan describes switches, so firewalls and other devices stay out. */
+export const switchPlatforms = (catalog: { platforms: readonly Platform[] }) =>
+  catalog.platforms.filter((platform) => platform.deviceType === 'switch')
 
 /** Two switch names are the same one when they differ only in case or surrounding spaces. */
 export const nameKey = (name: string) => name.trim().toLowerCase()

@@ -63,7 +63,9 @@ function Page({ route, recents, activePlatform }: PageProps) {
     .filter((item) => item.task === concept.id && item.platform !== platform.id)
     .flatMap((item) => {
       const other = findPlatform(item.platform)
-      return other ? [{ name: other.name, href: runbookHref(other.id, concept.id) }] : []
+      return other && other.deviceType === platform.deviceType
+        ? [{ name: other.name, href: runbookHref(other.id, concept.id) }]
+        : []
     })
 
   // The key resets per-runbook state when the user moves between runbooks, or opens one from another device.

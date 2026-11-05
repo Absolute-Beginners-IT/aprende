@@ -192,6 +192,43 @@ describe('App', () => {
     )
   })
 
+  it('keeps a firewall apart from the switches in the brand tabs and in the same task on another brand', () => {
+    const { unmount } = openAt('#/p/aruba-aoscx/ntp-client')
+    expect(within(brands()).queryByRole('link', { name: 'FortiGate' })).not.toBeInTheDocument()
+    const others = screen.getByRole('navigation', { name: 'Misma tarea en otra marca' })
+    expect(within(others).queryByRole('link', { name: 'FortiGate' })).not.toBeInTheDocument()
+    unmount()
+
+    openAt('#/p/fortinet-fortigate/ntp-client')
+    expect(
+      within(brands())
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual(['FortiGate'])
+    expect(screen.queryByRole('navigation', { name: 'Misma tarea en otra marca' })).not.toBeInTheDocument()
+  })
+
+  it('does not offer inventory switches on a firewall runbook', () => {
+    localStorage.setItem(
+      'mapa-infra:inventario',
+      JSON.stringify([
+        {
+          id: 'sw1',
+          nombre: 'SW1',
+          tipo: 'switch',
+          marca: 'HPE Aruba',
+          modelo: '6100',
+          criticidad: 'Media',
+          monitorizado: false,
+        },
+      ]),
+    )
+    openAt('#/p/fortinet-fortigate/ntp-client')
+
+    expect(screen.queryByText('En tu inventario no hay switches de este modelo.')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Si pierdes el acceso al equipo' })).toBeInTheDocument()
+  })
+
   it('remembers the last brand used when returning to the home page', async () => {
     const user = userEvent.setup()
     openAt('#/p/cisco-c1300')
@@ -370,10 +407,11 @@ describe('quick search', () => {
     expect(rows.map((row) => within(row).getAllByRole('cell')[0]?.textContent)).toEqual([
       'Aruba CX 6100',
       'Cisco Catalyst 1300',
+      'FortiGate',
       'MikroTik CRS317',
       'Ruijie NBS3200',
     ])
-    expect(within(rows[3] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
+    expect(within(rows[4] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
   })
 
   it('shows an article with its sections and links its tasks to the brand in use', () => {
@@ -506,7 +544,7 @@ describe('quick search', () => {
 describe('inside the website', () => {
   const library = () => within(screen.getByRole('navigation', { name: 'Biblioteca' }))
   const switchPlatforms = ['Aruba CX 6100', 'Cisco Catalyst 1300', 'MikroTik CRS317', 'Ruijie NBS3200']
-  const upcomingTypes = ['Firewalls', 'Virtualización', 'Almacenamiento']
+  const upcomingTypes = ['Virtualización', 'Almacenamiento']
 
   beforeEach(() => {
     vi.stubEnv(
@@ -593,6 +631,8 @@ describe('inside the website', () => {
       const id = catalog.platforms.find((platform) => platform.name === name)?.id
       expect(switches.getByRole('link', { name })).toHaveAttribute('href', `#/p/${id}`)
     }
+    const firewalls = within(library().getByRole('group', { name: 'Firewalls' }))
+    expect(firewalls.getByRole('link', { name: 'FortiGate' })).toHaveAttribute('href', '#/p/fortinet-fortigate')
     for (const type of upcomingTypes) {
       const group = library().getByRole('group', { name: type })
       expect(group).toHaveTextContent('Próximamente')
@@ -693,12 +733,15 @@ describe('inside the website', () => {
     const switches = cards.getByRole('heading', { name: 'Switches' }).closest('li') as HTMLElement
     const switchTasks = new Set(catalog.procedures.map((item) => item.task)).size
     expect(switches).toHaveTextContent(`${switchTasks} tareas`)
-    for (const platform of catalog.platforms) {
+    for (const platform of catalog.platforms.filter((item) => item.deviceType === 'switch')) {
       const guides = catalog.procedures.filter((item) => item.platform === platform.id).length
       const link = within(switches).getByRole('link', { name: new RegExp(`^${platform.name}`) })
       expect(link).toHaveAttribute('href', `#/p/${platform.id}`)
       expect(link).toHaveTextContent(`${guides} guías`)
     }
+    const firewalls = cards.getByRole('heading', { name: 'Firewalls' }).closest('li') as HTMLElement
+    expect(firewalls).toHaveTextContent('1 marca · 3 tareas')
+    expect(within(firewalls).getByRole('link', { name: /^FortiGate/ })).toHaveTextContent('3 guías')
     for (const type of upcomingTypes) {
       expect(cards.getByRole('heading', { name: type }).closest('li')).toHaveTextContent('Próximamente')
     }
@@ -748,7 +791,8 @@ describe('built on its own', () => {
     openAt('#/p/aruba-aoscx')
 
     expect(screen.getByRole('link', { name: 'Manual de Switching' })).toHaveAttribute('href', '#/')
-    expect(within(brands()).getAllByRole('link')).toHaveLength(catalog.platforms.length)
+    // A switch shows the switch brands; the FortiGate firewall has its own tab set.
+    expect(within(brands()).getAllByRole('link')).toHaveLength(4)
     expect(
       within(screen.getByRole('navigation', { name: 'Herramientas' })).getByRole('link', { name: 'Fundamentos' }),
     ).toBeInTheDocument()

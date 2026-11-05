@@ -64,8 +64,21 @@ describe('guidesForDevice', () => {
     }
   });
 
-  it('has no guides yet for any other device type, even with a covered model', () => {
-    expect(guides(dev('firewall', { marca: 'Fortinet', modelo: 'FortiGate 60F' }))).toEqual({ estado: 'tipo-sin-guias' });
+  it('finds the guides of a FortiGate firewall, linked with the device chosen', () => {
+    const g = covered(dev('firewall', { id: 'fw01', marca: 'Fortinet', modelo: 'FortiGate 60F' }));
+    expect(g.plataforma.id).toBe('fortinet-fortigate');
+    expect(new Set(taskIds(dev('firewall', { marca: 'Fortinet', modelo: 'FortiGate 60F' })))).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote']));
+    expect(g.grupos[0].tareas[0].href).toBe('./guias/#/p/fortinet-fortigate/config-backup?equipo=fw01');
+  });
+
+  it('only matches a platform of the same device type', () => {
+    expect(guides(dev('switch', { marca: 'Fortinet', modelo: 'FortiGate 60F' })).estado).toBe('modelo-desconocido');
+    const firewall = guides(dev('firewall', { marca: 'MikroTik', modelo: 'CRS317' }));
+    expect(firewall.estado === 'modelo-desconocido' && firewall.plataformas.map(p => p.nombre)).toEqual(['FortiGate']);
+  });
+
+  it('has no guides yet for a device type no platform covers, even with a covered model', () => {
     expect(guides(dev('router', { marca: 'MikroTik', modelo: 'CRS317', firmware: 'RouterOS 7' }))).toEqual({ estado: 'tipo-sin-guias' });
+    expect(guides(dev('servidor', { marca: 'Fortinet', modelo: 'FortiGate 60F' }))).toEqual({ estado: 'tipo-sin-guias' });
   });
 });
