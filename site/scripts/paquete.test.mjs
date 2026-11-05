@@ -21,6 +21,8 @@ const CATALOGO = [
     archivos: ['00-Descubrimiento/Descubrir-Red.ps1'],
   },
   { id: 'inventario', nombre: 'Plantilla de inventario', tipo: 'Plantilla CSV', descripcion: 'La lista de equipos.', requisitos: 'Excel.', archivos: ['01-Inventario/inventario.csv'] },
+  // Shares its file with the inventory template, as two real tools do: the file is listed once in SHA256SUMS.txt.
+  { id: 'otra', nombre: 'Otra', tipo: 'Guía', descripcion: 'Usa la misma plantilla.', archivos: ['01-Inventario/inventario.csv'] },
 ];
 
 function repoDePrueba() {

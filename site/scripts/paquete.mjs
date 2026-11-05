@@ -58,7 +58,8 @@ export function armarPaquete({ raiz, guias, destino, version }) {
   mkdirSync(destino, { recursive: true });
   copyFileSync(guias, join(destino, 'guias.html'));
 
-  const rutas = ['guias.html', ...herramientas.flatMap((h) => h.archivos.map((a) => a.ruta))];
+  // Two tools may share a file: it is in the package once, so it is listed once.
+  const rutas = [...new Set(['guias.html', ...herramientas.flatMap((h) => h.archivos.map((a) => a.ruta))])];
   const sumas = rutas.map((ruta) => `${createHash('sha256').update(readFileSync(join(destino, ruta))).digest('hex')}  ${ruta}`);
   writeFileSync(join(destino, 'SHA256SUMS.txt'), `${sumas.join('\n')}\n`);
   writeFileSync(join(destino, 'LEEME.txt'), leeme({ version, herramientas }));
