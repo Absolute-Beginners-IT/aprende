@@ -66,8 +66,8 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Planificador: cuando dos switches de «Mi infraestructura» se llaman igual, el guardado automático ya no les crea un
   switch nuevo a cada uno. Antes, al renombrar uno, el switch del plan con ese nombre quedaba oculto para siempre; ahora
   vuelve a asociarse por su nombre (salvo que edites el plan mientras los nombres siguen repetidos). Los demás switches
-  se siguen guardando con su id, así que puedes renombrarlos sin perderlos. Mientras tanto solo se pide renombrar uno:
-  el switch del plan no aparece como si faltara ni se ofrece «Quitar del plan», que lo borraría.
+  se siguen guardando con su id, así que puedes renombrarlos sin perderlos. Ese switch del plan no aparece como si
+  faltara, y «Quitar del plan» (que se sigue ofreciendo para los que sí faltan) no lo borra.
 - Dentro de la web, la barra de navegación se queda fija arriba al hacer scroll, como en el resto de páginas; la lista
   de tareas y el índice de secciones quedan justo debajo.
 - Dentro de la web, la barra de navegación y el aviso de prototipo son iguales que en el resto de secciones (mismas

@@ -443,6 +443,32 @@ describe('PlannerPage', () => {
       expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
     })
 
+    it('still offers to discard a missing switch while two other inventory switches share a name', async () => {
+      const device = (id: string, nombre: string) => ({
+        id,
+        nombre,
+        tipo: 'switch',
+        criticidad: 'Media',
+        monitorizado: false,
+      })
+      seed()
+      // nucleo is missing for real; planta1 is there twice.
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([device('a', 'planta1'), device('b', 'PLANTA1')]))
+      const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      expect(screen.getByText(/^nucleo está en el plan pero no en Mi infraestructura/)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Quitar del plan' }))
+
+      expect(confirm).toHaveBeenCalledWith('¿Quitar nucleo del plan? Se borran también sus enlaces y sus puertos.')
+      const names = storedPlan().switches.map((item: { name: string }) => item.name)
+      expect(names).toContain('planta1')
+      expect(names).not.toContain('nucleo')
+      expect(storedPlan().ports).toEqual(twoSwitchPlan().ports)
+      confirm.mockRestore()
+    })
+
     it('keeps following the other switches while two inventory switches share a name', () => {
       const device = (id: string, nombre: string) => ({
         id,

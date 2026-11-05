@@ -137,8 +137,8 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
         </p>
         <PlanTools plan={stored} onChange={setStored} />
-        {/* With a shared name, a switch of the plan looks missing although it is there: rename first, then discard. */}
-        {combined && combined.hidden.length > 0 && combined.duplicates.length === 0 && (
+        {/* A switch named like two inventory switches is not listed here, nor discarded: it is not missing. */}
+        {combined && combined.hidden.length > 0 && (
           <div role="status" className="plan-inventory__status">
             <p>{hiddenNotice(combined.hidden)}</p>
             <button
@@ -147,7 +147,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
               onClick={() => {
                 const names = listNames(combined.hidden)
                 if (window.confirm(`¿Quitar ${names} del plan? Se borran también sus enlaces y sus puertos.`)) {
-                  setStored(discardHidden(stored, combined.plan))
+                  setStored(discardHidden(stored, combined.plan, combined.duplicates))
                 }
               }}
             >

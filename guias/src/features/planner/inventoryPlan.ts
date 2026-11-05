@@ -119,8 +119,9 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
   const shown = new Set(switches.map((item) => item.id))
   return {
     plan: { ...stored, switches, links, ports: stored.ports.filter((port) => shown.has(port.switch)) },
+    // A switch whose name the inventory has twice is not missing: it is only waiting for one of the two to be renamed.
     hidden: stored.switches
-      .filter((item) => !shown.has(item.id))
+      .filter((item) => !shown.has(item.id) && !shared.has(nameKey(item.name)))
       .map((item) => item.name.trim() || 'un switch sin nombre'),
     deducedModels,
     duplicates,
@@ -197,10 +198,15 @@ export function storeCombined(stored: NetworkPlan, combined: NetworkPlan): Netwo
 /**
  * The plan to store when the user discards the hidden switches: they go, with their links and ports. Links between
  * two shown switches stay even if the inventory no longer connects them, so their ports come back with the connection.
+ * Switches named like two inventory switches (`sharedNames`) are not missing, so they stay with their links and ports.
  */
-export function discardHidden(stored: NetworkPlan, combined: NetworkPlan): NetworkPlan {
+export function discardHidden(stored: NetworkPlan, combined: NetworkPlan, sharedNames: string[] = []): NetworkPlan {
   const saved = storeCombined(stored, combined)
-  const shown = new Set(combined.switches.map((item) => item.id))
+  const shared = new Set(sharedNames.map(nameKey))
+  const shown = new Set([
+    ...combined.switches.map((item) => item.id),
+    ...stored.switches.filter((item) => shared.has(nameKey(item.name))).map((item) => item.id),
+  ])
   return {
     ...saved,
     switches: saved.switches.filter((item) => shown.has(item.id)),

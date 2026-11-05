@@ -71,8 +71,9 @@ export function armarPaquete({ raiz, guias, destino, version }) {
     writeFileSync(join(nuevo, 'SHA256SUMS.txt'), `${sumas.join('\n')}\n`);
     writeFileSync(join(nuevo, 'LEEME.txt'), leeme({ version, herramientas }));
 
-    rmSync(final, { recursive: true, force: true });
+    // Marked before deleting: a deletion that fails halfway (a locked file on Windows) has already broken the old one.
     anteriorBorrado = true;
+    rmSync(final, { recursive: true, force: true });
     renameSync(nuevo, final);
     return { rutas };
   } catch (error) {
