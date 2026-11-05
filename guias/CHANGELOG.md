@@ -61,6 +61,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Dentro de la web, la barra de navegación y el aviso de prototipo son iguales que en el resto de secciones (mismas
   medidas, menú plegable en pantallas estrechas, botón «Tema» y enlace «Qué es esto»), así que la barra ya no da un salto
   al cambiar de sección. El botón del tema pasa de la barra fina de la biblioteca a la barra de la web.
+- Planificador con «Mi infraestructura»: los switches ocultos (los que el inventario no tiene) se pueden quitar del plan
+  con «Quitar del plan», que pide confirmación y borra también sus enlaces y puertos. Uno sin nombre aparece como «un
+  switch sin nombre». Al guardar, los puertos y enlaces mantienen su orden aunque su switch esté oculto. Si dos switches
+  del inventario tienen el mismo nombre, ninguno se asocia por nombre a un switch del plan y un aviso pide renombrar uno.
 
 ## [1.1.0] - 2026-10-16
 

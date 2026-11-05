@@ -10,6 +10,8 @@ export interface CombinedPlan {
   hidden: string[]
   /** Ids of the shown switches whose model follows from their brand and model in the inventory. */
   deducedModels: Set<string>
+  /** Names that two or more inventory switches share: no stored switch is matched by them. */
+  duplicates: string[]
 }
 
 const samePair = (link: PlanLink, x: string, y: string) =>
@@ -34,8 +36,18 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
   // A switch whose device is gone (deleted and created again, with a new id) is matched by name like a new one.
   const present = new Set(devices.map((device) => device.id))
   const free = (item: PlanSwitch) => item.deviceId === undefined || !present.has(item.deviceId)
+  // A name two inventory switches share would hand one stored switch's data to either of them: no match by it.
+  const namesSeen = new Map<string, string>()
+  const duplicates: string[] = []
   for (const device of devices) {
-    if (byDevice.has(device.id)) continue
+    const key = nameKey(device.nombre)
+    const first = namesSeen.get(key)
+    if (first === undefined) namesSeen.set(key, device.nombre.trim())
+    else if (!duplicates.includes(first)) duplicates.push(first)
+  }
+  const shared = new Set(duplicates.map(nameKey))
+  for (const device of devices) {
+    if (byDevice.has(device.id) || shared.has(nameKey(device.nombre))) continue
     const named = stored.switches.find(
       (item) => free(item) && !used.has(item.id) && nameKey(item.name) === nameKey(device.nombre),
     )
@@ -107,9 +119,42 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
   const shown = new Set(switches.map((item) => item.id))
   return {
     plan: { ...stored, switches, links, ports: stored.ports.filter((port) => shown.has(port.switch)) },
-    hidden: stored.switches.filter((item) => !shown.has(item.id)).map((item) => item.name.trim() || item.id),
+    hidden: stored.switches
+      .filter((item) => !shown.has(item.id))
+      .map((item) => item.name.trim() || 'un switch sin nombre'),
     deducedModels,
+    duplicates,
   }
+}
+
+/**
+ * Items in their stored order: a shown item in its edited form, a hidden one as stored (when `keepHidden` says so),
+ * and items that are new at the end. Saving then never moves a port or a link just because it was out of sight.
+ * The editors only see the shown items, so a new one may carry the id of a hidden one: it gets a free id instead
+ * of replacing it.
+ */
+function inStoredOrder<T extends { id: string }>(
+  stored: T[],
+  shown: T[],
+  keepHidden: (item: T) => boolean,
+  prefix: string,
+): T[] {
+  const hiddenIds = new Set(stored.filter(keepHidden).map((item) => item.id))
+  const taken: { id: string }[] = [...stored, ...shown]
+  const unclashed = shown.map((item) => {
+    if (!hiddenIds.has(item.id)) return item
+    const id = nextId(prefix, taken)
+    taken.push({ id })
+    return { ...item, id }
+  })
+  const edited = new Map(unclashed.map((item) => [item.id, item]))
+  const placed = stored.flatMap((item) => {
+    if (hiddenIds.has(item.id)) return [item]
+    const current = edited.get(item.id)
+    return current ? [current] : []
+  })
+  const placedIds = new Set(placed.map((item) => item.id))
+  return [...placed, ...unclashed.filter((item) => !placedIds.has(item.id))]
 }
 
 /**
@@ -121,8 +166,24 @@ export function storeCombined(stored: NetworkPlan, combined: NetworkPlan): Netwo
   const shownLinks = new Set(combined.links.map((link) => link.id))
   return {
     ...combined,
+    // The shown order decides the core; hidden switches have no place in it, so they go last.
     switches: [...combined.switches, ...stored.switches.filter((item) => !shownSwitches.has(item.id))],
-    links: [...combined.links, ...stored.links.filter((link) => !shownLinks.has(link.id))],
-    ports: [...combined.ports, ...stored.ports.filter((port) => !shownSwitches.has(port.switch))],
+    links: inStoredOrder(stored.links, combined.links, (link) => !shownLinks.has(link.id), 'ln'),
+    ports: inStoredOrder(stored.ports, combined.ports, (port) => !shownSwitches.has(port.switch), 'pt'),
+  }
+}
+
+/**
+ * The plan to store when the user discards the hidden switches: they go, with their links and ports. Links between
+ * two shown switches stay even if the inventory no longer connects them, so their ports come back with the connection.
+ */
+export function discardHidden(stored: NetworkPlan, combined: NetworkPlan): NetworkPlan {
+  const saved = storeCombined(stored, combined)
+  const shown = new Set(combined.switches.map((item) => item.id))
+  return {
+    ...saved,
+    switches: saved.switches.filter((item) => shown.has(item.id)),
+    links: saved.links.filter((link) => shown.has(link.a.switch) && shown.has(link.b.switch)),
+    ports: saved.ports.filter((port) => shown.has(port.switch)),
   }
 }

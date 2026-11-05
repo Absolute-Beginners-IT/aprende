@@ -1,7 +1,7 @@
 import { catalog } from '../../content/catalog'
 import { EMPTY_PLAN, type NetworkPlan, NetworkPlanSchema } from '../../domain/networkPlan'
 import { type InventorySwitch, inventorySwitches } from './inventoryImport'
-import { combineWithInventory, storeCombined } from './inventoryPlan'
+import { combineWithInventory, discardHidden, storeCombined } from './inventoryPlan'
 import { twoSwitchPlan } from './planFixtures'
 
 const devices = (items: object[]): InventorySwitch[] =>
@@ -160,5 +160,80 @@ describe('storeCombined', () => {
 
     expect(plan.switches.map((item) => item.id)).toEqual(['sw-2', 'sw-3'])
     expect(storeCombined(stored, plan).switches.map((item) => item.id)).toEqual(['sw-2', 'sw-3', 'sw-1'])
+  })
+})
+
+describe('advisories of the first delivery', () => {
+  const onlyCore = coreAndFloor.filter((item) => item.id !== 'inv-planta')
+  const sync = (stored: NetworkPlan, items: InventorySwitch[]) =>
+    storeCombined(stored, combineWithInventory(stored, items, catalog).plan)
+
+  it('keeps every port and link in its place while its switch is hidden and comes back', () => {
+    const stored: NetworkPlan = {
+      ...twoSwitchPlan(),
+      ports: [
+        { id: 'pt-1', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10 },
+        { id: 'pt-2', switch: 'sw-1', interface: '1/1/5', vlan: 10 },
+        { id: 'pt-3', switch: 'sw-2', interface: 'gi1/0/6', vlan: 20 },
+      ],
+    }
+
+    const hidden = sync(sync(stored, coreAndFloor), onlyCore)
+    expect(hidden.ports.map((port) => port.id)).toEqual(['pt-1', 'pt-2', 'pt-3'])
+    expect(hidden.links.map((link) => link.id)).toEqual(['ln-1'])
+
+    const back = combineWithInventory(hidden, coreAndFloor, catalog).plan
+    expect(back.ports.map((port) => port.id)).toEqual(['pt-1', 'pt-2', 'pt-3'])
+  })
+
+  it('gives a new port another id when the one it took belongs to a hidden switch', () => {
+    const stored = sync(twoSwitchPlan(), coreAndFloor)
+    const { plan } = combineWithInventory(stored, onlyCore, catalog)
+    // The port editor only sees the shown ports, so it can pick the id of a hidden one.
+    const added = { ...plan, ports: [...plan.ports, { id: 'pt-1', switch: 'sw-1', interface: '1/1/7', vlan: 10 }] }
+
+    const saved = storeCombined(stored, added)
+
+    expect(saved.ports[0]).toEqual({ id: 'pt-1', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10 })
+    expect(saved.ports[1]).toMatchObject({ switch: 'sw-1', interface: '1/1/7', vlan: 10 })
+    expect(new Set(saved.ports.map((port) => port.id)).size).toBe(2)
+  })
+
+  it('discards the hidden switches with their links and ports, and keeps the shown ones', () => {
+    const stored = sync(twoSwitchPlan(), coreAndFloor)
+    const { plan } = combineWithInventory(stored, onlyCore, catalog)
+
+    const kept = discardHidden(stored, plan)
+
+    expect(kept.switches.map((item) => item.id)).toEqual(['sw-1'])
+    expect(kept.links).toEqual([])
+    expect(kept.ports).toEqual([])
+    expect(kept.vlans).toEqual(twoSwitchPlan().vlans)
+    expect(combineWithInventory(kept, onlyCore, catalog).hidden).toEqual([])
+  })
+
+  it('names a hidden switch without a name in words, not by its internal id', () => {
+    const stored: NetworkPlan = {
+      ...EMPTY_PLAN,
+      switches: [{ id: 'sw-7', name: '  ', platform: '', mgmtIp: '', gateway: '', bridge: '' }],
+    }
+
+    expect(combineWithInventory(stored, onlyCore, catalog).hidden).toEqual(['un switch sin nombre'])
+  })
+
+  it('matches no stored switch by a name two inventory switches share, and reports the name', () => {
+    const twins = devices([
+      { id: 'a', nombre: 'planta1', tipo: 'switch', marca: 'Cisco', modelo: 'C1300-24P' },
+      { id: 'b', nombre: 'PLANTA1 ', tipo: 'switch', marca: 'Cisco', modelo: 'C1300-48P' },
+    ])
+
+    const { plan, hidden, duplicates } = combineWithInventory(twoSwitchPlan(), twins, catalog)
+
+    expect(plan.switches.map((item) => [item.deviceId, item.gateway])).toEqual([
+      ['a', ''],
+      ['b', ''],
+    ])
+    expect(hidden).toEqual(['nucleo', 'planta1'])
+    expect(duplicates).toEqual(['planta1'])
   })
 })

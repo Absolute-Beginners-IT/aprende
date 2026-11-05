@@ -359,6 +359,41 @@ describe('PlannerPage', () => {
       expect(stored.links).toContainEqual(plan.links[0])
     })
 
+    it('discards the switches the inventory lacks, with their links and ports, after asking', async () => {
+      seedInventory()
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(twoSwitchPlan()))
+      const user = userEvent.setup()
+      const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true)
+      render(<PlannerPage catalog={catalog} />)
+
+      await user.click(screen.getByRole('button', { name: 'Quitar del plan' }))
+      expect(confirm).toHaveBeenLastCalledWith(
+        '¿Quitar nucleo y planta1 del plan? Se borran también sus enlaces y sus puertos.',
+      )
+      expect(storedPlan().switches).toHaveLength(4)
+
+      await user.click(screen.getByRole('button', { name: 'Quitar del plan' }))
+      expect(storedPlan().switches.map((item: { name: string }) => item.name)).toEqual(['SW-CORE', 'SW-P1'])
+      expect(storedPlan().ports).toEqual([])
+      expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
+      confirm.mockRestore()
+    })
+
+    it('asks to rename one of two inventory switches that share a name', () => {
+      localStorage.setItem(
+        INVENTORY_STORAGE_KEY,
+        JSON.stringify([
+          { id: 'a', nombre: 'SW-P1', tipo: 'switch', criticidad: 'Media', monitorizado: false },
+          { id: 'b', nombre: 'sw-p1', tipo: 'switch', criticidad: 'Media', monitorizado: false },
+        ]),
+      )
+      render(<PlannerPage catalog={catalog} />)
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        'En Mi infraestructura hay dos switches llamados SW-P1. Cambia el nombre de uno allí: el plan no puede saber cuál es cuál.',
+      )
+    })
+
     it('works as before when the inventory has no switch', () => {
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([{ id: 'fw', nombre: 'FW01', tipo: 'firewall' }]))
       seed()

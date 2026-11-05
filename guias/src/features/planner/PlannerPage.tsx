@@ -3,7 +3,7 @@ import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan } from '../../domain/networkPlan'
 import { buildPlanGuide } from './buildPlanGuide'
 import { readInventorySwitches } from './inventoryImport'
-import { combineWithInventory, storeCombined } from './inventoryPlan'
+import { combineWithInventory, discardHidden, storeCombined } from './inventoryPlan'
 import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
 import { PlanTools } from './PlanTools'
@@ -57,6 +57,13 @@ function hiddenNotice(names: string[]): string {
   return names.length === 1
     ? `${names[0]} está en el plan pero no en Mi infraestructura, así que no se muestra. Para recuperarlo con sus enlaces y puertos, añádelo allí con el mismo nombre.`
     : `${listNames(names)} están en el plan pero no en Mi infraestructura, así que no se muestran. Para recuperarlos con sus enlaces y puertos, añádelos allí con el mismo nombre.`
+}
+
+/** Why the plan cannot tell two inventory switches apart, and what to do about it. */
+function duplicatesNotice(names: string[]): string {
+  return names.length === 1
+    ? `En Mi infraestructura hay dos switches llamados ${names[0]}. Cambia el nombre de uno allí: el plan no puede saber cuál es cuál.`
+    : `En Mi infraestructura hay switches con el mismo nombre (${listNames(names)}). Cambia el nombre de uno de cada pareja allí: el plan no puede saber cuál es cuál.`
 }
 
 /** Describe the network once and get the steps for each switch, in its brand's runbooks. */
@@ -128,8 +135,25 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
         </p>
         <PlanTools plan={stored} onChange={setStored} />
         {combined && combined.hidden.length > 0 && (
+          <div role="status" className="plan-inventory__status">
+            <p>{hiddenNotice(combined.hidden)}</p>
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                const names = listNames(combined.hidden)
+                if (window.confirm(`¿Quitar ${names} del plan? Se borran también sus enlaces y sus puertos.`)) {
+                  setStored(discardHidden(stored, combined.plan))
+                }
+              }}
+            >
+              Quitar del plan
+            </button>
+          </div>
+        )}
+        {combined && combined.duplicates.length > 0 && (
           <p role="status" className="plan-inventory__status">
-            {hiddenNotice(combined.hidden)}
+            {duplicatesNotice(combined.duplicates)}
           </p>
         )}
       </header>
