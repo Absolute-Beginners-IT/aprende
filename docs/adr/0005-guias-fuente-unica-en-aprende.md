@@ -28,7 +28,7 @@ Las guías y las herramientas se tienen que poder consultar sin conexión y aunq
 - el toolkit sigue siendo archivos sueltos en `toolkit/`, sin depender de la web;
 - este repo es la copia de respaldo: con clonarlo se tiene todo.
 
-El paquete sin conexión se publica como release de GitHub, que no depende de GitHub Pages: al subir una etiqueta `sin-conexion-*`, el workflow `.github/workflows/paquete-sin-conexion.yml` compila las guías autónomas y arma con `site/scripts/paquete.mjs` un zip con `guias.html`, las herramientas del catálogo, `SHA256SUMS.txt` y `LEEME.txt`. Los workflows que trajeron las guías en `guias/.github/workflows/` no se ejecutan dentro de este repo, porque GitHub solo lanza los de la raíz.
+El paquete sin conexión se publica como release de GitHub, que no depende de GitHub Pages: al subir una etiqueta `sin-conexion-*`, el workflow `.github/workflows/paquete-sin-conexion.yml` compila las guías autónomas y arma con `site/scripts/paquete.mjs` un zip con `guias.html`, las herramientas del catálogo, `SHA256SUMS.txt` y `LEEME.txt`. Los workflows que trajeron las guías en `guias/.github/workflows/` nunca se ejecutaron dentro de este repo, porque GitHub solo lanza los de la raíz: se han quitado, y los sustituyen ese workflow y el CI de los pull requests (`.github/workflows/ci.yml`).
 
 ## Por qué no otras opciones
 
