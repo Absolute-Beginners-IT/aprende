@@ -4,7 +4,7 @@
 //   node site/scripts/paquete.mjs <version> [destination folder]
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, normalize } from 'node:path';
+import { dirname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generarDescargas } from './descargas.mjs';
 
@@ -54,8 +54,11 @@ export function armarPaquete({ raiz, guias, destino, version }) {
     throw new Error(`${guias} lleva la barra de la web: compila las guías sin VITE_SITE_NAV para el paquete.`);
   }
 
-  // Built aside and swapped in at the end, so a broken catalog leaves the previous package as it was.
-  const nuevo = `${destino}.nuevo`;
+  // Built aside and swapped in at the end, so a broken catalog leaves the previous package as it was. resolve() drops
+  // a trailing slash, which would otherwise put the folder aside inside the destination.
+  const final = resolve(destino);
+  const nuevo = `${final}.nuevo`;
+  let anteriorBorrado = false;
   rmSync(nuevo, { recursive: true, force: true });
   try {
     const herramientas = generarDescargas({ raiz, destinoArchivos: join(nuevo, 'herramientas'), prefijoRuta: 'herramientas/' });
@@ -68,11 +71,13 @@ export function armarPaquete({ raiz, guias, destino, version }) {
     writeFileSync(join(nuevo, 'SHA256SUMS.txt'), `${sumas.join('\n')}\n`);
     writeFileSync(join(nuevo, 'LEEME.txt'), leeme({ version, herramientas }));
 
-    rmSync(destino, { recursive: true, force: true });
-    renameSync(nuevo, destino);
+    rmSync(final, { recursive: true, force: true });
+    anteriorBorrado = true;
+    renameSync(nuevo, final);
     return { rutas };
   } catch (error) {
-    rmSync(nuevo, { recursive: true, force: true });
+    // Once the previous package is gone, the complete new one is all there is: it stays in the folder aside.
+    if (!anteriorBorrado) rmSync(nuevo, { recursive: true, force: true });
     throw error;
   }
 }

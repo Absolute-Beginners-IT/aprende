@@ -420,8 +420,11 @@ describe('PlannerPage', () => {
         JSON.stringify([device('c', 'nucleo'), device('a', 'planta1'), device('b', 'PLANTA1')]),
       )
       const { unmount } = render(<PlannerPage catalog={catalog} />)
-      // While the name is shared, the plan is not saved over: no new switch takes the place of planta1.
-      expect(storedPlan()).toEqual(twoSwitchPlan())
+      // While the name is shared, no new switch is saved in place of planta1; nucleo is still followed by its id.
+      expect(storedPlan().switches.map((item: { id: string; deviceId?: string }) => [item.id, item.deviceId])).toEqual([
+        ['sw-1', 'c'],
+        ['sw-2', undefined],
+      ])
       // planta1 is in the inventory, twice: it is not offered for removal as if it were missing.
       expect(screen.getByRole('status')).toHaveTextContent('hay dos switches llamados planta1')
       expect(screen.queryByText(/está en el plan pero no en Mi infraestructura/)).not.toBeInTheDocument()
@@ -437,6 +440,39 @@ describe('PlannerPage', () => {
       const planta1 = storedPlan().switches.find((item: { id: string }) => item.id === 'sw-2')
       expect(planta1).toMatchObject({ deviceId: 'a', gateway: '192.168.99.1' })
       expect(storedPlan().ports).toEqual(twoSwitchPlan().ports)
+      expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
+    })
+
+    it('keeps following the other switches while two inventory switches share a name', () => {
+      const device = (id: string, nombre: string) => ({
+        id,
+        nombre,
+        tipo: 'switch',
+        criticidad: 'Media',
+        monitorizado: false,
+      })
+      const showWith = (devices: object[]) => {
+        localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(devices))
+        return render(<PlannerPage catalog={catalog} />)
+      }
+      seed()
+      showWith([device('c', 'nucleo'), device('a', 'planta1'), device('b', 'PLANTA1')]).unmount()
+      // nucleo is renamed before the shared name is solved: the plan follows it by its id.
+      showWith([device('c', 'core'), device('a', 'planta1'), device('b', 'PLANTA1')]).unmount()
+      showWith([device('c', 'core'), device('a', 'planta1'), device('b', 'planta2')])
+
+      const stored = storedPlan()
+      const pairs = stored.switches.map((item: { id: string; name: string; deviceId?: string }) => [
+        item.id,
+        item.name,
+        item.deviceId,
+      ])
+      expect(pairs.slice(0, 2)).toEqual([
+        ['sw-1', 'core', 'c'],
+        ['sw-2', 'planta1', 'a'],
+      ])
+      expect(stored.links).toEqual(twoSwitchPlan().links)
+      expect(stored.ports).toEqual(twoSwitchPlan().ports)
       expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
     })
 

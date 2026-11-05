@@ -123,6 +123,14 @@ test('builds the guides of the package without the website bar, whatever section
   });
 }));
 
+test('builds the package when the destination ends with a slash, as tab completion writes it', () => conRepo((raiz) => {
+  const { destino } = opciones(raiz);
+
+  armarPaquete({ ...opciones(raiz), destino: `${destino}/` });
+
+  assert.deepEqual(readdirSync(destino).sort(), ['LEEME.txt', 'SHA256SUMS.txt', 'guias.html', 'herramientas']);
+}));
+
 test('keeps the previous package when the catalog is broken', () => conRepo((raiz) => {
   const { destino } = opciones(raiz);
   armarPaquete(opciones(raiz));

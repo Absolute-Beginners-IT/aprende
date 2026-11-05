@@ -3,7 +3,7 @@ import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan } from '../../domain/networkPlan'
 import { buildPlanGuide } from './buildPlanGuide'
 import { readInventorySwitches } from './inventoryImport'
-import { combineWithInventory, discardHidden, storeCombined } from './inventoryPlan'
+import { combineWithInventory, discardHidden, storeCombined, withoutNewSharedNames } from './inventoryPlan'
 import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
 import { PlanTools } from './PlanTools'
@@ -77,12 +77,12 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const setPlan = (next: NetworkPlan) => setStored(combined ? storeCombined(stored, next) : next)
   const inventory = combined && { deducedModels: combined.deducedModels }
 
-  // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id.
-  // Not while two inventory switches share a name: saving then would give both new switches, and the plan's own
-  // switch of that name would stay hidden for good once one of them is renamed.
+  // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id. The new
+  // switches of inventory switches that share a name are not saved (see withoutNewSharedNames).
   const storedText = JSON.stringify(stored)
-  const syncedText =
-    combined && combined.duplicates.length === 0 ? JSON.stringify(storeCombined(stored, combined.plan)) : storedText
+  const syncedText = combined
+    ? JSON.stringify(storeCombined(stored, withoutNewSharedNames(stored, combined)))
+    : storedText
   useEffect(() => {
     if (syncedText !== storedText) setStored(JSON.parse(syncedText))
   }, [syncedText, storedText, setStored])

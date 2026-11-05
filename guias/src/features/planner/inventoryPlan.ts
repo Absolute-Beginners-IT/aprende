@@ -128,6 +128,27 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
 }
 
 /**
+ * The combined plan without the new switches made for inventory switches that share a name, nor their links. Saving
+ * them would leave the plan's own switch of that name hidden for good once one of the two is renamed; left out, it
+ * is found by its name again. The other switches are saved as usual, so they keep being followed by their id.
+ */
+export function withoutNewSharedNames(stored: NetworkPlan, combined: CombinedPlan): NetworkPlan {
+  const shared = new Set(combined.duplicates.map(nameKey))
+  const storedIds = new Set(stored.switches.map((item) => item.id))
+  const left = new Set(
+    combined.plan.switches
+      .filter((item) => !storedIds.has(item.id) && shared.has(nameKey(item.name)))
+      .map((item) => item.id),
+  )
+  if (left.size === 0) return combined.plan
+  return {
+    ...combined.plan,
+    switches: combined.plan.switches.filter((item) => !left.has(item.id)),
+    links: combined.plan.links.filter((link) => !left.has(link.a.switch) && !left.has(link.b.switch)),
+  }
+}
+
+/**
  * Items in their stored order: a shown item in its edited form, a hidden one as stored (when `keepHidden` says so),
  * and items that are new at the end. Saving then never moves a port or a link just because it was out of sight.
  * The editors only see the shown items, so a new one may carry the id of a hidden one: it gets a free id instead
