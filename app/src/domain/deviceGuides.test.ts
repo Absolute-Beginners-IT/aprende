@@ -81,4 +81,19 @@ describe('guidesForDevice', () => {
     expect(guides(dev('router', { marca: 'MikroTik', modelo: 'CRS317', firmware: 'RouterOS 7' }))).toEqual({ estado: 'tipo-sin-guias' });
     expect(guides(dev('servidor', { marca: 'Fortinet', modelo: 'FortiGate 60F' }))).toEqual({ estado: 'tipo-sin-guias' });
   });
+  it('matches the inventory type names with the guides ones (hipervisor, almacenamiento)', () => {
+    const extra = (id: string, nombre: string, tipo: 'hypervisor' | 'storage', patron: string) => ({ id, nombre, fabricante: nombre, tipo, patron, flags: 'i' });
+    const index = {
+      ...content.guias,
+      plataformas: [...content.guias.plataformas, extra('virt', 'Virt', 'hypervisor', 'virt'), extra('nas', 'Nas', 'storage', 'nas')],
+      tareas: content.guias.tareas.map(t => (t.id === 'ntp-client' ? { ...t, plataformas: [...t.plataformas, 'virt', 'nas'] } : t)),
+    };
+    const of = (d: Device) => guidesForDevice(d, index, BASE);
+    const host = of(dev('hipervisor', { id: 'pve1', modelo: 'Virt 8' }));
+    expect(host.estado === 'cubierto' && host.plataforma.id).toBe('virt');
+    const nas = of(dev('almacenamiento', { modelo: 'Nas 2' }));
+    expect(nas.estado === 'cubierto' && nas.plataforma.id).toBe('nas');
+    const unknown = of(dev('hipervisor', { modelo: 'Otro' }));
+    expect(unknown.estado === 'modelo-desconocido' && unknown.plataformas.map(p => p.id)).toEqual(['virt']);
+  });
 });
