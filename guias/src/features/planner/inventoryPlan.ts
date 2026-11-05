@@ -130,15 +130,31 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
 /**
  * Items in their stored order: a shown item in its edited form, a hidden one as stored (when `keepHidden` says so),
  * and items that are new at the end. Saving then never moves a port or a link just because it was out of sight.
+ * The editors only see the shown items, so a new one may carry the id of a hidden one: it gets a free id instead
+ * of replacing it.
  */
-function inStoredOrder<T extends { id: string }>(stored: T[], shown: T[], keepHidden: (item: T) => boolean): T[] {
-  const edited = new Map(shown.map((item) => [item.id, item]))
+function inStoredOrder<T extends { id: string }>(
+  stored: T[],
+  shown: T[],
+  keepHidden: (item: T) => boolean,
+  prefix: string,
+): T[] {
+  const hiddenIds = new Set(stored.filter(keepHidden).map((item) => item.id))
+  const taken: { id: string }[] = [...stored, ...shown]
+  const unclashed = shown.map((item) => {
+    if (!hiddenIds.has(item.id)) return item
+    const id = nextId(prefix, taken)
+    taken.push({ id })
+    return { ...item, id }
+  })
+  const edited = new Map(unclashed.map((item) => [item.id, item]))
   const placed = stored.flatMap((item) => {
+    if (hiddenIds.has(item.id)) return [item]
     const current = edited.get(item.id)
-    return current ? [current] : keepHidden(item) ? [item] : []
+    return current ? [current] : []
   })
   const placedIds = new Set(placed.map((item) => item.id))
-  return [...placed, ...shown.filter((item) => !placedIds.has(item.id))]
+  return [...placed, ...unclashed.filter((item) => !placedIds.has(item.id))]
 }
 
 /**
@@ -152,8 +168,8 @@ export function storeCombined(stored: NetworkPlan, combined: NetworkPlan): Netwo
     ...combined,
     // The shown order decides the core; hidden switches have no place in it, so they go last.
     switches: [...combined.switches, ...stored.switches.filter((item) => !shownSwitches.has(item.id))],
-    links: inStoredOrder(stored.links, combined.links, (link) => !shownLinks.has(link.id)),
-    ports: inStoredOrder(stored.ports, combined.ports, (port) => !shownSwitches.has(port.switch)),
+    links: inStoredOrder(stored.links, combined.links, (link) => !shownLinks.has(link.id), 'ln'),
+    ports: inStoredOrder(stored.ports, combined.ports, (port) => !shownSwitches.has(port.switch), 'pt'),
   }
 }
 

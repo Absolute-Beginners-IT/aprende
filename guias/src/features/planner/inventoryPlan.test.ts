@@ -186,6 +186,19 @@ describe('advisories of the first delivery', () => {
     expect(back.ports.map((port) => port.id)).toEqual(['pt-1', 'pt-2', 'pt-3'])
   })
 
+  it('gives a new port another id when the one it took belongs to a hidden switch', () => {
+    const stored = sync(twoSwitchPlan(), coreAndFloor)
+    const { plan } = combineWithInventory(stored, onlyCore, catalog)
+    // The port editor only sees the shown ports, so it can pick the id of a hidden one.
+    const added = { ...plan, ports: [...plan.ports, { id: 'pt-1', switch: 'sw-1', interface: '1/1/7', vlan: 10 }] }
+
+    const saved = storeCombined(stored, added)
+
+    expect(saved.ports[0]).toEqual({ id: 'pt-1', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10 })
+    expect(saved.ports[1]).toMatchObject({ switch: 'sw-1', interface: '1/1/7', vlan: 10 })
+    expect(new Set(saved.ports.map((port) => port.id)).size).toBe(2)
+  })
+
   it('discards the hidden switches with their links and ports, and keeps the shown ones', () => {
     const stored = sync(twoSwitchPlan(), coreAndFloor)
     const { plan } = combineWithInventory(stored, onlyCore, catalog)
