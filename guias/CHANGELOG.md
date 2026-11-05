@@ -63,6 +63,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Corregido
 
+- Planificador: mientras dos switches de «Mi infraestructura» se llaman igual, el plan no se guarda solo. Antes cada
+  uno recibía un switch nuevo y, al renombrar uno, el switch del plan con ese nombre quedaba oculto para siempre;
+  ahora vuelve a asociarse por su nombre. Mientras tanto solo se pide renombrar uno: el switch del plan no aparece
+  como si faltara ni se ofrece «Quitar del plan», que lo borraría.
 - Dentro de la web, la barra de navegación se queda fija arriba al hacer scroll, como en el resto de páginas; la lista
   de tareas y el índice de secciones quedan justo debajo.
 - Dentro de la web, la barra de navegación y el aviso de prototipo son iguales que en el resto de secciones (mismas

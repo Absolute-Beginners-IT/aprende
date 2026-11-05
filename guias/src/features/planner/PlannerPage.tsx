@@ -78,8 +78,11 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const inventory = combined && { deducedModels: combined.deducedModels }
 
   // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id.
+  // Not while two inventory switches share a name: saving then would give both new switches, and the plan's own
+  // switch of that name would stay hidden for good once one of them is renamed.
   const storedText = JSON.stringify(stored)
-  const syncedText = combined ? JSON.stringify(storeCombined(stored, combined.plan)) : storedText
+  const syncedText =
+    combined && combined.duplicates.length === 0 ? JSON.stringify(storeCombined(stored, combined.plan)) : storedText
   useEffect(() => {
     if (syncedText !== storedText) setStored(JSON.parse(syncedText))
   }, [syncedText, storedText, setStored])
@@ -134,7 +137,8 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
         </p>
         <PlanTools plan={stored} onChange={setStored} />
-        {combined && combined.hidden.length > 0 && (
+        {/* With a shared name, a switch of the plan looks missing although it is there: rename first, then discard. */}
+        {combined && combined.hidden.length > 0 && combined.duplicates.length === 0 && (
           <div role="status" className="plan-inventory__status">
             <p>{hiddenNotice(combined.hidden)}</p>
             <button

@@ -406,6 +406,40 @@ describe('PlannerPage', () => {
       )
     })
 
+    it('finds the plan switch by its name again once two inventory switches no longer share it', () => {
+      const device = (id: string, nombre: string) => ({
+        id,
+        nombre,
+        tipo: 'switch',
+        criticidad: 'Media',
+        monitorizado: false,
+      })
+      seed()
+      localStorage.setItem(
+        INVENTORY_STORAGE_KEY,
+        JSON.stringify([device('c', 'nucleo'), device('a', 'planta1'), device('b', 'PLANTA1')]),
+      )
+      const { unmount } = render(<PlannerPage catalog={catalog} />)
+      // While the name is shared, the plan is not saved over: no new switch takes the place of planta1.
+      expect(storedPlan()).toEqual(twoSwitchPlan())
+      // planta1 is in the inventory, twice: it is not offered for removal as if it were missing.
+      expect(screen.getByRole('status')).toHaveTextContent('hay dos switches llamados planta1')
+      expect(screen.queryByText(/está en el plan pero no en Mi infraestructura/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
+      unmount()
+
+      localStorage.setItem(
+        INVENTORY_STORAGE_KEY,
+        JSON.stringify([device('c', 'nucleo'), device('a', 'planta1'), device('b', 'planta2')]),
+      )
+      render(<PlannerPage catalog={catalog} />)
+
+      const planta1 = storedPlan().switches.find((item: { id: string }) => item.id === 'sw-2')
+      expect(planta1).toMatchObject({ deviceId: 'a', gateway: '192.168.99.1' })
+      expect(storedPlan().ports).toEqual(twoSwitchPlan().ports)
+      expect(screen.queryByRole('button', { name: 'Quitar del plan' })).not.toBeInTheDocument()
+    })
+
     it('works as before when the inventory has no switch', () => {
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify([{ id: 'fw', nombre: 'FW01', tipo: 'firewall' }]))
       seed()
