@@ -114,7 +114,7 @@ describe('App', () => {
   it('shows the manual title and one tab per brand', () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Manual de Switching' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Guías de infraestructura' })).toBeInTheDocument()
     expect(
       within(brands())
         .getAllByRole('link')
@@ -233,9 +233,9 @@ describe('App', () => {
     const user = userEvent.setup()
     openAt('#/p/cisco-c1300')
 
-    await user.click(screen.getByRole('link', { name: 'Manual de Switching' }))
+    await user.click(screen.getByRole('link', { name: 'Guías de infraestructura' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Manual de Switching' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Guías de infraestructura' })).toBeInTheDocument()
     expect(within(brands()).getByRole('link', { name: 'Cisco Catalyst 1300' })).toHaveAttribute('aria-current', 'page')
     expect(within(tasks()).getByRole('link', { name: 'Ficha del equipo' })).toHaveAttribute('href', '#/p/cisco-c1300')
   })
@@ -363,7 +363,7 @@ describe('quick search', () => {
     ).toBeInTheDocument()
     await user.keyboard('{Escape}')
 
-    await user.click(screen.getByRole('link', { name: 'Manual de Switching' }))
+    await user.click(screen.getByRole('link', { name: 'Guías de infraestructura' }))
     const recents = await screen.findByRole('list', { name: 'Recientes' })
 
     expect(within(recents).getByRole('link', { name: /Configurar un puerto trunk.*Aruba CX 6100/ })).toHaveAttribute(
@@ -565,7 +565,7 @@ describe('inside the website', () => {
     const user = userEvent.setup()
     openAt('#/p/aruba-aoscx')
 
-    expect(screen.queryByRole('link', { name: 'Manual de Switching' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Guías de infraestructura' })).not.toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Marcas' })).not.toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Herramientas' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Tareas' })).not.toBeInTheDocument()
@@ -726,7 +726,7 @@ describe('inside the website', () => {
     openAt('#/')
 
     expect(screen.getByRole('heading', { level: 1, name: 'Guías' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Manual de Switching' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Guías de infraestructura' })).not.toBeInTheDocument()
     expect(screen.getByText(/ficha de un equipo en «Mi infraestructura»/)).toBeInTheDocument()
 
     const cards = within(screen.getByRole('list', { name: 'Tipos de equipo' }))
@@ -790,7 +790,7 @@ describe('built on its own', () => {
   it('keeps the manual header, the brand tabs and the task sidebar, without the library', () => {
     openAt('#/p/aruba-aoscx')
 
-    expect(screen.getByRole('link', { name: 'Manual de Switching' })).toHaveAttribute('href', '#/')
+    expect(screen.getByRole('link', { name: 'Guías de infraestructura' })).toHaveAttribute('href', '#/')
     // A switch shows the switch brands; the FortiGate firewall has its own tab set.
     expect(within(brands()).getAllByRole('link')).toHaveLength(4)
     expect(
@@ -806,7 +806,7 @@ describe('built on its own', () => {
   it('keeps its own home page', () => {
     openAt('#/')
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Manual de Switching' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Guías de infraestructura' })).toBeInTheDocument()
     expect(screen.queryByRole('list', { name: 'Tipos de equipo' })).not.toBeInTheDocument()
   })
 })

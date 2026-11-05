@@ -144,7 +144,7 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
       <>
         <header className="shell__header">
           <a className="shell__title" href="#/">
-            Manual de Switching
+            Guías de infraestructura
           </a>
           <nav className="brand-tabs brand-tabs--fixed" aria-label="Herramientas">
             <a href={fundamentalsHref()} aria-current={onFundamentals ? 'page' : undefined}>

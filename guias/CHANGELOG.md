@@ -39,6 +39,8 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Cambiado
 
+- El manual se llama ahora «Guías de infraestructura» (antes «Manual de Switching»), porque ya no cubre solo switches:
+  título de la página, cabecera y portada del archivo independiente. Lo guardado en el navegador se conserva.
 - En la web, las guías se ven como una sección más: sin la cabecera del manual ni las pestañas de marca. Arriba queda
   la barra de la web y, encima de cada página, una barra fina con «Buscar» (`Ctrl+K`), el tema y, en pantallas
   estrechas, el botón «Guías» que abre el lateral. El lateral es la biblioteca por tipo de equipo: «Switches» con sus
