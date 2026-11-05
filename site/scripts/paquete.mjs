@@ -3,13 +3,14 @@
 // Usage (from the repo root, after «npm run build» in guias/ without VITE_SITE_NAV):
 //   node site/scripts/paquete.mjs <version> [destination folder]
 import { createHash } from 'node:crypto';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generarDescargas } from './descargas.mjs';
 
 // Only a build made with VITE_SITE_NAV carries the website's links; its relative links break outside the website.
-const MARCA_BARRA_WEB = '{"id":"infra"';
+// The bar marks its current section: the same mark the CI and the deploy check.
+const MARCA_BARRA_WEB = '"current":true';
 
 function leeme({ version, herramientas }) {
   const fichas = herramientas.map((h) => [
@@ -53,17 +54,27 @@ export function armarPaquete({ raiz, guias, destino, version }) {
     throw new Error(`${guias} lleva la barra de la web: compila las guías sin VITE_SITE_NAV para el paquete.`);
   }
 
-  rmSync(destino, { recursive: true, force: true });
-  const herramientas = generarDescargas({ raiz, destinoArchivos: join(destino, 'herramientas'), prefijoRuta: 'herramientas/' });
-  mkdirSync(destino, { recursive: true });
-  copyFileSync(guias, join(destino, 'guias.html'));
+  // Built aside and swapped in at the end, so a broken catalog leaves the previous package as it was.
+  const nuevo = `${destino}.nuevo`;
+  rmSync(nuevo, { recursive: true, force: true });
+  try {
+    const herramientas = generarDescargas({ raiz, destinoArchivos: join(nuevo, 'herramientas'), prefijoRuta: 'herramientas/' });
+    mkdirSync(nuevo, { recursive: true });
+    copyFileSync(guias, join(nuevo, 'guias.html'));
 
-  // Two tools may share a file: it is in the package once, so it is listed once.
-  const rutas = [...new Set(['guias.html', ...herramientas.flatMap((h) => h.archivos.map((a) => a.ruta))])];
-  const sumas = rutas.map((ruta) => `${createHash('sha256').update(readFileSync(join(destino, ruta))).digest('hex')}  ${ruta}`);
-  writeFileSync(join(destino, 'SHA256SUMS.txt'), `${sumas.join('\n')}\n`);
-  writeFileSync(join(destino, 'LEEME.txt'), leeme({ version, herramientas }));
-  return { rutas };
+    // Two tools may share a file: it is in the package once, so it is listed once.
+    const rutas = [...new Set(['guias.html', ...herramientas.flatMap((h) => h.archivos.map((a) => a.ruta))])];
+    const sumas = rutas.map((ruta) => `${createHash('sha256').update(readFileSync(join(nuevo, ruta))).digest('hex')}  ${ruta}`);
+    writeFileSync(join(nuevo, 'SHA256SUMS.txt'), `${sumas.join('\n')}\n`);
+    writeFileSync(join(nuevo, 'LEEME.txt'), leeme({ version, herramientas }));
+
+    rmSync(destino, { recursive: true, force: true });
+    renameSync(nuevo, destino);
+    return { rutas };
+  } catch (error) {
+    rmSync(nuevo, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv[1])) {

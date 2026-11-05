@@ -114,10 +114,22 @@ test('fails with a clear message when the guides have not been built', () => con
   });
 }));
 
-test('builds the guides of the package without the website bar', () => conRepo((raiz) => {
-  writeFileSync(join(raiz, 'guias', 'dist', 'index.html'), '<script>const nav=[{"id":"infra"}]</script>');
+test('builds the guides of the package without the website bar, whatever sections it has', () => conRepo((raiz) => {
+  // The website bar marks its current section; the CI and the deploy check the same mark.
+  writeFileSync(join(raiz, 'guias', 'dist', 'index.html'), '<script>const nav=[{"id":"inicio","href":"../../"},{"id":"guias","href":"./","current":true}]</script>');
 
   assert.throws(() => armarPaquete(opciones(raiz)), {
     message: /lleva la barra de la web/,
   });
+}));
+
+test('keeps the previous package when the catalog is broken', () => conRepo((raiz) => {
+  const { destino } = opciones(raiz);
+  armarPaquete(opciones(raiz));
+  const antes = readFileSync(join(destino, 'SHA256SUMS.txt'));
+  writeFileSync(join(raiz, 'toolkit', 'catalogo.json'), JSON.stringify([{ id: 'x', nombre: 'X', tipo: 'Guía', descripcion: 'Falta.', archivos: ['no-existe.md'] }]));
+
+  assert.throws(() => armarPaquete(opciones(raiz)), { message: 'El catálogo lista toolkit/no-existe.md, que no existe.' });
+  assert.deepEqual(readFileSync(join(destino, 'SHA256SUMS.txt')), antes);
+  assert.ok(existsSync(join(destino, 'guias.html')));
 }));
