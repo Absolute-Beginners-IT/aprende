@@ -1,6 +1,6 @@
 # 0004 · Guías de switching integradas con git subtree
 
-- Estado: aceptada (2026-10-30)
+- Estado: sustituida por la [0005](0005-guias-fuente-unica-en-aprende.md) (2026-11-05). Aceptada el 2026-10-30.
 
 ## Contexto
 

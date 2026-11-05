@@ -10,7 +10,7 @@ La guía tiene una **ruta de aprendizaje**: 10 módulos en orden (de redes y sis
 | --- | --- | --- |
 | `site/` | Guía y ruta de aprendizaje (Hugo, contenido estático) | `example.com` |
 | `app/` | Mapa interactivo (React + Vite + TypeScript, SPA estática) | `app.example.com` |
-| `guias/` | Guías de switching por marca (de [Absolute-Beginners-IT/guias](https://github.com/Absolute-Beginners-IT/guias), integradas con `git subtree`) | `app.example.com/guias/` |
+| `guias/` | Guías por equipo y marca (switches y firewalls) y planificador de red. Se desarrollan aquí (ver [ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)) | `app.example.com/guias/` |
 | `api/` | Backend futuro. **Todavía no existe**: ver `api/README.md` | `api.example.com` |
 | `content/` | Base de conocimiento compartida (JSON) que leen `site/` y `app/` | — |
 | `toolkit/` | Scripts PowerShell y plantillas para aplicar lo aprendido en una red real | — |
@@ -32,13 +32,13 @@ node site/scripts/descargas.mjs            # genera las descargas de «Herramien
 node --test "site/scripts/*.test.mjs"      # tests de los scripts de la portada (descargas y tema)
 ```
 
-Las guías de switching se desarrollan en su propio repo. Para traer sus cambios:
+Las guías se editan directamente en `guias/`. Sus repos de origen (`guias` y `Manual-Switches`) están archivados ([ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)).
+
+Para consultarlas sin conexión, compílalas sin la barra de la web y abre el archivo desde el disco:
 
 ```bash
-git subtree pull --prefix=guias https://github.com/Absolute-Beginners-IT/guias.git main --squash
+cd guias && npm ci && npm run build        # deja guias/dist/index.html, un único archivo que funciona sin conexión
 ```
-
-No edites `guias/` directamente aquí: el siguiente `subtree pull` daría conflictos (ver [ADR 0004](docs/adr/0004-guias-integradas-con-subtree.md)).
 
 ## Contenido
 
