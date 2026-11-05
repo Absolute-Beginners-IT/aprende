@@ -21,7 +21,7 @@ El proyecto separa tres responsabilidades: portada y contenido público estátic
 | --- | --- | --- |
 | `example.com` | Ruta de aprendizaje (módulos, salas y tareas), glosario, escenarios, documentación | `hugo --minify` → Cloudflare Pages (o cualquier hosting estático) |
 | `app.example.com` | Mapa de referencia por capas (presentado en Aprender) y «Mi infraestructura» (mapa editable, lista y plan de despliegue) | `npm run build` → Cloudflare Pages |
-| `app.example.com/guias/` | Guías de switching por marca y planificador de red (pestaña «Red y VLAN» de «Mi infraestructura») | `npm run build` en `guias/`, integradas con `git subtree` (ver ADR 0004) |
+| `app.example.com/guias/` | Guías de switching por marca y planificador de red (pestaña «Red y VLAN» de «Mi infraestructura») | `npm run build` en `guias/`, se desarrollan en este repo (ver ADR 0005) |
 | `api.example.com` | Cuentas, progreso, inventarios compartidos | **No se construye todavía** (ver ADR 0002) |
 
 ## Contenido compartido

@@ -21,8 +21,8 @@ diseño de la red.
 
 ## Uso rápido
 
-1. Descarga el último `manual-switching-vX.Y.Z.html` de la página de
-   [releases](https://github.com/RealUchijavi/Manual-Switches/releases) o genera `dist/index.html` con `npm run build`.
+1. Genera `dist/index.html` con `npm ci` y `npm run build` en esta carpeta. Las releases antiguas del repo archivado
+   Manual-Switches (hasta la v1.1.0) solo tienen los switches de entonces.
 2. Ábrelo con doble clic. No necesita servidor ni internet.
 3. Elige la marca arriba y la tarea en el lateral, o busca con `Ctrl+K`.
 4. Rellena **Tus datos**: los comandos se completan solos y solo se pueden copiar cuando todos los valores son válidos.
@@ -124,8 +124,9 @@ primer enlace tiene que ser la portada de esa web: el nombre de la barra apunta 
 `"id": "infra"`, el planificador pasa a ser la pestaña «Red y VLAN» de esa sección. Sin la variable, o si no es una
 lista válida, se compila el archivo independiente, sin barra y con su cabecera.
 
-Cada pull request a `main` pasa por el CI de GitHub Actions: `check`, `typecheck`, `test` y `build`. Al crear una
-etiqueta `vX.Y.Z`, el workflow de release publica el HTML en GitHub.
+Los workflows de `.github/workflows/` (CI y release) vienen del repo original y no se ejecutan dentro de `aprende`:
+GitHub solo lanza los de la raíz del repositorio. Las pruebas de las guías corren en el workflow de publicación de la
+web (`pages.yml`) al llegar a `main`.
 
 ## Cómo añadir o corregir una guía
 
