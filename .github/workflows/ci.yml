@@ -1,0 +1,87 @@
+# Checks every pull request before it reaches main: the same tests and builds the Pages deploy runs, so a broken
+# change shows up on the pull request instead of after merging. Three jobs, run in parallel.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUGO_VERSION: 0.169.0
+
+jobs:
+  app:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      # Actions are pinned to a commit so a moved tag cannot change what runs; the comment names its release.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npx vitest run
+      # Type check and production build, as the deploy does.
+      - run: npm run build
+
+  guias:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: guias
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: guias/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      # The standalone build, the one the offline package ships; it also type checks.
+      - run: npm run build
+      # The build the website deploys, with its navigation bar (as pages.yml does).
+      - run: VITE_SITE_NAV="$(node ../site/scripts/nav-guias.mjs)" npm run build
+
+  site:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install Hugo (checksum verified)
+        run: |
+          base="https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}"
+          file="hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          curl -fsSLO "${base}/${file}"
+          curl -fsSLO "${base}/hugo_${HUGO_VERSION}_checksums.txt"
+          grep " ${file}\$" "hugo_${HUGO_VERSION}_checksums.txt" | sha256sum -c -
+          tar -xzf "${file}" hugo
+          sudo mv hugo /usr/local/bin/hugo
+          hugo version
+
+      - name: Site scripts and tool downloads
+        run: |
+          node --test "site/scripts/*.test.mjs"
+          node site/scripts/descargas.mjs
+
+      - name: Site build
+        working-directory: site
+        run: hugo --minify

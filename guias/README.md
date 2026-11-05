@@ -124,9 +124,9 @@ primer enlace tiene que ser la portada de esa web: el nombre de la barra apunta 
 `"id": "infra"`, el planificador pasa a ser la pestaña «Red y VLAN» de esa sección. Sin la variable, o si no es una
 lista válida, se compila el archivo independiente, sin barra y con su cabecera.
 
-Los workflows de `.github/workflows/` (CI y release) vienen del repo original y no se ejecutan dentro de `aprende`:
-GitHub solo lanza los de la raíz del repositorio. Las pruebas de las guías corren en el workflow de publicación de la
-web (`pages.yml`) al llegar a `main`.
+Cada pull request pasa por el CI del repositorio (`.github/workflows/ci.yml` en la raíz de `aprende`): `check`, `test` y
+`build` de las guías, además de las pruebas de la app y de la web. El paquete sin conexión se publica con
+`.github/workflows/paquete-sin-conexion.yml`.
 
 ## Cómo añadir o corregir una guía
 

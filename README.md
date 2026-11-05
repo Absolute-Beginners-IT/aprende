@@ -32,6 +32,8 @@ node site/scripts/descargas.mjs            # genera las descargas de «Herramien
 node --test "site/scripts/*.test.mjs"      # tests de los scripts de la portada (descargas y tema)
 ```
 
+Cada pull request pasa por el CI (`.github/workflows/ci.yml`): pruebas y build de `app/` y de `guias/` (con `biome check`, y el build autónomo y el de la web), pruebas de los scripts de la web, descargas y build de Hugo. Son las mismas comprobaciones que hace el despliegue, pero antes de mergear.
+
 Las guías se editan directamente en `guias/`. Sus repos de origen (`guias` y `Manual-Switches`) están archivados ([ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)).
 
 ### Guías y herramientas sin conexión
