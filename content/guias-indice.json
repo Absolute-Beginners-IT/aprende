@@ -97,6 +97,7 @@
         "aruba-aoscx",
         "cisco-c1300",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },
@@ -140,6 +141,7 @@
         "aruba-aoscx",
         "cisco-c1300",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },
@@ -239,6 +241,7 @@
         "aruba-aoscx",
         "cisco-c1300",
         "mikrotik-routeros",
+        "proxmox-ve",
         "ruijie-reyee"
       ]
     },

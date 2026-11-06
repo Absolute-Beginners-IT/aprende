@@ -1,0 +1,77 @@
+platform: proxmox-ve
+task: firmware-upgrade
+summary: >-
+  Actualiza un nodo Proxmox VE 9 con apt full-upgrade, la forma que recomienda Proxmox,
+  y lo reinicia si se instaló un núcleo (kernel) nuevo. La vuelta atrás es arrancar con
+  el núcleo anterior.
+risk:
+  level: high
+  reason: >-
+    Si hay núcleo nuevo, el nodo se reinicia y sus máquinas virtuales se paran o tienen
+    que moverse a otro nodo. Una actualización a medias puede dejar paquetes rotos.
+params: []
+preflight:
+  - text: >-
+      Haz una copia de las máquinas virtuales importantes (guía «Copiar una máquina
+      virtual») y de la configuración del nodo.
+  - text: Mira la versión instalada y el núcleo con el que arrancó el nodo.
+    command: pveversion
+  - text: >-
+      Comprueba qué repositorio usa el nodo (enterprise, con suscripción, o
+      no-subscription). El no-subscription no está recomendado en producción.
+    command: cat /etc/apt/sources.list.d/proxmox.sources
+  - text: >-
+      En un clúster, actualiza los nodos de uno en uno. Antes de reiniciar un nodo,
+      mueve sus máquinas virtuales a otro o apágalas en una ventana de mantenimiento.
+steps:
+  - title: Actualizar la lista de paquetes
+    commands:
+      - apt update
+    explanation: Descarga la lista de versiones disponibles de los repositorios configurados.
+  - title: Instalar las actualizaciones
+    commands:
+      - apt full-upgrade
+    explanation: >-
+      Instala todas las actualizaciones. apt muestra la lista y pide confirmación. Usa
+      full-upgrade y no upgrade: Proxmox VE puede necesitar quitar o añadir paquetes, y
+      upgrade dejaría la actualización a medias.
+    warning: No cierres la sesión ni apagues el nodo mientras apt trabaja.
+  - title: Reiniciar si hay núcleo nuevo
+    manual: true
+    explanation: >-
+      Si en la lista de paquetes instalados aparece un núcleo nuevo (proxmox-kernel-…),
+      reinicia el nodo con reboot en la ventana de mantenimiento, con las máquinas
+      virtuales movidas o apagadas. Sin núcleo nuevo no hace falta reiniciar.
+verification:
+  - command: pveversion
+    expect: Muestra la versión nueva de Proxmox VE y, tras reiniciar, el núcleo nuevo.
+  - command: apt list --upgradable
+    expect: No queda ningún paquete pendiente de actualizar.
+  - expect: En la interfaz web, el nodo y sus máquinas virtuales vuelven a estar en marcha.
+rollback:
+  summary: >-
+    No hay vuelta atrás de los paquetes. Si el nodo falla con el núcleo nuevo, arranca
+    con el anterior.
+  steps:
+    - title: Arrancar con el núcleo anterior
+      manual: true
+      explanation: >-
+        Reinicia el nodo y, en el menú de arranque, elige el núcleo anterior (en
+        Advanced options). Con el nodo en marcha, avisa al soporte o revisa las notas de
+        la versión antes de volver a intentarlo.
+  lockoutRecovery: >-
+    Si el nodo no arranca o no responde por la red, entra por su consola física y
+    elige el núcleo anterior en el menú de arranque.
+sources:
+  - title: Proxmox VE 9 — Host System Administration (System Software Updates)
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    apt update y apt full-upgrade (y no apt upgrade), el archivo
+    /etc/apt/sources.list.d/proxmox.sources y el aviso del repositorio no-subscription
+    están contrastados con la documentación oficial. La documentación consultada no dice
+    cuándo hace falta reiniciar ni cómo se llama la entrada del núcleo anterior en el
+    menú de arranque. Falta probarla en un Proxmox real.
