@@ -65,7 +65,7 @@ describe('deploymentPlan Configurar', () => {
 
   it('starts a Proxmox VE host with its installation', () => {
     const [p] = plan([dev('pve1', { tipo: 'hipervisor', marca: 'Proxmox', modelo: 'VE 9' })]);
-    expect(p.configurar.map(s => s.id)).toEqual(['config:os-install', 'config:user-admin', 'config:ntp-client', 'config:vlan-bridge', 'config:syslog-remote', 'config:config-backup']);
+    expect(p.configurar.map(s => s.id)).toEqual(['config:os-install', 'config:user-admin', 'config:ntp-client', 'config:vlan-bridge', 'config:snmp-monitoring', 'config:syslog-remote', 'config:config-backup']);
     expect(p.configurar[0]).toMatchObject({ texto: 'Instalar el sistema', href: './guias/#/p/proxmox-ve/os-install?equipo=pve1' });
   });
 

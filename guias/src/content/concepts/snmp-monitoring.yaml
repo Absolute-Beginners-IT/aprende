@@ -2,7 +2,7 @@ id: snmp-monitoring
 title: Activar SNMP para la monitorización
 group: monitoring
 order: 3
-summary: Permite que el sistema de monitorización consulte el estado del switch por SNMP, solo en lectura y solo desde su IP.
+summary: Permite que el sistema de monitorización consulte el estado del equipo por SNMP, solo en lectura y solo desde su IP.
 explanation: >-
   SNMP es el protocolo con el que herramientas como NinjaOne, Zabbix, PRTG o LibreNMS
   leen el estado de los puertos, el tráfico, la temperatura o los errores. En SNMP v2c
@@ -13,7 +13,7 @@ explanation: >-
   cualquier versión hay que dar solo lectura, limitar el acceso a la IP del servidor de
   monitorización y no dejar nunca la comunidad public de fábrica con acceso.
 risks:
-  - Dejar activa la comunidad public, o un acceso sin restricción de origen, permite a cualquiera de la red leer la configuración y el estado del switch.
+  - Dejar activa la comunidad public, o un acceso sin restricción de origen, permite a cualquiera de la red leer la configuración y el estado del equipo.
   - Dar escritura permite cambiar la configuración por SNMP.
   - En SNMPv3, usar DES o el nivel sin cifrado deja las consultas legibles en la red.
   - La comunidad y las claves de SNMPv3 son secretos; las claves se escriben en la guía, que las usa en los comandos sin guardarlas, y la comunidad se escribe a mano.
