@@ -47,6 +47,14 @@
       "tipo": "switch",
       "patron": "reyee|\\brg-nbs|\\bnbs\\d",
       "flags": "i"
+    },
+    {
+      "id": "synology-dsm",
+      "nombre": "Synology DSM",
+      "fabricante": "Synology",
+      "tipo": "storage",
+      "patron": "synology|diskstation|rackstation|\\b(ds|rs)\\d{3,4}",
+      "flags": "i"
     }
   ],
   "grupos": [
@@ -73,7 +81,8 @@
       "titulo": "Instalar el sistema",
       "grupo": "setup-access",
       "plataformas": [
-        "proxmox-ve"
+        "proxmox-ve",
+        "synology-dsm"
       ]
     },
     {
@@ -86,7 +95,8 @@
         "fortinet-fortigate",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {
@@ -98,7 +108,8 @@
         "cisco-c1300",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {
@@ -120,7 +131,8 @@
         "aruba-aoscx",
         "cisco-c1300",
         "mikrotik-routeros",
-        "proxmox-ve"
+        "proxmox-ve",
+        "synology-dsm"
       ]
     },
     {
@@ -142,7 +154,8 @@
         "cisco-c1300",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {
@@ -217,7 +230,8 @@
         "fortinet-fortigate",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {
@@ -230,7 +244,8 @@
         "fortinet-fortigate",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {
@@ -242,7 +257,8 @@
         "cisco-c1300",
         "mikrotik-routeros",
         "proxmox-ve",
-        "ruijie-reyee"
+        "ruijie-reyee",
+        "synology-dsm"
       ]
     },
     {

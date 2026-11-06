@@ -1,0 +1,58 @@
+platform: synology-dsm
+task: config-restore
+summary: >-
+  Restaura la configuración de un NAS Synology desde un archivo .dss, eligiendo qué
+  partes devolver (usuarios, red, servicios). Mientras dura, los servicios se paran.
+risk:
+  level: high
+  reason: >-
+    Todos los servicios del NAS se paran durante la restauración, y devolver la red o la
+    seguridad de la copia puede cambiar la IP o las reglas de acceso.
+params: []
+preflight:
+  - text: Exporta antes la configuración actual (guía «Guardar una copia de la configuración»), aunque esté mal.
+  - text: 'Avisa del corte: los servicios del NAS se paran mientras se restaura.'
+  - text: Ten a mano el archivo .dss que vas a restaurar y, si se cifró, su contraseña o clave.
+steps:
+  - title: Elegir la copia
+    manual: true
+    explanation: >-
+      Ve a Control Panel, Update & Restore, Configuration Backup. En Restore DSM
+      Configurations pulsa Restore, elige el archivo de tu ordenador con Browse (o una
+      versión de tu cuenta Synology) y escribe la contraseña si la copia está cifrada.
+  - title: Elegir qué partes restaurar
+    manual: true
+    explanation: >-
+      Marca solo lo que necesites devolver: carpetas y usuarios, red, seguridad, servicios.
+      Overwrite conflicting settings sobrescribe los usuarios, grupos, carpetas y servicios
+      que ya existan; márcalo solo si es lo que quieres.
+    warning: Restaurar Network puede cambiar la IP del NAS.
+  - title: Confirmar
+    manual: true
+    explanation: >-
+      Pulsa Apply y confirma el aviso con Yes. Los servicios se paran y vuelven al terminar.
+      Al acabar, revisa los destinatarios de correo en Control Panel, Notification.
+verification:
+  - expect: Las partes elegidas vuelven a tener la configuración de la copia.
+  - expect: Los servicios del NAS vuelven a estar en marcha y respondes a DSM por su IP.
+rollback:
+  summary: Restaura la copia que hiciste justo antes de empezar.
+  steps:
+    - title: Restaurar la copia previa
+      manual: true
+      explanation: Repite esta guía con el .dss exportado antes de restaurar.
+  lockoutRecovery: >-
+    Si la IP cambió, busca el NAS en finds.synology.com o con Synology Assistant desde un
+    ordenador de la misma red.
+sources:
+  - title: DSM 7 — Configuration Backup
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/system_configbackup?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Restore DSM Configurations, Restore, Browse, la elección de partes, Overwrite
+    conflicting settings, la parada de los servicios y la revisión de los destinatarios de
+    Notification están contrastados con la ayuda de DSM 7. Que restaurar Network cambie la
+    IP es una deducción, no está en la página. Falta probarla en un NAS real.
