@@ -198,6 +198,14 @@
       ]
     },
     {
+      "id": "vlan-bridge",
+      "titulo": "Preparar el puente de red para VLAN",
+      "grupo": "vlans-ports",
+      "plataformas": [
+        "proxmox-ve"
+      ]
+    },
+    {
       "id": "ntp-client",
       "titulo": "Sincronizar la hora con NTP",
       "grupo": "monitoring",
@@ -286,6 +294,22 @@
         "cisco-c1300",
         "mikrotik-routeros",
         "ruijie-reyee"
+      ]
+    },
+    {
+      "id": "vm-backup",
+      "titulo": "Copiar una máquina virtual",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "proxmox-ve"
+      ]
+    },
+    {
+      "id": "vm-snapshot",
+      "titulo": "Hacer una snapshot antes de un cambio",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "proxmox-ve"
       ]
     }
   ]

@@ -29,11 +29,20 @@ describe('content catalog', () => {
     expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
   })
 
-  it('starts Proxmox VE with its installation, the admin user, time, logs and the configuration backup', () => {
+  it('covers Proxmox VE from its installation to the VLAN bridge, VM backups and snapshots', () => {
     const tasks = catalog.procedures.filter((item) => item.platform === 'proxmox-ve').map((item) => item.task)
 
     expect(new Set(tasks)).toEqual(
-      new Set(['os-install', 'user-admin', 'ntp-client', 'syslog-remote', 'config-backup']),
+      new Set([
+        'os-install',
+        'user-admin',
+        'ntp-client',
+        'syslog-remote',
+        'config-backup',
+        'vlan-bridge',
+        'vm-backup',
+        'vm-snapshot',
+      ]),
     )
   })
 
@@ -41,6 +50,12 @@ describe('content catalog', () => {
     const setup = catalog.concepts.filter((item) => item.group === 'setup-access').map((item) => item.id)
     expect(setup[0]).toBe('os-install')
     for (const procedure of catalog.procedures.filter((item) => item.task === 'os-install')) {
+      expect(procedure.risk.level, procedure.platform).toBe('high')
+    }
+  })
+
+  it('rates the VLAN bridge change as high risk, since a mistake cuts the management access', () => {
+    for (const procedure of catalog.procedures.filter((item) => item.task === 'vlan-bridge')) {
       expect(procedure.risk.level, procedure.platform).toBe('high')
     }
   })

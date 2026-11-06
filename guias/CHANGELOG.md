@@ -8,6 +8,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Tres tareas nuevas, con su guía de Proxmox VE 9: «Copiar una máquina virtual» (vzdump y cómo restaurar con
+  qmrestore) y «Hacer una snapshot antes de un cambio» (qm snapshot, rollback y delsnapshot), en «Seguridad y
+  resiliencia», y «Preparar el puente de red para VLAN» (puente VLAN aware y etiqueta en la tarjeta de la máquina
+  virtual), en «VLANs y puertos». El puente para VLAN entra en el Plan de despliegue de Proxmox.
 - Primer equipo de virtualización: Proxmox VE 9, en «Virtualización», con la guía de instalación (nueva tarea
   «Instalar el sistema», la primera de «Puesta en marcha y acceso») y las de crear un usuario administrador,
   sincronizar la hora con NTP, enviar los registros a un servidor syslog y guardar una copia de la configuración. La

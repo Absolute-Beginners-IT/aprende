@@ -746,8 +746,8 @@ describe('inside the website', () => {
       expect(link).toHaveTextContent(`${guides} guías`)
     }
     const virtualization = cards.getByRole('heading', { name: 'Virtualización' }).closest('li') as HTMLElement
-    expect(virtualization).toHaveTextContent('1 marca · 5 tareas')
-    expect(within(virtualization).getByRole('link', { name: /^Proxmox VE/ })).toHaveTextContent('5 guías')
+    expect(virtualization).toHaveTextContent('1 marca · 8 tareas')
+    expect(within(virtualization).getByRole('link', { name: /^Proxmox VE/ })).toHaveTextContent('8 guías')
     const firewalls = cards.getByRole('heading', { name: 'Firewalls' }).closest('li') as HTMLElement
     expect(firewalls).toHaveTextContent('1 marca · 3 tareas')
     expect(within(firewalls).getByRole('link', { name: /^FortiGate/ })).toHaveTextContent('3 guías')
