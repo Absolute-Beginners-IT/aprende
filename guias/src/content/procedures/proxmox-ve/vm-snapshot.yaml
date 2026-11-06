@@ -1,0 +1,82 @@
+platform: proxmox-ve
+task: vm-snapshot
+summary: >-
+  Hace una snapshot de una máquina virtual de Proxmox VE 9 con qm antes de un cambio, y
+  la borra cuando el cambio está comprobado. Si sale mal, se vuelve a ella.
+risk:
+  level: low
+  reason: >-
+    Crear la snapshot no para la máquina virtual. El riesgo está en volver a ella, que
+    borra lo que cambió después.
+params:
+  - id: vmid
+    label: Número (ID) de la máquina virtual
+    type: number
+    example: '101'
+    min: 100
+    max: 999999999
+  - id: snapName
+    label: Nombre de la snapshot
+    type: text
+    example: antes_actualizar
+    pattern: '^[A-Za-z][A-Za-z0-9_-]{1,39}$'
+    patternHint: Empieza por letra; hasta 40 caracteres; letras, números, guion y guion bajo.
+preflight:
+  - text: >-
+      Comprueba que el almacenamiento de la máquina admite snapshots: ZFS, LVM-thin,
+      Ceph/RBD y BTRFS sí; en un directorio, NFS o CIFS solo si el disco está en formato
+      qcow2.
+    command: qm config {{vmid}}
+  - text: Mira qué snapshots tiene ya la máquina; una olvidada conviene borrarla antes.
+    command: qm listsnapshot {{vmid}}
+steps:
+  - title: Hacer la snapshot
+    commands:
+      - qm snapshot {{vmid}} {{snapName}} --description "Antes del cambio"
+    explanation: >-
+      Guarda el estado de los discos de la máquina {{vmid}} con el nombre {{snapName}}.
+      Añade --vmstate 1 si quieres guardar también la memoria; ocupa más y, al volver,
+      la máquina arranca sola en ese punto.
+  - title: Hacer el cambio y comprobarlo
+    manual: true
+    explanation: >-
+      Haz el cambio previsto en la máquina (una actualización, una configuración) y
+      comprueba que todo funciona. Si sale mal, usa la vuelta atrás de esta guía.
+  - title: Borrar la snapshot
+    commands:
+      - qm delsnapshot {{vmid}} {{snapName}}
+    explanation: >-
+      Con el cambio comprobado, borra la snapshot: dejarla ocupa espacio y ralentiza los
+      discos.
+verification:
+  - command: qm listsnapshot {{vmid}}
+    expect: >-
+      Después del primer paso aparece {{snapName}}; después del último ya no aparece.
+rollback:
+  summary: Devuelve la máquina virtual al estado de la snapshot y borra lo que cambió después.
+  steps:
+    - title: Volver a la snapshot
+      commands:
+        - qm rollback {{vmid}} {{snapName}}
+      explanation: >-
+        La máquina vuelve a como estaba al hacer la snapshot. Si la snapshot no incluía
+        la memoria, queda apagada: arráncala con qm start {{vmid}}.
+      warning: Se pierde todo lo que cambió en la máquina desde la snapshot, también los datos nuevos.
+  lockoutRecovery: >-
+    Este cambio no afecta al acceso de gestión del servidor, solo a la máquina virtual.
+sources:
+  - title: Proxmox VE 9 — qm(1)
+    url: https://pve.proxmox.com/pve-docs/qm.1.html
+  - title: Proxmox VE 9 — Storage (snapshots por tipo de almacenamiento)
+    url: https://pve.proxmox.com/pve-docs/chapter-pvesm.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    qm snapshot (con --description y --vmstate), qm listsnapshot, qm rollback y qm
+    delsnapshot, y los almacenamientos que admiten snapshots, están contrastados con la
+    documentación oficial. Que --vmstate guarda la memoria se deduce de la página (al
+    volver, la máquina arranca sola si la snapshot incluye la memoria), pero no lo dice
+    literalmente. qm config y qm start no se han contrastado. Falta probarla en un
+    Proxmox real.

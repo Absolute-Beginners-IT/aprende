@@ -1,0 +1,19 @@
+id: vm-snapshot
+title: Hacer una snapshot antes de un cambio
+group: security-resilience
+order: 6
+summary: Congela el estado de una máquina virtual justo antes de un cambio, para volver a él en segundos si el cambio sale mal.
+explanation: >-
+  Una snapshot guarda el estado de los discos de una máquina virtual en un momento
+  dado, y opcionalmente también su memoria. Si el cambio que haces después sale mal,
+  vuelves a ese punto en segundos. No es una copia: vive en el mismo almacenamiento
+  que la máquina, así que si ese almacenamiento falla se pierden las dos. Además, una
+  snapshot que se deja mucho tiempo crece y hace más lenta la máquina; se borra en
+  cuanto el cambio está comprobado.
+risks:
+  - Volver a una snapshot borra todo lo que cambió en la máquina virtual desde que se hizo.
+  - Una snapshot olvidada ocupa cada vez más espacio y ralentiza los discos.
+  - 'No sustituye a una copia: se pierde si falla el almacenamiento de la máquina virtual.'
+prerequisites:
+  - Que el almacenamiento de la máquina virtual admita snapshots.
+  - Saber qué cambio vas a hacer y cómo comprobar que ha salido bien.

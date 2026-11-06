@@ -1,0 +1,89 @@
+platform: proxmox-ve
+task: vm-backup
+summary: >-
+  Copia una máquina virtual de Proxmox VE 9 con vzdump en un almacenamiento de copias,
+  comprimida con zstd, y explica cómo restaurarla con qmrestore.
+risk:
+  level: medium
+  reason: >-
+    En modo snapshot la máquina sigue funcionando; en modo stop se para mientras se
+    toma la copia. En los dos casos la copia carga los discos y la red.
+params:
+  - id: vmid
+    label: Número (ID) de la máquina virtual
+    type: number
+    example: '101'
+    min: 100
+    max: 999999999
+  - id: storage
+    label: Almacenamiento de copias
+    type: text
+    example: copias-nas
+    pattern: '^[A-Za-z][A-Za-z0-9_.-]{1,62}$'
+    patternHint: El ID del almacenamiento tal como aparece en pvesm status.
+  - id: mode
+    label: Modo de copia
+    type: choice
+    example: snapshot
+    options:
+      - snapshot
+      - stop
+    help: >-
+      snapshot (el de fábrica) no para la máquina, con un pequeño riesgo de
+      inconsistencia; stop la para mientras se copia y es el más consistente.
+preflight:
+  - text: Comprueba el número de la máquina virtual y si está en marcha.
+    command: qm list
+  - text: >-
+      Comprueba que el almacenamiento de copias admite copias (backup) y tiene espacio.
+      No uses el mismo almacenamiento donde están los discos de la máquina.
+    command: pvesm status
+steps:
+  - title: Hacer la copia
+    commands:
+      - vzdump {{vmid}} --storage {{storage}} --mode {{mode}} --compress zstd
+    explanation: >-
+      Copia la máquina {{vmid}} en {{storage}}, en modo {{mode}} y comprimida con zstd.
+      Al terminar, la salida dice si la copia salió bien y el nombre del archivo.
+    breakdown:
+      - token: vzdump {{vmid}}
+        meaning: Copia la máquina virtual con ese número.
+      - token: --storage {{storage}}
+        meaning: Almacenamiento donde se guarda el archivo de la copia.
+      - token: --mode {{mode}}
+        meaning: Cómo se toma la copia; snapshot no para la máquina.
+      - token: --compress zstd
+        meaning: Comprime la copia con zstd (archivo .vma.zst).
+verification:
+  - command: pvesm list {{storage}} --vmid {{vmid}}
+    expect: Aparece un archivo de copia de la máquina {{vmid}} con la fecha de ahora (vzdump-qemu-{{vmid}}-…).
+  - expect: >-
+      Una copia solo está comprobada cuando se ha restaurado alguna vez. Para probarla
+      sin tocar la original, restáurala con otro número libre, por ejemplo con
+      qmrestore <archivo de la copia> <número nuevo>, y bórrala después.
+rollback:
+  summary: >-
+    La copia no cambia la máquina virtual. Si no hace falta, se borra desde la interfaz
+    web.
+  steps:
+    - title: Borrar la copia
+      manual: true
+      explanation: >-
+        En la interfaz web, abre el almacenamiento {{storage}}, pestaña Backups, elige la
+        copia de la máquina {{vmid}} y pulsa Remove.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: Proxmox VE 9 — Backup and Restore
+    url: https://pve.proxmox.com/pve-docs/chapter-vzdump.html
+  - title: Proxmox VE 9 — Storage
+    url: https://pve.proxmox.com/pve-docs/chapter-pvesm.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    vzdump con --storage y --mode, los modos snapshot (el de fábrica) y stop, la
+    compresión zstd (.zst), pvesm list con --vmid y qmrestore están contrastados con la
+    documentación oficial. La documentación no muestra --compress como ejemplo de línea
+    de comandos (solo como opción) ni el nombre exacto del archivo. Falta probarla en un
+    Proxmox real.

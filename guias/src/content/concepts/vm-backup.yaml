@@ -1,0 +1,18 @@
+id: vm-backup
+title: Copiar una máquina virtual
+group: security-resilience
+order: 5
+summary: Guarda una copia completa de una máquina virtual (discos y configuración) en un almacenamiento de copias, para poder restaurarla.
+explanation: >-
+  Una copia de una máquina virtual guarda sus discos y su configuración en un único
+  archivo, en un almacenamiento distinto del de la propia máquina. Sirve para
+  recuperarla si se estropea, si un cambio sale mal o si se pierde el disco donde
+  vive. Conviene hacerla de forma programada y, además, a mano antes de un cambio
+  importante. Una copia solo vale si alguna vez se ha probado a restaurar.
+risks:
+  - Una copia guardada en el mismo disco que la máquina virtual se pierde con ese disco.
+  - Hacer la copia carga los discos y la red; en horas de trabajo puede notarse.
+  - Algunos modos paran la máquina virtual unos segundos o minutos mientras se copia.
+prerequisites:
+  - Un almacenamiento para copias, distinto del de la máquina virtual, con espacio suficiente.
+  - Saber qué máquina virtual se copia y si puede pararse un momento.

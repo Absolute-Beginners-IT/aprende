@@ -14,10 +14,10 @@ obtienes los comandos listos para copiar, con los riesgos, la verificación y la
 | Proxmox | Proxmox VE 9, virtualización | Línea de comandos (la instalación, con su instalador gráfico) |
 
 El FortiGate y Proxmox VE son los equipos que no son switches. El FortiGate tiene tres guías (copia de la
-configuración, NTP y syslog); Proxmox VE tiene cinco: su instalación, el usuario administrador, NTP, syslog y la copia
-de la configuración. Ninguno entra en el planificador, que solo trabaja con switches.
+configuración, NTP y syslog); Proxmox VE tiene ocho: su instalación, el usuario administrador, NTP, syslog, la copia
+de la configuración, el puente de red para VLAN, la copia de una máquina virtual y la snapshot antes de un cambio. Ninguno entra en el planificador, que solo trabaja con switches.
 
-Incluye 80 guías en 20 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
+Incluye 83 guías en 23 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
 7 artículos de fundamentos y un planificador de red que genera los pasos de cada switch a partir del
 diseño de la red.
 

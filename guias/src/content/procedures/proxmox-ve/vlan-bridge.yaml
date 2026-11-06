@@ -1,0 +1,81 @@
+platform: proxmox-ve
+task: vlan-bridge
+summary: >-
+  Marca el puente vmbr0 de un nodo Proxmox VE 9 como VLAN aware desde la interfaz web
+  y pone una máquina virtual en una VLAN con su etiqueta. La IP de gestión sigue en la
+  VLAN sin etiquetar del puerto.
+risk:
+  level: high
+  reason: >-
+    Toca la red del nodo: un error corta el acceso de gestión y la red de todas las
+    máquinas virtuales.
+params:
+  - id: vmid
+    label: Número (ID) de la máquina virtual
+    type: number
+    example: '101'
+    min: 100
+    max: 999999999
+  - id: vlanId
+    label: VLAN de la máquina virtual
+    type: vlan-id
+    example: '20'
+preflight:
+  - text: >-
+      Haz antes una copia de la configuración del nodo (guía «Guardar una copia de la
+      configuración»): incluye /etc/network/interfaces.
+  - text: >-
+      Comprueba que el puerto del switch del servidor es un trunk, con la VLAN de gestión
+      sin etiquetar (nativa) y la VLAN {{vlanId}} etiquetada.
+  - text: Ten a mano la consola física del servidor por si se pierde la red.
+  - text: Mira la configuración actual del puente.
+    command: grep -A8 'iface vmbr0' /etc/network/interfaces
+steps:
+  - title: Marcar el puente como VLAN aware
+    manual: true
+    explanation: >-
+      En la interfaz web, abre el nodo, System, Network, elige vmbr0 y pulsa Edit. Marca
+      VLAN aware, acepta y pulsa Apply Configuration. Proxmox pasa los cambios del
+      archivo provisional interfaces.new a /etc/network/interfaces y los aplica sin
+      reiniciar.
+    warning: >-
+      No cambies la IP, la puerta de enlace ni los puertos del puente en el mismo paso:
+      un error ahí corta el acceso.
+  - title: Poner la máquina virtual en la VLAN
+    manual: true
+    explanation: >-
+      Abre la máquina {{vmid}}, Hardware, elige su tarjeta de red (Network Device) y pulsa
+      Edit. Escribe {{vlanId}} en VLAN Tag y acepta. La máquina sale por la VLAN
+      {{vlanId}} sin configurar nada dentro de ella.
+    warning: Si la máquina está en marcha, cambia de red en el acto.
+verification:
+  - command: grep -A8 'iface vmbr0' /etc/network/interfaces
+    expect: Aparecen bridge-vlan-aware yes y bridge-vids 2-4094 en el bloque de vmbr0.
+  - command: qm config {{vmid}} | grep ^net
+    expect: La tarjeta de red de la máquina lleva tag={{vlanId}}.
+  - expect: Desde la máquina virtual, la puerta de enlace de la VLAN {{vlanId}} responde al ping.
+rollback:
+  summary: Quita la etiqueta de la máquina virtual y desmarca VLAN aware en el puente.
+  steps:
+    - title: Quitar la etiqueta y desmarcar VLAN aware
+      manual: true
+      explanation: >-
+        Borra el VLAN Tag de la tarjeta de red de la máquina {{vmid}}. Después, en System,
+        Network, edita vmbr0, desmarca VLAN aware y pulsa Apply Configuration.
+  lockoutRecovery: >-
+    Si pierdes el acceso, entra por la consola física del servidor como root, recupera
+    /etc/network/interfaces desde la copia y aplícalo con ifreload -a.
+sources:
+  - title: Proxmox VE 9 — Host System Administration (Network Configuration)
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    El puente VLAN aware (bridge-vlan-aware yes y bridge-vids 2-4094), la etiqueta VLAN
+    de la tarjeta de cada máquina virtual, el botón Apply Configuration con
+    interfaces.new e ifreload -a están contrastados con la documentación oficial. No se
+    ha contrastado que la casilla VLAN aware escriba exactamente bridge-vids 2-4094, ni
+    los nombres exactos de los menús de la interfaz web ni la salida de qm config. Falta
+    probarla en un Proxmox real.

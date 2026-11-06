@@ -1,0 +1,19 @@
+id: vlan-bridge
+title: Preparar el puente de red para VLAN
+group: vlans-ports
+order: 6
+summary: Hace que el puente de red de un servidor de virtualización entienda VLAN, para poner cada máquina virtual en la suya.
+explanation: >-
+  En un servidor de virtualización, las máquinas virtuales salen a la red por un
+  puente (bridge), que hace de switch interno conectado a la tarjeta física. Si el
+  puente entiende VLAN, a cada tarjeta de red virtual se le pone una etiqueta y la
+  máquina queda en esa VLAN sin configurar nada dentro de ella. Para que funcione, el
+  puerto del switch al que va el servidor tiene que ser un trunk con esas VLAN.
+risks:
+  - Un error en la configuración de red del servidor corta su acceso de gestión y el de todas sus máquinas virtuales.
+  - Si el puerto del switch no lleva la VLAN de una máquina virtual, esa máquina se queda sin red.
+  - Cambiar la etiqueta de una máquina virtual en marcha la cambia de red en el acto.
+prerequisites:
+  - El puerto del switch del servidor configurado como trunk, con la VLAN de gestión sin etiquetar (nativa) y las demás etiquetadas.
+  - Acceso a la consola física del servidor por si se pierde la red.
+  - Una copia de la configuración de red hecha antes del cambio.
