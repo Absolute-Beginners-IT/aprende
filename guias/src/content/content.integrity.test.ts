@@ -10,11 +10,19 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('covers the four switches used at the company, the FortiGate firewall and the Proxmox VE hypervisor', () => {
+  it('covers the four switches used at the company, the FortiGate firewall, Proxmox VE and Synology DSM', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
     expect(new Set(ids)).toEqual(
-      new Set(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee', 'fortinet-fortigate', 'proxmox-ve']),
+      new Set([
+        'aruba-aoscx',
+        'cisco-c1300',
+        'mikrotik-routeros',
+        'ruijie-reyee',
+        'fortinet-fortigate',
+        'proxmox-ve',
+        'synology-dsm',
+      ]),
     )
   })
 
@@ -26,6 +34,7 @@ describe('content catalog', () => {
     const typeOf = (id: string) => catalog.platforms.find((item) => item.id === id)?.deviceType
     expect(typeOf('fortinet-fortigate')).toBe('firewall')
     expect(typeOf('proxmox-ve')).toBe('hypervisor')
+    expect(typeOf('synology-dsm')).toBe('storage')
     expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
   })
 
@@ -55,6 +64,25 @@ describe('content catalog', () => {
     for (const procedure of catalog.procedures.filter((item) => item.task === 'os-install')) {
       expect(procedure.risk.level, procedure.platform).toBe('high')
     }
+  })
+
+  it('sets up Synology DSM from its web interface, from the installation to updates and restores', () => {
+    const platform = catalog.platforms.find((item) => item.id === 'synology-dsm')
+    const tasks = catalog.procedures.filter((item) => item.platform === 'synology-dsm').map((item) => item.task)
+
+    expect(platform?.management).toBe('web')
+    expect(new Set(tasks)).toEqual(
+      new Set([
+        'os-install',
+        'user-admin',
+        'ntp-client',
+        'syslog-remote',
+        'snmp-monitoring',
+        'config-backup',
+        'config-restore',
+        'firmware-upgrade',
+      ]),
+    )
   })
 
   it('rates the VLAN bridge change as high risk, since a mistake cuts the management access', () => {

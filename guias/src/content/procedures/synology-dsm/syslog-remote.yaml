@@ -1,0 +1,51 @@
+platform: synology-dsm
+task: syslog-remote
+summary: >-
+  Envía los registros de un NAS Synology a un servidor syslog desde Log Center, Log
+  Sending, por UDP 514 y en formato BSD.
+risk:
+  level: low
+  reason: Enviar registros no afecta a los datos ni al acceso de gestión.
+params:
+  - id: serverIp
+    label: IP del servidor syslog
+    type: ipv4
+    example: 192.168.10.30
+preflight:
+  - text: Comprueba que la hora está sincronizada; si no, los registros llegan con la hora mal.
+  - text: Confirma con quien administra el servidor syslog qué protocolo y formato espera (UDP o TCP; BSD o IETF).
+steps:
+  - title: Abrir el envío de registros
+    manual: true
+    explanation: Abre Log Center (en el menú principal) y ve a Log Sending.
+  - title: Indicar el servidor
+    manual: true
+    explanation: >-
+      Marca Send logs to a syslog server. En Server escribe {{serverIp}}, en Port deja 514,
+      en Transfer protocol elige UDP y en Log format, BSD (RFC 3164), o lo que pida el
+      servidor.
+  - title: Probar y aplicar
+    manual: true
+    explanation: >-
+      Pulsa Send test log y comprueba en el servidor syslog que llega, filtrando por la IP
+      del NAS. Después pulsa Apply.
+verification:
+  - expect: El registro de prueba llega al servidor syslog con la IP del NAS.
+rollback:
+  summary: Deja de enviar registros al servidor syslog.
+  steps:
+    - title: Desmarcar el envío
+      manual: true
+      explanation: En Log Center, Log Sending, desmarca Send logs to a syslog server y pulsa Apply.
+  lockoutRecovery: Este cambio no afecta al acceso de gestión.
+sources:
+  - title: DSM 7 — Log Center, Log Sending
+    url: https://kb.synology.com/en-global/DSM/help/LogCenter/logcenter_client?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Log Center, Log Sending, Send logs to a syslog server, los campos Server, Port (514 de
+    fábrica), Transfer protocol y Log format, y el botón Send test log están contrastados
+    con la ayuda de DSM 7. Falta probarla en un NAS real.

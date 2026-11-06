@@ -1,0 +1,75 @@
+platform: synology-dsm
+task: snmp-monitoring
+summary: >-
+  Activa SNMPv3 en un NAS Synology con un usuario de solo lectura, autenticación y
+  cifrado, y limita el puerto 161 al servidor de monitorización con el cortafuegos de DSM.
+risk:
+  level: medium
+  reason: >-
+    Abre el puerto SNMP del NAS. El cortafuegos lo limita al servidor de monitorización,
+    pero una regla mal puesta puede cortar otros accesos.
+params:
+  - id: snmpUser
+    label: Usuario SNMPv3
+    type: text
+    example: monitor
+    pattern: '^[^"''\\\s]{1,64}$'
+    patternHint: Hasta 64 caracteres, sin espacios, comillas ni barras invertidas.
+  - id: nmsIp
+    label: IP del servidor de monitorización
+    type: ipv4
+    example: 192.168.10.40
+preflight:
+  - text: >-
+      Ten las dos claves (autenticación y cifrado) guardadas en el gestor de contraseñas:
+      entre 8 y 127 caracteres, sin espacios, comillas ni barras invertidas. Se escriben
+      directamente en DSM; esta guía no las pide.
+steps:
+  - title: Activar SNMPv3
+    manual: true
+    explanation: >-
+      Ve a Control Panel, Terminal & SNMP, pestaña SNMP. Marca Enable SNMP service y
+      SNMPv3 service, y deja sin marcar SNMPv1, SNMPv2c service. Escribe el usuario
+      {{snmpUser}}, la clave de autenticación y elige SHA en Protocol.
+  - title: Activar el cifrado
+    manual: true
+    explanation: >-
+      Marca Enable SNMP privacy, elige AES en Protocol, escribe la clave de cifrado y
+      pulsa Apply.
+  - title: Limitar el acceso al servidor de monitorización
+    manual: true
+    explanation: >-
+      En Control Panel, Security, Firewall, añade al perfil activo una regla que permita el
+      puerto UDP 161 solo desde {{nmsIp}}, y otra que lo deniegue al resto.
+    warning: >-
+      Si el cortafuegos estaba desactivado, actívalo con cuidado: revisa antes que el
+      perfil permite tu acceso a DSM.
+verification:
+  - expect: >-
+      Desde {{nmsIp}}, una consulta SNMPv3 con el usuario {{snmpUser}}, nivel authPriv, SHA
+      y AES devuelve los datos del NAS.
+  - expect: Desde otro equipo de la red, la misma consulta no responde.
+rollback:
+  summary: Desactiva SNMP y quita la regla del cortafuegos.
+  steps:
+    - title: Desactivar SNMP
+      manual: true
+      explanation: >-
+        En Control Panel, Terminal & SNMP, SNMP, desmarca Enable SNMP service y pulsa Apply.
+        Quita también las reglas del puerto 161 del cortafuegos.
+  lockoutRecovery: >-
+    SNMP no afecta al acceso; el cortafuegos sí. Si una regla te deja fuera, el botón RESET
+    del NAS (modo 1) restablece la red y la contraseña de admin sin borrar los datos.
+sources:
+  - title: DSM 7 — SNMP
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/system_snmp?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Control Panel, Terminal & SNMP, SNMP, las casillas Enable SNMP service, SNMPv3 service y
+    Enable SNMP privacy, los campos de usuario, clave y protocolo y los límites de longitud
+    están contrastados con la ayuda de DSM 7. Los nombres exactos de los protocolos que
+    ofrece la lista, el cortafuegos (Control Panel, Security, Firewall) y el efecto del
+    botón RESET no se han contrastado. Falta probarla en un NAS real.

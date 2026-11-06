@@ -1,0 +1,60 @@
+platform: synology-dsm
+task: firmware-upgrade
+summary: >-
+  Actualiza DSM en un NAS Synology desde Control Panel, Update & Restore, DSM Update. Las
+  actualizaciones de DSM son irreversibles: antes se hace copia.
+risk:
+  level: high
+  reason: >-
+    El NAS se reinicia y sus servicios se cortan durante la actualización, y Synology no
+    permite volver a una versión anterior.
+params: []
+preflight:
+  - text: >-
+      Haz copia de los datos importantes (Hyper Backup) y exporta la configuración. La
+      actualización no debería tocar los datos, pero no se puede deshacer.
+  - text: Lee las notas de la versión y hazlo en una ventana de mantenimiento, avisando del corte.
+steps:
+  - title: Buscar la actualización
+    manual: true
+    explanation: >-
+      Ve a Control Panel, Update & Restore, DSM Update. Si hay una versión nueva, aparece con
+      el botón Download.
+  - title: Descargar e instalar
+    manual: true
+    explanation: >-
+      Pulsa Download y después Update Now. El NAS instala la versión y se reinicia; no lo
+      apagues mientras tanto.
+  - title: Revisar las actualizaciones automáticas
+    manual: true
+    explanation: >-
+      En Update Settings, elige al menos Automatically install important updates, para que
+      los fallos de seguridad críticos se corrijan solos.
+verification:
+  - expect: Tras el reinicio, DSM Update dice que el sistema está al día con la versión nueva.
+  - expect: Los servicios y las carpetas compartidas vuelven a estar disponibles.
+rollback:
+  summary: >-
+    No hay vuelta atrás: Synology no permite instalar una versión anterior. Si algo falla,
+    se recupera desde la copia o con el soporte de Synology.
+  steps:
+    - title: Recuperar desde la copia
+      manual: true
+      explanation: >-
+        Si un servicio deja de funcionar, restaura su configuración desde el .dss o los datos
+        con Hyper Backup, y abre una incidencia con Synology si hace falta.
+  lockoutRecovery: >-
+    Si el NAS no aparece tras actualizar, búscalo en finds.synology.com o con Synology
+    Assistant desde un ordenador de la misma red.
+sources:
+  - title: DSM 7 — System Update
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/system_dsmupdate?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Download y Update Now, que las actualizaciones son irreversibles, que no deberían
+    afectar a los datos (con copia recomendada), el reinicio y la opción Automatically
+    install important updates están contrastados con la ayuda de DSM 7. La ruta exacta
+    del menú no aparece literal en la página. Falta probarla en un NAS real.

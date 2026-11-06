@@ -411,6 +411,7 @@ describe('quick search', () => {
       'MikroTik CRS317',
       'Proxmox VE',
       'Ruijie NBS3200',
+      'Synology DSM',
     ])
     expect(within(rows[5] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
   })
@@ -545,7 +546,7 @@ describe('quick search', () => {
 describe('inside the website', () => {
   const library = () => within(screen.getByRole('navigation', { name: 'Biblioteca' }))
   const switchPlatforms = ['Aruba CX 6100', 'Cisco Catalyst 1300', 'MikroTik CRS317', 'Ruijie NBS3200']
-  const upcomingTypes = ['Almacenamiento']
+  const upcomingTypes: string[] = []
 
   beforeEach(() => {
     vi.stubEnv(
@@ -632,6 +633,8 @@ describe('inside the website', () => {
       const id = catalog.platforms.find((platform) => platform.name === name)?.id
       expect(switches.getByRole('link', { name })).toHaveAttribute('href', `#/p/${id}`)
     }
+    const storage = within(library().getByRole('group', { name: 'Almacenamiento' }))
+    expect(storage.getByRole('link', { name: 'Synology DSM' })).toHaveAttribute('href', '#/p/synology-dsm')
     const virtualization = within(library().getByRole('group', { name: 'Virtualización' }))
     expect(virtualization.getByRole('link', { name: 'Proxmox VE' })).toHaveAttribute('href', '#/p/proxmox-ve')
     const firewalls = within(library().getByRole('group', { name: 'Firewalls' }))
@@ -745,6 +748,9 @@ describe('inside the website', () => {
       expect(link).toHaveAttribute('href', `#/p/${platform.id}`)
       expect(link).toHaveTextContent(`${guides} guías`)
     }
+    const storage = cards.getByRole('heading', { name: 'Almacenamiento' }).closest('li') as HTMLElement
+    expect(storage).toHaveTextContent('1 marca · 8 tareas')
+    expect(within(storage).getByRole('link', { name: /^Synology DSM/ })).toHaveTextContent('8 guías')
     const virtualization = cards.getByRole('heading', { name: 'Virtualización' }).closest('li') as HTMLElement
     expect(virtualization).toHaveTextContent('1 marca · 11 tareas')
     expect(within(virtualization).getByRole('link', { name: /^Proxmox VE/ })).toHaveTextContent('11 guías')
