@@ -1,0 +1,34 @@
+{{- /* Drawing of the permissions -rw-r----- for the evolucion shortcode (data/visuales/evoluciones/permisos-linux.json),
+  in a 900 × 300 canvas. The nine permission characters are 56 wide every 62 units from x 140; block k starts at 137 + 186k. */ -}}
+{{- $chars := slice "r" "w" "-" "r" "-" "-" "-" "-" "-" -}}
+{{- $words := slice "leer" "escribir" "—" "leer" "—" "—" "—" "—" "—" -}}
+<text class="viz__rotulo" x="60" y="24">$ ls -l nominas.csv  →  -rw-r----- 1 ana contabilidad 2048 nov 2 10:00 nominas.csv</text>
+<rect class="viz__octeto" x="60" y="50" width="56" height="60" rx="10"/>
+<text class="viz__octeto-texto" x="88" y="89" text-anchor="middle">-</text>
+<text class="viz__detalle" x="88" y="132" text-anchor="middle">fichero</text>
+{{- range $i, $c := $chars }}
+{{- $x := add 140 (mul $i 62) }}
+<rect class="viz__octeto" x="{{ $x }}" y="50" width="56" height="60" rx="10"/>
+<text class="viz__octeto-texto" x="{{ add $x 28 }}" y="89" text-anchor="middle">{{ $c }}</text>
+{{- end }}
+{{- define "partials/visuales/permisos-bloque.html" }}
+{{- $x := add 137 (mul .k 186) }}{{ $cx := add $x 93 }}
+<rect class="viz__tramo viz__tramo--{{ .clase }}" x="{{ $x }}" y="42" width="186" height="76" rx="14"/>
+{{- range $j := seq 0 2 }}{{ $i := add (mul $.k 3) $j }}
+<text class="viz__detalle" x="{{ add (add 140 (mul $i 62)) 28 }}" y="134" text-anchor="middle">{{ index $.words $i }}</text>
+{{- end }}
+<text class="viz__tramo-texto viz__tramo-texto--{{ .clase }}" x="{{ $cx }}" y="160" text-anchor="middle">{{ .quien }}</text>
+<text class="viz__detalle" x="{{ $cx }}" y="178" text-anchor="middle">{{ .resumen }}</text>
+{{- end }}
+<g data-elemento="propietario">{{ partial "visuales/permisos-bloque.html" (dict "k" 0 "words" $words "clase" "red" "quien" "propietario: ana" "resumen" "leer y escribir") }}</g>
+<g data-elemento="grupo">{{ partial "visuales/permisos-bloque.html" (dict "k" 1 "words" $words "clase" "grupo" "quien" "grupo: contabilidad" "resumen" "solo leer") }}</g>
+<g data-elemento="resto">{{ partial "visuales/permisos-bloque.html" (dict "k" 2 "words" $words "clase" "resto" "quien" "resto de usuarios" "resumen" "nada") }}</g>
+<g data-elemento="numeros">
+  {{- range $k, $b := slice (slice "6" "4 + 2 + 0") (slice "4" "4 + 0 + 0") (slice "0" "0 + 0 + 0") }}
+  {{- $cx := add 230 (mul $k 186) }}
+  <text class="viz__octeto-texto viz__numero" x="{{ $cx }}" y="222" text-anchor="middle">{{ index $b 0 }}</text>
+  <text class="viz__detalle" x="{{ $cx }}" y="244" text-anchor="middle">{{ index $b 1 }}</text>
+  {{- end }}
+  <text class="viz__veredicto viz__veredicto--si" x="416" y="282" text-anchor="middle">chmod 640 nominas.csv</text>
+  <text class="viz__detalle" x="790" y="226" text-anchor="middle">r = 4 · w = 2 · x = 1</text>
+</g>

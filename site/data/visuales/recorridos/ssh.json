@@ -1,0 +1,103 @@
+{
+  "titulo": "El Windows Server SRV-DC01 y el servidor Ubuntu srv-lnx01, en la misma red de laboratorio y unidos por un switch. Una ventana de PowerShell muestra la conexión SSH.",
+  "lienzo": [900, 412],
+  "zonas": [],
+  "rotulos": [{ "x": 40, "y": 402, "texto": "LABORATORIO · red 192.168.50.0/24" }],
+  "pantalla": {
+    "tipo": "terminal", "x": 40, "y": 14, "ancho": 440, "alto": 176, "lineas": 6, "guia": "windows",
+    "inicial": { "barra": "Windows PowerShell", "lineas": ["PS C:\\> _"] }
+  },
+  "nodos": {
+    "windows": { "nombre": "SRV-DC01", "detalle": "Windows · 192.168.50.10", "x": 140, "y": 314, "icono": "servidor" },
+    "switch": { "nombre": "Switch", "detalle": "une el laboratorio", "x": 450, "y": 314, "icono": "switch", "rol": "switch" },
+    "linux": { "nombre": "srv-lnx01", "detalle": "Ubuntu · 192.168.50.20", "x": 760, "y": 314, "icono": "servidor" }
+  },
+  "cables": [
+    { "a": "windows", "b": "switch" },
+    { "a": "switch", "b": "linux" }
+  ],
+  "pie": "La huella y la salida de la ventana son de ejemplo; en tu laboratorio verás las de tu servidor. Los mensajes de OpenSSH salen en inglés, como en la consola real.",
+  "pasos": [
+    {
+      "en": "windows", "tipo": "pregunta", "fase": "Abrir la conexión", "cambio": "Paquete nuevo",
+      "hace": "Escribes ssh ana@192.168.50.20. El cliente SSH de PowerShell abre una conexión TCP con el puerto 22 del servidor: primero envía un SYN, el «¿hablamos?» de TCP.",
+      "porque": "SSH va sobre TCP, que antes de enviar nada comprueba que el otro extremo escucha. El puerto 22 es donde espera el servicio SSH.",
+      "paquete": { "nombre": "TCP SYN · puerto 22", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" },
+      "pantalla": { "lineas": ["PS C:\\> ssh ana@192.168.50.20"] }
+    },
+    {
+      "desde": "windows", "en": "switch", "tipo": "pregunta", "fase": "Abrir la conexión", "cambio": "Sin cambios",
+      "hace": "Lee la MAC de destino, la del servidor Linux, y reenvía la trama por su puerto.",
+      "porque": "Los dos servidores están en la misma red (192.168.50.0/24), así que no hace falta ningún router: basta el switch.",
+      "paquete": { "nombre": "TCP SYN · puerto 22", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" }
+    },
+    {
+      "desde": "switch", "en": "linux", "tipo": "respuesta", "fase": "Abrir la conexión", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "El servicio ssh (sshd) escucha en el puerto 22 y acepta: responde con SYN-ACK, el «sí, hablamos» de TCP.",
+      "porque": "Si sshd estuviera parado o el cortafuegos bloqueara el 22, aquí llegaría un rechazo o nada, y ssh diría «Connection refused» o «timed out».",
+      "paquete": { "nombre": "TCP SYN-ACK", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "linux", "en": "switch", "tipo": "respuesta", "fase": "Abrir la conexión", "cambio": "Sin cambios",
+      "hace": "Reenvía la respuesta por el puerto del Windows Server.",
+      "porque": "El switch ya sabe en qué puerto está cada servidor.",
+      "paquete": { "nombre": "TCP SYN-ACK", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "switch", "en": "windows", "tipo": "pregunta", "fase": "Acordar el cifrado", "cambio": "Paquete nuevo", "cambia": ["nombre"],
+      "hace": "Confirma la conexión TCP (ACK) y empieza el protocolo SSH: anuncia su versión y los cifrados que conoce.",
+      "porque": "Antes de enviar ninguna contraseña, los dos extremos acuerdan una clave para cifrar todo lo que viene después.",
+      "paquete": { "nombre": "SSH: versión y cifrados", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" }
+    },
+    {
+      "desde": "windows", "en": "switch", "tipo": "pregunta", "fase": "Acordar el cifrado", "cambio": "Sin cambios",
+      "hace": "Reenvía la trama hacia el servidor Linux.",
+      "porque": "El switch no entiende de SSH: solo mueve tramas entre puertos.",
+      "paquete": { "nombre": "SSH: versión y cifrados", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" }
+    },
+    {
+      "desde": "switch", "en": "linux", "tipo": "respuesta", "fase": "Acordar el cifrado", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "Elige un cifrado, calcula con el cliente una clave de sesión y le envía su clave pública de servidor, que la firma.",
+      "porque": "La clave pública identifica al servidor. Su resumen es la huella (fingerprint) que el cliente enseñará para que la compruebes.",
+      "paquete": { "nombre": "SSH: clave del servidor", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "linux", "en": "switch", "tipo": "respuesta", "fase": "Acordar el cifrado", "cambio": "Sin cambios",
+      "hace": "Reenvía la respuesta hacia el Windows Server.",
+      "porque": "Desde aquí todo el tráfico va cifrado: el switch lo mueve igual, pero nadie en la red puede leerlo.",
+      "paquete": { "nombre": "SSH: clave del servidor", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "switch", "en": "windows", "tipo": "pregunta", "fase": "Iniciar sesión", "cambio": "Paquete nuevo", "cambia": ["nombre"],
+      "hace": "Es la primera conexión con este servidor, así que enseña su huella y pregunta si te fías. Respondes yes, la guarda en known_hosts y te pide la contraseña, que envía cifrada.",
+      "porque": "La próxima vez comprobará la huella solo. Si un día cambia sin motivo, SSH te avisará: alguien podría estar haciéndose pasar por el servidor.",
+      "paquete": { "nombre": "SSH: usuario ana y contraseña (cifrada)", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" },
+      "pantalla": { "lineas": ["PS C:\\> ssh ana@192.168.50.20", "ED25519 key fingerprint is SHA256:Xq3v…", "Are you sure you want to continue", "connecting (yes/no)? yes", "ana@192.168.50.20's password: ********"] }
+    },
+    {
+      "desde": "windows", "en": "switch", "tipo": "pregunta", "fase": "Iniciar sesión", "cambio": "Sin cambios",
+      "hace": "Reenvía la trama. Lleva la contraseña, pero cifrada.",
+      "porque": "Por eso SSH sustituyó a Telnet, que enviaba la contraseña tal cual por la red.",
+      "paquete": { "nombre": "SSH: usuario ana y contraseña (cifrada)", "origen": "192.168.50.10:50514", "destino": "192.168.50.20:22" }
+    },
+    {
+      "desde": "switch", "en": "linux", "tipo": "respuesta", "fase": "Iniciar sesión", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "Descifra la contraseña, comprueba que el usuario ana existe y que la contraseña es correcta, y le abre una consola (bash) con sus permisos.",
+      "porque": "La sesión es de ana, no de root: para tareas de administrador tendrá que usar sudo, y quedará registrado.",
+      "paquete": { "nombre": "SSH: acceso concedido, consola abierta", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "linux", "en": "switch", "tipo": "respuesta", "fase": "Iniciar sesión", "cambio": "Sin cambios",
+      "hace": "Reenvía la respuesta hacia el Windows Server.",
+      "porque": "Último salto: la conexión queda abierta mientras dure la sesión.",
+      "paquete": { "nombre": "SSH: acceso concedido, consola abierta", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" }
+    },
+    {
+      "desde": "switch", "en": "windows", "tipo": "respuesta", "fase": "Sesión abierta", "cambio": "Paquete entregado", "cambia": ["nombre"],
+      "hace": "Muestra el mensaje de bienvenida y el prompt del servidor Linux. Lo que escribas ahora se ejecuta allí, cifrado de ida y de vuelta.",
+      "porque": "El prompt ana@srv-lnx01 te recuerda con qué usuario y en qué máquina estás. Para salir, escribe exit.",
+      "paquete": { "nombre": "Sesión SSH abierta", "origen": "192.168.50.20:22", "destino": "192.168.50.10:50514" },
+      "pantalla": { "lineas": ["Are you sure you want to continue", "connecting (yes/no)? yes", "ana@192.168.50.20's password: ********", "Welcome to Ubuntu 24.04 LTS", "", "ana@srv-lnx01:~$ _"] }
+    }
+  ]
+}

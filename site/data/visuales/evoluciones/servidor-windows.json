@@ -1,0 +1,28 @@
+{
+  "titulo": "Un Windows Server que se configura por etapas: recién instalado con un nombre y una IP al azar, después con nombre e IP fija, luego con el rol DNS y al final con Servicios de dominio de Active Directory.",
+  "pie": "El orden no es casual: cada etapa necesita la anterior. Sin IP fija el DNS no sirve, y sin DNS no hay dominio.",
+  "lienzo": [900, 300],
+  "elementos": ["identidad", "dns", "adds"],
+  "etapas": [
+    {
+      "titulo": "Recién instalado",
+      "muestra": [],
+      "porque": "Windows le pone un nombre al azar (WIN-…) y coge una IP por DHCP, que puede cambiar. Funciona, pero nadie sabe cómo encontrarlo hoy, y menos mañana."
+    },
+    {
+      "titulo": "Nombre e IP fija",
+      "muestra": ["identidad"],
+      "porque": "Con Rename-Computer pasa a llamarse SRV-DC01, según la convención, y con New-NetIPAddress tiene siempre la 192.168.50.10. Ya es un servidor localizable. Su propio DNS apunta a sí mismo, para cuando instale ese rol."
+    },
+    {
+      "titulo": "Rol DNS",
+      "muestra": ["identidad", "dns"],
+      "porque": "Con Install-WindowsFeature DNS, el servidor responde a los demás equipos qué IP tiene cada nombre. Por eso necesitaba antes una IP fija: los clientes tienen apuntada esa dirección como su DNS."
+    },
+    {
+      "titulo": "Rol AD DS (módulo 4)",
+      "muestra": ["identidad", "dns", "adds"],
+      "porque": "Los Servicios de dominio de Active Directory guardan usuarios, equipos y permisos de toda la empresa. Los equipos encuentran el dominio preguntando al DNS, así que el DNS tiene que estar antes. Lo montarás en el módulo 4."
+    }
+  ]
+}

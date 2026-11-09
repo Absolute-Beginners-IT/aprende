@@ -15,9 +15,9 @@ const enlace = (a, b) => [a, b].sort().join('-');
 const recorridos = todos('recorridos');
 const evoluciones = todos('evoluciones');
 
-test('there are walkthroughs for the web request and tracert, and stage stories for the office network and the mask', () => {
-  assert.deepEqual(recorridos.map(([n]) => n).sort(), ['tracert', 'web']);
-  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['mascara-ip', 'red-oficina']);
+test('there are walkthroughs for the web request, tracert and SSH, and stage stories for modules 1 and 2', () => {
+  assert.deepEqual(recorridos.map(([n]) => n).sort(), ['ssh', 'tracert', 'web']);
+  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['mascara-ip', 'permisos-linux', 'red-oficina', 'servidor-windows']);
 });
 
 for (const [nombre, { nodos, cables, pasos, pantalla }] of recorridos) {
@@ -89,7 +89,7 @@ test('every visual used in the route has its data', () => {
       for (const [, tipo, datos] of texto.matchAll(/\{\{<\s*(recorrido|evolucion)\s+datos="([^"]+)"\s*>\}\}/g)) usados.push([tipo, datos]);
     }
   }
-  assert.ok(usados.length >= 4, `only ${usados.length} visuals found in the route`);
+  assert.ok(usados.length >= 7, `only ${usados.length} visuals found in the route`);
   for (const [tipo, nombre] of usados) {
     assert.ok(existsSync(join(datos, tipo === 'recorrido' ? 'recorridos' : 'evoluciones', `${nombre}.json`)), `${tipo} ${nombre} has no data`);
   }

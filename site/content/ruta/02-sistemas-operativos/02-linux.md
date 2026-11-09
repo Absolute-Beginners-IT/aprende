@@ -24,6 +24,10 @@ Los servidores Linux casi nunca se administran delante de la pantalla, sino a di
 ssh tuusuario@192.168.50.20
 ```
 
+Esto es lo que pasa por la red cuando lo ejecutas: primero se abre la conexión, después se acuerda el cifrado y solo entonces viaja la contraseña.
+
+{{< recorrido datos="ssh" >}}
+
 {{< pregunta texto="¿Qué protocolo se usa para administrar un servidor Linux a distancia?" respuesta="ssh" >}}
 {{% /tarea %}}
 
@@ -75,6 +79,8 @@ Cada fichero tiene un **propietario**, un **grupo** y permisos para tres tipos d
 | `---` | Resto | Nada |
 
 Se cambian con `chmod` (permisos) y `chown` (propietario), por ejemplo `chmod 640 nominas.csv`.
+
+{{< evolucion datos="permisos-linux" >}}
 
 {{< pregunta texto="En `-rw-r-----`, ¿puede el grupo escribir en el fichero? (sí/no)" respuesta="no" >}}
 {{% /tarea %}}

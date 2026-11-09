@@ -1,0 +1,33 @@
+{{- /* Drawing of a Windows Server being set up for the evolucion shortcode (data/visuales/evoluciones/servidor-windows.json),
+  in a 900 × 300 canvas. The server card sits in the middle; its fixed identity covers the random one, and roles appear on the right. */ -}}
+<g data-elemento="dns">
+  <path class="viz__cable viz__cable--fijo" d="M200 150 L 350 150"/>
+  <rect class="viz__tarjeta" x="80" y="104" width="120" height="92" rx="16"/>
+  <g class="viz__icono" transform="translate(140 136)">{{ partial "visuales/icono.html" "portatil" }}</g>
+  <text class="viz__nombre" x="140" y="180" text-anchor="middle">Un cliente</text>
+  <text class="viz__detalle" x="275" y="138" text-anchor="middle">¿IP de srv-dc01?</text>
+  <text class="viz__detalle" x="140" y="220" text-anchor="middle">su DNS: 192.168.50.10</text>
+  <path class="viz__cable viz__cable--fijo" d="M550 70 L 620 70"/>
+  <rect class="viz__insignia" x="620" y="46" width="220" height="48" rx="24"/>
+  <text class="viz__nombre" x="730" y="76" text-anchor="middle">Rol DNS</text>
+</g>
+<g data-elemento="adds">
+  <path class="viz__cable viz__cable--fijo" d="M550 160 L 620 160"/>
+  <rect class="viz__insignia viz__insignia--nueva" x="620" y="136" width="220" height="48" rx="24"/>
+  <text class="viz__nombre" x="730" y="166" text-anchor="middle">Rol AD DS · dominio</text>
+  <path class="viz__guia" d="M730 136 V 96"/>
+  <text class="viz__detalle" x="738" y="120">lo encuentran por DNS</text>
+  <text class="viz__detalle" x="730" y="208" text-anchor="middle">en el módulo 4</text>
+</g>
+<rect class="viz__tarjeta" x="350" y="40" width="200" height="170" rx="20"/>
+<g class="viz__icono" transform="translate(450 86)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__nombre" x="450" y="152" text-anchor="middle">WIN-4F2KQ9OD</text>
+<text class="viz__detalle" x="450" y="174" text-anchor="middle">192.168.50.137 (DHCP)</text>
+<text class="viz__detalle" x="450" y="194" text-anchor="middle">puede cambiar</text>
+<g data-elemento="identidad">
+  <rect class="viz__tapa" x="362" y="130" width="176" height="72" rx="10"/>
+  <text class="viz__nombre" x="450" y="152" text-anchor="middle">SRV-DC01</text>
+  <text class="viz__tramo-texto viz__tramo-texto--red" x="450" y="174" text-anchor="middle">IP fija 192.168.50.10/24</text>
+  <text class="viz__detalle" x="450" y="194" text-anchor="middle">siempre la misma</text>
+</g>
+<text class="viz__rotulo" x="450" y="250" text-anchor="middle">LABORATORIO · red 192.168.50.0/24</text>
