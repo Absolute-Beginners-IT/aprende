@@ -49,6 +49,10 @@ Test-NetConnection servidor01 -Port 443
 tracert 1.1.1.1
 ```
 
+Así lo consigue: envía paquetes con un TTL cada vez mayor, y cada router que lo agota le avisa de quién es. Mira cómo cambia el paquete en cada router y cómo se va escribiendo la salida.
+
+{{< recorrido datos="tracert" >}}
+
 Si el primer salto (tu puerta de enlace) responde y a partir de ahí ya no responde ninguno, ni siquiera el destino, el problema está entre tu router y la operadora. Un salto suelto con `*` no es una avería: muchos routers no contestan a `tracert` y dejan pasar el tráfico igualmente.
 
 {{< pregunta texto="¿Cómo se llama el comando de Windows que muestra los saltos hasta un destino?" respuesta="tracert" >}}

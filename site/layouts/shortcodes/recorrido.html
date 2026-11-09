@@ -1,0 +1,95 @@
+{{- /* Step-by-step walkthrough of a packet: {{< recorrido datos="web" >}}, read from data/visuales/recorridos/<datos>.json.
+  Without JavaScript the drawing and the full list of steps are shown; js/visuales.js turns them into the simulation.
+  Positions are SVG user units; the packet moves along each cable between the devices' centres. */ -}}
+{{- $nombre := .Get "datos" -}}
+{{- $d := index hugo.Data.visuales.recorridos $nombre -}}
+{{- if not $d }}{{ errorf "recorrido: no data for %q in %s" $nombre .Position }}{{ end -}}
+{{- $n := $d.nodos -}}
+{{- $ancho := index $d.lienzo 0 }}{{ $alto := index $d.lienzo 1 -}}
+{{- $p := $d.pantalla -}}
+{{- /* Without JavaScript the screen shows how it ends: the last state any step sets. */ -}}
+{{- $final := dict -}}
+{{- with $p }}{{ $final = .inicial }}{{ end -}}
+{{- range $d.pasos }}{{ with .pantalla }}{{ $final = merge $final . }}{{ end }}{{ end -}}
+{{- $id := printf "viz-recorrido-%s" $nombre -}}
+<figure class="viz viz-recorrido" data-ancho="{{ $ancho }}">
+  <div class="viz__lienzo">
+    <svg viewBox="0 0 {{ $ancho }} {{ $alto }}" role="img" aria-labelledby="{{ $id }}">
+      <desc id="{{ $id }}">{{ $d.titulo }}</desc>
+      {{- range $d.zonas }}
+      <rect class="viz__zona" x="{{ .x }}" y="{{ .y }}" width="{{ .ancho }}" height="{{ .alto }}" rx="22"/>
+      {{- end }}
+      {{- range $d.rotulos }}
+      <text class="viz__rotulo" x="{{ .x }}" y="{{ .y }}"{{ if .centro }} text-anchor="middle"{{ end }}>{{ .texto }}</text>
+      {{- end }}
+      {{- range $d.cables }}
+      {{- $a := index $n .a }}{{ $b := index $n .b }}
+      <path class="viz__cable" data-enlace="{{ delimit (sort (slice .a .b)) "-" }}" d="{{ .d | default (printf "M%v %v L%v %v" $a.x $a.y $b.x $b.y) }}"/>
+      {{- end }}
+      {{- with $p }}
+      {{- $guia := index $n .guia }}
+      <g class="viz__pantalla viz__pantalla--{{ .tipo }}{{ if $final.candado }} viz__pantalla--lista{{ end }}" data-inicial="{{ jsonify .inicial }}">
+        <rect class="viz__ventana" x="{{ .x }}" y="{{ .y }}" width="{{ .ancho }}" height="{{ .alto }}" rx="12"/>
+        <circle cx="{{ add .x 18 }}" cy="{{ add .y 18 }}" r="4" fill="#ef6b5e"/><circle cx="{{ add .x 32 }}" cy="{{ add .y 18 }}" r="4" fill="#f4bd4f"/><circle cx="{{ add .x 46 }}" cy="{{ add .y 18 }}" r="4" fill="#5fc454"/>
+        {{- if eq .tipo "navegador" }}
+        <rect class="viz__barra" x="{{ add .x 12 }}" y="{{ add .y 32 }}" width="{{ sub .ancho 24 }}" height="26" rx="13"/>
+        <g class="viz__candado" transform="translate({{ add .x 24 }} {{ add .y 44 }})"><path d="M0 0 v-3 a4 4 0 0 1 8 0 v3"/><rect x="-2" y="0" width="12" height="9" rx="2"/></g>
+        <text class="viz__url" x="{{ add .x 42 }}" y="{{ add .y 50 }}">{{ $final.barra }}</text>
+        {{- range $i := seq 0 (sub .lineas 1) }}
+        <text class="viz__linea viz__linea--{{ $i }}" x="{{ add $p.x (div $p.ancho 2) }}" y="{{ add $p.y (add 92 (mul $i 22)) }}" text-anchor="middle">{{ if lt $i (len $final.lineas) }}{{ index $final.lineas $i }}{{ end }}</text>
+        {{- end }}
+        {{- else }}
+        <text class="viz__barra-texto" x="{{ add .x 60 }}" y="{{ add .y 22 }}">{{ $final.barra }}</text>
+        {{- range $i := seq 0 (sub .lineas 1) }}
+        <text class="viz__linea viz__linea--terminal" x="{{ add $p.x 16 }}" y="{{ add $p.y (add 52 (mul $i 22)) }}">{{ if lt $i (len $final.lineas) }}{{ index $final.lineas $i }}{{ end }}</text>
+        {{- end }}
+        {{- end }}
+      </g>
+      <path class="viz__guia" d="M{{ $guia.x }} {{ add (add .y .alto) 2 }} V{{ sub $guia.y 46 }}"/>
+      {{- end }}
+      {{- range $nid, $nodo := $n }}
+      {{- $x := $nodo.x }}{{ $y := $nodo.y }}
+      <g class="viz__nodo" data-nodo="{{ $nid }}" data-x="{{ $x }}" data-y="{{ $y }}">
+        <rect class="viz__halo" x="{{ sub $x 54 }}" y="{{ sub $y 52 }}" width="108" height="104" rx="22"/>
+        <rect class="viz__tarjeta" x="{{ sub $x 48 }}" y="{{ sub $y 46 }}" width="96" height="92" rx="18"/>
+        <g class="viz__icono" transform="translate({{ $x }} {{ sub $y 14 }})">{{ partial "visuales/icono.html" $nodo.icono }}</g>
+        <text class="viz__nombre" x="{{ $x }}" y="{{ add $y 28 }}" text-anchor="middle">{{ $nodo.nombre }}</text>
+        <text class="viz__detalle" x="{{ $x }}" y="{{ add $y 68 }}" text-anchor="middle">{{ $nodo.detalle }}</text>
+      </g>
+      {{- end }}
+      <g class="viz__paquete" hidden>
+        <circle class="viz__punto" r="9"/>
+        <g class="viz__etiqueta">
+          <rect class="viz__caja" x="-110" y="-100" width="220" height="44" rx="10"/>
+          <text class="viz__titulo" x="0" y="-82" text-anchor="middle"></text>
+          <text class="viz__direcciones" x="0" y="-65" text-anchor="middle"></text>
+        </g>
+      </g>
+    </svg>
+  </div>
+  <div class="viz__controles" role="group" aria-label="Controles del recorrido" hidden>
+    <button type="button" class="viz__boton viz__boton--principal" data-accion="reproducir">Reproducir</button>
+    <button type="button" class="viz__boton" data-accion="anterior">Anterior</button>
+    <button type="button" class="viz__boton" data-accion="siguiente">Siguiente</button>
+    <button type="button" class="viz__boton" data-accion="inicio">Volver al inicio</button>
+    <span class="viz__fase" aria-live="polite">Listo para empezar</span>
+  </div>
+  <div class="viz__saltos" role="group" aria-label="Pasos del recorrido" hidden></div>
+  <ol class="viz__pasos">
+    {{- range $d.pasos }}
+    <li class="viz__paso" data-en="{{ .en }}"{{ with .desde }} data-desde="{{ . }}"{{ end }} data-tipo="{{ .tipo }}" data-fase="{{ .fase }}" data-cambia="{{ with .cambia }}{{ delimit . " " }}{{ end }}"{{ with .pantalla }} data-pantalla="{{ jsonify . }}"{{ end }}>
+      <div class="viz__quien"><b>{{ (index $n .en).nombre }}</b> <span class="viz__cambio{{ if not (in (slice "Sin cambios" "Solo la reenvía") .cambio) }} viz__cambio--si{{ end }}">{{ .cambio }}</span></div>
+      <dl class="viz__datos">
+        <dt>Qué hace</dt><dd>{{ .hace }}</dd>
+        <dt>Por qué</dt><dd>{{ .porque }}</dd>
+        <dt>El paquete</dt>
+        <dd class="viz__paquete-texto"><span data-campo="nombre">{{ .paquete.nombre }}</span><br>de <span data-campo="origen">{{ .paquete.origen }}</span> a <span data-campo="destino">{{ .paquete.destino }}</span></dd>
+      </dl>
+    </li>
+    {{- end }}
+  </ol>
+  <p class="viz__leyenda"><span class="viz__marca viz__marca--pregunta"></span>Pregunta o petición <span class="viz__marca viz__marca--respuesta"></span>Respuesta <span class="viz__marca viz__marca--cambio"></span>Lo que ha cambiado el equipo</p>
+  {{- with $d.pie }}
+  <figcaption>{{ . }}</figcaption>
+  {{- end }}
+</figure>

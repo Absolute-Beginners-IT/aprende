@@ -1,0 +1,44 @@
+{
+  "titulo": "La dirección 192.168.1.20 partida en cuatro octetos; la máscara /24 marca los tres primeros como parte de red; después se compara con 192.168.1.200, de la misma red, y con 192.168.2.10, de otra red.",
+  "pie": "Con una máscara /24 basta con comparar los tres primeros octetos. Con otras máscaras la frontera cae en otro sitio, pero la idea es la misma.",
+  "lienzo": [
+    900,
+    330
+  ],
+  "elementos": [
+    "mascara",
+    "misma",
+    "otra"
+  ],
+  "etapas": [
+    {
+      "titulo": "Una IP son cuatro octetos",
+      "muestra": [],
+      "porque": "192.168.1.20 son cuatro números de 8 bits: 32 bits en total. Así escrita no dice qué parte es la red y qué parte es el equipo. Para eso hace falta la máscara."
+    },
+    {
+      "titulo": "La máscara marca la red",
+      "muestra": [
+        "mascara"
+      ],
+      "porque": "Con /24, los 24 primeros bits (tres octetos) son la red: 192.168.1. El último octeto, 20, es el número del equipo dentro de esa red."
+    },
+    {
+      "titulo": "Misma red: hablan directamente",
+      "muestra": [
+        "mascara",
+        "misma"
+      ],
+      "porque": "192.168.1.200 tiene la misma parte de red, 192.168.1. Los dos equipos se encuentran a través del switch, sin pasar por ningún router."
+    },
+    {
+      "titulo": "Otra red: hace falta un router",
+      "muestra": [
+        "mascara",
+        "misma",
+        "otra"
+      ],
+      "porque": "192.168.2.10 cambia el tercer octeto: es otra red. El equipo envía ese tráfico a su puerta de enlace, que lo lleva a la otra red. Es lo que verás en la siguiente sala."
+    }
+  ]
+}

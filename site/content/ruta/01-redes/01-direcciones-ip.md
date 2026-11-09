@@ -73,5 +73,9 @@ Con máscara `/24`, compara los tres primeros octetos:
 | `192.168.1.10/24` | `192.168.1.200/24` | Sí: `192.168.1` en los dos |
 | `192.168.1.10/24` | `192.168.2.10/24` | No: `192.168.1` frente a `192.168.2` |
 
+Míralo paso a paso: cómo se parte una IP, qué marca la máscara y qué cambia entre dos equipos de la misma red y de redes distintas.
+
+{{< evolucion datos="mascara-ip" >}}
+
 {{< pregunta texto="¿Están en la misma red 10.0.5.20/24 y 10.0.6.20/24? (sí/no)" respuesta="no" >}}
 {{% /tarea %}}

@@ -15,7 +15,7 @@ requisitos:
 
 Antes de ver cada pieza por separado, mira por qué hacen falta y por qué se montan en este orden: cada etapa resuelve el problema de la anterior.
 
-{{< evolucion-red >}}
+{{< evolucion datos="red-oficina" >}}
 
 {{% tarea n="1" titulo="La puerta de enlace" %}}
 Un equipo habla directamente con los de su misma red. Para todo lo demás (otra red de la empresa, Internet) envía el tráfico a la **puerta de enlace** (*default gateway*): normalmente el router o el firewall, que sabe hacia dónde reenviarlo.
@@ -64,7 +64,7 @@ Esto es lo que pasa cuando enciendes un portátil y abres una web:
 
 Ahora míralo paquete a paquete, ya con la configuración recibida: qué hace cada equipo con él y cómo cambia al pasar por cada uno.
 
-{{< recorrido-web >}}
+{{< recorrido datos="web" >}}
 
 Cuando algo falla, piensa en qué paso se ha roto.
 
