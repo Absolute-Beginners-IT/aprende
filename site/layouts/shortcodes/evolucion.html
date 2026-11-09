@@ -1,0 +1,30 @@
+{{- /* A drawing that grows stage by stage: {{< evolucion datos="red-oficina" >}}. Stages come from
+  data/visuales/evoluciones/<datos>.json and the drawing from layouts/partials/visuales/<datos>.html, whose
+  [data-elemento] groups appear as the stages list them. Without JavaScript the finished drawing and every stage's
+  reason are shown; js/visuales.js turns them into tabs. */ -}}
+{{- $nombre := .Get "datos" -}}
+{{- $d := index hugo.Data.visuales.evoluciones $nombre -}}
+{{- if not $d }}{{ errorf "evolucion: no data for %q in %s" $nombre .Position }}{{ end -}}
+{{- $id := printf "viz-evolucion-%s" $nombre -}}
+<figure class="viz viz-evolucion">
+  <div class="viz__pestanas" role="tablist" aria-label="Etapas" hidden>
+    {{- range $i, $e := $d.etapas }}
+    <button type="button" class="viz__boton" role="tab" data-etapa="{{ $i }}" aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}">{{ add $i 1 }}. {{ $e.titulo }}</button>
+    {{- end }}
+  </div>
+  <div class="viz__lienzo">
+    <svg viewBox="0 0 {{ index $d.lienzo 0 }} {{ index $d.lienzo 1 }}" role="img" aria-labelledby="{{ $id }}">
+      <desc id="{{ $id }}">{{ $d.titulo }}</desc>
+      {{- /* No blank lines or indentation: inside a Markdown task they would turn the rest of the SVG into a code block. */}}
+      {{ partial (printf "visuales/%s.html" $nombre) . | replaceRE `\n\s*` " " | safeHTML }}
+    </svg>
+  </div>
+  <ol class="viz__etapas">
+    {{- range $d.etapas }}
+    <li class="viz__etapa" data-muestra="{{ delimit .muestra " " }}"><b>{{ .titulo }}</b> <span>{{ .porque }}</span></li>
+    {{- end }}
+  </ol>
+  {{- with $d.pie }}
+  <figcaption>{{ . }}</figcaption>
+  {{- end }}
+</figure>

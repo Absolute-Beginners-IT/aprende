@@ -5,7 +5,6 @@
   'use strict';
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SVG = 'http://www.w3.org/2000/svg';
-  const VIEW_W = 900;
 
   function recorrido(fig) {
     const svg = fig.querySelector('svg');
@@ -16,7 +15,7 @@
       tipo: li.dataset.tipo,
       fase: li.dataset.fase,
       cambia: (li.dataset.cambia || '').split(' ').filter(Boolean),
-      final: li.hasAttribute('data-final'),
+      pantalla: li.dataset.pantalla ? JSON.parse(li.dataset.pantalla) : null,
       nombre: li.querySelector('[data-campo="nombre"]').textContent,
       origen: li.querySelector('[data-campo="origen"]').textContent,
       destino: li.querySelector('[data-campo="destino"]').textContent,
@@ -31,13 +30,16 @@
     const caja = svg.querySelector('.viz__caja');
     const titulo = svg.querySelector('.viz__titulo');
     const direcciones = svg.querySelector('.viz__direcciones');
-    const url = svg.querySelector('.viz__url');
-    const pagina = svg.querySelector('.viz__pagina');
-    const paginaSub = svg.querySelector('.viz__pagina-sub');
-    const navegador = svg.querySelector('.viz__navegador');
     const fase = fig.querySelector('.viz__fase');
     const botonReproducir = fig.querySelector('[data-accion="reproducir"]');
-    const direccion = fig.dataset.url;
+    const ancho = Number(fig.dataset.ancho);
+    // The optional screen (a browser or a terminal): each step may change its bar, lines or padlock; the rest carries over.
+    const pantalla = svg.querySelector('.viz__pantalla');
+    const barra = pantalla && pantalla.querySelector('.viz__url, .viz__barra-texto');
+    const lineas = pantalla ? [...pantalla.querySelectorAll('.viz__linea')] : [];
+    const inicial = pantalla ? JSON.parse(pantalla.dataset.inicial) : {};
+    const estados = [];
+    pasos.reduce((estado, p) => { const s = { ...estado, ...(p.pantalla || {}) }; estados.push(s); return s; }, inicial);
 
     // Each step gets a numbered button; the colour says whether it carries a question or an answer.
     const saltos = fig.querySelector('.viz__saltos');
@@ -61,8 +63,8 @@
     function colocar(x, y) {
       paquete.setAttribute('transform', `translate(${x} ${y})`);
       // The name card stays inside the drawing: clamped at the sides, and below the dot near the top edge.
-      const ancho = Number(caja.getAttribute('width'));
-      const cx = Math.min(Math.max(x, 12 + ancho / 2), VIEW_W - 12 - ancho / 2);
+      const w = Number(caja.getAttribute('width'));
+      const cx = Math.min(Math.max(x, 12 + w / 2), ancho - 12 - w / 2);
       etiqueta.setAttribute('transform', `translate(${cx - x} ${y < 120 ? 96 : 0})`);
     }
     function tspan(texto, cambiado) {
@@ -75,9 +77,9 @@
       titulo.textContent = p.nombre;
       titulo.classList.toggle('viz__cambiado', p.cambia.includes('nombre'));
       direcciones.replaceChildren(tspan('de '), tspan(p.origen, p.cambia.includes('origen')), tspan(' a '), tspan(p.destino, p.cambia.includes('destino')));
-      const ancho = Math.max(titulo.getComputedTextLength(), direcciones.getComputedTextLength()) + 28;
-      caja.setAttribute('width', ancho);
-      caja.setAttribute('x', -ancho / 2);
+      const w = Math.max(titulo.getComputedTextLength(), direcciones.getComputedTextLength()) + 28;
+      caja.setAttribute('width', w);
+      caja.setAttribute('x', -w / 2);
       paquete.dataset.tipo = p.tipo;
       if (!reduce) { etiqueta.classList.remove('viz__destello'); void etiqueta.getBBox(); etiqueta.classList.add('viz__destello'); }
     }
@@ -86,27 +88,23 @@
         p.li.querySelector(`[data-campo="${campo}"]`).classList.toggle('viz__cambiado', p.cambia.includes(campo));
       }
     }
-    function pintarNavegador(i) {
+    function pintarPantalla(i) {
+      if (!pantalla) return;
       clearInterval(tecleo);
-      navegador.classList.remove('viz__navegador--listo');
-      if (i < 0) { url.textContent = ''; pagina.textContent = 'Página en blanco'; paginaSub.textContent = 'Escribe una dirección'; return; }
-      if (i === 0 && !reduce) {
+      const estado = i < 0 ? inicial : estados[i];
+      const nuevo = i >= 0 && pasos[i].pantalla;
+      pantalla.classList.toggle('viz__pantalla--lista', Boolean(estado.candado));
+      lineas.forEach((l, k) => { l.textContent = (estado.lineas || [])[k] || ''; });
+      if (nuevo && nuevo.teclear && !reduce) {
+        const texto = estado.barra;
         let n = 0;
-        url.textContent = '';
+        barra.textContent = '';
         tecleo = setInterval(() => {
           n += 1;
-          url.textContent = direccion.slice(0, n) + (n < direccion.length ? '▏' : '');
-          if (n >= direccion.length) clearInterval(tecleo);
+          barra.textContent = texto.slice(0, n) + (n < texto.length ? '▏' : '');
+          if (n >= texto.length) clearInterval(tecleo);
         }, 55);
-      } else url.textContent = direccion;
-      if (pasos[i].final) {
-        navegador.classList.add('viz__navegador--listo');
-        pagina.textContent = 'Example Domain';
-        paginaSub.textContent = 'Página cargada por HTTPS';
-      } else {
-        pagina.textContent = 'Cargando…';
-        paginaSub.textContent = pasos[i].fase === 'Preguntar la IP' || pasos[i].fase === 'Recibir la IP' ? 'Buscando la IP de example.com' : 'Esperando la página';
-      }
+      } else barra.textContent = estado.barra || '';
     }
     function narrar(i) {
       pasos.forEach((p, k) => p.li.classList.toggle('is-actual', k === i));
@@ -123,7 +121,7 @@
       cables.forEach((c) => c.classList.remove('is-activo'));
       narrar(i);
       marcarCambios(p);
-      pintarNavegador(i);
+      pintarPantalla(i);
       const llegar = () => {
         colocar(...centro(p.en));
         etiquetar(p);
@@ -168,7 +166,7 @@
       cables.forEach((c) => c.classList.remove('is-activo'));
       pasos.forEach((p) => p.li.classList.remove('is-actual'));
       narrar(-1);
-      pintarNavegador(-1);
+      pintarPantalla(-1);
       // Before the first step, the panel shows the opening of the story instead of nothing.
       pasos[0].li.classList.add('is-actual');
     }

@@ -1,0 +1,109 @@
+{
+  "titulo": "Un portátil conectado a su router; el router a un router de la operadora, y este al destino 1.1.1.1 en internet. Una ventana de PowerShell muestra la salida de tracert.",
+  "lienzo": [900, 412],
+  "zonas": [{ "x": 448, "y": 210, "ancho": 438, "alto": 190 }],
+  "rotulos": [
+    { "x": 667, "y": 236, "texto": "INTERNET", "centro": true },
+    { "x": 40, "y": 402, "texto": "OFICINA · red 192.168.1.0/24" }
+  ],
+  "pantalla": {
+    "tipo": "terminal", "x": 40, "y": 14, "ancho": 380, "alto": 176, "lineas": 6, "guia": "portatil",
+    "inicial": { "barra": "Windows PowerShell", "lineas": ["PS C:\\> _"] }
+  },
+  "nodos": {
+    "portatil": { "nombre": "Portátil", "detalle": "192.168.1.20", "x": 110, "y": 314, "icono": "portatil" },
+    "router": { "nombre": "Tu router", "detalle": "192.168.1.1 · 203.0.113.5", "x": 330, "y": 314, "icono": "router", "nat": true },
+    "operadora": { "nombre": "Operadora", "detalle": "198.51.100.1", "x": 560, "y": 314, "icono": "nube" },
+    "destino": { "nombre": "Destino", "detalle": "1.1.1.1", "x": 780, "y": 314, "icono": "servidor" }
+  },
+  "cables": [
+    { "a": "portatil", "b": "router" },
+    { "a": "router", "b": "operadora" },
+    { "a": "operadora", "b": "destino" }
+  ],
+  "pie": "tracert envía tres sondas por salto y muestra tres tiempos; aquí se dibuja una sola. Las IP del router y de la operadora son de los rangos reservados para documentación.",
+  "pasos": [
+    {
+      "en": "portatil", "tipo": "pregunta", "fase": "Salto 1", "cambio": "Paquete nuevo",
+      "hace": "Escribes tracert 1.1.1.1. El portátil envía un eco ICMP (como un ping) con TTL 1: solo puede atravesar un router.",
+      "porque": "El TTL (tiempo de vida) es un contador que cada router resta en 1. Cuando llega a 0, el router descarta el paquete y avisa a quien lo envió. tracert aprovecha ese aviso para saber quién está en cada salto.",
+      "paquete": { "nombre": "Eco ICMP · TTL 1", "origen": "192.168.1.20", "destino": "1.1.1.1" },
+      "pantalla": { "lineas": ["PS C:\\> tracert 1.1.1.1", "Traza a 1.1.1.1 sobre un máximo de 30 saltos:"] }
+    },
+    {
+      "desde": "portatil", "en": "router", "tipo": "respuesta", "fase": "Salto 1", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "Resta 1 al TTL y llega a 0. Descarta el eco y responde al portátil con un mensaje ICMP de tiempo agotado, firmado con su IP: 192.168.1.1.",
+      "porque": "Así el portátil sabe que el primer salto es su puerta de enlace y cuánto ha tardado en contestar.",
+      "paquete": { "nombre": "Tiempo agotado (TTL 0)", "origen": "192.168.1.1", "destino": "192.168.1.20" }
+    },
+    {
+      "desde": "router", "en": "portatil", "tipo": "pregunta", "fase": "Salto 2", "cambio": "Paquete nuevo", "cambia": ["nombre"],
+      "hace": "Anota el salto 1 (192.168.1.1) y envía otro eco, ahora con TTL 2, para llegar un router más lejos.",
+      "porque": "tracert sube el TTL de uno en uno: cada vuelta descubre el siguiente router del camino.",
+      "paquete": { "nombre": "Eco ICMP · TTL 2", "origen": "192.168.1.20", "destino": "1.1.1.1" },
+      "pantalla": { "lineas": ["PS C:\\> tracert 1.1.1.1", "Traza a 1.1.1.1 sobre un máximo de 30 saltos:", "  1     1 ms   192.168.1.1"] }
+    },
+    {
+      "desde": "portatil", "en": "router", "tipo": "pregunta", "fase": "Salto 2", "cambio": "Resta 1 al TTL y cambia el origen (NAT)", "cambia": ["nombre", "origen"],
+      "hace": "Resta 1 al TTL, que queda en 1, así que puede reenviarlo. Antes cambia la IP privada del portátil por la pública de la oficina (NAT).",
+      "porque": "Las direcciones 192.168.x.x no existen en internet: fuera solo se conoce la IP pública del router.",
+      "paquete": { "nombre": "Eco ICMP · TTL 1", "origen": "203.0.113.5", "destino": "1.1.1.1" }
+    },
+    {
+      "desde": "router", "en": "operadora", "tipo": "respuesta", "fase": "Salto 2", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "Resta 1 al TTL y llega a 0. Descarta el eco y responde con tiempo agotado desde su IP, 198.51.100.1, a la IP pública de la oficina.",
+      "porque": "Es el segundo salto: el primer router de la operadora. Si la traza se corta justo aquí, el problema está entre tu router y la operadora.",
+      "paquete": { "nombre": "Tiempo agotado (TTL 0)", "origen": "198.51.100.1", "destino": "203.0.113.5" }
+    },
+    {
+      "desde": "operadora", "en": "router", "tipo": "respuesta", "fase": "Salto 2", "cambio": "Cambia el destino (NAT)", "cambia": ["destino"],
+      "hace": "Mira su tabla NAT, ve que el eco lo envió el portátil y le reenvía el aviso cambiando el destino por su IP privada.",
+      "porque": "Sin esa traducción, el aviso se quedaría en el router y tracert no sabría nada del salto 2.",
+      "paquete": { "nombre": "Tiempo agotado (TTL 0)", "origen": "198.51.100.1", "destino": "192.168.1.20" }
+    },
+    {
+      "desde": "router", "en": "portatil", "tipo": "pregunta", "fase": "Salto 3", "cambio": "Paquete nuevo", "cambia": ["nombre"],
+      "hace": "Anota el salto 2 (198.51.100.1) y envía el tercer eco, con TTL 3.",
+      "porque": "Sigue subiendo el TTL hasta que conteste el propio destino o se alcancen los 30 saltos.",
+      "paquete": { "nombre": "Eco ICMP · TTL 3", "origen": "192.168.1.20", "destino": "1.1.1.1" },
+      "pantalla": { "lineas": ["PS C:\\> tracert 1.1.1.1", "Traza a 1.1.1.1 sobre un máximo de 30 saltos:", "  1     1 ms   192.168.1.1", "  2     9 ms   198.51.100.1"] }
+    },
+    {
+      "desde": "portatil", "en": "router", "tipo": "pregunta", "fase": "Salto 3", "cambio": "Resta 1 al TTL y cambia el origen (NAT)", "cambia": ["nombre", "origen"],
+      "hace": "Resta 1 al TTL (queda en 2), hace NAT con la IP pública y lo reenvía a la operadora.",
+      "porque": "Es lo mismo que en el salto 2: cada router resta 1, y el tuyo además traduce la dirección.",
+      "paquete": { "nombre": "Eco ICMP · TTL 2", "origen": "203.0.113.5", "destino": "1.1.1.1" }
+    },
+    {
+      "desde": "router", "en": "operadora", "tipo": "pregunta", "fase": "Salto 3", "cambio": "Resta 1 al TTL", "cambia": ["nombre"],
+      "hace": "Resta 1 al TTL, que queda en 1, y lo reenvía hacia el destino.",
+      "porque": "Ahora el TTL alcanza para un salto más, así que este router no lo descarta.",
+      "paquete": { "nombre": "Eco ICMP · TTL 1", "origen": "203.0.113.5", "destino": "1.1.1.1" }
+    },
+    {
+      "desde": "operadora", "en": "destino", "tipo": "respuesta", "fase": "Salto 3", "cambio": "Ahora es una respuesta", "cambia": ["nombre"],
+      "hace": "El eco ha llegado a su destino, así que 1.1.1.1 contesta con una respuesta de eco, como a un ping.",
+      "porque": "El destino no tiene que reenviar nada: el TTL solo se comprueba al pasar por un router.",
+      "paquete": { "nombre": "Respuesta de eco", "origen": "1.1.1.1", "destino": "203.0.113.5" }
+    },
+    {
+      "desde": "destino", "en": "operadora", "tipo": "respuesta", "fase": "Salto 3", "cambio": "Solo la reenvía",
+      "hace": "Reenvía la respuesta hacia la IP pública de la oficina. También resta 1 a su TTL, pero eso ya no importa para la traza.",
+      "porque": "La respuesta vuelve por la red de la operadora como cualquier otro tráfico.",
+      "paquete": { "nombre": "Respuesta de eco", "origen": "1.1.1.1", "destino": "203.0.113.5" }
+    },
+    {
+      "desde": "operadora", "en": "router", "tipo": "respuesta", "fase": "Salto 3", "cambio": "Cambia el destino (NAT)", "cambia": ["destino"],
+      "hace": "Deshace el NAT: cambia el destino por la IP privada del portátil.",
+      "porque": "La misma traducción de los saltos anteriores, ahora con la respuesta del destino.",
+      "paquete": { "nombre": "Respuesta de eco", "origen": "1.1.1.1", "destino": "192.168.1.20" }
+    },
+    {
+      "desde": "router", "en": "portatil", "tipo": "respuesta", "fase": "Traza completa", "cambio": "Paquete entregado", "cambia": ["nombre"],
+      "hace": "Anota el salto 3: ha contestado el propio destino, así que tracert termina.",
+      "porque": "Si un salto no hubiera respondido, verías * * * en su línea. Uno suelto no es una avería; si a partir de uno no responde ninguno, el corte está ahí.",
+      "paquete": { "nombre": "Respuesta de eco recibida", "origen": "1.1.1.1", "destino": "192.168.1.20" },
+      "pantalla": { "lineas": ["Traza a 1.1.1.1 sobre un máximo de 30 saltos:", "  1     1 ms   192.168.1.1", "  2     9 ms   198.51.100.1", "  3    12 ms   1.1.1.1", "Traza completa.", "PS C:\\> _"] }
+    }
+  ]
+}

@@ -265,10 +265,27 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz__candado path { fill: none; stroke: var(--muted); stroke-width: 1.6; }
 .viz__candado rect { fill: var(--muted); }
 .viz__candado { opacity: .45; }
-.viz__navegador--listo .viz__candado { opacity: 1; }
-.viz__pagina { font-weight: 800; font-size: 18px; fill: var(--muted) !important; }
-.viz__navegador--listo .viz__pagina { fill: var(--text) !important; }
-.viz__pagina-sub { font-size: 12px; fill: var(--muted) !important; }
+.viz__pantalla--lista .viz__candado { opacity: 1; }
+.viz__linea--0 { font-weight: 800; font-size: 18px; fill: var(--muted) !important; }
+.viz__pantalla--lista .viz__linea--0 { fill: var(--text) !important; }
+.viz__linea--1 { font-size: 12px; fill: var(--muted) !important; }
+.viz__pantalla--terminal .viz__ventana { fill: #0c1220; stroke: #2b3542; }
+.viz svg .viz__barra-texto { font-size: 12px; fill: #9aa6b6; }
+.viz svg .viz__linea--terminal { font-family: var(--mono); font-size: 13px; fill: #d7e0ec; white-space: pre; }
+/* An IPv4 address split in octets (evolucion mascara-ip): the network part is blue, the host part orange, a differing octet violet. */
+.viz__octeto { fill: var(--surface); stroke: var(--line); stroke-width: 1.4; filter: drop-shadow(0 4px 6px rgba(20, 35, 60, .14)); }
+.viz__octeto--distinto { stroke: var(--l-logica); stroke-width: 3; }
+.viz svg .viz__octeto-texto { font-family: var(--mono); font-weight: 700; font-size: 22px; }
+.viz svg .viz__octeto-punto { font-family: var(--mono); font-weight: 700; font-size: 26px; fill: var(--muted); }
+.viz__tramo { stroke-width: 2; }
+.viz__tramo--red { fill: color-mix(in srgb, var(--l-fisica) 14%, transparent); stroke: var(--l-fisica); }
+.viz__tramo--equipo { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent); }
+.viz svg .viz__tramo-texto { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+.viz svg .viz__tramo-texto--red { fill: var(--l-fisica); }
+.viz svg .viz__tramo-texto--equipo { fill: var(--accent); }
+.viz svg .viz__veredicto { font-weight: 800; font-size: 17px; }
+.viz svg .viz__veredicto--si { fill: var(--l-servicios); }
+.viz svg .viz__veredicto--no { fill: var(--l-logica); }
 .viz__punto { fill: var(--accent); stroke: var(--surface); stroke-width: 3; }
 .viz__caja { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; filter: drop-shadow(0 3px 5px rgba(20, 35, 60, .2)); }
 .viz__paquete[data-tipo="respuesta"] .viz__punto { fill: var(--l-servicios); }
