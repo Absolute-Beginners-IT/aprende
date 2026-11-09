@@ -87,6 +87,20 @@ describe('InventoryPage', () => {
     expect(await screen.findByText(/No hay ningún firewall registrado/)).toBeTruthy();
   });
 
+  it('deletes a device together with the connections that pointed to it, in one write', async () => {
+    const repo = memoryRepository([
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: false },
+      { id: 'p1', nombre: 'P1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+    ]);
+    render(<InventoryPage repository={repo} />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Borrar CORE' }));
+
+    expect(await screen.findByText('CORE borrado.')).toBeTruthy();
+    expect([...repo.devices.keys()]).toEqual(['p1']);
+    expect(repo.devices.get('p1')?.uplinks).toEqual([]);
+    expect(screen.queryByText(/conectado a/)).toBeNull();
+  });
+
   it('shows an error instead of failing silently when the browser storage cannot save', async () => {
     const repo = memoryRepository();
     repo.save = async () => { throw new Error('QuotaExceededError'); };
