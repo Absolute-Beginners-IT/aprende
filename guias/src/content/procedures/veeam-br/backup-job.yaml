@@ -1,0 +1,130 @@
+platform: veeam-br
+task: backup-job
+summary: >-
+  Conecta el servidor Proxmox VE a Veeam, despliega su worker y crea un trabajo diario que
+  copia sus máquinas virtuales al repositorio, con su retención.
+risk:
+  level: medium
+  reason: >-
+    Cada copia crea una snapshot temporal de las máquinas y carga los discos y la red de
+    Proxmox. No cambia la configuración de las máquinas.
+params:
+  - id: pveHost
+    label: IP o nombre del servidor Proxmox VE
+    type: text
+    example: 192.168.99.20
+  - id: jobName
+    label: Nombre del trabajo
+    type: text
+    example: PVE-DIARIO
+  - id: repoName
+    label: Repositorio de destino
+    type: text
+    example: REPO-LOCAL-01
+    help: El nombre que le diste al añadir el repositorio.
+  - id: backupTime
+    label: Hora de la copia
+    type: text
+    example: '22:00'
+    pattern: ^([01]\d|2[0-3]):[0-5]\d$
+    patternHint: Una hora en formato HH:MM, por ejemplo 22:00.
+preflight:
+  - text: >-
+      Comprueba en las notas de versión de Veeam que tu versión de Proxmox VE está soportada
+      (la 13.0.1 ya admitía Proxmox VE 8.2 a 9.0, instalado desde la ISO oficial). En un
+      clúster hay que añadir todos los nodos.
+  - text: >-
+      Ten una cuenta de Proxmox con la que entrar por SSH: root o, mejor, un usuario que pueda
+      elevar a root. Proxmox necesita un almacenamiento de tipo archivo (no de bloques) con
+      espacio para las snapshots temporales en formato QCOW2.
+  - text: >-
+      Ten en cuenta lo que no se copia: los discos iSCSI de las máquinas se saltan y los
+      permisos de usuarios de Proxmox no se guardan. Cada máquina solo puede estar en un
+      trabajo a la vez.
+steps:
+  - title: Añadir el servidor Proxmox VE
+    manual: true
+    explanation: >-
+      En la vista Backup Infrastructure selecciona Managed Servers y pulsa Add Server en la
+      cinta. Elige Virtualization Platforms y después Proxmox VE. Escribe {{pveHost}}.
+  - title: Indicar las credenciales y el almacenamiento de snapshots
+    manual: true
+    explanation: >-
+      En Credentials elige la cuenta SSH (o añádela con Add). Si es un usuario que eleva a
+      root, marca Elevate account privileges automatically. Al pulsar Next aparece un aviso
+      del certificado de Proxmox: pulsa Continue. En Snapshot Storage elige el almacenamiento
+      de archivos para las snapshots temporales, o deja que use el más grande. Pulsa Apply y
+      Finish.
+  - title: Desplegar el worker
+    manual: true
+    explanation: >-
+      El worker es una pequeña máquina virtual que Veeam crea en Proxmox para mover los datos.
+      En Backup Infrastructure selecciona Backup Proxies, pulsa Add Proxy y elige Proxmox VE
+      worker. Sigue el asistente eligiendo el nodo, el almacenamiento y la red de la máquina.
+      En un clúster, despliega uno en cada nodo.
+  - title: Crear el trabajo
+    manual: true
+    explanation: >-
+      En la vista Home selecciona Jobs, pulsa con el botón derecho en la zona de trabajo y
+      elige Backup, Virtual machine, Proxmox VE. Escribe {{jobName}} como nombre.
+  - title: Elegir las máquinas
+    manual: true
+    explanation: >-
+      En Virtual Machines pulsa Add y elige las máquinas (o el nodo o un pool de recursos
+      entero: las máquinas nuevas del pool entran solas en el trabajo). Con Exclusions quitas
+      las que no quieras copiar.
+  - title: Elegir el destino y la retención
+    manual: true
+    explanation: >-
+      En Storage elige {{repoName}} en Backup repository. En Retention policy indica cuántos
+      días se conservan los puntos de restauración, por ejemplo 14. Veeam guarda al menos tres
+      puntos aunque la retención pida menos.
+  - title: Programar la copia
+    manual: true
+    explanation: >-
+      Sáltate Guest Processing si no lo necesitas. En Schedule marca Daily at this time,
+      escribe {{backupTime}} y elige Everyday (o los días laborables). Marca Retry failed items
+      processing para que reintente lo que falle. Pulsa Apply y Finish.
+  - title: Lanzar la primera copia
+    manual: true
+    explanation: >-
+      En Home, Jobs, pulsa con el botón derecho en {{jobName}} y elige Start. La primera copia
+      es completa y tarda más que las siguientes, que solo copian los cambios.
+verification:
+  - expect: La sesión de {{jobName}} termina en Success, sin avisos, para todas las máquinas del trabajo.
+  - expect: >-
+      En Home, Backups, aparece {{jobName}} con sus máquinas y un punto de restauración de
+      hoy en {{repoName}}.
+rollback:
+  summary: >-
+    El trabajo se puede desactivar o borrar sin tocar las máquinas. Las snapshots temporales
+    las borra Veeam al terminar cada copia.
+  steps:
+    - title: Desactivar el trabajo
+      manual: true
+      explanation: >-
+        En Home, Jobs, pulsa con el botón derecho en {{jobName}} y elige Disable para que deje
+        de ejecutarse. Si no se va a usar, bórralo con Delete; las copias ya hechas siguen en
+        el repositorio.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — Adding Proxmox VE Server to Backup Infrastructure
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_server_add.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Adding Workers
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_workers_add.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Creating Backup Jobs (Proxmox VE)
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_backup_job_create.html?ver=13
+  - title: Veeam Backup & Replication 13.0.1 Release Notes
+    url: https://helpcenter.veeam.com/rn/veeam_backup_13_0_1_release_notes.html
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Asistentes de servidor Proxmox VE (credenciales SSH, Elevate account privileges
+    automatically, certificado, Snapshot Storage), worker, trabajo (Virtual Machines,
+    Storage, retención mínima de tres puntos, Schedule, Retry failed items processing),
+    limitaciones y Start contrastados con la guía de usuario de la versión 13. Las versiones
+    de Proxmox VE salen de las notas de la 13.0.1. Sin contrastar: los pasos internos del
+    asistente del worker, la opción Everyday, Disable y Delete en la vuelta atrás y que las
+    copias sigan en el repositorio tras borrar el trabajo. Falta probarla en un servidor
+    real.

@@ -1,0 +1,18 @@
+id: vm-restore
+title: Restaurar una máquina virtual
+group: security-resilience
+order: 9
+summary: Recupera una máquina virtual completa desde una copia, en su sitio original o como una máquina nueva.
+explanation: >-
+  Restaurar es la razón de ser de las copias. Se elige la máquina, el punto de
+  restauración (el momento al que se quiere volver) y dónde se restaura. Restaurarla como
+  una máquina nueva, con otro nombre y sin red, permite comprobar la copia sin tocar la
+  original; restaurarla en su sitio sustituye a la máquina actual. Una copia que nunca se ha
+  probado a restaurar no se sabe si vale.
+risks:
+  - Restaurar en la ubicación original sustituye a la máquina actual y se pierde lo que cambió desde la copia.
+  - Una máquina restaurada con la misma red e IP que la original provoca conflictos de dirección.
+  - La restauración ocupa espacio en el almacenamiento del hipervisor y carga la red.
+prerequisites:
+  - Una copia con al menos un punto de restauración correcto.
+  - Espacio libre en el almacenamiento de destino para los discos de la máquina.

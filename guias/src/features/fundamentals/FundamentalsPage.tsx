@@ -1,8 +1,7 @@
 import type { Catalog } from '../../domain/buildCatalog'
 import { fundamentalsHref, platformHref } from '../../lib/useHashRoute'
 import { Section } from '../../ui/Section'
-
-const MANAGEMENT_LABELS = { cli: 'Línea de comandos', web: 'Interfaz web' } as const
+import { MANAGEMENT_LABELS } from '../labels'
 
 /** Entry point of the background reading, with the brands of this manual side by side. */
 export function FundamentalsPage({ catalog }: { catalog: Catalog }) {

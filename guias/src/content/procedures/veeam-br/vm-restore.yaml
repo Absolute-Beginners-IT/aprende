@@ -1,0 +1,97 @@
+platform: veeam-br
+task: vm-restore
+summary: >-
+  Restaura una máquina virtual de Proxmox VE desde una copia de Veeam con el asistente Entire
+  VM Restore, como una máquina nueva para probarla o en su sitio original.
+risk:
+  level: high
+  reason: >-
+    Restaurar en la ubicación original sustituye a la máquina actual y se pierde lo que
+    cambió desde la copia. Restaurar como máquina nueva no toca la original.
+params:
+  - id: vmName
+    label: Nombre de la máquina restaurada
+    type: text
+    example: SRV-FICHEROS-PRUEBA
+    help: Para una prueba, un nombre distinto del original.
+    pattern: ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$
+    patternHint: Hasta 63 caracteres, solo letras sin tilde, números y guiones, sin guion al principio ni al final.
+preflight:
+  - text: >-
+      Decide si es una prueba o una recuperación real. Para una prueba, restaura como máquina
+      nueva y sin red; así no toca la original ni repite su IP.
+  - text: >-
+      Si vas a restaurar en la ubicación original, avisa a quien use la máquina: lo que haya
+      cambiado desde el punto elegido se pierde.
+  - text: Comprueba que el almacenamiento de destino en Proxmox tiene espacio para los discos de la máquina.
+steps:
+  - title: Abrir el asistente
+    manual: true
+    explanation: >-
+      En la vista Home selecciona Backups. Despliega el trabajo, pulsa con el botón derecho en
+      la máquina y elige Restore entire VM, Proxmox VE.
+  - title: Elegir el punto de restauración
+    manual: true
+    explanation: >-
+      En Virtual Machines Veeam propone el punto más reciente. Para volver a otro momento,
+      selecciona la máquina, pulsa Point y elige el punto en la lista, que muestra el
+      trabajo, la fecha, el tipo y el repositorio.
+  - title: Elegir el modo
+    manual: true
+    explanation: >-
+      En Restore Mode, para una prueba elige Restore to a new location, or with different
+      settings. Para recuperar la máquina en su sitio elige la ubicación original y salta a
+      la confirmación.
+    warning: La ubicación original sustituye a la máquina actual por la de la copia.
+  - title: Indicar el nodo y el almacenamiento
+    manual: true
+    explanation: >-
+      En Host elige el nodo de Proxmox donde quedará la máquina. En Storage elige el
+      almacenamiento para sus discos; el tipo de disco se mantiene salvo que lo cambies.
+  - title: Darle nombre y dejarla sin red
+    manual: true
+    explanation: >-
+      En Name escribe {{vmName}}. En Network selecciona la máquina y pulsa Disconnect, para
+      que arranque sin red y no choque con la original.
+  - title: Restaurar
+    manual: true
+    explanation: >-
+      En Reason anota por qué restauras (por ejemplo, prueba mensual de restauración). Revisa
+      el resumen y pulsa Finish. El progreso se ve en la sesión de restauración.
+verification:
+  - expect: La sesión de restauración termina en Success.
+  - expect: >-
+      En la interfaz web de Proxmox aparece {{vmName}}; arranca y, desde su consola, los
+      datos están en el estado del punto elegido.
+rollback:
+  summary: >-
+    Una máquina restaurada como nueva se borra sin afectar a la original. Si se sustituyó la
+    original y el punto no era el bueno, se restaura otro punto.
+  steps:
+    - title: Borrar la copia de prueba
+      manual: true
+      explanation: >-
+        En Proxmox apaga {{vmName}} y bórrala (More, Remove). La original y las copias de
+        Veeam no se tocan.
+    - title: Volver a otro punto
+      manual: true
+      explanation: >-
+        Si restauraste en la ubicación original con un punto equivocado, repite esta guía
+        eligiendo el punto correcto.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — Performing VM Restore Using Console (Proxmox VE)
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_restore_entire_vm.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Step 3. Choose Restore Mode
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_restore_entire_vm_mode.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Step 6. Specify VM Name
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/pve_restore_entire_vm_name.html?ver=13
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Apertura del asistente, Point, Restore to a new location, or with different settings,
+    Host, Storage, las reglas del nombre y Disconnect contrastados con la guía de usuario de
+    la versión 13. Sin contrastar: el texto exacto de la opción de ubicación original y que
+    sustituya a la máquina actual, el paso Reason y el borrado en Proxmox. Falta probarla en
+    un servidor real.

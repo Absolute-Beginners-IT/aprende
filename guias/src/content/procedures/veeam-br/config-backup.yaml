@@ -1,0 +1,83 @@
+platform: veeam-br
+task: config-backup
+summary: >-
+  Programa y lanza la copia de la configuración de Veeam (Configuration Backup), cifrada,
+  en un repositorio. Es lo que permite reconstruir el servidor de copias si se pierde.
+risk:
+  level: low
+  reason: Hacer la copia de la configuración no cambia los trabajos ni las copias.
+params:
+  - id: repoName
+    label: Repositorio de destino
+    type: text
+    example: REPO-LOCAL-01
+preflight:
+  - text: >-
+      Ten pensada una contraseña de cifrado y guárdala en el gestor de contraseñas de la
+      empresa. Sin ella la copia cifrada no se puede restaurar.
+  - text: >-
+      Si guardas la copia en un repositorio del propio servidor, sácala también fuera de él:
+      si el servidor se pierde, esa copia se pierde con él.
+steps:
+  - title: Abrir la copia de la configuración
+    manual: true
+    explanation: >-
+      En el menú principal de la consola elige Configuration Backup. Comprueba que está
+      marcada Enable configuration backup to the following repository.
+  - title: Elegir el repositorio y los puntos
+    manual: true
+    explanation: >-
+      En Backup repository elige {{repoName}}. En Restore points to keep indica cuántas
+      copias se conservan, por ejemplo 10.
+  - title: Programarla
+    manual: true
+    explanation: >-
+      Pulsa Schedule junto a Perform backup on y elige una hora diaria que no coincida con los
+      trabajos de copia.
+  - title: Cifrarla
+    manual: true
+    explanation: >-
+      Marca Enable backup file encryption y elige la contraseña en Password (o créala con
+      Add). Sin cifrar, la copia no guarda las credenciales ni las claves, y tras restaurarla
+      habría que volver a introducirlas.
+    warning: >-
+      Si ya hay alguna contraseña en el Password Manager de Veeam, la copia de la
+      configuración no se hace hasta que actives el cifrado.
+  - title: Lanzar la primera copia
+    manual: true
+    explanation: >-
+      Pulsa Backup now. Veeam guarda un archivo .bco en la carpeta
+      VeeamConfigBackup\<nombre del servidor> del repositorio, con la fecha en el nombre.
+verification:
+  - expect: >-
+      En el repositorio {{repoName}}, dentro de VeeamConfigBackup y la carpeta con el nombre
+      del servidor, hay un archivo .bco con la fecha de hoy.
+  - expect: Una copia del archivo .bco está también fuera del servidor de copias.
+rollback:
+  summary: >-
+    No hay nada que deshacer. Si la copia programada no hace falta, se desactiva desmarcando
+    la casilla.
+  steps:
+    - title: Desactivar la copia programada
+      manual: true
+      explanation: >-
+        En Configuration Backup desmarca Enable configuration backup to the following
+        repository y pulsa OK. Los archivos .bco ya guardados siguen en el repositorio.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — Scheduling Configuration Backups
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/vbr_config_schedule.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Running Configuration Backups Manually
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/vbr_config_manually.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Creating Encrypted Configuration Backups
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/config_backup_encrypted.html?ver=13
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Menú Configuration Backup, la casilla de activación, el repositorio, Restore points to
+    keep, Schedule, el cifrado obligatorio con contraseñas en el Password Manager, lo que se
+    pierde sin cifrar, Backup now y la carpeta VeeamConfigBackup del archivo .bco
+    contrastados con la guía de usuario de la versión 13. Sin contrastar: el botón OK de la
+    vuelta atrás y que los .bco guardados se conserven al desactivarla. Falta probarla en un
+    servidor real.

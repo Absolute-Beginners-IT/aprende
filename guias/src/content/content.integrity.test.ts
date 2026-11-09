@@ -10,7 +10,7 @@ describe('content catalog', () => {
     expect(catalog.procedures.length).toBeGreaterThan(0)
   })
 
-  it('covers the four switches used at the company, the FortiGate firewall, Proxmox VE and Synology DSM', () => {
+  it('covers the four switches used at the company, the FortiGate firewall, Proxmox VE, Synology DSM and Veeam', () => {
     const ids = catalog.platforms.map((item) => item.id)
 
     expect(new Set(ids)).toEqual(
@@ -22,6 +22,7 @@ describe('content catalog', () => {
         'fortinet-fortigate',
         'proxmox-ve',
         'synology-dsm',
+        'veeam-br',
       ]),
     )
   })
@@ -35,6 +36,7 @@ describe('content catalog', () => {
     expect(typeOf('fortinet-fortigate')).toBe('firewall')
     expect(typeOf('proxmox-ve')).toBe('hypervisor')
     expect(typeOf('synology-dsm')).toBe('storage')
+    expect(typeOf('veeam-br')).toBe('backup')
     expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
   })
 
@@ -82,6 +84,16 @@ describe('content catalog', () => {
         'config-restore',
         'firmware-upgrade',
       ]),
+    )
+  })
+
+  it('sets up Veeam Backup & Replication from its console: install, repository, job, restore and its own backup', () => {
+    const platform = catalog.platforms.find((item) => item.id === 'veeam-br')
+    const tasks = catalog.procedures.filter((item) => item.platform === 'veeam-br').map((item) => item.task)
+
+    expect(platform?.management).toBe('console')
+    expect(new Set(tasks)).toEqual(
+      new Set(['backup-install', 'backup-repository', 'backup-job', 'vm-restore', 'config-backup']),
     )
   })
 

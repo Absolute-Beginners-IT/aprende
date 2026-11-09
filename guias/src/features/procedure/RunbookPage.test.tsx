@@ -310,6 +310,23 @@ describe('RunbookPage', () => {
     expect(within(section('Paso a paso')).getByText('copy file primary')).toBeInTheDocument()
   })
 
+  it('labels the steps of a console-managed runbook as steps in the console', () => {
+    const consolePlatform = PlatformSchema.parse({ ...platform, management: 'console', cliModes: [] })
+    const onScreen = ProcedureSchema.parse({
+      ...procedure,
+      params: [],
+      preflight: [{ text: 'Abre la consola.' }],
+      steps: [{ title: 'Abrir el asistente', explanation: 'Pulsa Add Repository.', manual: true }],
+      verification: [{ expect: 'El repositorio aparece en la lista.' }],
+      rollback: { summary: 'Quítalo.', steps: [{ title: 'Quitar', explanation: 'Pulsa Remove.', manual: true }] },
+    })
+    render(<RunbookPage platform={consolePlatform} concept={concept} procedure={onScreen} />)
+
+    expect(within(section('Paso a paso')).getByText('Paso en la consola')).toBeInTheDocument()
+    expect(within(section('Vuelta atrás')).getByText('Paso en la consola')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Copiar todos los pasos' })).not.toBeInTheDocument()
+  })
+
   it('presents a web-managed runbook as screen steps, without command blocks to copy', () => {
     const webPlatform = PlatformSchema.parse({ ...platform, management: 'web', cliModes: [] })
     const web = ProcedureSchema.parse({

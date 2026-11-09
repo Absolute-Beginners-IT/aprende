@@ -1,0 +1,18 @@
+id: backup-repository
+title: Añadir un repositorio de copias
+group: security-resilience
+order: 7
+summary: Indica al software de copias en qué disco o carpeta debe guardar las copias.
+explanation: >-
+  Un repositorio es el sitio donde se guardan físicamente las copias: una carpeta en un
+  disco del servidor, una carpeta compartida de un NAS u otro almacenamiento. Es la
+  respuesta a «dónde se guardan las copias». Debe estar en un disco distinto del sistema y
+  del almacenamiento de las máquinas que se copian, y tener espacio para todos los puntos de
+  restauración que se quieran conservar.
+risks:
+  - Un repositorio en el disco del sistema puede llenarlo y dejar el servidor sin funcionar.
+  - Un repositorio en el mismo almacenamiento que las máquinas se pierde con ellas.
+  - Un repositorio accesible con las credenciales del dominio es fácil de cifrar para un ransomware.
+prerequisites:
+  - Un disco o volumen dedicado, con espacio suficiente para las copias previstas.
+  - El servidor de copias instalado y la consola abierta.

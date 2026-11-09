@@ -3,7 +3,7 @@ import { extractParamIds, renderCommand } from '../../domain/renderCommand'
 import { runbookHref } from '../../lib/useHashRoute'
 import { Badge } from '../../ui/Badge'
 import { CommandBlock } from '../../ui/CommandBlock'
-import { STATUS_LABELS } from '../labels'
+import { MANUAL_STEP_LABELS, STATUS_LABELS } from '../labels'
 import { runbookStorageKey } from '../procedure/runbookStorage'
 import type { GuideStep, SwitchGuide } from './buildPlanGuide'
 
@@ -75,7 +75,7 @@ function StepItem({ step, manualLabel }: { step: GuideStep; manualLabel: string 
 function SwitchSection({ guide, position }: { guide: SwitchGuide; position: number }) {
   const headingId = useId()
   const { plannedSwitch, platform } = guide
-  const manualLabel = platform?.management === 'web' ? 'Paso en la interfaz web' : 'Acción manual'
+  const manualLabel = MANUAL_STEP_LABELS[platform?.management ?? 'cli']
 
   return (
     <section className="section plan-switch" aria-labelledby={headingId}>

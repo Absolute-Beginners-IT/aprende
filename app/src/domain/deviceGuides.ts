@@ -22,6 +22,7 @@ const INVENTORY_TYPE: Record<GuideDeviceType, string> = {
   firewall: 'firewall',
   hypervisor: 'hipervisor',
   storage: 'almacenamiento',
+  backup: 'backup',
 };
 
 /** The guides of a device, each linking to its runbook with the device chosen (`<base>#/p/<platform>/<task>?equipo=<id>`). */

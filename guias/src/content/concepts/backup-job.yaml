@@ -1,0 +1,17 @@
+id: backup-job
+title: Programar un trabajo de copia
+group: security-resilience
+order: 8
+summary: Crea un trabajo que copia unas máquinas a un repositorio, con su horario y el tiempo que se guardan las copias.
+explanation: >-
+  Un trabajo de copia reúne tres decisiones: qué se copia (unas máquinas virtuales), dónde
+  se guarda (un repositorio) y cuándo se hace (un horario). Cada ejecución crea un punto de
+  restauración, y la retención decide cuántos se conservan antes de borrar los más antiguos.
+  Lo habitual es una copia diaria fuera del horario de trabajo.
+risks:
+  - La copia carga los discos y la red del hipervisor; en horas de trabajo puede notarse.
+  - Una retención corta deja pocos puntos a los que volver; una larga llena el repositorio.
+  - Un trabajo que falla sin que nadie lo mire da una falsa sensación de estar protegido.
+prerequisites:
+  - Un repositorio de copias añadido.
+  - Saber qué máquinas virtuales se copian y a qué hora pueden copiarse.

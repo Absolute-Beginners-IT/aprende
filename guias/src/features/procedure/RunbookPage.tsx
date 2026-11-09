@@ -7,7 +7,7 @@ import { Badge } from '../../ui/Badge'
 import { CommandBlock } from '../../ui/CommandBlock'
 import { CopyButton } from '../../ui/CopyButton'
 import { Section } from '../../ui/Section'
-import { RISK_LABELS, STATUS_LABELS } from '../labels'
+import { MANUAL_STEP_LABELS, RISK_LABELS, STATUS_LABELS } from '../labels'
 import { platformFor, readInventorySwitches } from '../planner/inventoryImport'
 import { ChangeRecordSection } from './ChangeRecordSection'
 import { buildChangeRecord, changeRecordFileName, EMPTY_RECORD, type RecordFields } from './changeRecord'
@@ -127,7 +127,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
     templates.flatMap(extractParamIds).every((id) => Boolean(validValues[id]?.trim()))
 
   const allStepCommands = procedure.steps.flatMap((step) => step.commands)
-  const manualLabel = platform.management === 'web' ? 'Paso en la interfaz web' : 'Acción manual'
+  const manualLabel = MANUAL_STEP_LABELS[platform.management]
 
   const toggleStep = (index: number) =>
     setDoneSteps(doneSteps.includes(index) ? doneSteps.filter((step) => step !== index) : [...doneSteps, index])

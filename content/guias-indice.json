@@ -55,6 +55,14 @@
       "tipo": "storage",
       "patron": "synology|diskstation|rackstation|\\b(ds|rs)\\d{3,4}",
       "flags": "i"
+    },
+    {
+      "id": "veeam-br",
+      "nombre": "Veeam Backup & Replication",
+      "fabricante": "Veeam",
+      "tipo": "backup",
+      "patron": "veeam|\\bvbr\\b",
+      "flags": "i"
     }
   ],
   "grupos": [
@@ -96,7 +104,8 @@
         "mikrotik-routeros",
         "proxmox-ve",
         "ruijie-reyee",
-        "synology-dsm"
+        "synology-dsm",
+        "veeam-br"
       ]
     },
     {
@@ -156,6 +165,14 @@
         "proxmox-ve",
         "ruijie-reyee",
         "synology-dsm"
+      ]
+    },
+    {
+      "id": "backup-install",
+      "titulo": "Instalar el servidor de copias",
+      "grupo": "setup-access",
+      "plataformas": [
+        "veeam-br"
       ]
     },
     {
@@ -329,6 +346,30 @@
       "grupo": "security-resilience",
       "plataformas": [
         "proxmox-ve"
+      ]
+    },
+    {
+      "id": "backup-repository",
+      "titulo": "Añadir un repositorio de copias",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "veeam-br"
+      ]
+    },
+    {
+      "id": "backup-job",
+      "titulo": "Programar un trabajo de copia",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "veeam-br"
+      ]
+    },
+    {
+      "id": "vm-restore",
+      "titulo": "Restaurar una máquina virtual",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "veeam-br"
       ]
     }
   ]
