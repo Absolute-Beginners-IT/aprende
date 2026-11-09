@@ -4,6 +4,7 @@ import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { parseInventoryCsv, slugify, toInventoryCsv } from '../../domain/inventoryCsv';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
+import { withoutDevice } from '../../domain/infraMap';
 import { content, typeOf } from '../../content';
 import { PLANNER_URL } from '../../config';
 import { errorText, useInventory } from './useInventory';
@@ -42,7 +43,10 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
   };
 
   const toggleMonitored = (d: Device) => persist(() => repository.save({ ...d, monitorizado: !d.monitorizado }), `${d.nombre} actualizado.`);
-  const remove = (d: Device) => persist(() => repository.remove(d.id), `${d.nombre} borrado.`);
+  // The device and the uplinks that pointed to it go in one write, as on the map: no connection is left dangling.
+  const remove = (d: Device) => persist(async () => {
+    await repository.saveAll(withoutDevice(await repository.list(), d.id), [d.id]);
+  }, `${d.nombre} borrado.`);
 
   const importCsv = async () => {
     const parsed = parseInventoryCsv(csv);

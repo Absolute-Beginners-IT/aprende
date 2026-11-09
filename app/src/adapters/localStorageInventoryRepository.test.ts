@@ -31,6 +31,22 @@ describe('localStorage inventory repository', () => {
     expect(await repo.list()).toEqual([device('core', { monitorizado: true })]);
   });
 
+  it('keeps a device in its place in the stored inventory when it is saved again', async () => {
+    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
+    await repo.saveAll([device('a'), device('b'), device('c')]);
+    await repo.save(device('a', { monitorizado: true }));
+    expect((await repo.list()).map(d => d.id)).toEqual(['a', 'b', 'c']);
+    await repo.save(device('d'));
+    expect((await repo.list()).map(d => d.id)).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('updates several devices in place and adds the new ones at the end', async () => {
+    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
+    await repo.saveAll([device('a'), device('b'), device('c')]);
+    await repo.saveAll([device('b', { monitorizado: true }), device('d'), device('a', { monitorizado: true })], ['c']);
+    expect(await repo.list()).toEqual([device('a', { monitorizado: true }), device('b', { monitorizado: true }), device('d')]);
+  });
+
   it('removes a device by id and keeps the rest', async () => {
     const repo = createLocalStorageInventoryRepository(new MemoryStorage());
     await repo.save(device('a'));
