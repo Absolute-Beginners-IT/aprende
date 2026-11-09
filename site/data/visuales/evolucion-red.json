@@ -1,0 +1,25 @@
+{
+  "elementos": ["switch", "oficina2", "router", "servidor"],
+  "etapas": [
+    {
+      "titulo": "Un equipo solo",
+      "muestra": [],
+      "porque": "Funciona, pero no habla con nadie. El problema que lleva a la siguiente etapa: en la oficina hay más de un ordenador y tienen que compartir archivos e impresora."
+    },
+    {
+      "titulo": "Un switch une los equipos",
+      "muestra": ["switch", "oficina2"],
+      "porque": "Con una IP y una máscara de la misma red, los equipos se ven entre sí. El problema siguiente: ninguno llega a internet, porque el switch solo conecta equipos de la misma red."
+    },
+    {
+      "titulo": "Un router: la puerta de enlace",
+      "muestra": ["switch", "oficina2", "router"],
+      "porque": "Lo que no es de la oficina se envía al router, que lo saca a internet. El problema siguiente: hay que configurar a mano la IP, la puerta de enlace y el DNS de cada equipo, y recordar las IP de memoria."
+    },
+    {
+      "titulo": "DHCP y DNS: configuración y nombres",
+      "muestra": ["switch", "oficina2", "router", "servidor"],
+      "porque": "El DHCP reparte la configuración a cada equipo al encenderse y el DNS traduce nombres a IP. Por eso se montan después: necesitan una red que ya funcione para poder servirla."
+    }
+  ]
+}

@@ -237,3 +237,83 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 @media (prefers-reduced-motion: reduce) {
   .cable.encendido, .nodo.siguiente .led { animation: none; }
 }
+
+/* Explanatory visuals of the route (shortcodes recorrido-web and evolucion-red, js/visuales.js).
+   Without JavaScript every step is listed; with it (.viz--activa) only the current one shows and the drawing animates.
+   Questions travel in orange (--accent), answers in green (--l-servicios), and what a device changed is violet (--l-logica). */
+.viz { margin: 24px 0; padding: 18px; display: grid; gap: 14px; border: 1px solid var(--line); border-radius: 18px; background: radial-gradient(120% 90% at 0% 0%, var(--panel), var(--surface) 60%); }
+.viz figcaption { font-size: 14px; color: var(--muted); }
+.viz__lienzo { overflow-x: auto; }
+.viz svg { display: block; width: 100%; height: auto; min-width: 560px; }
+.viz svg text { fill: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.viz__zona { fill: none; stroke: var(--line); stroke-dasharray: 4 6; }
+.viz__rotulo, .viz__detalle { font-family: var(--mono) !important; font-size: 11.5px; fill: var(--muted) !important; letter-spacing: .04em; }
+.viz__cable { fill: none; stroke: var(--line); stroke-width: 5; stroke-linecap: round; }
+.viz__cable.is-activo { stroke: var(--l-fisica); stroke-dasharray: 10 9; animation: viz-flujo .7s linear infinite; }
+.viz__cable--fijo { stroke: var(--l-fisica); stroke-width: 4; }
+@keyframes viz-flujo { to { stroke-dashoffset: -19; } }
+.viz__guia { stroke: var(--line); stroke-dasharray: 3 4; }
+.viz__tarjeta { fill: var(--surface); stroke: var(--line); stroke-width: 1.4; filter: drop-shadow(0 6px 8px rgba(20, 35, 60, .18)); }
+.viz__halo { fill: var(--l-fisica); opacity: 0; transition: opacity .3s; }
+.viz__nodo.is-activo .viz__halo { opacity: .16; }
+.viz__nodo.is-activo .viz__tarjeta { stroke: var(--l-fisica); stroke-width: 2.4; }
+.viz__icono, .viz__icono * { fill: none; stroke: var(--text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.viz__nombre { font-weight: 700; font-size: 15px; }
+.viz__ventana { fill: var(--surface); stroke: var(--line); filter: drop-shadow(0 6px 8px rgba(20, 35, 60, .18)); }
+.viz__barra { fill: var(--panel); }
+.viz__url { font-family: var(--mono) !important; font-size: 12.5px; }
+.viz__candado path { fill: none; stroke: var(--muted); stroke-width: 1.6; }
+.viz__candado rect { fill: var(--muted); }
+.viz__candado { opacity: .45; }
+.viz__navegador--listo .viz__candado { opacity: 1; }
+.viz__pagina { font-weight: 800; font-size: 18px; fill: var(--muted) !important; }
+.viz__navegador--listo .viz__pagina { fill: var(--text) !important; }
+.viz__pagina-sub { font-size: 12px; fill: var(--muted) !important; }
+.viz__punto { fill: var(--accent); stroke: var(--surface); stroke-width: 3; }
+.viz__caja { fill: var(--surface); stroke: var(--accent); stroke-width: 1.5; filter: drop-shadow(0 3px 5px rgba(20, 35, 60, .2)); }
+.viz__paquete[data-tipo="respuesta"] .viz__punto { fill: var(--l-servicios); }
+.viz__paquete[data-tipo="respuesta"] .viz__caja { stroke: var(--l-servicios); }
+.viz__titulo { font-weight: 700; font-size: 13px; }
+.viz__direcciones { font-family: var(--mono) !important; font-size: 11.5px; fill: var(--muted) !important; }
+.viz svg .viz__cambiado { fill: var(--l-logica) !important; font-weight: 700; }
+.viz__destello { animation: viz-destello .6s ease-out; transform-box: fill-box; transform-origin: center; }
+@keyframes viz-destello { from { opacity: .3; } to { opacity: 1; } }
+.viz__controles, .viz__pestanas, .viz__saltos { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.viz__controles[hidden], .viz__pestanas[hidden], .viz__saltos[hidden] { display: none; }
+.viz__boton { font: inherit; font-size: 15px; font-weight: 600; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 14px; cursor: pointer; }
+.viz__boton:hover { border-color: var(--l-fisica); }
+.viz__boton--principal, .viz__boton[aria-selected="true"] { background: var(--l-fisica); border-color: var(--l-fisica); color: var(--surface); }
+.viz__boton:focus-visible, .viz__salto:focus-visible { outline: 3px solid var(--l-fisica); outline-offset: 2px; }
+.viz__fase { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.viz__salto { width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--muted); font: 700 12px var(--mono); cursor: pointer; }
+.viz__salto--pregunta.is-hecho { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); color: var(--text); }
+.viz__salto--respuesta.is-hecho { background: color-mix(in srgb, var(--l-servicios) 22%, var(--surface)); color: var(--text); }
+.viz__salto.is-actual { background: var(--text); border-color: var(--text); color: var(--surface); }
+.viz__pasos, .viz__etapas { margin: 0; padding-left: 22px; display: grid; gap: 12px; }
+.viz__paso, .viz__etapa { padding-left: 4px; }
+.viz--activa .viz__pasos, .viz--activa .viz__etapas { padding: 0; list-style: none; }
+.viz--activa .viz__paso, .viz--activa .viz__etapa { display: none; }
+.viz--activa .viz__paso.is-actual { display: grid; gap: 10px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.viz--activa .viz__etapa.is-actual { display: grid; gap: 4px; min-height: 5.5em; }
+.viz__quien { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.viz__quien b { font-size: 18px; }
+.viz__cambio { font-family: var(--mono); font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--panel); }
+.viz__cambio--si { background: color-mix(in srgb, var(--l-logica) 16%, var(--surface)); color: var(--l-logica); }
+.viz__datos { margin: 0; display: grid; grid-template-columns: 7.5rem 1fr; gap: 4px 12px; }
+.viz__datos dt { color: var(--muted); font-size: 15px; }
+.viz__datos dd { margin: 0; min-width: 0; }
+.viz__paquete-texto { font-family: var(--mono); font-size: 14px; }
+.viz__paquete-texto .viz__cambiado { color: var(--l-logica); font-weight: 700; }
+.viz__leyenda { margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.viz__marca { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-left: 10px; }
+.viz__marca:first-child { margin-left: 0; }
+.viz__marca--pregunta { background: var(--accent); }
+.viz__marca--respuesta { background: var(--l-servicios); }
+.viz__marca--cambio { background: var(--l-logica); }
+.viz [data-elemento] { transition: opacity .45s; }
+.viz [data-elemento].is-oculto { opacity: 0; }
+@media (max-width: 640px) { .viz__datos { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .viz__cable.is-activo, .viz__destello { animation: none; }
+  .viz [data-elemento], .viz__halo { transition: none; }
+}
