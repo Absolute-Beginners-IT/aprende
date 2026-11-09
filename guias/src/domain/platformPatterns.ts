@@ -7,6 +7,7 @@ export const PLATFORM_PATTERNS: Record<string, RegExp> = {
   'ruijie-reyee': /reyee|\brg-nbs|\bnbs\d/i,
   'fortinet-fortigate': /fortigate|fortios|\bfgt-?\d/i,
   'proxmox-ve': /proxmox|\bpve\b/i,
+  'synology-dsm': /synology|diskstation|rackstation|\b(ds|rs)\d{3,4}/i,
 }
 
 /** The first of `platformIds` whose pattern recognises the brand and model text, or '' when none does. */

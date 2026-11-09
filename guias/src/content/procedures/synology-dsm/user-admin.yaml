@@ -1,0 +1,67 @@
+platform: synology-dsm
+task: user-admin
+summary: >-
+  Crea en DSM una cuenta de administración con nombre propio, dentro del grupo
+  administrators, con el asistente de creación de usuarios.
+risk:
+  level: medium
+  reason: >-
+    Añade una cuenta con control total del NAS y de sus datos. No afecta a las cuentas
+    existentes, pero una contraseña débil compromete todo.
+params:
+  - id: userName
+    label: Nombre del usuario
+    type: text
+    example: jconde
+    pattern: '^[A-Za-z0-9._][A-Za-z0-9._-]{0,63}$'
+    patternHint: Hasta 64 caracteres; letras, números, punto, guion y guion bajo. No empieza por guion.
+preflight:
+  - text: Ten la contraseña decidida y guardada en el gestor de contraseñas de la empresa.
+  - text: No cierres tu sesión actual hasta comprobar que la cuenta nueva entra.
+steps:
+  - title: Abrir el asistente de creación de usuarios
+    manual: true
+    explanation: Ve a Control Panel, User & Group, pestaña User, y pulsa Create.
+  - title: Escribir los datos del usuario
+    manual: true
+    explanation: >-
+      En Name escribe {{userName}}, añade una descripción y un correo para los avisos, y
+      escribe la contraseña (o pulsa Generate Random Password y guárdala en el gestor).
+  - title: Añadirlo al grupo administrators
+    manual: true
+    explanation: >-
+      En Join groups marca administrators. Deja los permisos de carpetas, cuotas y
+      aplicaciones como vengan, salvo que necesites limitarlos, y pulsa Apply en la
+      confirmación.
+  - title: Activar la verificación en dos pasos
+    manual: true
+    explanation: >-
+      Entra con la cuenta nueva y, en el menú de la persona (arriba a la derecha),
+      Personal, Security, activa la verificación en dos pasos.
+verification:
+  - expect: En Control Panel, User & Group, aparece {{userName}} en el grupo administrators.
+  - expect: Puedes entrar en DSM con {{userName}} y ves el Panel de control.
+rollback:
+  summary: Borra la cuenta creada.
+  steps:
+    - title: Borrar el usuario
+      manual: true
+      explanation: >-
+        En Control Panel, User & Group, selecciona {{userName}} y pulsa Delete. Antes,
+        comprueba que no es la única cuenta de administración.
+  lockoutRecovery: >-
+    Si te quedas sin ninguna cuenta de administración, el botón RESET del NAS permite
+    restablecer la contraseña de admin sin borrar los datos (consulta el manual del
+    modelo).
+sources:
+  - title: DSM 7 — Create a User
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/file_user_create?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Control Panel, User & Group, User, Create, los campos Name y Password, Generate Random
+    Password, la página Join groups con administrators y los límites del nombre están
+    contrastados con la ayuda de DSM 7. La ruta de la verificación en dos pasos y el
+    botón RESET no se han contrastado. Falta probarla en un NAS real.

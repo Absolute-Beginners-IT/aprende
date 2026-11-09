@@ -69,6 +69,12 @@ describe('deploymentPlan Configurar', () => {
     expect(p.configurar[0]).toMatchObject({ texto: 'Instalar el sistema', href: './guias/#/p/proxmox-ve/os-install?equipo=pve1' });
   });
 
+  it('starts a Synology NAS with its installation', () => {
+    const [p] = plan([dev('nas1', { tipo: 'almacenamiento', marca: 'Synology', modelo: 'DS923+' })]);
+    expect(p.configurar.map(s => s.id)).toEqual(['config:os-install', 'config:user-admin', 'config:ntp-client', 'config:snmp-monitoring', 'config:syslog-remote', 'config:config-backup']);
+    expect(p.configurar[0].href).toBe('./guias/#/p/synology-dsm/os-install?equipo=nas1');
+  });
+
   it('lists the guides of a FortiGate firewall in deployment order', () => {
     const [p] = plan([dev('fw', { tipo: 'firewall', marca: 'Fortinet', modelo: 'FortiGate 60F' })]);
     expect(p.configurar.map(s => s.id)).toEqual(['config:ntp-client', 'config:syslog-remote', 'config:config-backup']);

@@ -1,0 +1,84 @@
+platform: synology-dsm
+task: os-install
+summary: >-
+  Instala DSM en un NAS Synology nuevo con Web Assistant (finds.synology.com), crea la
+  cuenta de administración y le pone una IP fija de gestión.
+risk:
+  level: high
+  reason: >-
+    La instalación formatea los discos del NAS y borra todo lo que tengan. Con discos de
+    otro NAS Synology hay que seguir antes el procedimiento de migración.
+params:
+  - id: ipCidr
+    label: IP de gestión con prefijo
+    type: cidr
+    example: 192.168.99.30/24
+  - id: gateway
+    label: Puerta de enlace
+    type: ipv4
+    example: 192.168.99.1
+  - id: dnsServer
+    label: Servidor DNS
+    type: ipv4
+    example: 192.168.10.5
+preflight:
+  - text: >-
+      Pon al menos un disco en el NAS. Si los discos tienen datos, haz copia antes: la
+      instalación los formatea y borra todo.
+  - text: Conecta el NAS a la red con cable y enciéndelo. Usa un ordenador de la misma red, con Chrome o Firefox.
+  - text: Confirma que {{ipCidr}} está libre en la red de gestión.
+steps:
+  - title: Buscar el NAS con Web Assistant
+    manual: true
+    explanation: >-
+      En el navegador, entra en finds.synology.com. El NAS aparece con el estado Not
+      installed (sin instalar). Selecciónalo y pulsa Connect.
+  - title: Instalar DSM
+    manual: true
+    explanation: >-
+      Pulsa Install y sigue los pasos en pantalla. Web Assistant descarga la última versión
+      de DSM y la instala; el NAS se reinicia al terminar.
+    warning: Todos los datos de los discos del NAS se borran.
+  - title: Crear la cuenta de administración
+    manual: true
+    explanation: >-
+      Cuando el asistente lo pida, crea la cuenta de administración con un nombre propio y
+      una contraseña fuerte, y guárdala en el gestor de contraseñas de la empresa. Puedes
+      vincular el NAS a una cuenta Synology o hacerlo después.
+  - title: Poner una IP fija de gestión
+    manual: true
+    explanation: >-
+      Entra en DSM y abre Control Panel, Network, Network Interface. Edita la interfaz LAN,
+      elige la configuración manual y escribe la IP {{ipCidr}}, la puerta de enlace
+      {{gateway}} y el DNS {{dnsServer}}. Pulsa OK; la sesión se corta y hay que volver a
+      entrar por la IP nueva.
+verification:
+  - expect: >-
+      En el navegador, la IP de {{ipCidr}} sin el prefijo y :5000 (por ejemplo
+      192.168.99.30:5000) abre DSM y entras con la cuenta de administración.
+  - expect: En Control Panel, Info Center, aparecen la versión de DSM y la IP fija.
+rollback:
+  summary: >-
+    No hay vuelta atrás: la instalación formateó los discos. Lo que hubiera solo se
+    recupera desde una copia.
+  steps:
+    - title: Reinstalar o restaurar desde la copia
+      manual: true
+      explanation: >-
+        Si la instalación salió mal, repítela desde finds.synology.com. Los datos anteriores
+        solo vuelven desde una copia hecha antes.
+  lockoutRecovery: >-
+    Si no encuentras el NAS después de cambiar la IP, búscalo de nuevo en
+    finds.synology.com o con Synology Assistant desde un ordenador de la misma red.
+sources:
+  - title: Synology NAS User's Guide for DSM 7.4 — Quick Start Guide
+    url: https://kb.synology.com/en-br/UG/Syno_UsersGuide_NAServer_7_4/2
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Web Assistant en finds.synology.com, el estado Not installed, Connect, Install, el
+    formateo de los discos y el acceso por el puerto 5000 están contrastados con la guía
+    de usuario de DSM 7.4. El paso de la IP fija (Control Panel, Network, Network
+    Interface) no está en la parte consultada. Falta probarla en un NAS real.

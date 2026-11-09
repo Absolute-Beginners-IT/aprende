@@ -1,0 +1,40 @@
+id: synology-dsm
+vendor: Synology
+name: Synology DSM
+deviceType: storage
+os: DSM 7.4
+management: web
+models:
+  - NAS Synology DiskStation y RackStation con DSM 7
+summary: >-
+  Almacenamiento en red (NAS) de Synology con su sistema DSM. Se gestiona desde la
+  interfaz web, en el puerto 5000 de su IP (o desde finds.synology.com en la misma red).
+  Todas las guías de este equipo son pasos en pantalla, sin comandos.
+configPersistence: >-
+  Cada pantalla del Panel de control guarda sus cambios al pulsar Apply (Aplicar); no hay
+  un paso aparte de guardar. La configuración (usuarios, carpetas compartidas, red,
+  servicios) se puede exportar en un archivo .dss y restaurar después; los datos de las
+  carpetas no van en ese archivo.
+safetyNets:
+  - name: Copia de la configuración (.dss)
+    description: >-
+      En Panel de control, Update & Restore, Configuration Backup se exporta la
+      configuración del NAS a un archivo .dss, que se puede restaurar después eligiendo
+      qué partes devolver. La guía «Guardar una copia de la configuración» explica cómo.
+  - name: Copia de los datos
+    description: >-
+      Los datos de las carpetas compartidas no van en el .dss: se copian con Hyper Backup
+      a otro NAS, a un disco externo o a la nube.
+sources:
+  - title: Synology NAS User's Guide for DSM 7.4 — Quick Start Guide
+    url: https://kb.synology.com/en-br/UG/Syno_UsersGuide_NAServer_7_4/2
+  - title: DSM 7 — Configuration Backup
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/system_configbackup?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Contrastada con la guía de usuario de DSM 7.4 y la ayuda de DSM 7. Los nombres de los
+    menús se citan en inglés, como en la documentación; en una interfaz en español pueden
+    aparecer traducidos. Falta probarla en un NAS real.

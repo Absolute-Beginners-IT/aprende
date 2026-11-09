@@ -8,6 +8,9 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Primer almacenamiento: Synology DSM 7.4, en «Almacenamiento», con ocho guías de pasos en su interfaz web:
+  instalar DSM con Web Assistant, crear un usuario administrador, NTP, syslog (Log Center), SNMPv3, guardar y restaurar la
+  configuración (.dss) y actualizar DSM (irreversible, con copia antes).
 - Proxmox VE completo: guías para actualizar el sistema (apt full-upgrade y vuelta al núcleo anterior), activar SNMPv3
   con snmpd y restaurar la configuración desde la copia, archivo por archivo. Las tareas de actualizar, SNMP y
   restaurar hablan ahora del «equipo» en lugar del «switch». SNMP entra en el Plan de despliegue de Proxmox.

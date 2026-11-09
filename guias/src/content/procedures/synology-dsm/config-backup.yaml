@@ -1,0 +1,57 @@
+platform: synology-dsm
+task: config-backup
+summary: >-
+  Exporta la configuración de un NAS Synology a un archivo .dss desde Control Panel,
+  Update & Restore, Configuration Backup, y la guarda fuera del NAS.
+risk:
+  level: low
+  reason: Exportar la configuración no cambia nada en el NAS.
+params: []
+preflight:
+  - text: >-
+      El archivo contiene la configuración de usuarios, carpetas y servicios. Ten decidido
+      dónde guardarlo fuera del NAS.
+  - text: >-
+      Recuerda que el .dss no lleva los datos de las carpetas compartidas: esos se copian
+      con Hyper Backup.
+steps:
+  - title: Exportar la configuración
+    manual: true
+    explanation: >-
+      Ve a Control Panel, Update & Restore, pestaña Configuration Backup. En Manual Export
+      pulsa Export: se descarga a tu ordenador un archivo con el nombre del modelo y la
+      fecha, con extensión .dss.
+  - title: Guardar la copia en su sitio
+    manual: true
+    explanation: >-
+      Mueve el archivo .dss al repositorio de copias de la empresa. Una copia que solo está
+      en tu ordenador se pierde con él.
+  - title: Valorar la copia automática
+    manual: true
+    explanation: >-
+      En Automatic Backup puedes activar la copia automática en tu cuenta Synology. Solo
+      guarda una versión por NAS y se borra si no se sube nada en 180 días; si la usas,
+      elige el cifrado definido por ti (Self-defined).
+verification:
+  - expect: El archivo .dss está en el repositorio de copias, con la fecha de hoy y un tamaño mayor que cero.
+rollback:
+  summary: >-
+    No hay nada que deshacer en el NAS. Si el archivo no hace falta, se borra del
+    ordenador.
+  steps:
+    - title: Borrar el archivo
+      manual: true
+      explanation: Borra el archivo .dss descargado. No toca el NAS.
+sources:
+  - title: DSM 7 — Configuration Backup
+    url: https://kb.synology.com/en-global/DSM/help/DSM/AdminCenter/system_configbackup?version=7
+status:
+  level: docs-checked
+  reviewed: '2026-11-06'
+  firmware: DSM 7.4
+  notes: >-
+    Manual Export con el botón Export, el nombre del archivo, el formato .dss, la copia
+    automática en la cuenta Synology (una versión, borrada a los 180 días, cifrado
+    Self-defined recomendado) y lo que incluye están contrastados con la ayuda de DSM 7. La
+    ruta Update & Restore, Configuration Backup no aparece literal en la página. Falta
+    probarla en un NAS real.
