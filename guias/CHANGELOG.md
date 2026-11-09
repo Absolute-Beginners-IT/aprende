@@ -8,6 +8,9 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Proxmox VE completo: guías para actualizar el sistema (apt full-upgrade y vuelta al núcleo anterior), activar SNMPv3
+  con snmpd y restaurar la configuración desde la copia, archivo por archivo. Las tareas de actualizar, SNMP y
+  restaurar hablan ahora del «equipo» en lugar del «switch». SNMP entra en el Plan de despliegue de Proxmox.
 - Tres tareas nuevas, con su guía de Proxmox VE 9: «Copiar una máquina virtual» (vzdump y cómo restaurar con
   qmrestore) y «Hacer una snapshot antes de un cambio» (qm snapshot, rollback y delsnapshot), en «Seguridad y
   resiliencia», y «Preparar el puente de red para VLAN» (puente VLAN aware y etiqueta en la tarjeta de la máquina

@@ -1,0 +1,105 @@
+platform: proxmox-ve
+task: snmp-monitoring
+summary: >-
+  Instala el agente SNMP de Debian (snmpd) en un nodo Proxmox VE 9 con un usuario
+  SNMPv3 de solo lectura, autenticación SHA y cifrado AES, escuchando en la red.
+risk:
+  level: medium
+  reason: >-
+    Abre el puerto 161 del nodo. Con SNMPv3 y claves fuertes solo responde a quien tenga
+    el usuario, pero no se limita por IP sin el cortafuegos.
+params:
+  - id: snmpUser
+    label: Usuario SNMPv3
+    type: text
+    example: monitor
+    pattern: '^[A-Za-z0-9_-]{1,32}$'
+    patternHint: Hasta 32 caracteres; letras, números, guion y guion bajo.
+  - id: authKey
+    label: Clave de autenticación (SHA)
+    type: secret
+    example: clave-autenticacion-larga
+    pattern: '^[^"\s]{8,64}$'
+    patternHint: Entre 8 y 64 caracteres, sin espacios ni comillas dobles.
+  - id: privKey
+    label: Clave de cifrado (AES)
+    type: secret
+    example: clave-cifrado-distinta
+    pattern: '^[^"\s]{8,64}$'
+    patternHint: Entre 8 y 64 caracteres, sin espacios ni comillas dobles.
+  - id: nmsIp
+    label: IP del servidor de monitorización
+    type: ipv4
+    example: 192.168.10.40
+preflight:
+  - text: Mira si snmpd ya está instalado y con qué configuración.
+    command: systemctl is-active snmpd
+  - text: Ten las dos claves guardadas en el gestor de contraseñas de la empresa.
+steps:
+  - title: Instalar el agente SNMP
+    commands:
+      - apt update
+      - apt install snmpd
+    explanation: Instala snmpd desde los repositorios de Debian.
+  - title: Parar el agente para crear el usuario
+    commands:
+      - systemctl stop snmpd
+    explanation: El usuario SNMPv3 se añade con el agente parado, que al arrancar lo convierte en claves guardadas.
+  - title: Crear el usuario SNMPv3
+    commands:
+      - echo 'createUser {{snmpUser}} SHA "{{authKey}}" AES "{{privKey}}"' >> /var/lib/snmp/snmpd.conf
+    explanation: >-
+      Deja preparado el usuario {{snmpUser}}, con autenticación SHA y cifrado AES. Al
+      arrancar, snmpd sustituye esta línea por las claves derivadas.
+    warning: >-
+      El comando queda en el historial de la consola con las claves. Bórralo después con
+      history -d o cierra la sesión sin guardarlo.
+  - title: Escuchar en la red y dar solo lectura al usuario
+    commands:
+      - sed -i 's/^agentaddress .*/agentaddress udp:161/' /etc/snmp/snmpd.conf
+      - echo 'rouser {{snmpUser}} priv' >> /etc/snmp/snmpd.conf
+    explanation: >-
+      Hace que snmpd escuche en todas las IP del nodo (de fábrica solo escucha en la
+      propia máquina) y da al usuario solo lectura, exigiendo cifrado (priv).
+  - title: Arrancar el agente
+    commands:
+      - systemctl start snmpd
+    explanation: Aplica la configuración.
+  - title: Limitar el acceso al servidor de monitorización
+    manual: true
+    explanation: >-
+      En la interfaz web, en el cortafuegos del nodo o del centro de datos (Firewall), deja
+      pasar el puerto UDP 161 solo desde {{nmsIp}}. Si el cortafuegos de Proxmox está
+      desactivado, actívalo con cuidado: una regla mal puesta corta la gestión.
+verification:
+  - command: systemctl is-active snmpd
+    expect: Responde active.
+  - expect: >-
+      Desde {{nmsIp}}, una consulta SNMPv3 con el usuario {{snmpUser}}, nivel authPriv,
+      SHA y AES devuelve la descripción del sistema (sysDescr) del nodo.
+rollback:
+  summary: Para y desinstala el agente SNMP.
+  steps:
+    - title: Quitar snmpd
+      commands:
+        - systemctl stop snmpd
+        - apt purge snmpd
+      explanation: Para el agente y lo desinstala con su configuración. Quita también la regla del cortafuegos si la añadiste.
+  lockoutRecovery: >-
+    SNMP no afecta al acceso de gestión; el cortafuegos sí. Si una regla te deja sin
+    acceso, entra por la consola física y desactívalo con pve-firewall stop.
+sources:
+  - title: Net-SNMP — snmpd.conf
+    url: https://www.net-snmp.org/docs/man/snmpd.conf.html
+  - title: Proxmox VE 9 — Firewall
+    url: https://pve.proxmox.com/pve-docs/chapter-pve-firewall.html
+status:
+  level: unverified
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Marcada sin verificar. La documentación de Proxmox VE no trata SNMP; la guía sigue la
+    configuración habitual de net-snmp en Debian (createUser en /var/lib/snmp/snmpd.conf,
+    rouser y agentaddress), sin contrastar con las páginas citadas ni comprobar el
+    contenido de fábrica de /etc/snmp/snmpd.conf en Proxmox VE 9. Tampoco se ha
+    contrastado pve-firewall stop. Falta probarla en un Proxmox real.

@@ -29,7 +29,7 @@ describe('content catalog', () => {
     expect(catalog.platforms.filter((item) => item.deviceType === 'switch')).toHaveLength(4)
   })
 
-  it('covers Proxmox VE from its installation to the VLAN bridge, VM backups and snapshots', () => {
+  it('covers Proxmox VE from its installation to updates, restores, VM backups and snapshots', () => {
     const tasks = catalog.procedures.filter((item) => item.platform === 'proxmox-ve').map((item) => item.task)
 
     expect(new Set(tasks)).toEqual(
@@ -42,6 +42,9 @@ describe('content catalog', () => {
         'vlan-bridge',
         'vm-backup',
         'vm-snapshot',
+        'firmware-upgrade',
+        'snmp-monitoring',
+        'config-restore',
       ]),
     )
   })

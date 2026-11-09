@@ -1,0 +1,92 @@
+platform: proxmox-ve
+task: config-restore
+summary: >-
+  Recupera archivos de configuración de un nodo Proxmox VE 9 desde la copia hecha con la
+  guía «Guardar una copia de la configuración»: se extrae aparte, se compara y se
+  devuelve solo lo que haga falta.
+risk:
+  level: high
+  reason: >-
+    Devolver un archivo de red equivocado deja el nodo sin acceso, y uno de máquina
+    virtual equivocado cambia su configuración. No se restaura todo de golpe.
+params:
+  - id: backupName
+    label: Nombre de la copia
+    type: text
+    example: pve1-antes-cambio
+    pattern: '^[A-Za-z0-9_-]{1,60}$'
+    patternHint: El nombre que tiene el archivo .tar.gz, sin la extensión.
+  - id: vmid
+    label: Número (ID) de la máquina virtual a recuperar
+    type: number
+    example: '101'
+    min: 100
+    max: 999999999
+    required: false
+    help: Solo si vas a recuperar la configuración de una máquina virtual.
+preflight:
+  - text: >-
+      Sube la copia al nodo, en /root/{{backupName}}.tar.gz, por SFTP o con scp desde el
+      equipo donde la guardaste.
+  - text: Haz antes una copia del estado actual, aunque esté mal, para poder volver a él.
+  - text: Ten a mano la consola física del nodo por si se pierde la red.
+steps:
+  - title: Extraer la copia aparte
+    commands:
+      - mkdir -p /root/restaurar
+      - tar -xzf /root/{{backupName}}.tar.gz -C /root/restaurar
+    explanation: >-
+      Extrae la copia en /root/restaurar, sin tocar la configuración en uso. Dentro
+      quedan etc/pve, etc/network/interfaces, etc/hosts y etc/hostname.
+  - title: Comparar con la configuración actual
+    commands:
+      - diff /root/restaurar/etc/network/interfaces /etc/network/interfaces
+    explanation: >-
+      Muestra las diferencias. Haz lo mismo con el archivo que quieras recuperar, por
+      ejemplo /root/restaurar/etc/pve/qemu-server/{{vmid}}.conf frente al actual.
+  - title: Recuperar la configuración de una máquina virtual
+    commands:
+      - cp /root/restaurar/etc/pve/qemu-server/{{vmid}}.conf /etc/pve/qemu-server/{{vmid}}.conf
+    explanation: >-
+      Devuelve la configuración de la máquina {{vmid}} (memoria, discos, red), con la
+      máquina apagada. Solo recupera su configuración, no sus discos: eso se hace desde
+      una copia de la máquina virtual.
+  - title: Recuperar la red, si hace falta
+    commands:
+      - cp /root/restaurar/etc/network/interfaces /etc/network/interfaces
+      - ifreload -a
+    explanation: >-
+      Devuelve la configuración de red y la aplica sin reiniciar. Hazlo desde la consola
+      física, no por SSH: si la red cambia, la sesión se corta.
+    warning: Si la copia tiene otra IP de gestión, el nodo deja de responder en la actual.
+verification:
+  - command: qm config {{vmid}}
+    expect: La máquina virtual vuelve a tener la configuración de la copia.
+  - command: ip -br addr
+    expect: El nodo tiene la IP de gestión esperada y responde en la interfaz web.
+rollback:
+  summary: Vuelve al estado anterior con la copia que hiciste antes de restaurar.
+  steps:
+    - title: Restaurar la copia del estado anterior
+      manual: true
+      explanation: >-
+        Repite esta guía con la copia que hiciste justo antes de empezar, devolviendo los
+        mismos archivos.
+  lockoutRecovery: >-
+    Si pierdes el acceso, entra por la consola física, devuelve el
+    /etc/network/interfaces de la copia previa y aplícalo con ifreload -a.
+sources:
+  - title: Proxmox VE 9 — Proxmox Cluster File System (pmxcfs)
+    url: https://pve.proxmox.com/pve-docs/chapter-pmxcfs.html
+  - title: Proxmox VE 9 — Host System Administration (Network Configuration)
+    url: https://pve.proxmox.com/pve-docs/chapter-sysadmin.html
+status:
+  level: unverified
+  reviewed: '2026-11-06'
+  firmware: Proxmox VE 9.2
+  notes: >-
+    Marcada sin verificar. La documentación oficial no describe cómo restaurar archivos
+    sueltos de /etc/pve: para un nodo perdido indica llevar /var/lib/pve-cluster/config.db
+    a otro servidor, que esta guía no cubre. La ruta /etc/pve/qemu-server y ifreload -a
+    están en la documentación; el procedimiento de copiar archivos de vuelta no está
+    contrastado. Falta probarla en un Proxmox real.
