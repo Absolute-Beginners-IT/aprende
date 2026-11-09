@@ -1,0 +1,45 @@
+id: veeam-br
+vendor: Veeam
+name: Veeam Backup & Replication
+deviceType: backup
+os: Veeam Backup & Replication 13.1 en Windows Server
+management: console
+models:
+  - Servidor de copias con Windows Server 2016, 2019, 2022 o 2025 (64 bits)
+summary: >-
+  Software de copias de seguridad instalado en un Windows Server, que hace de servidor de
+  copias. Se gestiona desde la consola de Veeam Backup & Replication, una aplicación de
+  escritorio que se instala junto al servidor. Todas las guías de este equipo son pasos en
+  pantalla, en sus asistentes.
+configPersistence: >-
+  Cada asistente guarda sus cambios al pulsar Finish (o Apply); no hay un paso aparte de
+  guardar. Toda la configuración (servidores, repositorios, trabajos, credenciales) vive en
+  una base de datos, por defecto PostgreSQL instalado en el propio servidor con el nombre
+  VeeamBackup. Las copias de las máquinas no van en esa base de datos: son archivos en los
+  repositorios.
+safetyNets:
+  - name: Copia de la configuración (.bco)
+    description: >-
+      Desde el menú principal, Configuration Backup guarda la base de datos de configuración
+      en un archivo .bco dentro de un repositorio, a mano o de forma programada. Con ella se
+      reconstruye el servidor de copias si se pierde. La guía «Guardar una copia de la
+      configuración» explica cómo.
+  - name: Copias en más de un sitio
+    description: >-
+      Un solo repositorio es un único punto de fallo. La regla 3-2-1 pide tres copias, en dos
+      soportes distintos y una fuera de la oficina; Veeam lo resuelve con trabajos de copia
+      secundaria (backup copy) hacia otro repositorio.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — System Requirements, Backup Server
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/system_requirements_backup_server.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Installing Veeam Backup & Replication on Microsoft Windows
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/install_vbr.html?ver=13
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Contrastada con la guía de usuario de Veeam Backup & Replication 13 (páginas para la
+    build 13.1.2.57). Los nombres de menús y asistentes se citan en inglés, como en la consola
+    y en la documentación. La mención a los trabajos de copia secundaria (backup copy) es
+    general, sin contrastar en esta revisión. Falta probarla en un servidor real.

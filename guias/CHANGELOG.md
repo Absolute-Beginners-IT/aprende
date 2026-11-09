@@ -8,6 +8,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Primeras copias de seguridad: Veeam Backup & Replication 13.1 en Windows Server, en «Copias de seguridad», con
+  cinco guías de pasos en su consola: instalarlo, añadir un repositorio, programar un trabajo que copia las máquinas de
+  Proxmox VE, restaurar una máquina virtual y guardar la copia cifrada de su configuración (.bco). Las plataformas pueden
+  gestionarse ahora desde una consola gráfica, con sus pasos marcados como «Paso en la consola». Veeam entra en el Plan de
+  despliegue: instalación, repositorio, trabajo y copia de la configuración.
 - Primer almacenamiento: Synology DSM 7.4, en «Almacenamiento», con ocho guías de pasos en su interfaz web:
   instalar DSM con Web Assistant, crear un usuario administrador, NTP, syslog (Log Center), SNMPv3, guardar y restaurar la
   configuración (.dss) y actualizar DSM (irreversible, con copia antes).

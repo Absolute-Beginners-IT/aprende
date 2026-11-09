@@ -58,8 +58,9 @@ describe('deploymentPlan Configurar', () => {
   it('lists the guides of a covered switch in deployment order, linked with the device chosen', () => {
     const [p] = plan([dev('sw01', { marca: 'HPE Aruba', modelo: '6100 24G' })]);
     expect(p.guias.estado).toBe('cubierto');
-    // The Aruba guides have no installation nor VLAN bridge (a hypervisor task): every other task is listed.
-    expect(p.configurar.map(s => s.id)).toEqual(DEPLOYMENT_ORDER.filter(t => t !== 'os-install' && t !== 'vlan-bridge').map(t => `config:${t}`));
+    // The Aruba guides have no installation, VLAN bridge (a hypervisor task) nor backup tasks: every other task is listed.
+    const notSwitch = new Set(['os-install', 'backup-install', 'vlan-bridge', 'backup-repository', 'backup-job']);
+    expect(p.configurar.map(s => s.id)).toEqual(DEPLOYMENT_ORDER.filter(t => !notSwitch.has(t)).map(t => `config:${t}`));
     expect(p.configurar[0]).toEqual({ id: 'config:mgmt-ip', texto: 'Configurar la IP de gestión', detalles: [], href: './guias/#/p/aruba-aoscx/mgmt-ip?equipo=sw01' });
   });
 
@@ -73,6 +74,12 @@ describe('deploymentPlan Configurar', () => {
     const [p] = plan([dev('nas1', { tipo: 'almacenamiento', marca: 'Synology', modelo: 'DS923+' })]);
     expect(p.configurar.map(s => s.id)).toEqual(['config:os-install', 'config:user-admin', 'config:ntp-client', 'config:snmp-monitoring', 'config:syslog-remote', 'config:config-backup']);
     expect(p.configurar[0].href).toBe('./guias/#/p/synology-dsm/os-install?equipo=nas1');
+  });
+
+  it('sets up a Veeam backup server from its installation to its own configuration backup', () => {
+    const [p] = plan([dev('bkp1', { tipo: 'backup', marca: 'Veeam', modelo: 'Backup & Replication 13' })]);
+    expect(p.configurar.map(s => s.id)).toEqual(['config:backup-install', 'config:backup-repository', 'config:backup-job', 'config:config-backup']);
+    expect(p.configurar[0].href).toBe('./guias/#/p/veeam-br/backup-install?equipo=bkp1');
   });
 
   it('lists the guides of a FortiGate firewall in deployment order', () => {

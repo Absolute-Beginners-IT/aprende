@@ -1,0 +1,93 @@
+platform: veeam-br
+task: backup-repository
+summary: >-
+  Añade una carpeta de un disco del servidor de copias como repositorio, con el asistente New
+  Backup Repository de la consola. Es donde se guardarán los archivos de las copias.
+risk:
+  level: medium
+  reason: >-
+    No toca las máquinas ni las copias existentes, pero un repositorio en el disco equivocado
+    puede llenar el disco del sistema.
+params:
+  - id: repoName
+    label: Nombre del repositorio
+    type: text
+    example: REPO-LOCAL-01
+    help: Un nombre que diga dónde está, porque es el que verás en los trabajos.
+  - id: repoPath
+    label: Carpeta de las copias
+    type: text
+    example: E:\Backups
+    help: Una carpeta en un disco dedicado a copias, nunca en C:.
+    pattern: ^[A-Za-z]:\\.*$
+    patternHint: Una ruta de Windows que empiece por la letra del disco, por ejemplo E:\Backups.
+preflight:
+  - text: >-
+      El disco de {{repoPath}} debe estar dedicado a copias y no ser el del sistema ni el
+      almacenamiento donde viven las máquinas que vas a copiar.
+  - text: Comprueba el espacio libre de los discos del servidor.
+    command: Get-Volume | Format-Table DriveLetter, FileSystemLabel, SizeRemaining, Size
+steps:
+  - title: Abrir el asistente
+    manual: true
+    explanation: >-
+      En la consola abre la vista Backup Infrastructure. En el panel de la izquierda pulsa
+      con el botón derecho en Backup Repositories y elige Add Backup Repository (o pulsa Add
+      Repository en la cinta). En la ventana que se abre elige Direct Attached Storage y
+      después Microsoft Windows.
+  - title: Ponerle nombre
+    manual: true
+    explanation: Escribe {{repoName}} como nombre y, si quieres, una descripción. Pulsa Next.
+  - title: Elegir el servidor
+    manual: true
+    explanation: >-
+      En Repository server elige el propio servidor de copias. Pulsa Populate para ver sus
+      discos, su capacidad y su espacio libre, y comprueba que está el disco que esperabas.
+  - title: Indicar la carpeta
+    manual: true
+    explanation: >-
+      En Location escribe {{repoPath}} y pulsa Populate para confirmar el espacio libre. Deja
+      marcada la casilla Limit maximum concurrent tasks con el valor que propone: limita los
+      trabajos simultáneos para no saturar el disco.
+  - title: Dejar el servidor de montaje
+    manual: true
+    explanation: >-
+      En Mount Servers deja como Windows mount server el propio servidor de copias. Es el que
+      se usa para restaurar archivos sueltos desde las copias.
+  - title: Aplicar
+    manual: true
+    explanation: >-
+      En Review comprueba los componentes que se van a instalar, pulsa Apply, espera a que
+      termine y pulsa Finish.
+verification:
+  - expect: >-
+      {{repoName}} aparece en Backup Infrastructure, Backup Repositories, con la ruta
+      {{repoPath}}, su capacidad y su espacio libre.
+  - command: Test-Path '{{repoPath}}'
+    expect: Devuelve True.
+rollback:
+  summary: >-
+    Mientras ningún trabajo lo use, el repositorio se puede quitar de la consola sin más
+    efecto.
+  steps:
+    - title: Quitar el repositorio
+      manual: true
+      explanation: >-
+        En Backup Repositories pulsa con el botón derecho en {{repoName}} y elige Remove. Si
+        ya guarda copias de algún trabajo, cambia antes el destino de ese trabajo.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — Adding Microsoft Windows Repositories Using Console
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/repo_add.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Step 4. Configure Backup Repository Settings
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/repository_repository.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Step 5. Specify Mount Server Settings
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/repository_mount_server.html?ver=13
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Apertura del asistente, Direct Attached Storage y Microsoft Windows, Populate, Location,
+    Limit maximum concurrent tasks y el servidor de montaje contrastados con la guía de
+    usuario de la versión 13. Sin contrastar: que el propio servidor de copias aparezca ya en
+    Repository server y el menú Remove de la vuelta atrás. Falta probarla en un servidor real.

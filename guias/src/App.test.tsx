@@ -412,8 +412,10 @@ describe('quick search', () => {
       'Proxmox VE',
       'Ruijie NBS3200',
       'Synology DSM',
+      'Veeam Backup & Replication',
     ])
     expect(within(rows[5] as HTMLElement).getByText('Interfaz web')).toBeInTheDocument()
+    expect(within(rows[7] as HTMLElement).getByText('Consola gráfica')).toBeInTheDocument()
   })
 
   it('shows an article with its sections and links its tasks to the brand in use', () => {
@@ -633,6 +635,8 @@ describe('inside the website', () => {
       const id = catalog.platforms.find((platform) => platform.name === name)?.id
       expect(switches.getByRole('link', { name })).toHaveAttribute('href', `#/p/${id}`)
     }
+    const backups = within(library().getByRole('group', { name: 'Copias de seguridad' }))
+    expect(backups.getByRole('link', { name: 'Veeam Backup & Replication' })).toHaveAttribute('href', '#/p/veeam-br')
     const storage = within(library().getByRole('group', { name: 'Almacenamiento' }))
     expect(storage.getByRole('link', { name: 'Synology DSM' })).toHaveAttribute('href', '#/p/synology-dsm')
     const virtualization = within(library().getByRole('group', { name: 'Virtualización' }))
@@ -748,6 +752,9 @@ describe('inside the website', () => {
       expect(link).toHaveAttribute('href', `#/p/${platform.id}`)
       expect(link).toHaveTextContent(`${guides} guías`)
     }
+    const backups = cards.getByRole('heading', { name: 'Copias de seguridad' }).closest('li') as HTMLElement
+    expect(backups).toHaveTextContent('1 marca · 5 tareas')
+    expect(within(backups).getByRole('link', { name: /^Veeam Backup & Replication/ })).toHaveTextContent('5 guías')
     const storage = cards.getByRole('heading', { name: 'Almacenamiento' }).closest('li') as HTMLElement
     expect(storage).toHaveTextContent('1 marca · 8 tareas')
     expect(within(storage).getByRole('link', { name: /^Synology DSM/ })).toHaveTextContent('8 guías')

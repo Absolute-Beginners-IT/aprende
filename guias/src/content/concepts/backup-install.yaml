@@ -1,0 +1,19 @@
+id: backup-install
+title: Instalar el servidor de copias
+group: setup-access
+order: 8
+summary: Instala el software de copias de seguridad en un servidor y lo deja listo para añadir repositorios y trabajos.
+explanation: >-
+  El servidor de copias es el equipo que organiza todas las copias: guarda qué se copia,
+  cuándo y dónde, y lanza los trabajos. Conviene que sea un servidor dedicado, con los
+  recursos que pide el fabricante, y que no comparta disco con lo que va a proteger: si cae
+  el almacenamiento de las máquinas, el servidor de copias tiene que seguir en pie para
+  restaurarlas.
+risks:
+  - El instalador puede añadir componentes de Windows y pedir un reinicio del servidor.
+  - Un servidor con menos memoria o procesador de lo que pide el fabricante hace copias lentas o fallidas.
+  - Si el servidor de copias vive en el mismo almacenamiento que las máquinas que protege, una avería se lleva las dos cosas.
+prerequisites:
+  - Un Windows Server compatible, actualizado y con su IP fija y su nombre definitivos.
+  - Una cuenta de administrador local en ese servidor.
+  - La imagen de instalación descargada de la web del fabricante y, si la hay, la licencia.

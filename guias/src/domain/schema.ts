@@ -8,7 +8,9 @@ export const TASK_GROUPS = ['setup-access', 'vlans-ports', 'monitoring', 'securi
 export const RISK_LEVELS = ['low', 'medium', 'high'] as const
 export const STATUS_LEVELS = ['unverified', 'docs-checked', 'lab-tested'] as const
 // Kinds of infrastructure element the library covers; the guides' sidebar and home page are grouped by them.
-export const DEVICE_TYPES = ['switch', 'firewall', 'hypervisor', 'storage'] as const
+export const DEVICE_TYPES = ['switch', 'firewall', 'hypervisor', 'storage', 'backup'] as const
+// How a platform's runbooks are carried out: typed commands, steps in its web interface or in its graphical console.
+export const MANAGEMENT_MODES = ['cli', 'web', 'console'] as const
 
 const SourceSchema = z.object({ title: text, url: z.url() })
 
@@ -98,15 +100,14 @@ export const PlatformSchema = z
     os: text,
     models: z.array(text).min(1),
     summary: text,
-    // How the runbooks of this platform are carried out: typed commands or steps in its web interface.
-    management: z.enum(['cli', 'web']).default('cli'),
+    management: z.enum(MANAGEMENT_MODES).default('cli'),
     cliModes: z.array(z.object({ name: text, prompt: text, enter: text, description: text })).default([]),
     configPersistence: text,
     safetyNets: z.array(z.object({ name: text, description: text, commands: z.array(text).optional() })).min(1),
     sources: z.array(SourceSchema).min(1),
     status: StatusSchema,
   })
-  .refine((platform) => platform.management === 'web' || platform.cliModes.length > 0, {
+  .refine((platform) => platform.management !== 'cli' || platform.cliModes.length > 0, {
     message: 'A platform managed from the command line needs its CLI modes',
     path: ['cliModes'],
   })
@@ -133,6 +134,7 @@ export type TaskGroup = (typeof TASK_GROUPS)[number]
 export type RiskLevel = (typeof RISK_LEVELS)[number]
 export type StatusLevel = (typeof STATUS_LEVELS)[number]
 export type DeviceType = (typeof DEVICE_TYPES)[number]
+export type ManagementMode = (typeof MANAGEMENT_MODES)[number]
 
 /** Placeholder ids used anywhere in a procedure's commands that no param declares. */
 export function findUndeclaredParams(procedure: Procedure): string[] {

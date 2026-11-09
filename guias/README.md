@@ -13,14 +13,17 @@ obtienes los comandos listos para copiar, con los riesgos, la verificación y la
 | Fortinet | FortiGate (FortiOS 7.4), firewall | Línea de comandos |
 | Proxmox | Proxmox VE 9, virtualización | Línea de comandos (la instalación, con su instalador gráfico) |
 | Synology | DSM 7.4, almacenamiento (NAS) | Interfaz web |
+| Veeam | Backup & Replication 13.1 en Windows Server, copias de seguridad | Consola gráfica |
 
-El FortiGate, Proxmox VE y Synology DSM son los equipos que no son switches. El FortiGate tiene tres guías (copia de la
+El FortiGate, Proxmox VE, Synology DSM y Veeam son los equipos que no son switches. El FortiGate tiene tres guías (copia de la
 configuración, NTP y syslog); Proxmox VE tiene once: su instalación, la actualización, el usuario administrador, NTP, syslog,
 SNMP, la copia y la restauración de la configuración, el puente de red para VLAN, la copia de una máquina virtual y la
 snapshot antes de un cambio; Synology DSM tiene ocho, todas con pasos en su interfaz web: instalación, usuario
-administrador, NTP, syslog, SNMP, copia y restauración de la configuración y actualización. Ninguno entra en el planificador, que solo trabaja con switches.
+administrador, NTP, syslog, SNMP, copia y restauración de la configuración y actualización; Veeam Backup & Replication tiene
+cinco, con pasos en su consola: instalación en Windows Server, repositorio de copias, trabajo de copia de las máquinas de
+Proxmox VE, restauración de una máquina y copia de la configuración. Ninguno entra en el planificador, que solo trabaja con switches.
 
-Incluye 94 guías en 23 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
+Incluye 99 guías en 27 tareas (puesta en marcha y acceso, VLAN y puertos, monitorización, seguridad y resiliencia),
 7 artículos de fundamentos y un planificador de red que genera los pasos de cada switch a partir del
 diseño de la red.
 

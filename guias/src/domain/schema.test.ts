@@ -35,6 +35,13 @@ describe('PlatformSchema', () => {
     expect(platform.cliModes).toEqual([])
   })
 
+  it('accepts a platform managed from its graphical console without CLI modes', () => {
+    const platform = PlatformSchema.parse({ ...basePlatform(), management: 'console' })
+
+    expect(platform.management).toBe('console')
+    expect(platform.cliModes).toEqual([])
+  })
+
   it('treats a platform as managed from the command line unless stated otherwise', () => {
     const modes = [{ name: 'Manager', prompt: 'switch#', enter: 'Al iniciar sesión', description: 'Consultas.' }]
 

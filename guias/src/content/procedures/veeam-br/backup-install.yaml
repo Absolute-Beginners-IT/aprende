@@ -1,0 +1,103 @@
+platform: veeam-br
+task: backup-install
+summary: >-
+  Instala Veeam Backup & Replication 13.1 en un Windows Server con su asistente: la consola,
+  los servicios y la base de datos PostgreSQL que guarda la configuración.
+risk:
+  level: medium
+  reason: >-
+    Instala software y componentes de Windows en el servidor y puede pedir reiniciarlo. En un
+    servidor nuevo no afecta a nada más.
+params: []
+preflight:
+  - text: >-
+      Comprueba que el servidor cumple lo mínimo para el servidor de copias: Windows Server
+      2016, 2019, 2022 o 2025 de 64 bits, procesador x86-64 de 8 núcleos, 16 GB de RAM más 500
+      MB por cada trabajo simultáneo, unos 10 GB para el producto y .NET, y al menos 10 GB
+      para los registros.
+  - text: >-
+      Reserva espacio para la caché de recuperación instantánea (al menos 100 GB
+      recomendados) y para el catálogo de archivos (10 GB por cada 100 máquinas), mejor en un
+      disco distinto del sistema.
+  - text: >-
+      Descarga la imagen ISO de Veeam Backup & Replication desde la web de Veeam (Download
+      Veeam Products). Sin licencia el producto funciona como Community Edition, la edición
+      gratuita y limitada.
+  - text: Comprueba la versión de Windows y la arquitectura del servidor.
+    command: Get-ComputerInfo -Property WindowsProductName, OsArchitecture
+steps:
+  - title: Abrir el instalador
+    manual: true
+    explanation: >-
+      Monta la ISO en el servidor (doble clic sobre el archivo, o desde el hipervisor si es
+      una máquina virtual). Se abre la pantalla de bienvenida; si no aparece, ejecuta
+      Setup.exe desde la imagen. Pulsa Install.
+    warning: >-
+      Instala siempre desde la pantalla de bienvenida o Setup.exe. Ejecutar otros
+      instaladores de las carpetas de la ISO puede dejar componentes sin instalar.
+  - title: Elegir el componente y aceptar la licencia
+    manual: true
+    explanation: >-
+      En Select Veeam Backup & Replication Component elige Install Veeam Backup &
+      Replication. Lee y acepta el acuerdo de licencia.
+  - title: Indicar la licencia
+    manual: true
+    explanation: >-
+      En License pulsa Browse to local license file y elige el archivo de licencia, o Sign in
+      with Veeam para coger una de tu cuenta. Si no indicas ninguna, se instala la Community
+      Edition. Las casillas de actualización automática de la licencia y de soporte proactivo
+      envían datos de uso a Veeam; márcalas solo si la empresa lo ha decidido.
+  - title: Dejar que instale lo que falta
+    manual: true
+    explanation: >-
+      En System Configuration Check el asistente instala los componentes de Windows que
+      faltan. Si pide reiniciar, pulsa Reboot y vuelve a abrir el instalador al arrancar. Si
+      algún componente no se instala solo, instálalo a mano y pulsa Retry.
+  - title: Revisar la configuración de la instalación
+    manual: true
+    explanation: >-
+      En Ready to Install se muestran los valores por defecto: carpeta C:\Program
+      Files\Veeam\Backup and Replication\, catálogo en C:\VBRCatalog\, servicio con la cuenta
+      LOCAL SYSTEM y una base de datos PostgreSQL nueva llamada VeeamBackup en el propio
+      servidor. Para un servidor pequeño valen. Si quieres el catálogo y la caché en otro
+      disco, pulsa Customize Settings: en Data Locations cambias las carpetas y en Port
+      Configuration los puertos (443 para el servicio principal y 9419 para la API REST).
+  - title: Instalar
+    manual: true
+    explanation: >-
+      Marca Check for product updates automatically para que avise de las nuevas versiones,
+      pulsa Install, espera a que termine y pulsa Finish.
+verification:
+  - command: Get-Service -DisplayName 'Veeam*' | Sort-Object DisplayName | Format-Table DisplayName, Status
+    expect: Aparecen los servicios de Veeam, entre ellos Veeam Backup Service, en estado Running.
+  - expect: >-
+      Al abrir la consola de Veeam Backup & Replication se conecta a este servidor y muestra
+      la vista Home.
+rollback:
+  summary: >-
+    Si la instalación no hace falta o salió mal, se desinstala desde Windows. En un servidor
+    recién instalado no hay copias que perder.
+  steps:
+    - title: Desinstalar Veeam
+      manual: true
+      explanation: >-
+        En Configuración, Aplicaciones, desinstala los componentes de Veeam Backup &
+        Replication. PostgreSQL se instaló como un programa aparte: desinstálalo también si no
+        lo usa nada más.
+sources:
+  - title: Veeam Backup & Replication 13 User Guide — Installing Veeam Backup & Replication on Microsoft Windows
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/install_vbr.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — Step 6. Review Default Installation Settings
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/install_vbr_settings.html?ver=13
+  - title: Veeam Backup & Replication 13 User Guide — System Requirements, Backup Server
+    url: https://helpcenter.veeam.com/docs/vbr/userguide/system_requirements_backup_server.html?ver=13
+status:
+  level: docs-checked
+  reviewed: '2026-11-09'
+  firmware: Veeam Backup & Replication 13.1 (build 13.1.2.57)
+  notes: >-
+    Requisitos, pasos del asistente, valores por defecto (carpetas, LOCAL SYSTEM, PostgreSQL
+    VeeamBackup, puertos 443 y 9419) y Community Edition contrastados con la guía de usuario
+    de la versión 13. Sin contrastar: cómo se presenta la consola al abrirla y los pasos de la
+    desinstalación, que tiene su propia página en la guía. Falta probarla en un servidor
+    real.
