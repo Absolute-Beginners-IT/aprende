@@ -59,3 +59,12 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
   write (all or nothing), so the message «Se han guardado X de Y equipos antes del fallo» is gone; removing a line
   removes only that link (before, both directions of the pair). The map connect gesture is covered by domain tests
   only (React Flow drag is not simulated in jsdom).
+- **L6** (2026-11-10, T1 correction after T2 blocker on 5d1cc88, S8) A CSV re-import that only reordered a device's
+  uplinks lost the row's order (export `core1,core2` instead of `core2,core1`). Fix in `importInventoryV1`: when the
+  kept links are not already in the row's order, the device's hierarchical links are stored again in the row's order,
+  each kept link with its type, ports, speed, VLANs and notes; ids stay unique. Regression tests assert the base output
+  literally: export row `ACC1;switch;;;;;;Media;core2,core1;;;;No;`, `cuelgaDe` `["CORE2","CORE1"]`, list «conectado a
+  CORE2, CORE1», domain `[a,b]` + row `c,b,a` → `[c,b,a]`, kept links keep type and ports. RED 4 failing, then GREEN.
+  Checks: app vitest 171/171, app build OK, guides vitest 352/352, guides tsc OK. Advisories left as they are: v1
+  entries with no id are dropped; onConnect does not re-check that both devices still exist; the same id in
+  `removeDevices` and `saveDevices` moves the device to the end.

@@ -4,6 +4,9 @@ import {
   applyTopologyChange, downstreamOf, emptyTopology, fromInventoryV1, fromStoredTopology, importInventoryV1,
   isHierarchical, nextLinkId, upstreamOf, type DeviceV1,
 } from './topology';
+import { parseInventoryCsv, toInventoryCsv } from './inventoryCsv';
+import { deploymentPlan } from './deploymentPlan';
+import { content } from '../content';
 
 const dev = (id: string, extra: Partial<DeviceV1> = {}): DeviceV1 => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
 const plain = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
@@ -114,5 +117,33 @@ describe('importInventoryV1', () => {
     expect(next.enlaces.map(l => [l.id, l.tipo])).toEqual([
       ['core--fw', 'troncal'], ['core--fw2', 'ha'], ['p1--core', 'datos'], ['core--nuevo', 'datos'], ['p2--core', 'datos'],
     ]);
+  });
+
+  it('stores what a device hangs from in the order of its row, even when the row reorders links it already had', () => {
+    const current = fromInventoryV1([dev('a'), dev('b'), dev('c'), dev('x', { uplinks: ['a', 'b'] })]);
+    const next = applyTopologyChange(current, importInventoryV1(current, [dev('x', { uplinks: ['c', 'b', 'a'] })]));
+    expect(upstreamOf(next.enlaces, 'x')).toEqual(['c', 'b', 'a']);
+    expect(new Set(next.enlaces.map(l => l.id)).size).toBe(next.enlaces.length);
+  });
+
+  it('keeps the type, ports, speed, VLANs and notes of the links a reordering import keeps', () => {
+    const trunk: Link = { id: 'x--a', a: { equipo: 'x', puerto: '49' }, b: { equipo: 'a', puerto: '1/1/1' }, tipo: 'troncal', velocidad: '10G', vlans: '10,20', notas: 'fibra' };
+    const lag: Link = { id: 'x--b', a: { equipo: 'x', puerto: '50' }, b: { equipo: 'b', puerto: '1/1/2' }, tipo: 'lag' };
+    const current: Topology = { equipos: ['a', 'b', 'x'].map(id => plain(id)), enlaces: [trunk, lag, link('x--b-ha', 'x', 'b', 'ha')], grupos: [] };
+    const next = applyTopologyChange(current, importInventoryV1(current, [dev('x', { uplinks: ['b', 'a'] })]));
+    expect(upstreamOf(next.enlaces, 'x')).toEqual(['b', 'a']);
+    const withoutId = ({ id: _, ...rest }: Link) => rest;
+    expect(next.enlaces.map(withoutId)).toEqual(expect.arrayContaining([withoutId(trunk), withoutId(lag)]));
+    expect(next.enlaces.find(l => l.tipo === 'ha')?.id).toBe('x--b-ha');
+    expect(next.enlaces).toHaveLength(3);
+    expect(new Set(next.enlaces.map(l => l.id)).size).toBe(3);
+  });
+
+  it('writes the row order back to the CSV and the deployment plan after a re-import, as the first inventory did', () => {
+    const first = parseInventoryCsv('Nombre;Tipo;Uplink\r\nCORE1;switch;\r\nCORE2;switch;\r\nACC1;switch;core1');
+    let topology = applyTopologyChange(emptyTopology(), importInventoryV1(emptyTopology(), first));
+    topology = applyTopologyChange(topology, importInventoryV1(topology, parseInventoryCsv('Nombre;Tipo;Uplink\r\nACC1;switch;core2,core1')));
+    expect(toInventoryCsv(topology).split('\r\n')[3]).toBe('ACC1;switch;;;;;;Media;core2,core1;;;;No;');
+    expect(deploymentPlan(topology, content, './guias/').find(p => p.id === 'acc1')?.cuelgaDe).toEqual(['CORE2', 'CORE1']);
   });
 });

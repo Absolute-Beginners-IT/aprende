@@ -124,6 +124,14 @@ describe('InventoryPage', () => {
     expect(screen.getByText('ACC depende de «falta», que no está en el inventario.')).toBeTruthy();
   });
 
+  it('shows what a device is connected to in the order of the last CSV imported, even when it only reorders it', async () => {
+    render(<InventoryPage repository={memoryRepository()} />);
+    await importCsv('Nombre;Tipo;Uplink\r\nCORE1;switch;\r\nCORE2;switch;\r\nACC1;switch;core1');
+    expect(await screen.findByText(/· conectado a CORE1$/)).toBeTruthy();
+    await importCsv('Nombre;Tipo;Uplink\r\nACC1;switch;core2,core1');
+    expect(await screen.findByText(/· conectado a CORE2, CORE1$/)).toBeTruthy();
+  });
+
   it('adds a device connected to the one chosen in the form as a datos link', async () => {
     const repo = memoryRepository([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true }]);
     render(<InventoryPage repository={repo} />);

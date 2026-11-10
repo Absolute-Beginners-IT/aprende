@@ -111,8 +111,9 @@ export function applyTopologyChange(topology: Topology, change: TopologyChange):
 
 /**
  * The change that stores `rows` (devices of a CSV import) over `topology`. An overwritten device keeps its place on the
- * map; what it hangs from becomes exactly what its row says: hierarchical links still listed keep their type, the rest
- * go, and new targets get a `datos` link. Links that do not make it hang from anything are left as they are.
+ * map; what it hangs from becomes exactly what its row says, in the row's order: hierarchical links still listed keep
+ * their type, ports, speed, VLANs and notes, the rest go, and new targets get a `datos` link. Links that do not make it
+ * hang from anything are left as they are.
  */
 export function importInventoryV1(topology: Topology, rows: DeviceV1[]): TopologyChange {
   const existing = new Map(topology.equipos.map(d => [d.id, d]));
@@ -124,9 +125,20 @@ export function importInventoryV1(topology: Topology, rows: DeviceV1[]): Topolog
     saveDevices.push(posicion ? { ...device, posicion } : device);
     const targets = unique(uplinks ?? []);
     const current = topology.enlaces.filter(l => isHierarchical(l) && l.a.equipo === device.id);
-    removeLinks.push(...current.filter(l => !targets.includes(l.b.equipo)).map(l => l.id));
-    for (const to of targets) {
-      if (!current.some(l => l.b.equipo === to)) addLinks.push({ a: { equipo: device.id }, b: { equipo: to }, tipo: 'datos' });
+    const newLink = (to: string): NewLink => ({ a: { equipo: device.id }, b: { equipo: to }, tipo: 'datos' });
+    const kept = unique(current.map(l => l.b.equipo)).filter(to => targets.includes(to));
+    const added = targets.filter(to => !kept.includes(to));
+    if ([...kept, ...added].every((to, i) => to === targets[i])) {
+      // The links it keeps are already in the row's order: leave them where they are and append the new ones.
+      removeLinks.push(...current.filter(l => !targets.includes(l.b.equipo)).map(l => l.id));
+      addLinks.push(...added.map(newLink));
+    } else {
+      // The row reorders them: store its hierarchical links again in the row's order, each kept one with all its data.
+      removeLinks.push(...current.map(l => l.id));
+      for (const to of targets) {
+        const same = current.filter(l => l.b.equipo === to);
+        addLinks.push(...(same.length ? same.map(({ id: _, ...data }) => data) : [newLink(to)]));
+      }
     }
   }
   return { saveDevices, removeLinks, addLinks };
