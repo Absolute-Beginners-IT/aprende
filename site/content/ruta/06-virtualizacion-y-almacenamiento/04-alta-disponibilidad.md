@@ -44,6 +44,10 @@ Un clúster ofrece dos cosas distintas que es fácil confundir:
 
 La migración en vivo es la que te permite actualizar o reparar un host en horario laboral: vacías el host moviendo sus VM a los demás, lo reinicias y las devuelves.
 
+Pulsa cada etapa para ver la diferencia en un clúster de tres hosts:
+
+{{< evolucion datos="alta-disponibilidad" >}}
+
 Los clústeres usan también el **quórum**: los hosts votan para decidir quién sigue funcionando si se pierden de vista entre ellos, y así evitar que dos mitades arranquen la misma VM a la vez. Por eso se recomiendan al menos tres votos (tres hosts, o dos hosts y un **testigo**).
 
 {{< aviso titulo="La distinción que importa" >}}

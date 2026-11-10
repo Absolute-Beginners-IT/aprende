@@ -1,0 +1,28 @@
+{
+  "titulo": "Un servidor con dos discos en RAID 1 que guardan lo mismo; un disco se rompe y el RAID queda degradado pero sigue funcionando; se cambia el disco y se reconstruye; y al final alguien borra una carpeta, que desaparece de los dos discos a la vez.",
+  "pie": "RAID sirve para disponibilidad: que un disco roto no pare el servicio. Para recuperar datos borrados hacen falta copias de seguridad.",
+  "lienzo": [900, 312],
+  "elementos": ["fallo", "reconstruir", "borrado"],
+  "etapas": [
+    {
+      "titulo": "Dos discos, los mismos datos",
+      "muestra": [],
+      "porque": "En un RAID 1 cada cosa que el servidor escribe va a los dos discos a la vez. Por eso solo aprovechas la capacidad de uno: el otro es su espejo."
+    },
+    {
+      "titulo": "Se rompe un disco",
+      "muestra": ["fallo"],
+      "porque": "El disco 2 falla, pero el disco 1 tiene todo: el servidor sigue funcionando y nadie lo nota. El RAID queda degradado: ya no hay margen, y si ahora falla el disco 1, se pierde todo. Por eso alguien tiene que recibir la alerta."
+    },
+    {
+      "titulo": "Cambiar y reconstruir",
+      "muestra": ["fallo", "reconstruir"],
+      "porque": "Se cambia el disco roto por uno nuevo y la controladora copia en él todo lo del disco 1. Cuando termina la reconstrucción, el espejo vuelve a tener margen."
+    },
+    {
+      "titulo": "Alguien borra una carpeta",
+      "muestra": ["fallo", "reconstruir", "borrado"],
+      "porque": "Un usuario borra contabilidad por error. El RAID hace su trabajo: borra la carpeta en los dos discos a la vez. Contra un borrado, un ransomware o un incendio, RAID no protege: para eso están las copias de seguridad."
+    }
+  ]
+}

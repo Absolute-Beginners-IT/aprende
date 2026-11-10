@@ -1,0 +1,30 @@
+{{- /* Drawing of a VM snapshot for the evolucion shortcode (data/visuales/evoluciones/instantanea.json), in a 900 × 300
+  canvas. The VM and its disk file are always drawn; the snapshot adds the frozen badge and the differencing file, then the
+  writes that fill it and the two ways out. */ -}}
+<path class="viz__cable viz__cable--fijo" d="M200 140 L 300 140"/>
+<rect class="viz__tarjeta" x="40" y="100" width="160" height="80" rx="16"/>
+<g class="viz__icono" transform="translate(120 132)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__nombre" x="120" y="172" text-anchor="middle">La VM</text>
+<rect class="viz__tarjeta" x="300" y="80" width="170" height="120" rx="14"/>
+<text class="viz__nombre" x="385" y="134" text-anchor="middle">disco.vhdx</text>
+<text class="viz__detalle" x="385" y="156" text-anchor="middle">el disco de la VM</text>
+<g data-elemento="instantanea">
+  <path class="viz__cable viz__cable--fijo" d="M160 100 C 200 30, 520 30, 600 80"/>
+  <text class="viz__detalle" x="250" y="132">lee</text>
+  <text class="viz__detalle" x="380" y="30">escribe</text>
+  <rect class="viz__insignia viz__insignia--nueva" x="310" y="210" width="150" height="30" rx="15"/>
+  <text class="viz__nombre" x="385" y="230" text-anchor="middle">solo lectura</text>
+  <rect class="viz__tarjeta" x="560" y="80" width="170" height="120" rx="14"/>
+  <text class="viz__nombre" x="645" y="106" text-anchor="middle">diferencial</text>
+  <text class="viz__detalle" x="645" y="124" text-anchor="middle">desde la instantánea</text>
+</g>
+<g data-elemento="cambios">
+  <rect class="viz__tramo viz__tramo--equipo" x="578" y="136" width="134" height="12" rx="4"/>
+  <rect class="viz__tramo viz__tramo--equipo" x="578" y="154" width="134" height="12" rx="4"/>
+  <rect class="viz__tramo viz__tramo--equipo" x="578" y="172" width="90" height="12" rx="4"/>
+  <text class="viz__detalle" x="645" y="226" text-anchor="middle">crece con cada cambio</text>
+</g>
+<g data-elemento="decidir">
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="40" y="266">¿Ha salido mal? Vuelve a la instantánea: se descarta el diferencial.</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="40" y="290">¿Ha salido bien? Elimínala: los cambios se fusionan en el disco.</text>
+</g>

@@ -1,0 +1,28 @@
+{
+  "titulo": "Una VM y su disco; al hacer una instantánea, el disco queda congelado y los cambios se escriben en un fichero diferencial aparte, que crece; al final se descarta para volver atrás o se fusiona para quedarse con los cambios.",
+  "pie": "La instantánea depende del disco original y vive en el mismo almacén: no es una copia de seguridad.",
+  "lienzo": [900, 300],
+  "elementos": ["instantanea", "cambios", "decidir"],
+  "etapas": [
+    {
+      "titulo": "Una VM y su disco",
+      "muestra": [],
+      "porque": "La VM lee y escribe en su disco virtual, que es un fichero en el almacén del hipervisor (por ejemplo, disco.vhdx en Hyper-V o un .qcow2 en Proxmox VE)."
+    },
+    {
+      "titulo": "Haces la instantánea",
+      "muestra": ["instantanea"],
+      "porque": "Justo antes de un cambio arriesgado haces la instantánea. El hipervisor congela el disco original, que pasa a ser de solo lectura, y crea un fichero diferencial vacío."
+    },
+    {
+      "titulo": "Los cambios van aparte",
+      "muestra": ["instantanea", "cambios"],
+      "porque": "Todo lo que escribe la VM a partir de ahora va al diferencial; el original no se toca. Por eso una instantánea olvidada sigue creciendo y hace que el disco vaya más lento."
+    },
+    {
+      "titulo": "Decidir",
+      "muestra": ["instantanea", "cambios", "decidir"],
+      "porque": "Si el cambio ha salido mal, vuelves a la instantánea: se descarta el diferencial y la VM queda como estaba. Si ha salido bien, eliminas la instantánea: los cambios se fusionan en el disco y no queda nada que olvidar."
+    }
+  ]
+}

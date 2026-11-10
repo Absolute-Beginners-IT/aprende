@@ -1,0 +1,33 @@
+{{- /* Drawing of a RAID 1 mirror for the evolucion shortcode (data/visuales/evoluciones/raid-espejo.json), in a 900 × 312
+  canvas. The rebuild stage covers the broken disk and its warning with a viz__tapa and draws the new disk on top; the delete
+  stage strikes the folder out on both disks. */ -}}
+<path class="viz__cable viz__cable--fijo" d="M420 64 C 420 92, 290 92, 290 120"/>
+<path class="viz__cable viz__cable--fijo" d="M480 64 C 480 92, 610 92, 610 120"/>
+<rect class="viz__tarjeta" x="340" y="20" width="220" height="44" rx="12"/>
+<text class="viz__nombre" x="450" y="47" text-anchor="middle">Servidor · RAID 1</text>
+<rect class="viz__tarjeta" x="200" y="120" width="180" height="110" rx="14"/>
+<text class="viz__nombre" x="290" y="148" text-anchor="middle">Disco 1</text>
+<text class="viz__detalle" x="290" y="178" text-anchor="middle">contabilidad/</text>
+<text class="viz__detalle" x="290" y="200" text-anchor="middle">nominas.xlsx</text>
+<rect class="viz__tarjeta" x="520" y="120" width="180" height="110" rx="14"/>
+<text class="viz__nombre" x="610" y="148" text-anchor="middle">Disco 2</text>
+<text class="viz__detalle" x="610" y="178" text-anchor="middle">contabilidad/</text>
+<text class="viz__detalle" x="610" y="200" text-anchor="middle">nominas.xlsx</text>
+<text class="viz__detalle" x="450" y="256" text-anchor="middle">los dos discos guardan lo mismo</text>
+<g data-elemento="fallo">
+  <circle class="viz__fallo" cx="676" cy="142" r="13"/>
+  <text class="viz__fallo-texto" x="676" y="148" text-anchor="middle">!</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="450" y="280" text-anchor="middle">Disco 2 roto: el RAID queda degradado, pero el servidor sigue</text>
+</g>
+<g data-elemento="reconstruir">
+  <rect class="viz__tapa" x="530" y="128" width="162" height="94"/>
+  <text class="viz__nombre" x="610" y="148" text-anchor="middle">Disco 2 nuevo</text>
+  <text class="viz__detalle" x="610" y="178" text-anchor="middle">contabilidad/</text>
+  <text class="viz__detalle" x="610" y="200" text-anchor="middle">nominas.xlsx</text>
+  <rect class="viz__tapa" x="20" y="264" width="860" height="24"/>
+  <text class="viz__veredicto viz__veredicto--si" x="450" y="282" text-anchor="middle">✓ Reconstruido: vuelve a tener margen</text>
+</g>
+<g data-elemento="borrado">
+  <path class="viz__tachado" d="M238 174 H 342 M558 174 H 662"/>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="450" y="304" text-anchor="middle">Alguien borra contabilidad/: desaparece de los dos discos a la vez</text>
+</g>
