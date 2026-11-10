@@ -1,6 +1,6 @@
 {{- /* Drawing of two sites joined by a site-to-site VPN for the evolucion shortcode
-  (data/visuales/evoluciones/vpn-subredes.json), in a 900 × 290 canvas. The renumbering stage covers the branch's old range,
-  the warning mark and the conflict text with viz__tapa shapes and writes the new range on top. */ -}}
+  (data/visuales/evoluciones/vpn-subredes.json), in a 900 × 290 canvas. The renumbering stage hides the branch's old range,
+  the warning mark and the conflict text (data-hasta) and writes the new range in their place. */ -}}
 <path class="viz__cable viz__cable--fijo" d="M330 140 H 570" stroke-dasharray="14 10"/>
 <text class="viz__detalle" x="450" y="126" text-anchor="middle">túnel VPN</text>
 <rect class="viz__tarjeta" x="40" y="56" width="290" height="160" rx="18"/>
@@ -10,20 +10,21 @@
 <text class="viz__detalle" x="185" y="176" text-anchor="middle">puerta de enlace 192.168.10.1</text>
 <rect class="viz__tarjeta" x="570" y="56" width="290" height="160" rx="18"/>
 <text class="viz__rotulo" x="715" y="84" text-anchor="middle">DELEGACIÓN</text>
-<text class="viz__nombre" x="715" y="124" text-anchor="middle">192.168.10.0/24</text>
-<text class="viz__detalle" x="715" y="152" text-anchor="middle">PC 192.168.10.20</text>
-<text class="viz__detalle" x="715" y="176" text-anchor="middle">puerta de enlace 192.168.10.1</text>
+<g data-hasta="renumerar">
+  <text class="viz__nombre" x="715" y="124" text-anchor="middle">192.168.10.0/24</text>
+  <text class="viz__detalle" x="715" y="152" text-anchor="middle">PC 192.168.10.20</text>
+  <text class="viz__detalle" x="715" y="176" text-anchor="middle">puerta de enlace 192.168.10.1</text>
+</g>
 <g data-elemento="conflicto">
+  <g data-hasta="renumerar">
   <circle class="viz__fallo" cx="450" cy="164" r="13"/>
   <text class="viz__fallo-texto" x="450" y="170" text-anchor="middle">!</text>
   <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="450" y="256" text-anchor="middle">¿192.168.10.20 es la de aquí o la de allí?</text>
+  </g>
 </g>
 <g data-elemento="renumerar">
-  <rect class="viz__tapa" x="586" y="106" width="258" height="80"/>
   <text class="viz__tramo-texto viz__tramo-texto--grupo" x="715" y="124" text-anchor="middle">192.168.110.0/24</text>
   <text class="viz__detalle" x="715" y="152" text-anchor="middle">PC 192.168.110.20</text>
   <text class="viz__detalle" x="715" y="176" text-anchor="middle">puerta de enlace 192.168.110.1</text>
-  <rect class="viz__tapa" x="434" y="150" width="32" height="30"/>
-  <rect class="viz__tapa" x="150" y="234" width="600" height="32"/>
   <text class="viz__veredicto viz__veredicto--si" x="450" y="256" text-anchor="middle">✓ Cada sede, su rango</text>
 </g>

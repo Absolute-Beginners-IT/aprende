@@ -1,23 +1,26 @@
 {{- /* Drawing of a three-host cluster for the evolucion shortcode (data/visuales/evoluciones/alta-disponibilidad.json), in a
-  900 × 320 canvas. Each host has two VM slots; moved or restarted VMs cover their old slot with a viz__tapa. */ -}}
+  900 × 320 canvas. Each host has two VM slots; moved or crashed VMs leave their old slot (data-hasta). */ -}}
 <path class="viz__guia" d="M180 170 V 210 H 720 V 170 M450 170 V 250"/>
 <rect class="viz__tarjeta" x="60" y="40" width="240" height="130" rx="16"/>
 <text class="viz__nombre" x="180" y="66" text-anchor="middle">Host A</text>
-<rect class="viz__insignia" x="90" y="82" width="180" height="34" rx="17"/>
-<text class="viz__nombre" x="180" y="104" text-anchor="middle">VM-FICHEROS</text>
+<g data-hasta="migracion">
+  <rect class="viz__insignia" x="90" y="82" width="180" height="34" rx="17"/>
+  <text class="viz__nombre" x="180" y="104" text-anchor="middle">VM-FICHEROS</text>
+</g>
 <rect class="viz__tarjeta" x="330" y="40" width="240" height="130" rx="16"/>
 <text class="viz__nombre" x="450" y="66" text-anchor="middle">Host B</text>
 <rect class="viz__insignia" x="360" y="82" width="180" height="34" rx="17"/>
 <text class="viz__nombre" x="450" y="104" text-anchor="middle">VM-CORREO</text>
 <rect class="viz__tarjeta" x="600" y="40" width="240" height="130" rx="16"/>
 <text class="viz__nombre" x="720" y="66" text-anchor="middle">Host C</text>
-<rect class="viz__insignia" x="630" y="82" width="180" height="34" rx="17"/>
-<text class="viz__nombre" x="720" y="104" text-anchor="middle">VM-APP</text>
+<g data-hasta="ha">
+  <rect class="viz__insignia" x="630" y="82" width="180" height="34" rx="17"/>
+  <text class="viz__nombre" x="720" y="104" text-anchor="middle">VM-APP</text>
+</g>
 <rect class="viz__tarjeta" x="290" y="250" width="320" height="56" rx="14"/>
 <text class="viz__nombre" x="450" y="274" text-anchor="middle">Almacenamiento compartido</text>
 <text class="viz__detalle" x="450" y="294" text-anchor="middle">aquí están los discos de las VM</text>
 <g data-elemento="migracion">
-  <rect class="viz__tapa" x="86" y="78" width="188" height="42"/>
   <text class="viz__detalle" x="180" y="104" text-anchor="middle">vacío: listo para reiniciar</text>
   <rect class="viz__insignia viz__insignia--nueva" x="360" y="126" width="180" height="34" rx="17"/>
   <text class="viz__nombre" x="450" y="148" text-anchor="middle">VM-FICHEROS</text>
@@ -26,7 +29,6 @@
 <g data-elemento="ha">
   <circle class="viz__fallo" cx="812" cy="62" r="13"/>
   <text class="viz__fallo-texto" x="812" y="68" text-anchor="middle">!</text>
-  <rect class="viz__tapa" x="626" y="78" width="188" height="42"/>
   <text class="viz__detalle" x="720" y="104" text-anchor="middle">caído</text>
   <rect class="viz__insignia viz__insignia--proteccion" x="90" y="126" width="180" height="34" rx="17"/>
   <text class="viz__nombre" x="180" y="148" text-anchor="middle">VM-APP</text>

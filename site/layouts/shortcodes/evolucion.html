@@ -1,6 +1,6 @@
 {{- /* A drawing that grows stage by stage: {{< evolucion datos="red-oficina" >}}. Stages come from
   data/visuales/evoluciones/<datos>.json and the drawing from layouts/partials/visuales/<datos>.html, whose
-  [data-elemento] groups appear as the stages list them. Without JavaScript the finished drawing and every stage's
+  [data-elemento] groups appear as the stages list them, and [data-hasta="x"] shapes vanish once x appears. Without JavaScript the finished drawing and every stage's
   reason are shown; js/visuales.js turns them into tabs. */ -}}
 {{- $nombre := .Get "datos" -}}
 {{- $d := index hugo.Data.visuales.evoluciones $nombre -}}

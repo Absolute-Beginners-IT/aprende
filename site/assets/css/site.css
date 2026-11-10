@@ -299,6 +299,7 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz svg .viz__tramo-texto--proteccion { fill: var(--l-proteccion); }
 .viz svg .viz__fallo { fill: var(--l-proteccion); stroke: none; }
 .viz svg .viz__fallo-texto { fill: var(--surface); font-weight: 800; font-size: 17px; }
+.viz svg .viz__marco { fill: none; stroke: var(--l-proteccion); stroke-width: 2; stroke-dasharray: 6 5; }
 .viz svg .viz__tachado { fill: none; stroke: var(--l-proteccion); stroke-width: 2.5; stroke-linecap: round; }
 .viz svg .viz__veredicto--si { fill: var(--l-servicios); }
 .viz svg .viz__veredicto--no { fill: var(--l-logica); }
@@ -343,10 +344,12 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz__marca--pregunta { background: var(--accent); }
 .viz__marca--respuesta { background: var(--l-servicios); }
 .viz__marca--cambio { background: var(--l-logica); }
-.viz [data-elemento] { transition: opacity .45s; }
-.viz [data-elemento].is-oculto { opacity: 0; }
+.viz [data-elemento], .viz [data-hasta] { transition: opacity .45s; }
+.viz [data-elemento].is-oculto, .viz [data-hasta].is-oculto { opacity: 0; }
+/* Without JavaScript the finished drawing is shown, so whatever a later element replaces is not. */
+.viz-evolucion:not(.viz--activa) [data-hasta] { display: none; }
 @media (max-width: 640px) { .viz__datos { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) {
   .viz__cable.is-activo, .viz__destello { animation: none; }
-  .viz [data-elemento], .viz__halo { transition: none; }
+  .viz [data-elemento], .viz [data-hasta], .viz__halo { transition: none; }
 }

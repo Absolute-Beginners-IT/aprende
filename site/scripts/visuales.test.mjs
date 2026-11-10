@@ -72,6 +72,10 @@ for (const [nombre, { elementos, etapas }] of evoluciones) {
     const conocidos = new Set(elementos);
     const dibujo = readFileSync(join(sitio, 'layouts', 'partials', 'visuales', `${nombre}.html`), 'utf8');
     for (const id of elementos) assert.ok(dibujo.includes(`data-elemento="${id}"`), `the drawing has no element ${id}`);
+    for (const [, ids] of dibujo.matchAll(/data-hasta="([^"]+)"/g)) {
+      for (const id of ids.split(' ')) assert.ok(conocidos.has(id), `data-hasta names unknown element ${id}`);
+    }
+    assert.ok(!/<[^>]*data-elemento=[^>]*data-hasta|<[^>]*data-hasta=[^>]*data-elemento/.test(dibujo), 'a shape is either a stage element or replaced, not both');
     etapas.forEach((etapa, i) => {
       assert.ok(etapa.titulo?.trim() && etapa.porque?.trim(), `stage ${i + 1}: missing title or reason`);
       for (const id of etapa.muestra) assert.ok(conocidos.has(id), `stage ${i + 1}: unknown element ${id}`);

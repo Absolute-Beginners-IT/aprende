@@ -1,6 +1,6 @@
 {{- /* Drawing of a switch learning MAC addresses for the evolucion shortcode (data/visuales/evoluciones/tabla-mac.json),
   in a 900 × 344 canvas. The switch and its three hosts sit on the left, the MAC table on the right, and one log line per
-  frame at the bottom. Each learnt row covers the "empty" note with a viz__tapa. */ -}}
+  frame at the bottom. The first learnt row replaces the "empty" note (data-hasta). */ -}}
 <path class="viz__cable viz__cable--fijo" d="M170 88 C 170 140, 100 140, 100 170"/>
 <path class="viz__cable viz__cable--fijo" d="M230 88 L 230 170"/>
 <path class="viz__cable viz__cable--fijo" d="M290 88 C 290 140, 360 140, 360 170"/>
@@ -27,9 +27,8 @@
 <text class="viz__detalle" x="504" y="82">MAC</text>
 <text class="viz__detalle" x="700" y="82">PUERTO</text>
 <path class="viz__guia" d="M496 92 H 844"/>
-<text class="viz__detalle" x="504" y="118">vacía: aún no ha visto ninguna trama</text>
+<text class="viz__detalle" x="504" y="118" data-hasta="aprende-a">vacía: aún no ha visto ninguna trama</text>
 <g data-elemento="aprende-a">
-  <rect class="viz__tapa" x="496" y="100" width="348" height="28"/>
   <text class="viz__nombre" x="504" y="119">AA-…</text>
   <text class="viz__nombre" x="700" y="119">1</text>
   <text class="viz__detalle" x="40" y="298">1. A envía a B: aprende A en el puerto 1. B no está en la tabla: inunda por los puertos 2 y 3.</text>
