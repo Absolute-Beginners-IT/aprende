@@ -27,6 +27,10 @@ El RPO decide **cada cuánto copias**: si haces una copia cada noche, en el peor
 
 No los decides tú solo: pregunta a cada responsable cuánto le duele perder datos y estar parado. Un servidor de ficheros y un ERP rara vez tienen los mismos objetivos.
 
+Pulsa cada etapa para verlos sobre un incidente real:
+
+{{< evolucion datos="rpo-rto" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 **RPO mira hacia atrás** (los datos que pierdes desde la última copia). **RTO mira hacia delante** (el tiempo que tardas en volver a estar en marcha). Una copia cada hora da un RPO bajo, pero si restaurarla lleva dos días, el RTO sigue siendo malo.
 {{< /aviso >}}
@@ -44,6 +48,10 @@ No hace falta copiarlo todo cada vez. Hay tres tipos de copia:
 | **Diferencial** | Lo que cambió desde la **última copia completa**. | Para restaurar necesitas solo la completa y la última diferencial. | Cada día ocupa un poco más, hasta la siguiente completa. |
 
 Ejemplo con una completa el domingo: si el jueves necesitas restaurar, con incrementales usas domingo + lunes + martes + miércoles; con diferenciales, domingo + miércoles.
+
+Pulsa cada etapa para ver la semana entera:
+
+{{< evolucion datos="tipos-copia" >}}
 
 Muchos programas actuales (Veeam, restic, Borg y similares, por poner ejemplos) hacen copias «incrementales para siempre» con deduplicación: solo guardan los bloques nuevos, pero cada punto de restauración se ve como si fuera completo. La idea de fondo sigue siendo la misma.
 

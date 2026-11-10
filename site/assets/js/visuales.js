@@ -192,9 +192,12 @@
   function evolucion(fig) {
     const etapas = [...fig.querySelectorAll('.viz__etapa')].map((li) => ({ li, muestra: li.dataset.muestra.split(' ').filter(Boolean) }));
     const elementos = [...fig.querySelectorAll('[data-elemento]')];
+    // data-hasta="x y": shown until element x or y appears, for what a later stage replaces (a status, a range…).
+    const sustituibles = [...fig.querySelectorAll('[data-hasta]')];
     const pestanas = [...fig.querySelectorAll('[data-etapa]')];
     const mostrar = (i) => {
       elementos.forEach((el) => el.classList.toggle('is-oculto', !etapas[i].muestra.includes(el.dataset.elemento)));
+      sustituibles.forEach((el) => el.classList.toggle('is-oculto', el.dataset.hasta.split(' ').some((id) => etapas[i].muestra.includes(id))));
       etapas.forEach((e, k) => e.li.classList.toggle('is-actual', k === i));
       pestanas.forEach((b, k) => b.setAttribute('aria-selected', String(k === i)));
     };

@@ -1,0 +1,28 @@
+{
+  "titulo": "Una línea de tiempo: la última copia a las 22:00 de ayer, un ransomware que tumba el servidor a las 10:00 y el servicio de vuelta a las 14:00. Hacia atrás quedan 12 horas de datos perdidos (RPO) y hacia delante 4 horas sin servicio (RTO).",
+  "pie": "El RPO mira hacia atrás, hasta la última copia; el RTO mira hacia delante, hasta que el servicio vuelve.",
+  "lienzo": [900, 240],
+  "elementos": ["incidente", "rpo", "rto"],
+  "etapas": [
+    {
+      "titulo": "La copia de cada noche",
+      "muestra": [],
+      "porque": "El servidor se copia cada noche a las 22:00. Mientras no pase nada, la copia es solo una promesa: su valor se mide el día que hace falta."
+    },
+    {
+      "titulo": "Algo sale mal",
+      "muestra": ["incidente"],
+      "porque": "A las 10:00 un ransomware cifra el servidor. Desde este momento cuentan dos cosas distintas: lo que se ha perdido y lo que se tarda en volver."
+    },
+    {
+      "titulo": "RPO: mirar hacia atrás",
+      "muestra": ["incidente", "rpo"],
+      "porque": "Todo lo hecho entre la última copia (22:00) y el incidente (10:00) se pierde: 12 horas de trabajo. Si eso es demasiado, hay que copiar más a menudo. El RPO es cuánto se acepta perder."
+    },
+    {
+      "titulo": "RTO: mirar hacia delante",
+      "muestra": ["incidente", "rpo", "rto"],
+      "porque": "Restaurar la copia y comprobarla lleva hasta las 14:00: 4 horas sin servicio. Si eso es demasiado, hay que cambiar cómo y dónde se guarda la copia. El RTO es cuánto se acepta estar parado."
+    }
+  ]
+}

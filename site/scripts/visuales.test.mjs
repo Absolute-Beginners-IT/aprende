@@ -15,9 +15,9 @@ const enlace = (a, b) => [a, b].sort().join('-');
 const recorridos = todos('recorridos');
 const evoluciones = todos('evoluciones');
 
-test('there are walkthroughs for the web request, tracert, SSH, DHCP, DNS forwarding and a published web server, and stage stories for modules 1 to 6', () => {
+test('there are walkthroughs for the web request, tracert, SSH, DHCP, DNS forwarding and a published web server, and stage stories for modules 1 to 7', () => {
   assert.deepEqual(recorridos.map(([n]) => n).sort(), ['dhcp', 'dns-reenviador', 'publicar-web', 'ssh', 'tracert', 'web']);
-  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['agdlp', 'alta-disponibilidad', 'capas-infraestructura', 'instantanea', 'mascara-ip', 'permisos-compartidos', 'permisos-linux', 'puntos-de-fallo', 'raid-espejo', 'red-oficina', 'servidor-windows', 'tabla-mac', 'tipos-hipervisor', 'vlan-troncal', 'vpn-subredes']);
+  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['agdlp', 'alta-disponibilidad', 'apagado-sai', 'capas-infraestructura', 'instantanea', 'mascara-ip', 'permisos-compartidos', 'permisos-linux', 'puntos-de-fallo', 'raid-espejo', 'red-oficina', 'rpo-rto', 'servidor-windows', 'tabla-mac', 'tipos-copia', 'tipos-hipervisor', 'vlan-troncal', 'vpn-subredes']);
 });
 
 for (const [nombre, { nodos, cables, pasos, pantalla }] of recorridos) {
@@ -72,6 +72,10 @@ for (const [nombre, { elementos, etapas }] of evoluciones) {
     const conocidos = new Set(elementos);
     const dibujo = readFileSync(join(sitio, 'layouts', 'partials', 'visuales', `${nombre}.html`), 'utf8');
     for (const id of elementos) assert.ok(dibujo.includes(`data-elemento="${id}"`), `the drawing has no element ${id}`);
+    for (const [, ids] of dibujo.matchAll(/data-hasta="([^"]+)"/g)) {
+      for (const id of ids.split(' ')) assert.ok(conocidos.has(id), `data-hasta names unknown element ${id}`);
+    }
+    assert.ok(!/<[^>]*data-elemento=[^>]*data-hasta|<[^>]*data-hasta=[^>]*data-elemento/.test(dibujo), 'a shape is either a stage element or replaced, not both');
     etapas.forEach((etapa, i) => {
       assert.ok(etapa.titulo?.trim() && etapa.porque?.trim(), `stage ${i + 1}: missing title or reason`);
       for (const id of etapa.muestra) assert.ok(conocidos.has(id), `stage ${i + 1}: unknown element ${id}`);
@@ -89,7 +93,7 @@ test('every visual used in the route has its data', () => {
       for (const [, tipo, datos] of texto.matchAll(/\{\{<\s*(recorrido|evolucion)\s+datos="([^"]+)"\s*>\}\}/g)) usados.push([tipo, datos]);
     }
   }
-  assert.ok(usados.length >= 21, `only ${usados.length} visuals found in the route`);
+  assert.ok(usados.length >= 24, `only ${usados.length} visuals found in the route`);
   for (const [tipo, nombre] of usados) {
     assert.ok(existsSync(join(datos, tipo === 'recorrido' ? 'recorridos' : 'evoluciones', `${nombre}.json`)), `${tipo} ${nombre} has no data`);
   }

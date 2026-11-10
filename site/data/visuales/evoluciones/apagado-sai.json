@@ -1,0 +1,28 @@
+{
+  "titulo": "Un SAI con tarjeta de red y los equipos que protege: con corriente (OL), funcionando con batería tras un corte (OB), con batería baja (LB), cuando los agentes apagan en orden las VM, los hipervisores, el almacenamiento y la red, y al volver la luz, cuando se enciende todo al revés.",
+  "pie": "Los estados OL, OB y LB son los que muestra NUT con upsc. El orden se prueba al menos una vez al año, en una ventana pactada.",
+  "lienzo": [900, 316],
+  "elementos": ["corte", "bateria-baja", "vuelve"],
+  "etapas": [
+    {
+      "titulo": "Con corriente",
+      "muestra": [],
+      "porque": "El SAI está en OL (on line): da corriente de la red y mantiene la batería cargada. Su tarjeta de red informa del estado a los agentes de todos los servidores."
+    },
+    {
+      "titulo": "Corte de luz",
+      "muestra": ["corte"],
+      "porque": "Se va la luz y el SAI pasa a OB (on battery): todo sigue funcionando con la batería. Los agentes se enteran, pero aún no apagan nada; puede que la luz vuelva en un minuto."
+    },
+    {
+      "titulo": "Batería baja: apagar en orden",
+      "muestra": ["corte", "bateria-baja"],
+      "porque": "Cuando el SAI avisa de LB (low battery), cada agente apaga su equipo, de arriba abajo: primero las VM, después los hipervisores y luego el almacenamiento. La red va la última o aguanta hasta que se agote la batería. Si el almacenamiento se apagara antes, las VM perderían sus discos encendidas."
+    },
+    {
+      "titulo": "Vuelve la luz: encender al revés",
+      "muestra": ["corte", "bateria-baja", "vuelve"],
+      "porque": "Se enciende de abajo arriba: la red, el almacenamiento, los hipervisores y, al final, las VM, empezando por el controlador de dominio y el DNS, de los que dependen las demás."
+    }
+  ]
+}

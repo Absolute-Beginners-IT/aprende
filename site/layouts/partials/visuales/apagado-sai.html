@@ -1,0 +1,52 @@
+{{- /* Drawing of a UPS-driven orderly shutdown for the evolucion shortcode (data/visuales/evoluciones/apagado-sai.json), in a
+  900 × 316 canvas. The UPS status (OL, OB, LB, OL) is replaced stage by stage (data-hasta); the shutdown and start-up
+  orders appear as two numbered columns next to the protected layers. */ -}}
+<text class="viz__nombre" x="130" y="34" text-anchor="middle">Red eléctrica</text>
+<path class="viz__cable viz__cable--fijo" d="M130 44 L 130 70"/>
+<path class="viz__guia" d="M220 160 H 300 M300 82 V 250 M300 82 H 330 M300 138 H 330 M300 194 H 330 M300 250 H 330"/>
+<rect class="viz__tarjeta" x="40" y="70" width="180" height="170" rx="16"/>
+<text class="viz__nombre" x="130" y="98" text-anchor="middle">SAI</text>
+<text class="viz__detalle" x="130" y="118" text-anchor="middle">con tarjeta de red</text>
+<g data-hasta="corte">
+  <text class="viz__veredicto viz__veredicto--si" x="130" y="168" text-anchor="middle">OL</text>
+  <text class="viz__detalle" x="130" y="196" text-anchor="middle">con corriente</text>
+</g>
+<rect class="viz__tarjeta" x="330" y="60" width="400" height="44" rx="12"/>
+<text class="viz__nombre" x="350" y="87">Máquinas virtuales</text>
+<rect class="viz__tarjeta" x="330" y="116" width="400" height="44" rx="12"/>
+<text class="viz__nombre" x="350" y="143">Hipervisores</text>
+<rect class="viz__tarjeta" x="330" y="172" width="400" height="44" rx="12"/>
+<text class="viz__nombre" x="350" y="199">Almacenamiento</text>
+<rect class="viz__tarjeta" x="330" y="228" width="400" height="44" rx="12"/>
+<text class="viz__nombre" x="350" y="255">Red: switches y firewall</text>
+<g data-elemento="corte">
+  <g data-hasta="vuelve">
+    <circle class="viz__fallo" cx="212" cy="30" r="13"/>
+    <text class="viz__fallo-texto" x="212" y="36" text-anchor="middle">!</text>
+  </g>
+  <g data-hasta="bateria-baja">
+    <text class="viz__veredicto viz__veredicto--no" x="130" y="168" text-anchor="middle">OB</text>
+    <text class="viz__detalle" x="130" y="196" text-anchor="middle">con batería</text>
+  </g>
+</g>
+<g data-elemento="bateria-baja">
+  <g data-hasta="vuelve">
+    <text class="viz__veredicto viz__veredicto--no" x="130" y="168" text-anchor="middle">LB</text>
+    <text class="viz__detalle" x="130" y="196" text-anchor="middle">batería baja: apagar</text>
+  </g>
+  <text class="viz__rotulo" x="790" y="44" text-anchor="middle">APAGAR</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="790" y="87" text-anchor="middle">1</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="790" y="143" text-anchor="middle">2</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="790" y="199" text-anchor="middle">3</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="790" y="255" text-anchor="middle">4</text>
+</g>
+<g data-elemento="vuelve">
+  <text class="viz__veredicto viz__veredicto--si" x="130" y="168" text-anchor="middle">OL</text>
+  <text class="viz__detalle" x="130" y="196" text-anchor="middle">vuelve la luz</text>
+  <text class="viz__rotulo" x="856" y="44" text-anchor="middle">ENCENDER</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="856" y="87" text-anchor="middle">4</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="856" y="143" text-anchor="middle">3</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="856" y="199" text-anchor="middle">2</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="856" y="255" text-anchor="middle">1</text>
+  <text class="viz__detalle" x="530" y="300" text-anchor="middle">las VM, empezando por el controlador de dominio y el DNS</text>
+</g>
