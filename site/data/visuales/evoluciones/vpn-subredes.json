@@ -1,0 +1,23 @@
+{
+  "titulo": "Dos sedes unidas por un túnel VPN: primero las dos con la subred 192.168.10.0/24, que no se puede enrutar, y después la delegación con 192.168.110.0/24, que ya funciona.",
+  "pie": "Para enrutar por una VPN, cada red tiene que tener su propio rango. Por eso se evitan al diseñar los rangos más comunes, como 192.168.0.0/24 y 192.168.1.0/24.",
+  "lienzo": [900, 290],
+  "elementos": ["conflicto", "renumerar"],
+  "etapas": [
+    {
+      "titulo": "Dos sedes y un túnel",
+      "muestra": [],
+      "porque": "La central y la delegación se unen con una VPN sitio a sitio. Para que un equipo de una sede hable con otro de la otra, cada firewall tiene que saber qué redes hay al otro lado del túnel."
+    },
+    {
+      "titulo": "La misma subred en las dos",
+      "muestra": ["conflicto"],
+      "porque": "Las dos sedes usan 192.168.10.0/24. Un equipo de la central que quiere hablar con 192.168.10.20 cree que está en su propia red y ni siquiera lo manda al túnel. Con rangos repetidos no hay forma de enrutar."
+    },
+    {
+      "titulo": "Cada sede, su rango",
+      "muestra": ["conflicto", "renumerar"],
+      "porque": "La delegación pasa a 192.168.110.0/24. Ahora 192.168.110.20 no es de la red de la central, así que el equipo lo manda a su puerta de enlace, entra en el túnel y llega."
+    }
+  ]
+}

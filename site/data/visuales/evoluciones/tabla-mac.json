@@ -1,0 +1,28 @@
+{
+  "titulo": "Un switch con tres equipos, A, B y C, en los puertos 1, 2 y 3, y su tabla MAC, que se rellena trama a trama: aprende A, después B, y a partir de ahí envía cada trama solo por su puerto.",
+  "pie": "El switch aprende mirando la MAC de origen de cada trama que entra, y decide por dónde enviarla mirando la MAC de destino.",
+  "lienzo": [900, 344],
+  "elementos": ["aprende-a", "aprende-b", "directo"],
+  "etapas": [
+    {
+      "titulo": "Tabla vacía",
+      "muestra": [],
+      "porque": "Recién encendido, el switch no sabe qué hay detrás de cada puerto. Su tabla MAC está vacía y la irá llenando él solo con el tráfico."
+    },
+    {
+      "titulo": "A envía a B",
+      "muestra": ["aprende-a"],
+      "porque": "La trama entra por el puerto 1 con MAC de origen AA-…: el switch apunta que A está en el puerto 1. La MAC de destino, la de B, no está en la tabla, así que la envía por todos los puertos menos por el que entró: es la inundación."
+    },
+    {
+      "titulo": "B responde a A",
+      "muestra": ["aprende-a", "aprende-b"],
+      "porque": "La respuesta entra por el puerto 2 con MAC de origen BB-…: el switch apunta B en el puerto 2. Ahora el destino, A, sí está en la tabla, y la trama sale solo por el puerto 1."
+    },
+    {
+      "titulo": "Ya sabe dónde está cada uno",
+      "muestra": ["aprende-a", "aprende-b", "directo"],
+      "porque": "La siguiente trama de A a B sale solo por el puerto 2, y C ya no recibe nada de esa conversación. Si A o B dejan de hablar unos minutos, su entrada caduca y el switch vuelve a aprenderla."
+    }
+  ]
+}

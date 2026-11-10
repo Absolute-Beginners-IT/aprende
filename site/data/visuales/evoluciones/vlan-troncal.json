@@ -1,0 +1,28 @@
+{
+  "titulo": "Un switch con un PC en la VLAN 10 y un servidor DHCP en la VLAN 50 que no se ven; después un troncal 802.1Q hasta el firewall, una subinterfaz del firewall por VLAN que enruta entre ellas y, al final, el DHCP relay.",
+  "pie": "Una VLAN, una subred, una puerta de enlace. Lo que cruza de una VLAN a otra pasa por el firewall y sus reglas.",
+  "lienzo": [900, 340],
+  "elementos": ["troncal", "subinterfaces", "relay"],
+  "etapas": [
+    {
+      "titulo": "Dos VLAN en un switch",
+      "muestra": [],
+      "porque": "El PC está en un puerto de acceso de la VLAN 10 y el servidor en uno de la VLAN 50. Aunque compartan switch, es como si estuvieran en dos switches distintos: sus tramas y sus broadcasts no se cruzan."
+    },
+    {
+      "titulo": "Un troncal hasta el firewall",
+      "muestra": ["troncal"],
+      "porque": "El puerto que va al firewall es un troncal: lleva las dos VLAN por el mismo cable, cada trama con su etiqueta 802.1Q (10 o 50), para que el firewall sepa de qué VLAN viene."
+    },
+    {
+      "titulo": "Una puerta de enlace por VLAN",
+      "muestra": ["troncal", "subinterfaces"],
+      "porque": "El firewall tiene una subinterfaz en cada VLAN, 192.168.10.1 y 192.168.50.1, que son las puertas de enlace de cada subred. El tráfico de una VLAN a otra pasa por él, y sus reglas deciden qué se permite."
+    },
+    {
+      "titulo": "El DHCP relay",
+      "muestra": ["troncal", "subinterfaces", "relay"],
+      "porque": "El PC pide IP con un broadcast, que no sale de la VLAN 10. La subinterfaz 192.168.10.1 lo recoge y se lo reenvía al DHCP de la VLAN 50: eso es el DHCP relay. Sin él, los puestos se quedarían sin IP."
+    }
+  ]
+}

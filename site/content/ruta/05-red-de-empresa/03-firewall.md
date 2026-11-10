@@ -77,6 +77,10 @@ El NAT de salida suele venir configurado de serie. La redirección de puertos, e
 
 (Las direcciones `203.0.113.x` están reservadas para documentación; en tu empresa verás la IP pública que da la operadora).
 
+Pulsa el botón para seguir una conexión desde internet hasta una web publicada con redirección de puertos:
+
+{{< recorrido datos="publicar-web" >}}
+
 {{< pregunta texto="¿Cómo se llama la regla que envía las conexiones que llegan a un puerto de la IP pública hacia un servidor interno?" respuesta="redireccion de puertos|port forwarding|reenvio de puertos|nat de destino|dnat|port forward" >}}
 {{% /tarea %}}
 

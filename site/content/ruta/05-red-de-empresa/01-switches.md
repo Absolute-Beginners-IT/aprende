@@ -30,6 +30,10 @@ Para saber por qué puerto mandar cada trama (el «paquete» de Ethernet), el sw
 
 Las entradas caducan si un equipo deja de hablar durante un tiempo (suele ser unos minutos), así que la tabla se mantiene al día sola. En algunos fabricantes también la verás como **tabla CAM**.
 
+Pulsa cada etapa para ver cómo la rellena, trama a trama:
+
+{{< evolucion datos="tabla-mac" >}}
+
 {{< pregunta texto="¿Cómo se llama la tabla donde el switch apunta qué dirección MAC hay detrás de cada puerto?" respuesta="tabla mac|tabla de direcciones mac|mac address table|tabla cam|cam" >}}
 {{% /tarea %}}
 
