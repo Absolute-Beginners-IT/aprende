@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">De dónde coge la hora el FortiGate después de esta guía</text>
+  <rect class="fg-caja fg-caja--clave" x="20" y="60" width="340" height="170" rx="12"/>
+  <text class="fg-texto fg-negrita" x="190.0" y="86" text-anchor="middle">FortiGate · config system ntp</text>
+  <text class="fg-texto" x="60" y="120">ntpsync enable   (de fábrica: disable)</text>
+  <text class="fg-texto" x="60" y="148">type custom   (de fábrica: fortiguard)</text>
+  <text class="fg-texto" x="60" y="176">ntpserver, entrada 1:</text>
+  <text class="fg-tenue" x="60" y="204">server 192.168.10.5</text>
+  <circle class="fg-num" cx="40" cy="116" r="11"/>
+  <text class="fg-num-t" x="40" y="120" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="40" cy="144" r="11"/>
+  <text class="fg-num-t" x="40" y="148" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="40" cy="172" r="11"/>
+  <text class="fg-num-t" x="40" y="176" text-anchor="middle">3</text>
+  <rect class="fg-caja" x="480" y="60" width="300" height="70" rx="12"/>
+  <text class="fg-texto fg-negrita" x="630.0" y="84" text-anchor="middle">Servidor de FortiGuard</text>
+  <text class="fg-tenue fg-peque" x="630.0" y="106" text-anchor="middle">el de Fortinet, solo con type fortiguard</text>
+  <path class="fg-flecha" d="M480 95 H360 M369 89 L360 95 L369 101"/>
+  <text class="fg-tenue fg-peque" x="420" y="86" text-anchor="middle">ya no se usa</text>
+  <rect class="fg-caja fg-caja--clave" x="480" y="160" width="300" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="630.0" y="184" text-anchor="middle">Servidor de tiempo de la empresa</text>
+  <text class="fg-tenue fg-peque" x="630.0" y="206" text-anchor="middle">192.168.10.5</text>
+  <text class="fg-tenue fg-peque" x="630.0" y="224" text-anchor="middle">con un nombre, el FortiGate necesita DNS</text>
+  <path class="fg-flecha fg-flecha--datos" d="M480 195 H360 M369 189 L360 195 L369 201"/>
+  <text class="fg-tenue fg-peque" x="420" y="186" text-anchor="middle">hora (NTP)</text>
+  <circle class="fg-num" cx="420" cy="214" r="11"/>
+  <text class="fg-num-t" x="420" y="218" text-anchor="middle">4</text>
+  <rect class="fg-lateral" x="20" y="268" width="760" height="40" rx="10"/>
+  <text class="fg-texto" x="44" y="293">Compruébalo con diagnose sys ntp status; puede tardar unos minutos en sincronizar.</text>
+</svg>
