@@ -86,6 +86,8 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Corregido
 
+- Las figuras de los pasos ya no se estiran hasta el ancho de la columna: como mucho ocupan el 80 % de su tamaño
+  natural, así que en una pantalla ancha el texto se ve como en la consola real y no más grande.
 - Planificador: cuando dos switches de «Mi infraestructura» se llaman igual, el guardado automático ya no les crea un
   switch nuevo a cada uno. Antes, al renombrar uno, el switch del plan con ese nombre quedaba oculto para siempre; ahora
   vuelve a asociarse por su nombre (salvo que edites el plan mientras los nombres siguen repetidos). Los demás switches

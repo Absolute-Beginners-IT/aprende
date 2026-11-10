@@ -353,6 +353,8 @@ describe('RunbookPage', () => {
     const image = steps.getByRole('img', { name: 'Paso Repository del asistente.' })
     expect(image.querySelector('svg')).not.toBeNull()
     expect(steps.getByText('1 Carpeta. 2 Populate.')).toBeInTheDocument()
+    // Never wider than 80 % of the drawing's own width (800), so its text stays near real screen size.
+    expect(image.style.getPropertyValue('--ancho-figura')).toBe('640px')
   })
 
   it('presents a web-managed runbook as screen steps, without command blocks to copy', () => {
