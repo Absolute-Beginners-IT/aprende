@@ -30,8 +30,8 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
 
 | ID | Specs | Route | Status | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S2–S8 | delegated (context backstop: long parent session) | done, checks green (L5); commit pending (parent) | |
-| T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | pending | |
+| T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
+| T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S9 slice 2: tiers, groups, typed lines | pending decision after T1 | pending | |
 
 ## Log
@@ -68,3 +68,8 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
   Checks: app vitest 171/171, app build OK, guides vitest 352/352, guides tsc OK. Advisories left as they are: v1
   entries with no id are dropped; onConnect does not re-check that both devices still exist; the same id in
   `removeDevices` and `saveDevices` moves the device to the end.
+- **L7** Independent verifier: S2–S7 pass; one S8 blocker (CSV re-import lost the uplink order) fixed in f5a4caf
+  with regression tests. Native review (risk, resilience, reliability) approved and acknowledged; advisories for later:
+  R1-001 and R4-rollback-stale-v1 (old key kept stale after v2 writes), R4-unknown-version-overwrite (a future version
+  would be overwritten), R3-form-readd-accumulates-links (re-adding a device from the form adds links again),
+  R3-onconnect-untested.
