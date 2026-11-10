@@ -1,0 +1,28 @@
+{
+  "titulo": "Una infraestructura de pyme que se explica por capas: primero la física (firewall, switch, puestos, servidor y NAS), encima la lógica con dos VLAN, luego los servicios del servidor y al final la protección.",
+  "pie": "Cuando algo falla, se busca de abajo arriba: primero la capa física, después la lógica y al final el servicio.",
+  "lienzo": [900, 350],
+  "elementos": ["logica", "servicios", "proteccion"],
+  "etapas": [
+    {
+      "titulo": "Física",
+      "muestra": [],
+      "porque": "Cables, firewall, switch, puestos, servidor y NAS: por aquí viajan los datos. Es la base. Si un cable o el switch fallan, todo lo que va encima cae con ellos, y por eso una avería se empieza a buscar aquí."
+    },
+    {
+      "titulo": "Lógica",
+      "muestra": ["logica"],
+      "porque": "Sobre los mismos cables, las VLAN separan la red en grupos: la oficina en una y los servidores en otra. El firewall decide qué grupo puede hablar con cuál. Sin la capa física no habría nada que separar."
+    },
+    {
+      "titulo": "Servicios",
+      "muestra": ["logica", "servicios"],
+      "porque": "El servidor ofrece DNS, DHCP, directorio activo y ficheros, que es lo que de verdad usan las personas. Dependen de las capas de abajo: si la red o la VLAN fallan, el servicio no llega aunque el servidor esté encendido y responda a ping."
+    },
+    {
+      "titulo": "Protección",
+      "muestra": ["logica", "servicios", "proteccion"],
+      "porque": "El SAI, las copias y la monitorización no dan servicio por sí mismos: protegen todo lo demás. Se piensan al final porque antes hay que saber qué se protege, pero sin ellos un apagón o un disco roto se llevan datos y servicio."
+    }
+  ]
+}

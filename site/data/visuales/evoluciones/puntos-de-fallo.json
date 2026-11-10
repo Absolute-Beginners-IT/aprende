@@ -1,0 +1,28 @@
+{
+  "titulo": "Dos servidores iguales que parecen redundantes y, etapa a etapa, los puntos únicos de fallo de los que dependen los dos: el switch core, la alimentación y la cabina de almacenamiento.",
+  "pie": "Un punto único de fallo es cualquier pieza que está sola. Para encontrarlos, sigue de qué depende cada servicio.",
+  "lienzo": [900, 340],
+  "elementos": ["switch", "alimentacion", "cabina"],
+  "etapas": [
+    {
+      "titulo": "Parece redundante",
+      "muestra": [],
+      "porque": "Dos servidores iguales hacen el mismo trabajo: si uno se rompe, el otro sigue. Parece alta disponibilidad, pero falta mirar de qué dependen los dos."
+    },
+    {
+      "titulo": "El switch core",
+      "muestra": ["switch"],
+      "porque": "Los dos servidores y todos los puestos pasan por el mismo switch. Si se rompe, nadie llega a ninguno de los dos. Solución: un segundo switch con los servidores conectados a ambos, o uno de repuesto ya configurado."
+    },
+    {
+      "titulo": "La alimentación",
+      "muestra": ["switch", "alimentacion"],
+      "porque": "Todo cuelga de la misma regleta. Un corte de luz o un fusible apaga los dos servidores a la vez. Solución: un SAI y, si se puede, fuentes dobles conectadas a circuitos distintos."
+    },
+    {
+      "titulo": "El almacenamiento",
+      "muestra": ["switch", "alimentacion", "cabina"],
+      "porque": "Los dos servidores guardan los datos en la misma cabina. Si falla, los dos se quedan sin datos, y si las copias también están ahí, se pierden con ella. Solución: copias 3-2-1, con una fuera de la cabina y de la oficina."
+    }
+  ]
+}

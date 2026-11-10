@@ -252,7 +252,7 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz__cable.is-activo { stroke: var(--l-fisica); stroke-dasharray: 10 9; animation: viz-flujo .7s linear infinite; }
 .viz__cable--fijo { stroke: var(--l-fisica); stroke-width: 4; }
 @keyframes viz-flujo { to { stroke-dashoffset: -19; } }
-.viz__guia { stroke: var(--line); stroke-dasharray: 3 4; }
+.viz__guia { fill: none; stroke: var(--line); stroke-dasharray: 3 4; }
 .viz__tarjeta { fill: var(--surface); stroke: var(--line); stroke-width: 1.4; filter: drop-shadow(0 6px 8px rgba(20, 35, 60, .18)); }
 .viz__halo { fill: var(--l-fisica); opacity: 0; transition: opacity .3s; }
 .viz__nodo.is-activo .viz__halo { opacity: .16; }
@@ -294,6 +294,11 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz__insignia { fill: color-mix(in srgb, var(--l-fisica) 12%, var(--surface)); stroke: var(--l-fisica); stroke-width: 1.6; }
 .viz__insignia--nueva { fill: color-mix(in srgb, var(--accent) 12%, var(--surface)); stroke: var(--accent); }
 .viz__tapa { fill: var(--surface); }
+.viz__insignia--servicios { fill: color-mix(in srgb, var(--l-servicios) 12%, var(--surface)); stroke: var(--l-servicios); }
+.viz__insignia--proteccion { fill: color-mix(in srgb, var(--l-proteccion) 12%, var(--surface)); stroke: var(--l-proteccion); }
+.viz svg .viz__tramo-texto--proteccion { fill: var(--l-proteccion); }
+.viz svg .viz__fallo { fill: var(--l-proteccion); stroke: none; }
+.viz svg .viz__fallo-texto { fill: var(--surface); font-weight: 800; font-size: 17px; }
 .viz svg .viz__veredicto--si { fill: var(--l-servicios); }
 .viz svg .viz__veredicto--no { fill: var(--l-logica); }
 .viz__punto { fill: var(--accent); stroke: var(--surface); stroke-width: 3; }
