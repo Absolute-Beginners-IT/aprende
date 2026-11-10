@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="499" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">New Backup Job</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="465"/>
+  <text class="fg-texto" x="16" y="66">Name</text>
+  <text class="fg-texto" x="16" y="98">Virtual Machines</text>
+  <rect class="fg-seleccion" x="4" y="116" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="130">Storage</text>
+  <text class="fg-tenue" x="16" y="162">Guest Processing</text>
+  <text class="fg-tenue" x="16" y="194">Schedule</text>
+  <text class="fg-tenue" x="16" y="226">Summary</text>
+  <text class="fg-titulo" x="177" y="68">Storage</text>
+  <text class="fg-tenue" x="177" y="94">Specify backup repository to store the backup files produced by this job and</text>
+  <text class="fg-tenue" x="177" y="111">customize advanced job settings if required.</text>
+  <path class="fg-linea" d="M177 138 H783"/>
+  <rect class="fg-boton" x="449" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="489" y="466" text-anchor="middle">&lt; Previous</text>
+  <rect class="fg-boton fg-boton--principal" x="537" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="577" y="466" text-anchor="middle">Next &gt;</text>
+  <rect class="fg-boton fg-boton--apagado" x="625" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-tenue" x="665" y="466" text-anchor="middle">Finish</text>
+  <rect class="fg-boton" x="713" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="753" y="466" text-anchor="middle">Cancel</text>
+  <text class="fg-texto" x="177" y="176">Backup repository:</text>
+  <rect class="fg-campo" x="296" y="158" width="486" height="26" rx="4"/>
+  <text class="fg-texto" x="305" y="176">REPO-LOCAL-01 (Created by Veeam Backup)</text>
+  <path class="fg-icono" d="M764 168 l5 5 l5 -5"/>
+  <text class="fg-tenue" x="318" y="204">2.1 TB free of 2.4 TB</text>
+  <text class="fg-enlace" x="707" y="204">Map backup</text>
+  <rect class="fg-resalte" x="290" y="152" width="498" height="38" rx="6"/>
+  <circle class="fg-num" cx="284" cy="152" r="11"/>
+  <text class="fg-num-t" x="284" y="156" text-anchor="middle">1</text>
+  <text class="fg-texto" x="177" y="246">Retention policy:</text>
+  <rect class="fg-campo" x="286" y="228" width="90" height="26" rx="4"/>
+  <text class="fg-texto" x="295" y="246">14</text>
+  <path class="fg-icono" d="M346 238 l4 4 l4 -4 M360 243 l4 -4 l4 4"/>
+  <text class="fg-texto" x="388" y="246">days</text>
+  <rect class="fg-resalte" x="280" y="222" width="146" height="38" rx="6"/>
+  <circle class="fg-num" cx="438" cy="240" r="11"/>
+  <text class="fg-num-t" x="438" y="244" text-anchor="middle">2</text>
+  <rect class="fg-casilla" x="177" y="274" width="14" height="14" rx="2"/>
+  <text class="fg-tenue" x="199" y="286">Keep certain full backups longer for archival purposes</text>
+  <text class="fg-enlace" x="177" y="422">Advanced job settings...</text>
+</svg>

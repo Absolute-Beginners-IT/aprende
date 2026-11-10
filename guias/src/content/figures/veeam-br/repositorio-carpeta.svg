@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="499" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">New Backup Repository</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="465"/>
+  <text class="fg-texto" x="16" y="66">Name</text>
+  <text class="fg-texto" x="16" y="98">Server</text>
+  <rect class="fg-seleccion" x="4" y="116" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="130">Repository</text>
+  <text class="fg-tenue" x="16" y="162">Mount Servers</text>
+  <text class="fg-tenue" x="16" y="194">Review</text>
+  <text class="fg-tenue" x="16" y="226">Apply</text>
+  <text class="fg-tenue" x="16" y="258">Summary</text>
+  <text class="fg-titulo" x="177" y="68">Repository</text>
+  <text class="fg-tenue" x="177" y="94">Type in path to the folder where backup files should be stored, and set</text>
+  <text class="fg-tenue" x="177" y="111">repository load control options.</text>
+  <path class="fg-linea" d="M177 138 H783"/>
+  <rect class="fg-boton" x="449" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="489" y="466" text-anchor="middle">&lt; Previous</text>
+  <rect class="fg-boton fg-boton--principal" x="537" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="577" y="466" text-anchor="middle">Next &gt;</text>
+  <rect class="fg-boton fg-boton--apagado" x="625" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-tenue" x="665" y="466" text-anchor="middle">Finish</text>
+  <rect class="fg-boton" x="713" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="753" y="466" text-anchor="middle">Cancel</text>
+  <rect class="fg-banda" x="177" y="146" width="606" height="24" rx="0"/>
+  <text class="fg-texto" x="185" y="163">Location</text>
+  <text class="fg-texto" x="185" y="196">Path to folder:</text>
+  <rect class="fg-campo" x="282" y="178" width="410" height="26" rx="4"/>
+  <text class="fg-texto" x="291" y="196">E:\Backups</text>
+  <text class="fg-enlace" x="704" y="196">Browse...</text>
+  <text class="fg-tenue" x="304" y="224">2.1 TB free of 2.4 TB</text>
+  <text class="fg-enlace" x="722" y="224">Populate</text>
+  <rect class="fg-resalte" x="276" y="172" width="422" height="38" rx="6"/>
+  <circle class="fg-num" cx="270" cy="172" r="11"/>
+  <text class="fg-num-t" x="270" y="176" text-anchor="middle">1</text>
+  <rect class="fg-resalte" x="714" y="208" width="66" height="24" rx="6"/>
+  <circle class="fg-num" cx="772" cy="244" r="11"/>
+  <text class="fg-num-t" x="772" y="248" text-anchor="middle">2</text>
+  <rect class="fg-banda" x="177" y="250" width="606" height="24" rx="0"/>
+  <text class="fg-texto" x="185" y="267">Load control</text>
+  <rect class="fg-casilla fg-casilla--si" x="185" y="292" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M188 299 l3 3 l6 -6"/>
+  <text class="fg-texto" x="207" y="304">Limit maximum concurrent tasks to:</text>
+  <rect class="fg-campo" x="420" y="286" width="80" height="26" rx="4"/>
+  <text class="fg-texto" x="429" y="304">4</text>
+  <path class="fg-icono" d="M470 296 l4 4 l4 -4 M484 301 l4 -4 l4 4"/>
+  <rect class="fg-casilla" x="185" y="324" width="14" height="14" rx="2"/>
+  <text class="fg-tenue" x="207" y="336">Limit read and write data rate to:</text>
+  <rect class="fg-resalte" x="179" y="282" width="330" height="34" rx="6"/>
+  <circle class="fg-num" cx="522" cy="300" r="11"/>
+  <text class="fg-num-t" x="522" y="304" text-anchor="middle">3</text>
+  <text class="fg-enlace" x="177" y="422">Customize repository settings...</text>
+</svg>

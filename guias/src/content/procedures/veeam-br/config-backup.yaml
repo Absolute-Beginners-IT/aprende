@@ -20,6 +20,16 @@ preflight:
       si el servidor se pierde, esa copia se pierde con él.
 steps:
   - title: Abrir la copia de la configuración
+    figure:
+      id: veeam-br/copia-configuracion
+      alt: >-
+        Ventana Configuration Backup Settings: casilla Enable configuration backup con el
+        repositorio REPO-LOCAL-01, Restore points to keep con 10, enlace Schedule, cifrado
+        con contraseña y enlace Backup now.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 Activar la copia y elegir el repositorio. 2 Restore points to keep. 3
+        Schedule. 4 El cifrado con contraseña. 5 Backup now.
     manual: true
     explanation: >-
       En el menú principal de la consola elige Configuration Backup. Comprueba que está

@@ -8,6 +8,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Figuras en los pasos de las guías: cada paso puede llevar un dibujo con su descripción para lectores de pantalla y una
+  leyenda. Las guías de Veeam tienen ocho: pantallas de la consola redibujadas y simplificadas (no son capturas), con
+  números que señalan lo que nombra el paso, y un esquema de qué viaja y dónde se guarda en una copia. Siguen el tema
+  claro u oscuro y funcionan en el archivo sin conexión.
 - Primeras copias de seguridad: Veeam Backup & Replication 13.1 en Windows Server, en «Copias de seguridad», con
   cinco guías de pasos en su consola: instalarlo, añadir un repositorio, programar un trabajo que copia las máquinas de
   Proxmox VE, restaurar una máquina virtual y guardar la copia cifrada de su configuración (.bco). Las plataformas pueden

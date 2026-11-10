@@ -1754,3 +1754,139 @@ thead th {
 .library-nav .task-nav a {
   font-size: 0.88rem;
 }
+
+/* Step figures (content/figures): redrawn, simplified screens and diagrams. They paint with the theme variables, so
+   they follow light and dark mode; numbered orange marks point at what the step's text names. */
+.step-figure {
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.step-figure__img {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
+.step-figure__img svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  font-family: inherit;
+}
+
+.step-figure figcaption {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.fg-ventana {
+  fill: var(--surface);
+  stroke: var(--border);
+}
+.fg-barra {
+  fill: color-mix(in srgb, var(--border) 45%, var(--surface));
+}
+.fg-lateral {
+  fill: color-mix(in srgb, var(--border) 30%, var(--surface));
+}
+.fg-banda {
+  fill: color-mix(in srgb, var(--border) 35%, var(--surface));
+}
+.fg-linea {
+  stroke: var(--border);
+}
+.fg-texto {
+  fill: var(--text);
+  font-size: 13px;
+}
+.fg-tenue {
+  fill: var(--muted);
+  font-size: 13px;
+}
+.fg-peque {
+  font-size: 11.5px;
+}
+.fg-titulo {
+  fill: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+}
+.fg-negrita {
+  font-weight: 700;
+}
+.fg-campo {
+  fill: var(--bg);
+  stroke: var(--border);
+}
+.fg-casilla {
+  fill: var(--surface);
+  stroke: var(--muted);
+}
+.fg-casilla--si {
+  fill: var(--ok);
+  stroke: var(--ok);
+}
+.fg-visto {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.fg-enlace {
+  fill: var(--ok);
+  font-size: 13px;
+}
+.fg-boton {
+  fill: var(--surface);
+  stroke: var(--border);
+}
+.fg-boton--principal {
+  stroke: var(--text);
+  stroke-width: 1.6;
+}
+.fg-boton--apagado {
+  fill: var(--bg);
+}
+.fg-seleccion {
+  fill: var(--ok);
+}
+.fg-icono {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.6;
+}
+.fg-resalte {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.fg-num {
+  fill: var(--accent);
+}
+.fg-num-t {
+  fill: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+}
+.fg-caja {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1.4;
+}
+.fg-caja--clave {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.fg-flecha {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+.fg-flecha--datos {
+  stroke: var(--ok);
+  stroke-width: 3;
+}
