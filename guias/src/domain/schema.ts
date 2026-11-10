@@ -42,6 +42,13 @@ export const ParamSchema = z
     message: 'A choice param needs options',
   })
 
+// A drawing that shows what a step looks like on screen: <platform>/<name>, a file in content/figures/.
+const FigureSchema = z.object({
+  id: z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*\/[a-z0-9]+(-[a-z0-9]+)*$/),
+  alt: text,
+  caption: text.optional(),
+})
+
 const stepFields = {
   title: text.optional(),
   commands: z.array(text).default([]),
@@ -51,6 +58,7 @@ const stepFields = {
   explanation: text,
   breakdown: z.array(z.object({ token: text, meaning: text })).optional(),
   warning: text.optional(),
+  figure: FigureSchema.optional(),
 }
 
 const hasCommandsUnlessManual = (step: { manual: boolean; commands: string[] }) =>
@@ -126,6 +134,7 @@ export const FundamentalSchema = z.object({
 })
 
 export type Param = z.infer<typeof ParamSchema>
+export type Figure = z.infer<typeof FigureSchema>
 export type Procedure = z.infer<typeof ProcedureSchema>
 export type Concept = z.infer<typeof ConceptSchema>
 export type Platform = z.infer<typeof PlatformSchema>

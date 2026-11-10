@@ -7,6 +7,7 @@ import { Badge } from '../../ui/Badge'
 import { CommandBlock } from '../../ui/CommandBlock'
 import { CopyButton } from '../../ui/CopyButton'
 import { Section } from '../../ui/Section'
+import { StepFigure } from '../../ui/StepFigure'
 import { MANUAL_STEP_LABELS, RISK_LABELS, STATUS_LABELS } from '../labels'
 import { platformFor, readInventorySwitches } from '../planner/inventoryImport'
 import { ChangeRecordSection } from './ChangeRecordSection'
@@ -346,6 +347,7 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
                 ready={isReady(step.commands)}
               />
               <p>{fill(step.explanation)}</p>
+              {step.figure && <StepFigure figure={step.figure} />}
               {step.breakdown && (
                 <dl className="breakdown">
                   {step.breakdown.map((part) => (

@@ -327,6 +327,34 @@ describe('RunbookPage', () => {
     expect(screen.queryByRole('button', { name: 'Copiar todos los pasos' })).not.toBeInTheDocument()
   })
 
+  it('shows the figure of a step, described for screen readers, with its caption', () => {
+    const illustrated = ProcedureSchema.parse({
+      ...procedure,
+      params: [],
+      preflight: [{ text: 'Abre la consola.' }],
+      steps: [
+        {
+          title: 'Indicar la carpeta',
+          explanation: 'Escribe la ruta y pulsa Populate.',
+          manual: true,
+          figure: {
+            id: 'veeam-br/repositorio-carpeta',
+            alt: 'Paso Repository del asistente.',
+            caption: '1 Carpeta. 2 Populate.',
+          },
+        },
+      ],
+      verification: [{ expect: 'El repositorio aparece en la lista.' }],
+      rollback: { summary: 'Quítalo.', steps: [{ title: 'Quitar', explanation: 'Pulsa Remove.', manual: true }] },
+    })
+    render(<RunbookPage platform={platform} concept={concept} procedure={illustrated} />)
+
+    const steps = within(section('Paso a paso'))
+    const image = steps.getByRole('img', { name: 'Paso Repository del asistente.' })
+    expect(image.querySelector('svg')).not.toBeNull()
+    expect(steps.getByText('1 Carpeta. 2 Populate.')).toBeInTheDocument()
+  })
+
   it('presents a web-managed runbook as screen steps, without command blocks to copy', () => {
     const webPlatform = PlatformSchema.parse({ ...platform, management: 'web', cliModes: [] })
     const web = ProcedureSchema.parse({

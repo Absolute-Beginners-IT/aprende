@@ -37,6 +37,16 @@ steps:
       selecciona la máquina, pulsa Point y elige el punto en la lista, que muestra el
       trabajo, la fecha, el tipo y el repositorio.
   - title: Elegir el modo
+    figure:
+      id: veeam-br/restaurar-modo
+      alt: >-
+        Paso Restore Mode del asistente Entire VM Restore: dos opciones, Restore to the
+        original location y Restore to a new location, or with different settings, que es la
+        elegida.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 Restore to a new location, or with different settings: la opción para
+        una prueba. 2 Restore to the original location: sustituye a la máquina actual.
     manual: true
     explanation: >-
       En Restore Mode, para una prueba elige Restore to a new location, or with different

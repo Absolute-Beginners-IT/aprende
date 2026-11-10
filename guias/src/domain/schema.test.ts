@@ -73,6 +73,20 @@ const validProcedure = () => ({
 })
 
 describe('ProcedureSchema', () => {
+  it('accepts a step figure with its description, and rejects one without it', () => {
+    const withFigure = (figure: unknown) => {
+      const base = validProcedure()
+      return { ...base, steps: [{ ...base.steps[0], figure }] }
+    }
+
+    const parsed = ProcedureSchema.parse(
+      withFigure({ id: 'veeam-br/repositorio-carpeta', alt: 'Paso Repository del asistente.' }),
+    )
+    expect(parsed.steps[0]?.figure?.id).toBe('veeam-br/repositorio-carpeta')
+    expect(ProcedureSchema.safeParse(withFigure({ id: 'veeam-br/repositorio-carpeta' })).success).toBe(false)
+    expect(ProcedureSchema.safeParse(withFigure({ id: 'Repositorio Carpeta', alt: 'Algo.' })).success).toBe(false)
+  })
+
   it('accepts a complete procedure and defaults params to required', () => {
     const procedure = ProcedureSchema.parse(validProcedure())
 

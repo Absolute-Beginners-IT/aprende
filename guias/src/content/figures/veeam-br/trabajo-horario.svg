@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="499" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">New Backup Job</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="465"/>
+  <text class="fg-texto" x="16" y="66">Name</text>
+  <text class="fg-texto" x="16" y="98">Virtual Machines</text>
+  <text class="fg-texto" x="16" y="130">Storage</text>
+  <text class="fg-texto" x="16" y="162">Guest Processing</text>
+  <rect class="fg-seleccion" x="4" y="180" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="194">Schedule</text>
+  <text class="fg-tenue" x="16" y="226">Summary</text>
+  <text class="fg-titulo" x="177" y="68">Schedule</text>
+  <text class="fg-tenue" x="177" y="94">Specify the job scheduling options. If you do not set the schedule, the job will</text>
+  <text class="fg-tenue" x="177" y="111">need to be controlled manually.</text>
+  <path class="fg-linea" d="M177 138 H783"/>
+  <rect class="fg-boton" x="449" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="489" y="466" text-anchor="middle">&lt; Previous</text>
+  <rect class="fg-boton fg-boton--principal" x="537" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="577" y="466" text-anchor="middle">Apply</text>
+  <rect class="fg-boton fg-boton--apagado" x="625" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-tenue" x="665" y="466" text-anchor="middle">Finish</text>
+  <rect class="fg-boton" x="713" y="448" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="753" y="466" text-anchor="middle">Cancel</text>
+  <rect class="fg-casilla fg-casilla--si" x="177" y="150" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M180 157 l3 3 l6 -6"/>
+  <text class="fg-texto" x="199" y="162">Run the job automatically</text>
+  <circle class="fg-casilla" cx="206" cy="187" r="7"/>
+  <circle class="fg-seleccion" cx="206" cy="187" r="4"/>
+  <text class="fg-texto" x="221" y="192">Daily at this time:</text>
+  <rect class="fg-campo" x="340" y="174" width="96" height="26" rx="4"/>
+  <text class="fg-texto" x="349" y="192">22:00</text>
+  <path class="fg-icono" d="M406 184 l4 4 l4 -4 M420 189 l4 -4 l4 4"/>
+  <rect class="fg-campo" x="448" y="174" width="250" height="26" rx="4"/>
+  <text class="fg-texto" x="457" y="192">Everyday</text>
+  <path class="fg-icono" d="M680 184 l5 5 l5 -5"/>
+  <circle class="fg-casilla" cx="206" cy="221" r="7"/>
+  <text class="fg-tenue" x="221" y="226">Monthly at this time:</text>
+  <rect class="fg-campo" x="340" y="208" width="96" height="26" rx="4"/>
+  <text class="fg-tenue" x="349" y="226">22:00</text>
+  <circle class="fg-casilla" cx="206" cy="255" r="7"/>
+  <text class="fg-tenue" x="221" y="260">Periodically every:</text>
+  <rect class="fg-campo" x="340" y="242" width="96" height="26" rx="4"/>
+  <text class="fg-tenue" x="349" y="260">1</text>
+  <rect class="fg-resalte" x="193" y="168" width="512" height="38" rx="6"/>
+  <circle class="fg-num" cx="187" cy="168" r="11"/>
+  <text class="fg-num-t" x="187" y="172" text-anchor="middle">1</text>
+  <rect class="fg-banda" x="177" y="288" width="606" height="24" rx="0"/>
+  <text class="fg-texto" x="185" y="305">Automatic retry</text>
+  <rect class="fg-casilla fg-casilla--si" x="185" y="326" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M188 333 l3 3 l6 -6"/>
+  <text class="fg-texto" x="207" y="338">Retry failed items processing:</text>
+  <rect class="fg-campo" x="392" y="320" width="70" height="26" rx="4"/>
+  <text class="fg-texto" x="401" y="338">3</text>
+  <path class="fg-icono" d="M432 330 l4 4 l4 -4 M446 335 l4 -4 l4 4"/>
+  <text class="fg-texto" x="474" y="338">times</text>
+  <text class="fg-texto" x="207" y="370">Wait before each retry attempt for:</text>
+  <rect class="fg-campo" x="450" y="352" width="70" height="26" rx="4"/>
+  <text class="fg-texto" x="459" y="370">10</text>
+  <path class="fg-icono" d="M490 362 l4 4 l4 -4 M504 367 l4 -4 l4 4"/>
+  <text class="fg-texto" x="532" y="370">minutes</text>
+  <rect class="fg-resalte" x="179" y="316" width="340" height="34" rx="6"/>
+  <circle class="fg-num" cx="531" cy="330" r="11"/>
+  <text class="fg-num-t" x="531" y="334" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="577" cy="434" r="11"/>
+  <text class="fg-num-t" x="577" y="438" text-anchor="middle">3</text>
+</svg>

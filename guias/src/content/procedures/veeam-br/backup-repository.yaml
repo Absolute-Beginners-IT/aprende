@@ -29,6 +29,14 @@ preflight:
     command: Get-Volume | Format-Table DriveLetter, FileSystemLabel, SizeRemaining, Size
 steps:
   - title: Abrir el asistente
+    figure:
+      id: veeam-br/repositorio-tipo
+      alt: >-
+        Ventana Add Backup Repository con los tipos de repositorio; Direct attached storage
+        está señalado y, en su submenú, Microsoft Windows.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 Direct attached storage. 2 Microsoft Windows.
     manual: true
     explanation: >-
       En la consola abre la vista Backup Infrastructure. En el panel de la izquierda pulsa
@@ -44,6 +52,16 @@ steps:
       En Repository server elige el propio servidor de copias. Pulsa Populate para ver sus
       discos, su capacidad y su espacio libre, y comprueba que está el disco que esperabas.
   - title: Indicar la carpeta
+    figure:
+      id: veeam-br/repositorio-carpeta
+      alt: >-
+        Paso Repository del asistente New Backup Repository: campo Path to folder con
+        E:\Backups, enlaces Browse y Populate, y la casilla Limit maximum concurrent tasks
+        marcada con 4.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 La carpeta de las copias. 2 Populate, para ver el espacio libre. 3 Limit
+        maximum concurrent tasks, que se deja marcada.
     manual: true
     explanation: >-
       En Location escribe {{repoPath}} y pulsa Populate para confirmar el espacio libre. Deja

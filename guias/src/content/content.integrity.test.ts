@@ -1,6 +1,7 @@
 import { DEVICE_TYPES } from '../domain/schema'
 import { DEVICE_TYPE_LABELS } from '../features/labels'
 import { catalog } from './catalog'
+import { figures } from './figures'
 
 // Validation itself happens while the catalog is built; these checks pin what the manual must contain.
 describe('content catalog', () => {
@@ -306,6 +307,24 @@ describe('content catalog', () => {
     const untraceable = catalog.procedures.filter((item) => item.status.level === 'lab-tested' && !item.status.notes)
 
     expect(untraceable).toEqual([])
+  })
+
+  it('draws every figure a step points to, and points to every drawn figure', () => {
+    const used = catalog.procedures.flatMap((item) =>
+      [...item.steps, ...item.rollback.steps].flatMap((step) => (step.figure ? [step.figure.id] : [])),
+    )
+
+    for (const id of used) expect(figures[id], id).toBeDefined()
+    expect(new Set(used)).toEqual(new Set(Object.keys(figures)))
+  })
+
+  it('illustrates every Veeam guide with at least one figure', () => {
+    for (const procedure of catalog.procedures.filter((item) => item.platform === 'veeam-br')) {
+      expect(
+        procedure.steps.some((step) => step.figure),
+        procedure.task,
+      ).toBe(true)
+    }
   })
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(

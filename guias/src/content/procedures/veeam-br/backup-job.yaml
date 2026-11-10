@@ -43,6 +43,17 @@ preflight:
       trabajo a la vez.
 steps:
   - title: Añadir el servidor Proxmox VE
+    figure:
+      id: veeam-br/esquema-copia
+      alt: >-
+        Esquema de una copia: en Proxmox VE, la máquina virtual con su snapshot temporal y
+        el worker; los datos van del worker al repositorio REPO-LOCAL-01 del servidor de
+        copias, que da las órdenes; la copia de la configuración (.bco) va a un repositorio
+        y fuera.
+      caption: >-
+        Esquema. 1 La máquina virtual sigue funcionando; Veeam copia una snapshot temporal.
+        2 El worker lee los discos y envía los datos. 3 El repositorio guarda los puntos de
+        restauración. 4 La copia de la configuración del propio Veeam.
     manual: true
     explanation: >-
       En la vista Backup Infrastructure selecciona Managed Servers y pulsa Add Server en la
@@ -74,12 +85,30 @@ steps:
       entero: las máquinas nuevas del pool entran solas en el trabajo). Con Exclusions quitas
       las que no quieras copiar.
   - title: Elegir el destino y la retención
+    figure:
+      id: veeam-br/trabajo-destino
+      alt: >-
+        Paso Storage del asistente New Backup Job: Backup repository con REPO-LOCAL-01 y
+        Retention policy con 14 días.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 Backup repository. 2 Retention policy, en días.
     manual: true
     explanation: >-
       En Storage elige {{repoName}} en Backup repository. En Retention policy indica cuántos
       días se conservan los puntos de restauración, por ejemplo 14. Veeam guarda al menos tres
       puntos aunque la retención pida menos.
   - title: Programar la copia
+    figure:
+      id: veeam-br/trabajo-horario
+      alt: >-
+        Paso Schedule del asistente New Backup Job: Run the job automatically marcado, Daily
+        at this time a las 22:00 cada día y Retry failed items processing con 3 intentos
+        cada 10 minutos.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 Daily at this time, con la hora y Everyday. 2 Retry failed items
+        processing. 3 Apply.
     manual: true
     explanation: >-
       Sáltate Guest Processing si no lo necesitas. En Schedule marca Daily at this time,

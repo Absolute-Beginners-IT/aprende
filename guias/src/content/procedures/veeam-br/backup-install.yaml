@@ -54,6 +54,16 @@ steps:
       faltan. Si pide reiniciar, pulsa Reboot y vuelve a abrir el instalador al arrancar. Si
       algún componente no se instala solo, instálalo a mano y pulsa Retry.
   - title: Revisar la configuración de la instalación
+    figure:
+      id: veeam-br/instalar-listo
+      alt: >-
+        Pantalla Ready to Install del instalador: lista de valores por defecto (carpetas,
+        cuenta LOCAL SYSTEM, PostgreSQL con la base de datos VeeamBackup, puertos 443 y
+        9419), el enlace Customize Settings y los botones Back, Install y Cancel.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Veeam 13 (no es una
+        captura). 1 La base de datos: PostgreSQL, VeeamBackup. 2 Los puertos 443 y 9419. 3
+        Customize Settings, para cambiar carpetas y puertos. 4 Install.
     manual: true
     explanation: >-
       En Ready to Install se muestran los valores por defecto: carpeta C:\Program
