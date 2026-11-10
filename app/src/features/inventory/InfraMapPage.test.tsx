@@ -3,24 +3,20 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { InfraMapPage } from './InfraMapPage';
 import { mockReactFlow } from './reactFlowTestSetup';
-import type { Device } from '../../domain/types';
-import type { InventoryRepository } from '../../ports/InventoryRepository';
+import type { Link, Topology } from '../../domain/types';
+import { fromInventoryV1, upstreamOf, type DeviceV1 } from '../../domain/topology';
+import { createMemoryInventoryRepository } from '../../adapters/memoryInventoryRepository';
 
 mockReactFlow();
 afterEach(cleanup);
 
-function memoryRepository(initial: Device[] = []): InventoryRepository & { devices: Map<string, Device> } {
-  const devices = new Map(initial.map(d => [d.id, d]));
-  return {
-    devices,
-    async list() { return [...devices.values()]; },
-    async save(d) { devices.set(d.id, d); },
-    async saveAll(ds, removed = []) { for (const d of ds) devices.set(d.id, d); for (const id of removed) devices.delete(id); },
-    async remove(id) { devices.delete(id); },
-  };
-}
+type Repo = ReturnType<typeof createMemoryInventoryRepository>;
+const memoryRepository = (initial: DeviceV1[] | Topology = []) => createMemoryInventoryRepository(Array.isArray(initial) ? fromInventoryV1(initial) : initial);
+const stored = (repo: Repo, id: string) => repo.topology.equipos.find(d => d.id === id);
+const hangsFrom = (repo: Repo, id: string) => upstreamOf(repo.topology.enlaces, id);
+const link = (id: string, a: string, b: string, tipo: Link['tipo']): Link => ({ id, a: { equipo: a }, b: { equipo: b }, tipo });
 
-const network = (): Device[] => [
+const network = (): DeviceV1[] => [
   { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true, marca: 'Fortinet', modelo: 'FortiGate 60F' },
   { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: false, uplinks: ['fw01'] },
 ];
@@ -77,7 +73,7 @@ describe('InfraMapPage', () => {
   });
 
   it('lists the guides of a covered switch, grouped, opening each one with the device filled in', async () => {
-    const access: Device = { id: 'sw acceso/1', nombre: 'ACCESO', tipo: 'switch', criticidad: 'Media', monitorizado: false, marca: 'HPE Aruba', modelo: '6100 24G' };
+    const access: DeviceV1 = { id: 'sw acceso/1', nombre: 'ACCESO', tipo: 'switch', criticidad: 'Media', monitorizado: false, marca: 'HPE Aruba', modelo: '6100 24G' };
     render(<InfraMapPage repository={memoryRepository([...network(), access])} />);
     const f = await openFicha('ACCESO');
     const section = within(f.getByRole('region', { name: 'Guías para este equipo' }));
@@ -107,7 +103,7 @@ describe('InfraMapPage', () => {
   });
 
   it('says the guides for other device types come later', async () => {
-    const devices: Device[] = [...network(), { id: 'srv01', nombre: 'SRV01', tipo: 'servidor', criticidad: 'Media', monitorizado: false, uplinks: ['core'] }];
+    const devices: DeviceV1[] = [...network(), { id: 'srv01', nombre: 'SRV01', tipo: 'servidor', criticidad: 'Media', monitorizado: false, uplinks: ['core'] }];
     render(<InfraMapPage repository={memoryRepository(devices)} />);
     const section = within((await openFicha('SRV01')).getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByText('Las guías de este tipo de equipo llegarán más adelante.')).toBeTruthy();
@@ -122,8 +118,8 @@ describe('InfraMapPage', () => {
     fireEvent.change(name, { target: { value: 'FW-Sede' } });
     fireEvent.blur(name);
     expect((await screen.findByRole('status')).textContent).toBe('FW-Sede actualizado.');
-    expect(repo.devices.get('fw01')?.nombre).toBe('FW-Sede');
-    expect(repo.devices.get('core')?.uplinks).toEqual(['fw01']);
+    expect(stored(repo, 'fw01')?.nombre).toBe('FW-Sede');
+    expect(hangsFrom(repo, 'core')).toEqual(['fw01']);
     expect(await screen.findByText('FW-Sede', { selector: '.infra-node__name' })).toBeTruthy();
   });
 
@@ -139,8 +135,9 @@ describe('InfraMapPage', () => {
     fireEvent.change(f.getByLabelText('Criticidad'), { target: { value: 'Baja' } });
     fireEvent.click(f.getByLabelText('Monitorizado'));
     await screen.findByText(/^HPE Aruba AOS-S/);
-    await waitFor(() => expect(repo.devices.get('core')?.monitorizado).toBe(true));
-    expect(repo.devices.get('core')).toMatchObject({ marca: 'HPE Aruba', ip: '10.0.0.2', criticidad: 'Baja', monitorizado: true, uplinks: ['fw01'] });
+    await waitFor(() => expect(stored(repo, 'core')?.monitorizado).toBe(true));
+    expect(stored(repo, 'core')).toMatchObject({ marca: 'HPE Aruba', ip: '10.0.0.2', criticidad: 'Baja', monitorizado: true });
+    expect(hangsFrom(repo, 'core')).toEqual(['fw01']);
   });
 
   it('adds a device of the type chosen in the palette and opens its ficha', async () => {
@@ -149,8 +146,8 @@ describe('InfraMapPage', () => {
     await screen.findByText('CORE', { selector: '.infra-node__name' });
     fireEvent.click(screen.getByRole('button', { name: 'Añadir Switch' }));
     expect(await screen.findByText('Switch 1', { selector: '.infra-node__name' })).toBeTruthy();
-    expect(repo.devices.get('switch-1')).toMatchObject({ nombre: 'Switch 1', tipo: 'switch' });
-    expect(repo.devices.get('switch-1')?.posicion).toBeTruthy();
+    expect(stored(repo, 'switch-1')).toMatchObject({ nombre: 'Switch 1', tipo: 'switch' });
+    expect(stored(repo, 'switch-1')?.posicion).toBeTruthy();
     expect((ficha().getByLabelText('Nombre') as HTMLInputElement).value).toBe('Switch 1');
   });
 
@@ -160,7 +157,7 @@ describe('InfraMapPage', () => {
     const f = await openFicha('FW01');
     fireEvent.click(f.getByRole('button', { name: 'Quitar la conexión con CORE' }));
     expect((await screen.findByRole('status')).textContent).toBe('Conexión entre FW01 y CORE quitada.');
-    expect(repo.devices.get('core')?.uplinks).toEqual([]);
+    expect(repo.topology.enlaces).toEqual([]);
   });
 
   it('deletes a device and the uplinks that pointed to it', async () => {
@@ -169,21 +166,21 @@ describe('InfraMapPage', () => {
     const f = await openFicha('FW01');
     fireEvent.click(f.getByRole('button', { name: 'Borrar equipo' }));
     expect((await screen.findByRole('status')).textContent).toBe('FW01 borrado.');
-    expect(repo.devices.has('fw01')).toBe(false);
-    expect(repo.devices.get('core')?.uplinks).toEqual([]);
+    expect(stored(repo, 'fw01')).toBeUndefined();
+    expect(repo.topology.enlaces).toEqual([]);
     await waitFor(() => expect(screen.queryByText('FW01', { selector: '.infra-node__name' })).toBeNull());
     expect(screen.getByRole('complementary', { name: 'Qué te falta' })).toBeTruthy();
   });
 
   it('reports a storage failure instead of failing silently', async () => {
     const repo = memoryRepository(network());
-    repo.save = async () => { throw new Error('QuotaExceededError'); };
+    repo.apply = async () => { throw new Error('QuotaExceededError'); };
     render(<InfraMapPage repository={repo} />);
     const f = await openFicha('CORE');
     fireEvent.change(f.getByLabelText('Nombre'), { target: { value: 'CORE-01' } });
     fireEvent.blur(f.getByLabelText('Nombre'));
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
-    expect(repo.devices.get('core')?.nombre).toBe('CORE');
+    expect(stored(repo, 'core')?.nombre).toBe('CORE');
   });
 
   it('keeps every other device in its place when the first device of an old inventory is moved', async () => {
@@ -197,54 +194,87 @@ describe('InfraMapPage', () => {
     fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
     fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
 
-    await waitFor(() => expect(repo.devices.get('acc1')?.posicion).toBeTruthy());
-    expect(repo.devices.get('esx01')?.posicion).toEqual({ x: 190, y: 220 });
-    expect(repo.devices.get('fw01')?.posicion).toEqual({ x: 0, y: 0 });
-    expect(repo.devices.get('acc1')?.posicion).not.toEqual({ x: 190, y: 220 });
+    await waitFor(() => expect(stored(repo, 'acc1')?.posicion).toBeTruthy());
+    expect(stored(repo, 'esx01')?.posicion).toEqual({ x: 190, y: 220 });
+    expect(stored(repo, 'fw01')?.posicion).toEqual({ x: 0, y: 0 });
+    expect(stored(repo, 'acc1')?.posicion).not.toEqual({ x: 190, y: 220 });
   });
 
   it('leaves every stored device as it was when a move cannot be saved', async () => {
-    const original: Device[] = [
+    const original: DeviceV1[] = [
       { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
       { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true, uplinks: ['fw01'] },
       { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
     ];
     const repo = memoryRepository(original);
-    // The browser storage fills up after one more write: a move must not be left half saved.
-    let writes = 0;
-    repo.save = async d => { if (++writes > 1) throw new Error('QuotaExceededError'); repo.devices.set(d.id, d); };
-    repo.saveAll = async () => { throw new Error('QuotaExceededError'); };
+    const before = repo.topology;
+    // The browser storage is full: a move must not be left half saved.
+    repo.apply = async () => { throw new Error('QuotaExceededError'); };
     const { container } = render(<InfraMapPage repository={repo} />);
     fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
     fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
 
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
-    expect([...repo.devices.values()]).toEqual(original);
+    expect(repo.topology).toEqual(before);
   });
 
   it('removes a device and the uplinks that pointed to it together or not at all', async () => {
-    const original: Device[] = [
+    const original: DeviceV1[] = [
       { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true },
       { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
       { id: 'acc2', nombre: 'ACC2', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
     ];
     const repo = memoryRepository(original);
-    let writes = 0;
-    repo.save = async d => { if (++writes > 1) throw new Error('QuotaExceededError'); repo.devices.set(d.id, d); };
-    repo.saveAll = async () => { throw new Error('QuotaExceededError'); };
+    const before = repo.topology;
+    repo.apply = async () => { throw new Error('QuotaExceededError'); };
     render(<InfraMapPage repository={repo} />);
     fireEvent.click((await openFicha('CORE')).getByRole('button', { name: 'Borrar equipo' }));
 
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
-    expect([...repo.devices.values()]).toEqual(original);
+    expect(repo.topology).toEqual(before);
   });
 
   it('removes connections with a single write of every device that changes', async () => {
     const repo = memoryRepository(network());
-    repo.save = async () => { throw new Error('a connection must not be removed device by device'); };
+    let writes = 0;
+    const apply = repo.apply;
+    repo.apply = change => { writes++; return apply(change); };
     render(<InfraMapPage repository={repo} />);
     fireEvent.click((await openFicha('CORE')).getByRole('button', { name: /Quitar/ }));
 
-    await waitFor(() => expect(repo.devices.get('core')?.uplinks).toEqual([]));
+    await waitFor(() => expect(hangsFrom(repo, 'core')).toEqual([]));
+    expect(writes).toBe(1);
+  });
+
+  it('draws one line per link, two links between the same pair of firewalls included', async () => {
+    const [fw1, fw2] = fromInventoryV1([{ id: 'fw1', nombre: 'FW1', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }, { id: 'fw2', nombre: 'FW2', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }]).equipos;
+    const { container } = render(<InfraMapPage repository={memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha')], grupos: [] })} />);
+    await screen.findByText('FW1', { selector: '.infra-node__name' });
+    await waitFor(() => expect(container.querySelectorAll('.react-flow__edge')).toHaveLength(2));
+  });
+
+  it('lists every link of the device in its ficha and removes only the one chosen', async () => {
+    const [fw1, fw2] = fromInventoryV1([{ id: 'fw1', nombre: 'FW1', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }, { id: 'fw2', nombre: 'FW2', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }]).equipos;
+    const repo = memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha')], grupos: [] });
+    render(<InfraMapPage repository={repo} />);
+    const f = await openFicha('FW1');
+    const buttons = f.getAllByRole('button', { name: 'Quitar la conexión con FW2' });
+    expect(buttons).toHaveLength(2);
+    fireEvent.click(buttons[1]);
+    expect((await screen.findByRole('status')).textContent).toBe('Conexión entre FW1 y FW2 quitada.');
+    expect(repo.topology.enlaces.map(l => l.id)).toEqual(['h1']);
+  });
+
+  it('removes a device with its links and takes it out of its groups in one write', async () => {
+    const [fw1, fw2] = fromInventoryV1([{ id: 'fw1', nombre: 'FW1', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }, { id: 'fw2', nombre: 'FW2', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }]).equipos;
+    const repo = memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha')], grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw1', 'fw2'] }] });
+    let writes = 0;
+    const apply = repo.apply;
+    repo.apply = change => { writes++; return apply(change); };
+    render(<InfraMapPage repository={repo} />);
+    fireEvent.click((await openFicha('FW1')).getByRole('button', { name: 'Borrar equipo' }));
+    expect((await screen.findByRole('status')).textContent).toBe('FW1 borrado.');
+    expect(repo.topology).toEqual({ equipos: [fw2], enlaces: [], grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw2'] }] });
+    expect(writes).toBe(1);
   });
 });

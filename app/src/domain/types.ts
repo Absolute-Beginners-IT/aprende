@@ -90,7 +90,7 @@ export interface ReferenceModel {
 
 export interface Position { x: number; y: number }
 
-/** A device in the learner's own inventory ("Mi infraestructura" mode). */
+/** A device in the learner's own inventory ("Mi infraestructura" mode); what it is joined to lives in `Link`. */
 export interface Device {
   id: string;
   nombre: string;
@@ -102,10 +102,39 @@ export interface Device {
   ip?: string;
   ubicacion?: string;
   rol?: string;
-  uplinks?: string[];
   firmware?: string;
   finSoporte?: string;
   notas?: string;
   /** Where the learner placed it on the map; without it the map places it on its own. */
   posicion?: Position;
 }
+
+/** Kinds of link between two devices of the learner's inventory. */
+export const LINK_TYPES = ['datos', 'troncal', 'lag', 'ha', 'stack', 'wan', 'almacenamiento', 'gestion', 'energia'] as const;
+export type LinkType = (typeof LINK_TYPES)[number];
+
+/** One end of a link: the device and, when known, its port. */
+export interface LinkEnd { equipo: string; puerto?: string }
+
+/**
+ * A cable or connection between two devices. For hierarchical types (see `isHierarchical` in topology.ts)
+ * `b` is the upstream side, what `a` hangs from. A pair of devices may have several links.
+ */
+export interface Link {
+  id: string;
+  a: LinkEnd;
+  b: LinkEnd;
+  tipo: LinkType;
+  velocidad?: string;
+  vlans?: string;
+  notas?: string;
+}
+
+export const GROUP_TYPES = ['ha', 'stack', 'cluster'] as const;
+export type GroupType = (typeof GROUP_TYPES)[number];
+
+/** Devices that work as one: a high-availability pair, a stack or a cluster. */
+export interface DeviceGroup { id: string; tipo: GroupType; nombre: string; miembros: string[] }
+
+/** The learner's whole infrastructure: devices, the links between them and the groups they form. */
+export interface Topology { equipos: Device[]; enlaces: Link[]; grupos: DeviceGroup[] }

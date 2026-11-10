@@ -1,89 +1,90 @@
 import { describe, expect, it } from 'vitest';
 import { createLocalStorageInventoryRepository } from './localStorageInventoryRepository';
-import type { Device } from '../domain/types';
+import type { Device, Link } from '../domain/types';
+
+const TOPOLOGY_KEY = 'mapa-infra:topologia';
+const V1_KEY = 'mapa-infra:inventario';
 
 class MemoryStorage {
-  private data = new Map<string, string>();
+  data = new Map<string, string>();
+  writes: string[] = [];
   getItem(key: string) { return this.data.get(key) ?? null; }
-  setItem(key: string, value: string) { this.data.set(key, value); }
+  setItem(key: string, value: string) { this.writes.push(key); this.data.set(key, value); }
 }
 
 const device = (id: string, overrides: Partial<Device> = {}): Device => ({
   id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...overrides,
 });
+const link = (id: string, a: string, b: string, tipo: Link['tipo'] = 'datos'): Link => ({ id, a: { equipo: a }, b: { equipo: b }, tipo });
+const stored = (storage: MemoryStorage) => JSON.parse(storage.data.get(TOPOLOGY_KEY) ?? 'null');
+const EMPTY = { equipos: [], enlaces: [], grupos: [] };
 
 describe('localStorage inventory repository', () => {
-  it('returns an empty inventory when nothing is stored', async () => {
+  it('returns an empty topology when nothing is stored', async () => {
     const repo = createLocalStorageInventoryRepository(new MemoryStorage());
-    expect(await repo.list()).toEqual([]);
+    expect(await repo.load()).toEqual(EMPTY);
   });
 
-  it('persists saved devices so another instance on the same storage reads them', async () => {
+  it('stores every change as one write of the whole version 2 document, which another instance reads', async () => {
     const storage = new MemoryStorage();
-    await createLocalStorageInventoryRepository(storage).save(device('fw01', { tipo: 'firewall' }));
-    expect(await createLocalStorageInventoryRepository(storage).list()).toEqual([device('fw01', { tipo: 'firewall' })]);
+    await createLocalStorageInventoryRepository(storage).apply({ saveDevices: [device('fw01', { tipo: 'firewall' }), device('core')], addLinks: [{ a: { equipo: 'core' }, b: { equipo: 'fw01' }, tipo: 'datos' }] });
+    expect(storage.writes).toEqual([TOPOLOGY_KEY]);
+    expect(stored(storage)).toEqual({ version: 2, equipos: [device('fw01', { tipo: 'firewall' }), device('core')], enlaces: [link('core--fw01', 'core', 'fw01')], grupos: [] });
+    expect(await createLocalStorageInventoryRepository(storage).load()).toEqual({ equipos: [device('fw01', { tipo: 'firewall' }), device('core')], enlaces: [link('core--fw01', 'core', 'fw01')], grupos: [] });
   });
 
-  it('overwrites a device saved again with the same id', async () => {
-    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
-    await repo.save(device('core'));
-    await repo.save(device('core', { monitorizado: true }));
-    expect(await repo.list()).toEqual([device('core', { monitorizado: true })]);
-  });
-
-  it('keeps a device in its place in the stored inventory when it is saved again', async () => {
-    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
-    await repo.saveAll([device('a'), device('b'), device('c')]);
-    await repo.save(device('a', { monitorizado: true }));
-    expect((await repo.list()).map(d => d.id)).toEqual(['a', 'b', 'c']);
-    await repo.save(device('d'));
-    expect((await repo.list()).map(d => d.id)).toEqual(['a', 'b', 'c', 'd']);
-  });
-
-  it('updates several devices in place and adds the new ones at the end', async () => {
-    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
-    await repo.saveAll([device('a'), device('b'), device('c')]);
-    await repo.saveAll([device('b', { monitorizado: true }), device('d'), device('a', { monitorizado: true })], ['c']);
-    expect(await repo.list()).toEqual([device('a', { monitorizado: true }), device('b', { monitorizado: true }), device('d')]);
-  });
-
-  it('removes a device by id and keeps the rest', async () => {
-    const repo = createLocalStorageInventoryRepository(new MemoryStorage());
-    await repo.save(device('a'));
-    await repo.save(device('b'));
-    await repo.remove('a');
-    expect(await repo.list()).toEqual([device('b')]);
-  });
-
-  it('treats corrupted or unexpected stored data as an empty inventory', async () => {
+  it('migrates the old inventory when there is no version 2 document, and never touches the old key', async () => {
     const storage = new MemoryStorage();
-    storage.setItem('mapa-infra:inventario', '{not json');
-    expect(await createLocalStorageInventoryRepository(storage).list()).toEqual([]);
-    storage.setItem('mapa-infra:inventario', '{"a":1}');
-    expect(await createLocalStorageInventoryRepository(storage).list()).toEqual([]);
-  });
-
-  it('saves several devices in a single write, replacing those with the same id', async () => {
-    const storage = new MemoryStorage();
+    const old = JSON.stringify([{ ...device('core'), uplinks: ['fw', 'fw', 'gone'] }, device('fw')]);
+    storage.data.set(V1_KEY, old);
     const repo = createLocalStorageInventoryRepository(storage);
-    await repo.save(device('core'));
-    let writes = 0;
-    const setItem = storage.setItem.bind(storage);
-    storage.setItem = (key: string, value: string) => { writes++; setItem(key, value); };
-    await repo.saveAll([device('core', { monitorizado: true }), device('acc1')]);
-    expect(writes).toBe(1);
-    expect(await repo.list()).toEqual([device('core', { monitorizado: true }), device('acc1')]);
+    expect(await repo.load()).toEqual({ equipos: [device('core'), device('fw')], enlaces: [link('core--fw', 'core', 'fw'), link('core--gone', 'core', 'gone')], grupos: [] });
+    expect(storage.writes).toEqual([]);
+
+    await repo.apply({ saveDevices: [device('core', { monitorizado: true })] });
+    expect(storage.writes).toEqual([TOPOLOGY_KEY]);
+    expect(stored(storage).enlaces).toEqual([link('core--fw', 'core', 'fw'), link('core--gone', 'core', 'gone')]);
+    expect(storage.data.get(V1_KEY)).toBe(old);
   });
 
-  it('saves some devices and removes others in the same single write', async () => {
+  it('prefers the version 2 document over the old inventory', async () => {
     const storage = new MemoryStorage();
-    const repo = createLocalStorageInventoryRepository(storage);
-    await repo.saveAll([device('core'), device('acc1', { uplinks: ['core'] })]);
-    let writes = 0;
-    const setItem = storage.setItem.bind(storage);
-    storage.setItem = (key: string, value: string) => { writes++; setItem(key, value); };
-    await repo.saveAll([device('acc1', { uplinks: [] })], ['core']);
-    expect(writes).toBe(1);
-    expect(await repo.list()).toEqual([device('acc1', { uplinks: [] })]);
+    storage.data.set(V1_KEY, JSON.stringify([device('old')]));
+    storage.data.set(TOPOLOGY_KEY, JSON.stringify({ version: 2, equipos: [device('new')], enlaces: [], grupos: [] }));
+    expect((await createLocalStorageInventoryRepository(storage).load()).equipos).toEqual([device('new')]);
+  });
+
+  it('treats corrupted or foreign stored data as an empty topology', async () => {
+    const storage = new MemoryStorage();
+    storage.data.set(V1_KEY, '{not json');
+    expect(await createLocalStorageInventoryRepository(storage).load()).toEqual(EMPTY);
+    storage.data.set(V1_KEY, '{"a":1}');
+    expect(await createLocalStorageInventoryRepository(storage).load()).toEqual(EMPTY);
+    storage.data.set(TOPOLOGY_KEY, '{"version":7}');
+    storage.data.set(V1_KEY, JSON.stringify([device('old')]));
+    expect(await createLocalStorageInventoryRepository(storage).load()).toEqual(EMPTY);
+    storage.data.set(TOPOLOGY_KEY, '[roto');
+    expect(await createLocalStorageInventoryRepository(storage).load()).toEqual(EMPTY);
+  });
+
+  it('removes a device with its links and group membership in the same single write', async () => {
+    const storage = new MemoryStorage();
+    storage.data.set(TOPOLOGY_KEY, JSON.stringify({
+      version: 2, equipos: [device('fw1'), device('fw2'), device('core')],
+      enlaces: [link('core--fw1', 'core', 'fw1'), link('fw1--fw2', 'fw1', 'fw2', 'ha')],
+      grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw1', 'fw2'] }],
+    }));
+    await createLocalStorageInventoryRepository(storage).apply({ removeDevices: ['fw1'] });
+    expect(storage.writes).toEqual([TOPOLOGY_KEY]);
+    expect(stored(storage)).toEqual({ version: 2, equipos: [device('fw2'), device('core')], enlaces: [], grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw2'] }] });
+  });
+
+  it('leaves the stored document as it was when the browser refuses the write', async () => {
+    const storage = new MemoryStorage();
+    await createLocalStorageInventoryRepository(storage).apply({ saveDevices: [device('core')] });
+    const before = storage.data.get(TOPOLOGY_KEY);
+    storage.setItem = () => { throw new Error('QuotaExceededError'); };
+    await expect(createLocalStorageInventoryRepository(storage).apply({ removeDevices: ['core'] })).rejects.toThrow('QuotaExceededError');
+    expect(storage.data.get(TOPOLOGY_KEY)).toBe(before);
   });
 });

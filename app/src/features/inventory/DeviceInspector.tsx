@@ -52,12 +52,14 @@ function TextField({ label, value, placeholder, required, onCommit }: {
 /** The ficha of the selected device: every change is saved through `onChange` as soon as it is made. */
 export function DeviceInspector({ device, connections, findings, onChange, onRename, onDisconnect, onDelete }: {
   device: Device;
+  /** One entry per link of the device: the link id and the name of the device at its other end. */
   connections: { id: string; nombre: string }[];
   findings: Finding[];
   /** Saves `change` applied to the stored device, so two quick edits never undo each other. */
   onChange: (change: (d: Device) => Device) => Promise<boolean>;
   onRename: (nombre: string) => Promise<boolean>;
-  onDisconnect: (otherId: string) => void;
+  /** Removes the link with this id. */
+  onDisconnect: (linkId: string) => void;
   onDelete: () => void;
 }) {
   const setText = (key: OptionalText, value: string) => onChange(d => {

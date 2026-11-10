@@ -1,35 +1,37 @@
-import type { Device, Position } from './types';
+import type { Device, Position, Topology } from './types';
 import { slugify } from './inventoryCsv';
+import { isHierarchical, upstreamOf, type NewLink } from './topology';
 
-// The map of «Mi infraestructura» edits the inventory itself: a connection is an uplink of a device
-// (the device it hangs from) and the place on the map is the optional `posicion`.
+// The map of «Mi infraestructura» edits the topology itself: one line per link, the rows by hierarchical links
+// (what each device hangs from) and the place on the map is the optional `posicion` of each device.
 
 /** Room each device gets when the map places it: columns apart and rows apart. */
 export const GRID = { col: 190, row: 110 } as const;
 
 export interface Connection { id: string; from: string; to: string }
 
-/** One connection per uplink whose target is still in the inventory. */
-export function connectionsOf(devices: Device[]): Connection[] {
-  const ids = new Set(devices.map(d => d.id));
-  return devices.flatMap(d => (d.uplinks ?? []).filter(to => ids.has(to)).map(to => ({ id: `${d.id}->${to}`, from: d.id, to })));
+/** One connection per link whose two devices are in the inventory: `from` is its `a` end, `to` its `b` end. */
+export function connectionsOf({ equipos, enlaces }: Topology): Connection[] {
+  const ids = new Set(equipos.map(d => d.id));
+  return enlaces.filter(l => ids.has(l.a.equipo) && ids.has(l.b.equipo)).map(l => ({ id: l.id, from: l.a.equipo, to: l.b.equipo }));
 }
 
 /**
- * How far a device hangs from a device with no uplinks to devices in the inventory: 0 is the edge of the network.
- * Worked out on demand and remembered; the map uses it for its rows and the deployment plan for its order.
+ * How far a device hangs, through hierarchical links, from a device that hangs from nothing in the inventory: 0 is the
+ * edge of the network. Worked out on demand and remembered; the map uses it for its rows and the deployment plan for its order.
  */
-export function levelFinder(devices: Device[]): (id: string) => number {
-  const byId = new Map(devices.map(d => [d.id, d]));
+export function levelFinder({ equipos, enlaces }: Topology): (id: string) => number {
+  const known = new Set(equipos.map(d => d.id));
+  const parentsOf = new Map(equipos.map(d => [d.id, upstreamOf(enlaces, d.id).filter(p => known.has(p))]));
   const level = new Map<string, number>();
   const visiting = new Set<string>();
   const levelOf = (id: string): number => {
-    const known = level.get(id);
-    if (known !== undefined) return known;
-    // A loop of uplinks has no top: the device found again counts as the start of its branch.
+    const found = level.get(id);
+    if (found !== undefined) return found;
+    // A loop of links has no top: the device found again counts as the start of its branch.
     if (visiting.has(id)) return 0;
     visiting.add(id);
-    const parents = (byId.get(id)?.uplinks ?? []).filter(p => byId.has(p));
+    const parents = parentsOf.get(id) ?? [];
     const value = parents.length ? 1 + Math.max(...parents.map(levelOf)) : 0;
     visiting.delete(id);
     level.set(id, value);
@@ -40,13 +42,13 @@ export function levelFinder(devices: Device[]): (id: string) => number {
 
 /**
  * Where each device goes: its own `posicion` when it has one; otherwise a row by how far it hangs from a device
- * with no uplinks (the edge of the network goes on top), spread by name within the row.
+ * that hangs from nothing (the edge of the network goes on top), spread by name within the row.
  */
-export function layoutDevices(devices: Device[]): Map<string, Position> {
-  const levelOf = levelFinder(devices);
+export function layoutDevices(topology: Topology): Map<string, Position> {
+  const levelOf = levelFinder(topology);
   const positions = new Map<string, Position>();
   const rows = new Map<number, Device[]>();
-  for (const d of devices) {
+  for (const d of topology.equipos) {
     if (d.posicion) positions.set(d.id, d.posicion);
     else rows.set(levelOf(d.id), [...(rows.get(levelOf(d.id)) ?? []), d]);
   }
@@ -57,24 +59,15 @@ export function layoutDevices(devices: Device[]): Map<string, Position> {
   return positions;
 }
 
-/** `from` now hangs from `to`; null when it is the same device or both are already joined either way. */
-export function connectDevices(from: Device, to: Device): Device | null {
-  if (from.id === to.id || from.uplinks?.includes(to.id) || to.uplinks?.includes(from.id)) return null;
-  return { ...from, uplinks: [...(from.uplinks ?? []), to.id] };
-}
-
-/** Removes the connection between two devices, whichever holds it; returns only the devices that changed. */
-export function disconnectDevices(devices: Device[], a: string, b: string): Device[] {
-  return devices.flatMap(d => {
-    const other = d.id === a ? b : d.id === b ? a : undefined;
-    if (other === undefined || !d.uplinks?.includes(other)) return [];
-    return [{ ...d, uplinks: d.uplinks.filter(u => u !== other) }];
-  });
-}
-
-/** The devices whose uplinks pointed to a device being removed, without that uplink. */
-export function withoutDevice(devices: Device[], id: string): Device[] {
-  return devices.filter(d => d.id !== id && d.uplinks?.includes(id)).map(d => ({ ...d, uplinks: d.uplinks!.filter(u => u !== id) }));
+/**
+ * The link that makes `from` hang from `to`, a `datos` one; null when it is the same device or the pair is already
+ * joined by a hierarchical link either way. A link with no hierarchy (HA, stack...) does not stop it.
+ */
+export function connectDevices({ enlaces }: Topology, from: string, to: string): NewLink | null {
+  const joined = enlaces.some(l => isHierarchical(l)
+    && ((l.a.equipo === from && l.b.equipo === to) || (l.a.equipo === to && l.b.equipo === from)));
+  if (from === to || joined) return null;
+  return { a: { equipo: from }, b: { equipo: to }, tipo: 'datos' };
 }
 
 const whole = (position: Position): Position => ({ x: Math.round(position.x), y: Math.round(position.y) });
@@ -89,9 +82,9 @@ export function moveDevice(device: Device, position: Position): Device {
  * The devices the map placed on its own, pinned to the spot they show now. Saved together with the first move,
  * so placing one device by hand never makes the others reflow onto it.
  */
-export function placeUnplaced(devices: Device[]): Device[] {
-  const positions = layoutDevices(devices);
-  return devices.filter(d => !d.posicion).map(d => ({ ...d, posicion: whole(positions.get(d.id)!) }));
+export function placeUnplaced(topology: Topology): Device[] {
+  const positions = layoutDevices(topology);
+  return topology.equipos.filter(d => !d.posicion).map(d => ({ ...d, posicion: whole(positions.get(d.id)!) }));
 }
 
 /** A device of a type dropped on the map, named after the type with the first number not in use. */

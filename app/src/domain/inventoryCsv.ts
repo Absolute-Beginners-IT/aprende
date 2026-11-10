@@ -1,5 +1,6 @@
-import type { Device } from './types';
 import { content } from '../content';
+import type { Topology } from './types';
+import { upstreamOf, type DeviceV1 } from './topology';
 
 // Same column layout as toolkit/01-Inventario/inventario.csv and the Descubrir-Red.ps1 output.
 const COLUMNS = ['Nombre', 'Tipo', 'Marca', 'Modelo', 'IP_Gestion', 'Ubicacion', 'Rol', 'Criticidad', 'Uplink', 'Firmware', 'Fin_Soporte', 'Metodo_Monitorizacion', 'Monitorizado', 'Notas'];
@@ -44,7 +45,8 @@ function splitRows(text: string, sep: string): string[][] {
   return rows;
 }
 
-export function parseInventoryCsv(text: string): Device[] {
+/** The devices of a CSV, each with the ids of what it hangs from (column Uplink), as the first inventory stored them. */
+export function parseInventoryCsv(text: string): DeviceV1[] {
   const clean = text.replace(/^﻿/, '').trim();
   if (!clean) return [];
   const first = clean.split(/\r?\n/)[0];
@@ -52,13 +54,13 @@ export function parseInventoryCsv(text: string): Device[] {
   const [head, ...rows] = splitRows(clean, sep);
   const keys = head.map(h => stripAccents(h).trim().toLowerCase());
 
-  const devices: Device[] = [];
+  const devices: DeviceV1[] = [];
   for (const cells of rows) {
     // Undo the formula guard added by toInventoryCsv so data round-trips.
     const r = Object.fromEntries(keys.map((k, i) => [k, (cells[i] ?? '').trim().replace(FORMULA_GUARDED, '')]));
     const nombre = r.nombre ?? '';
     if (!nombre || /^EJEMPLO-/i.test(nombre)) continue;
-    const device: Device = {
+    const device: DeviceV1 = {
       id: slugify(nombre),
       nombre,
       tipo: normalizeType(r.tipo ?? ''),
@@ -84,9 +86,10 @@ function cell(value: string | undefined): string {
   return /[;"\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
 }
 
-export function toInventoryCsv(devices: Device[]): string {
-  const rows = devices.map(d => [
-    d.nombre, d.tipo, d.marca, d.modelo, d.ip, d.ubicacion, d.rol, d.criticidad, (d.uplinks ?? []).join(','),
+/** The devices of `topology` in its order; column Uplink lists what each one hangs from (hierarchical links). */
+export function toInventoryCsv({ equipos, enlaces }: Topology): string {
+  const rows = equipos.map(d => [
+    d.nombre, d.tipo, d.marca, d.modelo, d.ip, d.ubicacion, d.rol, d.criticidad, upstreamOf(enlaces, d.id).join(','),
     d.firmware, d.finSoporte, undefined, d.monitorizado ? 'Sí' : 'No', d.notas,
   ].map(cell).join(';'));
   return '﻿' + [COLUMNS.join(';'), ...rows].join('\r\n');

@@ -1,4 +1,5 @@
-import type { Device } from './types';
+import type { Topology } from './types';
+import { upstreamOf } from './topology';
 
 export interface Finding {
   nivel: 'crit' | 'warn' | 'info';
@@ -10,7 +11,7 @@ const RANK = { crit: 0, warn: 1, info: 2 } as const;
 const DAY_MS = 864e5;
 
 /** Compares the learner's inventory with what a typical SME should have and lists the gaps. */
-export function analyzeInventory(devices: Device[], today: Date): Finding[] {
+export function analyzeInventory({ equipos: devices, enlaces }: Topology, today: Date): Finding[] {
   if (!devices.length) return [];
   const count = (tipo: string) => devices.filter(d => d.tipo === tipo).length;
   const findings: Finding[] = [];
@@ -38,7 +39,7 @@ export function analyzeInventory(devices: Device[], today: Date): Finding[] {
         else if (days < 365) findings.push({ nivel: 'warn', mensaje: `${d.nombre} se queda sin soporte en ${days} días (${d.finSoporte}): presupuesta la renovación.`, deviceId: d.id });
       }
     }
-    for (const up of d.uplinks ?? []) {
+    for (const up of upstreamOf(enlaces, d.id)) {
       if (!ids.has(up)) findings.push({ nivel: 'info', mensaje: `${d.nombre} depende de «${up}», que no está en el inventario.`, deviceId: d.id });
     }
   }

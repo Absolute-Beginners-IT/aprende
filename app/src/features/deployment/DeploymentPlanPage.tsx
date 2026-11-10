@@ -9,10 +9,10 @@ import { PlanDeviceCard } from './PlanDeviceCard';
 
 /** Container for the deployment plan: the plan is worked out from the inventory, the progress kept in browser storage. */
 export function DeploymentPlanPage({ repository, storage }: { repository: InventoryRepository; storage: Pick<Storage, 'getItem' | 'setItem'> }) {
-  const { devices, loaded, message: inventoryMessage } = useInventory(repository);
+  const { topology, loaded, message: inventoryMessage } = useInventory(repository);
   const [progress, setProgress] = useState<Progress>(() => readProgress(storage));
   const [message, setMessage] = useState('');
-  const plan = useMemo(() => deploymentPlan(devices, content, GUIDES_URL), [devices]);
+  const plan = useMemo(() => deploymentPlan(topology, content, GUIDES_URL), [topology]);
 
   // Saved steps of devices no longer in the inventory, or of steps the plan no longer has, are not counted.
   const doneOf = (deviceId: string) => new Set(doneSteps(progress, deviceId));

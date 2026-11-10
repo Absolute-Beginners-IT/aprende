@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { DeploymentPlanPage } from './DeploymentPlanPage';
 import { PROGRESS_KEY } from './deploymentProgress';
-import type { Device } from '../../domain/types';
-import type { InventoryRepository } from '../../ports/InventoryRepository';
+import { fromInventoryV1, type DeviceV1 } from '../../domain/topology';
+import { createMemoryInventoryRepository } from '../../adapters/memoryInventoryRepository';
 import { content } from '../../content';
 
 afterEach(() => {
@@ -13,17 +13,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function memoryRepository(initial: Device[] = []): InventoryRepository {
-  const devices = new Map(initial.map(d => [d.id, d]));
-  return {
-    async list() { return [...devices.values()]; },
-    async save(d) { devices.set(d.id, d); },
-    async saveAll(ds, removed = []) { for (const d of ds) devices.set(d.id, d); for (const id of removed) devices.delete(id); },
-    async remove(id) { devices.delete(id); },
-  };
-}
+const memoryRepository = (initial: DeviceV1[] = []) => createMemoryInventoryRepository(fromInventoryV1(initial));
 
-const dev = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
+const dev = (id: string, extra: Partial<DeviceV1> = {}): DeviceV1 => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
 const network = [
   dev('core', { nombre: 'CORE', marca: 'HPE Aruba', modelo: '6100 24G', uplinks: ['fw'] }),
   dev('fw', { nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', marca: 'Fortinet', modelo: 'FortiGate 60F', uplinks: ['isp'] }),
@@ -33,7 +25,7 @@ const stepsOf = (tipo: string) => { const t = content.tipos.find(x => x.id === t
 // FW01 (FortiGate) has three deployment guides; CORE (Aruba CX 6100) has ten.
 const TOTAL = stepsOf('firewall') + 3 + 10 + stepsOf('switch');
 
-const renderPage = (devices: Device[] = network, storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage) =>
+const renderPage = (devices: DeviceV1[] = network, storage: Pick<Storage, 'getItem' | 'setItem'> = localStorage) =>
   render(<DeploymentPlanPage repository={memoryRepository(devices)} storage={storage} />);
 const card = (name: string) => within(screen.getByRole('article', { name }));
 

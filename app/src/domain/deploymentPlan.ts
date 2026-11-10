@@ -1,8 +1,9 @@
-import type { Device, DeviceType, GuideIndex, VendorSnippet } from './types';
+import type { Device, DeviceType, GuideIndex, Topology, VendorSnippet } from './types';
 import { guidesForDevice, type DeviceGuides } from './deviceGuides';
 import { snippetsForDevice } from './vendorSnippets';
 import { levelFinder } from './infraMap';
 import { slugify } from './inventoryCsv';
+import { upstreamOf } from './topology';
 
 // The deployment plan of «Mi infraestructura»: the learner's devices in the order they are set up, each with what to
 // configure (its guides), watch (its type's monitoring) and maintain (its type's tasks). Nothing here is new content:
@@ -54,8 +55,9 @@ function watchSteps(device: Device, type: DeviceType | undefined, snippets: Vend
 }
 
 /** The plan, edge first: by how far each device hangs from the edge, then the most critical, then by name. */
-export function deploymentPlan(devices: Device[], sources: PlanSources, guidesBase: string): PlanDevice[] {
-  const levelOf = levelFinder(devices);
+export function deploymentPlan(topology: Topology, sources: PlanSources, guidesBase: string): PlanDevice[] {
+  const devices = topology.equipos;
+  const levelOf = levelFinder(topology);
   const byId = new Map(devices.map(d => [d.id, d]));
   const types = new Map(sources.tipos.map(t => [t.id, t]));
   return devices.filter(d => d.tipo !== NOT_DEPLOYED)
@@ -69,7 +71,7 @@ export function deploymentPlan(devices: Device[], sources: PlanSources, guidesBa
         nombre: d.nombre,
         tipoNombre: type?.nombre ?? d.tipo,
         marcaModelo: [d.marca, d.modelo].filter(Boolean).join(' '),
-        cuelgaDe: (d.uplinks ?? []).flatMap(u => byId.get(u)?.nombre ?? []),
+        cuelgaDe: upstreamOf(topology.enlaces, d.id).flatMap(u => byId.get(u)?.nombre ?? []),
         guias,
         configurar: configSteps(guias),
         vigilar: watchSteps(d, type, sources.fabricantes),

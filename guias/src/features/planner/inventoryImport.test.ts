@@ -1,5 +1,12 @@
 import { catalog } from '../../content/catalog'
-import { INVENTORY_STORAGE_KEY, inventorySwitches, platformFor, readInventorySwitches } from './inventoryImport'
+import {
+  INVENTORY_STORAGE_KEY,
+  inventorySwitches,
+  platformFor,
+  readInventorySwitches,
+  TOPOLOGY_STORAGE_KEY,
+  topologySwitches,
+} from './inventoryImport'
 
 const inventory = [
   { id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true },
@@ -54,6 +61,54 @@ describe('inventorySwitches', () => {
     localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory))
     expect(readInventorySwitches()).toHaveLength(3)
     localStorage.setItem(INVENTORY_STORAGE_KEY, '{roto')
+    expect(readInventorySwitches()).toEqual([])
+    localStorage.clear()
+  })
+})
+
+describe('topologySwitches', () => {
+  const device = (id: string, tipo = 'switch') => ({
+    id,
+    nombre: id.toUpperCase(),
+    tipo,
+    criticidad: 'Media',
+    monitorizado: false,
+  })
+  const link = (id: string, a: string, b: string, tipo: string) => ({ id, a: { equipo: a }, b: { equipo: b }, tipo })
+  const topology = {
+    version: 2,
+    equipos: [device('fw01', 'firewall'), device('core1'), device('core2'), device('p1')],
+    enlaces: [
+      link('1', 'core1', 'fw01', 'datos'),
+      link('2', 'core1', 'core2', 'stack'),
+      link('3', 'p1', 'core1', 'troncal'),
+      link('4', 'p1', 'core1', 'lag'),
+      link('5', 'p1', 'core2', 'gestion'),
+      link('6', 'core2', 'fw01', 'wan'),
+    ],
+    grupos: [],
+  }
+
+  it('gives each switch what it hangs from through hierarchical links only, once each, as the old inventory did', () => {
+    expect(topologySwitches(topology).map((d) => [d.id, d.uplinks])).toEqual([
+      ['core1', ['fw01']],
+      ['core2', ['fw01']],
+      ['p1', ['core1']],
+    ])
+  })
+
+  it('returns nothing for another version or a document with an unexpected shape', () => {
+    expect(topologySwitches({ ...topology, version: 3 })).toEqual([])
+    expect(topologySwitches({ version: 2, equipos: {} })).toEqual([])
+    expect(topologySwitches([device('core1')])).toEqual([])
+  })
+
+  it('reads the version 2 topology first and the old inventory only when there is none', () => {
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory))
+    expect(readInventorySwitches().map((d) => d.nombre)).toEqual(['SW-PLANTA', 'SW-CORE', 'SW-VIEJO'])
+    localStorage.setItem(TOPOLOGY_STORAGE_KEY, JSON.stringify(topology))
+    expect(readInventorySwitches().map((d) => d.nombre)).toEqual(['CORE1', 'CORE2', 'P1'])
+    localStorage.setItem(TOPOLOGY_STORAGE_KEY, '{roto')
     expect(readInventorySwitches()).toEqual([])
     localStorage.clear()
   })

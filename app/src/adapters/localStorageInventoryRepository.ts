@@ -1,45 +1,34 @@
-import type { Device } from '../domain/types';
+import type { Topology } from '../domain/types';
+import { applyTopologyChange, emptyTopology, fromInventoryV1, fromStoredTopology } from '../domain/topology';
 import type { InventoryRepository } from '../ports/InventoryRepository';
 
 type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
-const STORAGE_KEY = 'mapa-infra:inventario';
+/** The version 2 document: `{ version: 2, equipos, enlaces, grupos }`. The guides' planner reads it too. */
+export const TOPOLOGY_KEY = 'mapa-infra:topologia';
+/** The first inventory, a list of devices with `uplinks`: read only to migrate it, never deleted or rewritten. */
+export const INVENTORY_V1_KEY = 'mapa-infra:inventario';
 
-/** The stored inventory with `devices` saved and `removedIds` gone: saved devices keep their place, new ones go last. */
-function merge(stored: Device[], devices: Device[], removedIds: string[] = []): Device[] {
-  const incoming = new Map(devices.map(d => [d.id, d]));
-  const removed = new Set(removedIds);
-  const known = new Set(stored.map(d => d.id));
-  return [
-    ...stored.filter(d => incoming.has(d.id) || !removed.has(d.id)).map(d => incoming.get(d.id) ?? d),
-    ...[...incoming.values()].filter(d => !known.has(d.id)),
-  ];
-}
+const parse = (text: string): unknown => {
+  try { return JSON.parse(text); } catch { return undefined; }
+};
 
 export function createLocalStorageInventoryRepository(storage: KeyValueStorage): InventoryRepository {
-  const read = (): Device[] => {
-    try {
-      const parsed: unknown = JSON.parse(storage.getItem(STORAGE_KEY) ?? '[]');
-      return Array.isArray(parsed) ? (parsed as Device[]) : [];
-    } catch {
-      return [];
-    }
+  const read = (): Topology => {
+    const stored = storage.getItem(TOPOLOGY_KEY);
+    if (stored !== null) return fromStoredTopology(parse(stored));
+    const old = storage.getItem(INVENTORY_V1_KEY);
+    return old === null ? emptyTopology() : fromInventoryV1(parse(old));
   };
-  const write = (devices: Device[]) => storage.setItem(STORAGE_KEY, JSON.stringify(devices));
 
   return {
-    async list() {
+    async load() {
       return read();
     },
-    async save(device) {
-      write(merge(read(), [device]));
-    },
-    async saveAll(devices, removedIds = []) {
-      // One setItem: if the browser refuses the write, the stored inventory stays exactly as it was.
-      write(merge(read(), devices, removedIds));
-    },
-    async remove(id) {
-      write(read().filter(d => d.id !== id));
+    async apply(change) {
+      // One setItem of the whole document: if the browser refuses the write, what is stored stays exactly as it was.
+      const next = applyTopologyChange(read(), change);
+      storage.setItem(TOPOLOGY_KEY, JSON.stringify({ version: 2, ...next }));
     },
   };
 }

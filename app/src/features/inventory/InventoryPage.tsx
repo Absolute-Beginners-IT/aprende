@@ -4,18 +4,18 @@ import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { parseInventoryCsv, slugify, toInventoryCsv } from '../../domain/inventoryCsv';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
-import { withoutDevice } from '../../domain/infraMap';
+import { importInventoryV1, upstreamOf } from '../../domain/topology';
 import { content, typeOf } from '../../content';
 import { PLANNER_URL } from '../../config';
-import { errorText, useInventory } from './useInventory';
+import { useInventory } from './useInventory';
 import { FindingList } from './FindingList';
 
 /** Container for the learner's own inventory: persistence through the repository port only. */
 export function InventoryPage({ repository }: { repository: InventoryRepository }) {
-  const { devices, message, setMessage, persist } = useInventory(repository);
+  const { topology, devices, message, setMessage, persist } = useInventory(repository);
   const [csv, setCsv] = useState('');
 
-  const findings = useMemo(() => analyzeInventory(devices, new Date()), [devices]);
+  const findings = useMemo(() => analyzeInventory(topology, new Date()), [topology]);
   const sorted = [...devices].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
   const nameOf = (id: string) => devices.find(d => d.id === id)?.nombre ?? id;
 
@@ -30,52 +30,47 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
     const finSoporte = String(data.get('finSoporte') ?? '');
     const marca = String(data.get('marca') ?? '').trim();
     const modelo = String(data.get('modelo') ?? '').trim();
-    await persist(() => repository.save({
-      id, nombre, tipo: String(data.get('tipo')),
-      criticidad: String(data.get('criticidad')) as Device['criticidad'],
-      monitorizado: data.get('monitorizado') === 'on',
-      ...(marca ? { marca } : {}),
-      ...(modelo ? { modelo } : {}),
-      ...(uplink ? { uplinks: [uplink] } : {}),
-      ...(finSoporte ? { finSoporte } : {}),
+    // The device and the link to the one it is connected to go in one write.
+    await persist(() => repository.apply({
+      saveDevices: [{
+        id, nombre, tipo: String(data.get('tipo')),
+        criticidad: String(data.get('criticidad')) as Device['criticidad'],
+        monitorizado: data.get('monitorizado') === 'on',
+        ...(marca ? { marca } : {}),
+        ...(modelo ? { modelo } : {}),
+        ...(finSoporte ? { finSoporte } : {}),
+      }],
+      addLinks: uplink ? [{ a: { equipo: id }, b: { equipo: uplink }, tipo: 'datos' }] : [],
     }), `${nombre} añadido.`);
     form.reset();
   };
 
-  const toggleMonitored = (d: Device) => persist(() => repository.save({ ...d, monitorizado: !d.monitorizado }), `${d.nombre} actualizado.`);
-  // The device and the uplinks that pointed to it go in one write, as on the map: no connection is left dangling.
-  const remove = (d: Device) => persist(async () => {
-    await repository.saveAll(withoutDevice(await repository.list(), d.id), [d.id]);
-  }, `${d.nombre} borrado.`);
+  const toggleMonitored = (d: Device) => persist(() => repository.apply({ saveDevices: [{ ...d, monitorizado: !d.monitorizado }] }), `${d.nombre} actualizado.`);
+  // The device and its links go in one write, as on the map: no connection is left dangling.
+  const remove = (d: Device) => persist(() => repository.apply({ removeDevices: [d.id] }), `${d.nombre} borrado.`);
 
   const importCsv = async () => {
     const parsed = parseInventoryCsv(csv);
     if (!parsed.length) { setMessage('No se encontró ningún equipo. Revisa que el CSV tenga cabecera.'); return; }
     // Rows whose names slugify to the same id are one device: keep the last row, as the store would.
-    // The CSV has no place on the map: an overwritten device stays where the learner put it.
-    const existing = new Map(devices.map(d => [d.id, d]));
-    const unique = [...new Map(parsed.map(d => [d.id, d])).values()]
-      .map(d => (existing.get(d.id)?.posicion ? { ...d, posicion: existing.get(d.id)!.posicion } : d));
+    const existing = new Set(devices.map(d => d.id));
+    const unique = [...new Map(parsed.map(d => [d.id, d])).values()];
     const repeated = parsed.length - unique.length;
     const updated = unique.filter(d => existing.has(d.id)).length;
     const summary = `${unique.length} equipos importados (nuevos: ${unique.length - updated}, actualizados: ${updated}).`
       + (updated ? ' Los equipos que ya existían se han sobrescrito con los datos del CSV.' : '')
       + (repeated === 1 ? ' 1 fila repetida por nombre se ha combinado: se conserva la última.' : '')
       + (repeated > 1 ? ` ${repeated} filas repetidas por nombre se han combinado: se conserva la última de cada una.` : '');
-    // Saves are not transactional: on a mid-import failure, say what was stored and keep the CSV for a retry.
-    let saved = 0;
+    // The whole import is one write: on failure nothing is stored and the CSV stays in the box for a retry.
+    // The CSV has no place on the map: an overwritten device stays where the learner put it.
     await persist(async () => {
-      try { for (const d of unique) { await repository.save(d); saved++; } }
-      catch (e) {
-        if (!saved) throw e;
-        throw new Error(`${errorText(e)}. Se han guardado ${saved} de ${unique.length} equipos antes del fallo; el CSV sigue en el cuadro para que puedas reintentar la importación.`);
-      }
+      await repository.apply(importInventoryV1(await repository.load(), unique));
       setCsv('');
     }, summary);
   };
 
   const exportCsv = () => {
-    const url = URL.createObjectURL(new Blob([toInventoryCsv(sorted)], { type: 'text/csv;charset=utf-8' }));
+    const url = URL.createObjectURL(new Blob([toInventoryCsv({ ...topology, equipos: sorted })], { type: 'text/csv;charset=utf-8' }));
     const a = Object.assign(document.createElement('a'), { href: url, download: `inventario_${new Date().toISOString().slice(0, 10)}.csv` });
     a.click(); URL.revokeObjectURL(url);
   };
@@ -114,9 +109,10 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
                 {sorted.map(d => {
                   const marcaModelo = [d.marca, d.modelo].filter(Boolean).join(' ');
                   const snippets = snippetsForDevice(d, content.fabricantes);
+                  const uplinks = upstreamOf(topology.enlaces, d.id);
                   return (
                     <li key={d.id}>
-                      <span><b>{d.nombre}</b> <span className="muted">· {typeOf(d.tipo).nombre}{marcaModelo ? ` · ${marcaModelo}` : ''}{d.uplinks?.length ? ` · conectado a ${d.uplinks.map(nameOf).join(', ')}` : ''}</span></span>
+                      <span><b>{d.nombre}</b> <span className="muted">· {typeOf(d.tipo).nombre}{marcaModelo ? ` · ${marcaModelo}` : ''}{uplinks.length ? ` · conectado a ${uplinks.map(nameOf).join(', ')}` : ''}</span></span>
                       <span className="row">
                         <button type="button" className="chip" aria-pressed={d.monitorizado} onClick={() => void toggleMonitored(d)}>{d.monitorizado ? 'Monitorizado' : 'Sin monitorizar'}</button>
                         <button type="button" className="chip" onClick={() => void remove(d)} aria-label={`Borrar ${d.nombre}`}>Borrar</button>

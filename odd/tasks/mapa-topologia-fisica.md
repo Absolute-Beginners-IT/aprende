@@ -30,7 +30,7 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
 
 | ID | Specs | Route | Status | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S2–S8 | delegated (context backstop: long parent session) | pending | |
+| T1 | S2–S8 | delegated (context backstop: long parent session) | done, checks green (L5); commit pending (parent) | |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | pending | |
 | T3 | S9 slice 2: tiers, groups, typed lines | pending decision after T1 | pending | |
 
@@ -46,3 +46,16 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
   2 hypervisors and a NAS.
 - **L3** (2026-11-10, user, verbatim): «Físico primero» — answer to the scope question (physical vs physical + logical).
 - **L4** (2026-11-10, user, verbatim): «arranca» — start slice 1 (model v2 and migration).
+- **L5** (2026-11-10, T1 writer) Slice 1 implemented. Model in `app/src/domain/types.ts` (`Link`, `LinkEnd`, `LinkType`,
+  `DeviceGroup`, `Topology`; `Device` lost `uplinks`) and `app/src/domain/topology.ts` (`fromInventoryV1`,
+  `fromStoredTopology`, `applyTopologyChange`, `importInventoryV1`, `isHierarchical`, `upstreamOf`, `downstreamOf`,
+  `nextLinkId` = `${a}--${b}` then `-2`, `-3`…). Port: `load(): Promise<Topology>` and `apply(change)`; the localStorage
+  adapter reads `mapa-infra:topologia`, migrates `mapa-infra:inventario` in memory when it is missing (never writes it)
+  and stores each change with one `setItem`. RED observed before GREEN for every rule (new topology module missing,
+  adapter 7/7, domain 36, pages 47, guides 4). Checks: app vitest 167/167, app build OK, guides vitest 352/352, guides
+  tsc OK, biome 0 errors (6 old warnings). Differential against the base rebuilt from the original sources (no git):
+  CSV export, deployment plan, map layout and dangling findings are identical for the same v1 inventory, except that
+  repeated uplinks inside one device collapse to one (S5 asks for that). Changes in behaviour: a CSV import is now one
+  write (all or nothing), so the message «Se han guardado X de Y equipos antes del fallo» is gone; removing a line
+  removes only that link (before, both directions of the pair). The map connect gesture is covered by domain tests
+  only (React Flow drag is not simulated in jsdom).

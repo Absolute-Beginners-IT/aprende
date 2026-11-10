@@ -66,6 +66,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Cambiado
 
+- El planificador de red lee el inventario en el nuevo formato de «Mi infraestructura», con enlaces de distintos tipos
+  (`mapa-infra:topologia`). Une los switches igual que antes: un switch cuelga de otro por un enlace de datos, troncal,
+  LAG, WAN o almacenamiento; los enlaces de alta disponibilidad, apilamiento, gestión y energía no cuentan. Si el
+  navegador solo tiene el inventario antiguo, lo sigue leyendo.
 - El manual se llama ahora «Guías de infraestructura» (antes «Manual de Switching»), porque ya no cubre solo switches:
   título de la página, cabecera y portada del archivo independiente. Lo guardado en el navegador se conserva.
 - En la web, las guías se ven como una sección más: sin la cabecera del manual ni las pestañas de marca. Arriba queda
