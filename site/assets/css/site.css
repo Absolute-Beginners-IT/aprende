@@ -284,6 +284,16 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 .viz svg .viz__tramo-texto--red { fill: var(--l-fisica); }
 .viz svg .viz__tramo-texto--equipo { fill: var(--accent); }
 .viz svg .viz__veredicto { font-weight: 800; font-size: 17px; }
+/* Permission blocks (evolucion permisos-linux): owner blue, group green, others violet. */
+.viz__tramo--grupo { fill: color-mix(in srgb, var(--l-servicios) 14%, transparent); stroke: var(--l-servicios); }
+.viz__tramo--resto { fill: color-mix(in srgb, var(--l-logica) 14%, transparent); stroke: var(--l-logica); }
+.viz svg .viz__tramo-texto--grupo { fill: var(--l-servicios); }
+.viz svg .viz__tramo-texto--resto { fill: var(--l-logica); }
+.viz svg .viz__numero { font-size: 30px; }
+/* Server roles (evolucion servidor-windows): a role is a pill; the fixed identity covers the random one. */
+.viz__insignia { fill: color-mix(in srgb, var(--l-fisica) 12%, var(--surface)); stroke: var(--l-fisica); stroke-width: 1.6; }
+.viz__insignia--nueva { fill: color-mix(in srgb, var(--accent) 12%, var(--surface)); stroke: var(--accent); }
+.viz__tapa { fill: var(--surface); }
 .viz svg .viz__veredicto--si { fill: var(--l-servicios); }
 .viz svg .viz__veredicto--no { fill: var(--l-logica); }
 .viz__punto { fill: var(--accent); stroke: var(--surface); stroke-width: 3; }

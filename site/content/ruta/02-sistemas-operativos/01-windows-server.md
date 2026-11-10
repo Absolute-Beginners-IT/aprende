@@ -58,6 +58,10 @@ Install-WindowsFeature -Name DNS -IncludeManagementTools
 
 En el módulo 4 instalarás los roles de un controlador de dominio. Por ahora, basta con que sepas listarlos e instalarlos.
 
+Mira por qué el servidor se configura en este orden: nombre e IP fija, luego DNS, y solo después el dominio.
+
+{{< evolucion datos="servidor-windows" >}}
+
 {{< pregunta texto="¿Qué cmdlet instala un rol en Windows Server?" respuesta="install-windowsfeature|add-windowsfeature" >}}
 {{% /tarea %}}
 

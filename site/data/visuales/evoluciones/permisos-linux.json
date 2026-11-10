@@ -1,0 +1,33 @@
+{
+  "titulo": "Los permisos -rw-r----- del fichero nominas.csv, desmontados bloque a bloque: tipo, propietario ana, grupo contabilidad y resto, y su equivalente numérico 640.",
+  "pie": "Cada permiso vale un número: r = 4, w = 2, x = 1. Se suman por bloque: rw- = 6, r-- = 4, --- = 0. Por eso chmod 640 deja exactamente estos permisos.",
+  "lienzo": [900, 300],
+  "elementos": ["propietario", "grupo", "resto", "numeros"],
+  "etapas": [
+    {
+      "titulo": "Lo que muestra ls -l",
+      "muestra": [],
+      "porque": "Los diez primeros caracteres son los permisos. El primero dice qué es: un guion es un fichero normal (una d sería un directorio). Los nueve siguientes van en tres bloques de tres."
+    },
+    {
+      "titulo": "Propietario: rw-",
+      "muestra": ["propietario"],
+      "porque": "El primer bloque es para la propietaria, ana: puede leer (r) y escribir (w), pero no ejecutar (-). Es lógico: es una hoja de cálculo, no un programa."
+    },
+    {
+      "titulo": "Grupo: r--",
+      "muestra": ["propietario", "grupo"],
+      "porque": "El segundo bloque es para el grupo contabilidad: sus miembros pueden leer las nóminas, pero no cambiarlas."
+    },
+    {
+      "titulo": "Resto: ---",
+      "muestra": ["propietario", "grupo", "resto"],
+      "porque": "El tercer bloque es para todos los demás usuarios del sistema: ni leer ni escribir. Unas nóminas no deberían estar a la vista de cualquiera."
+    },
+    {
+      "titulo": "En números: 640",
+      "muestra": ["propietario", "grupo", "resto", "numeros"],
+      "porque": "Sumando r = 4, w = 2 y x = 1 en cada bloque salen tres cifras: 6, 4 y 0. chmod 640 nominas.csv pone estos mismos permisos de una vez."
+    }
+  ]
+}
