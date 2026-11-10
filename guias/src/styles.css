@@ -1764,6 +1764,8 @@ thead th {
 }
 
 .step-figure__img {
+  /* Capped by StepFigure at 80 % of the drawing's own width; on a phone it scrolls instead of shrinking the text. */
+  max-width: var(--ancho-figura, 100%);
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1773,7 +1775,7 @@ thead th {
 .step-figure__img svg {
   display: block;
   width: 100%;
-  min-width: 560px;
+  min-width: min(560px, var(--ancho-figura, 560px));
   height: auto;
   font-family: inherit;
 }
