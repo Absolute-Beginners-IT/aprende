@@ -22,6 +22,19 @@ preflight:
     command: df -h /root
 steps:
   - title: Crear el archivo con la configuración
+    figure:
+      id: proxmox-ve/esquema-copia-configuracion
+      alt: >-
+        Esquema: en el nodo pve1, la configuración (/etc/pve, /etc/network/interfaces,
+        /etc/hosts y /etc/hostname) se empaqueta con tar -czf en
+        /root/pve1-antes-cambio.tar.gz; otro equipo lo descarga por SFTP o con scp y lo
+        guarda en el repositorio de copias de la empresa.
+      caption: >-
+        Esquema. 1 Lo que se guarda: la configuración de Proxmox y la del sistema que
+        hace falta para rehacer el nodo. 2 tar lo deja todo en un solo archivo
+        comprimido en /root. 3 Otro equipo lo descarga por SFTP o con scp. 4 La copia
+        queda en el repositorio de copias de la empresa, fuera del servidor. Los discos
+        de las máquinas virtuales no van aquí: se copian con vzdump.
     commands:
       - tar -czf /root/{{backupName}}.tar.gz /etc/pve /etc/network/interfaces /etc/hosts /etc/hostname
     explanation: >-

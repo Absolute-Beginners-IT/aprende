@@ -32,6 +32,16 @@ preflight:
     command: grep -A8 'iface vmbr0' /etc/network/interfaces
 steps:
   - title: Marcar el puente como VLAN aware
+    figure:
+      id: proxmox-ve/puente-vlan-aware
+      alt: >-
+        Interfaz web de Proxmox VE: nodo pve1, System, Network, con vmbr0 elegido; la
+        ventana Edit con VLAN aware marcada y el botón Apply Configuration.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Proxmox VE (no es una
+        captura). 1 En el nodo, System y Network. 2 Elige vmbr0 y pulsa Edit. 3 Marca
+        VLAN aware y acepta. 4 Apply Configuration pasa los cambios de interfaces.new a
+        /etc/network/interfaces y los aplica sin reiniciar.
     manual: true
     explanation: >-
       En la interfaz web, abre el nodo, System, Network, elige vmbr0 y pulsa Edit. Marca
@@ -42,6 +52,15 @@ steps:
       No cambies la IP, la puerta de enlace ni los puertos del puente en el mismo paso:
       un error ahí corta el acceso.
   - title: Poner la máquina virtual en la VLAN
+    figure:
+      id: proxmox-ve/tarjeta-vlan
+      alt: >-
+        Interfaz web de Proxmox VE: máquina 101, Hardware, con Network Device elegido;
+        la ventana Edit: Network Device con 20 en VLAN Tag.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Proxmox VE (no es una
+        captura). 1 En la máquina 101, Hardware. 2 Elige la tarjeta de red (Network
+        Device) y pulsa Edit. 3 Escribe la VLAN en VLAN Tag (20 en el ejemplo) y acepta.
     manual: true
     explanation: >-
       Abre la máquina {{vmid}}, Hardware, elige su tarjeta de red (Network Device) y pulsa

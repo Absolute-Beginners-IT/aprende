@@ -28,6 +28,17 @@ preflight:
   - text: No cierres tu sesión de root hasta comprobar que la cuenta nueva entra.
 steps:
   - title: Crear el grupo de administradores
+    figure:
+      id: proxmox-ve/esquema-usuarios
+      alt: >-
+        Esquema: jconde@pve es miembro del grupo admin, que tiene en la raíz (/) el rol
+        Administrator, heredado en todo; aparte, root@pam del reino Linux PAM.
+      caption: >-
+        Esquema. 1 El grupo admin reúne a los administradores. 2 El permiso en la raíz
+        (/) da al grupo el rol Administrator, que se hereda en todo el nodo o el
+        clúster. 3 jconde@pve, del reino pve, entra en el grupo con su contraseña y su
+        segundo factor (TOTP). 4 root@pam, del reino Linux PAM, no depende de estos
+        usuarios y siempre puede entrar por la consola o por SSH.
     commands:
       - pveum group add {{groupName}} -comment "Administradores"
     explanation: >-

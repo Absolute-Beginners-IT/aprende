@@ -21,6 +21,17 @@ preflight:
   - text: Confirma con quien administra el servidor syslog que acepta mensajes desde la IP del nodo.
 steps:
   - title: Instalar rsyslog
+    figure:
+      id: proxmox-ve/esquema-syslog
+      alt: >-
+        Esquema: rsyslog lee journald y, según /etc/rsyslog.d/90-servidor-remoto.conf,
+        envía los mensajes por UDP 514 al servidor syslog 192.168.10.30.
+      caption: >-
+        Esquema. 1 rsyslog lee el registro del sistema (journald) y reenvía los
+        mensajes. 2 El archivo /etc/rsyslog.d/90-servidor-remoto.conf lo manda todo
+        (*.*) a 192.168.10.30:514; una @ es UDP y @@ sería TCP. 3 Los mensajes viajan
+        por UDP al puerto 514. 4 En el servidor syslog se buscan filtrando por la IP del
+        nodo.
     commands:
       - apt update
       - apt install rsyslog

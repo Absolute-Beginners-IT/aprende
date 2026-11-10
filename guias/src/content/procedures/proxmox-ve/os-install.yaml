@@ -56,6 +56,16 @@ steps:
       Conecta el USB, arranca el servidor y elige el USB en el menú de arranque de la
       BIOS o UEFI. En el menú del instalador, elige la instalación gráfica.
   - title: Elegir el disco de destino
+    figure:
+      id: proxmox-ve/instalar-disco
+      alt: >-
+        Instalador gráfico de Proxmox VE: la lista del disco de destino, el botón
+        Options y la ventana Options con ext4 elegido y ZFS.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Proxmox VE (no es una
+        captura). 1 El disco donde instalar: se borra entero. 2 El botón Options. 3 El
+        sistema de archivos: ext4 es el valor por defecto; ZFS permite un espejo entre
+        dos discos y necesita más memoria.
     manual: true
     explanation: >-
       Acepta la licencia y elige el disco donde instalar. Con el botón Options eliges

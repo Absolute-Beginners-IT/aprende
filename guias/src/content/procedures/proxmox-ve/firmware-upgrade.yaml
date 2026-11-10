@@ -25,6 +25,19 @@ preflight:
       mueve sus máquinas virtuales a otro o apágalas en una ventana de mantenimiento.
 steps:
   - title: Actualizar la lista de paquetes
+    figure:
+      id: proxmox-ve/esquema-actualizar
+      alt: >-
+        Esquema: los repositorios configurados publican las versiones; apt update
+        descarga la lista, apt full-upgrade instala, y solo con un núcleo nuevo hace
+        falta reiniciar; el núcleo anterior sigue en Advanced options del menú de
+        arranque.
+      caption: >-
+        Esquema. 1 apt update descarga la lista de versiones de los repositorios
+        configurados. 2 apt full-upgrade lo instala todo y puede quitar o añadir
+        paquetes; upgrade dejaría la actualización a medias. 3 Solo hace falta reiniciar
+        si llega un núcleo nuevo (proxmox-kernel-…). 4 Si el nodo falla con él, el
+        núcleo anterior sigue en Advanced options del menú de arranque.
     commands:
       - apt update
     explanation: Descarga la lista de versiones disponibles de los repositorios configurados.

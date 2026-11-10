@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Actualizar un nodo: qué hace cada paso</text>
+  <rect class="fg-caja" x="16" y="60" width="230" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="131.0" y="84" text-anchor="middle">Repositorios</text>
+  <text class="fg-tenue fg-peque" x="131.0" y="106" text-anchor="middle">los configurados en el nodo</text>
+  <text class="fg-tenue fg-peque" x="131.0" y="124" text-anchor="middle">publican las versiones</text>
+  <path class="fg-flecha" d="M246 105 L285 105"/>
+  <path class="fg-flecha" d="M276.9 101.1 L285 105 L276.9 108.9"/>
+  <rect class="fg-caja" x="285" y="60" width="230" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="400.0" y="84" text-anchor="middle">apt update</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="106" text-anchor="middle">descarga la lista de</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="124" text-anchor="middle">versiones disponibles</text>
+  <path class="fg-flecha" d="M515 105 L554 105"/>
+  <path class="fg-flecha" d="M545.9 101.1 L554 105 L545.9 108.9"/>
+  <rect class="fg-caja fg-caja--clave" x="554" y="60" width="230" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="669.0" y="84" text-anchor="middle">apt full-upgrade</text>
+  <text class="fg-tenue fg-peque" x="669.0" y="106" text-anchor="middle">instala todo; puede quitar</text>
+  <text class="fg-tenue fg-peque" x="669.0" y="124" text-anchor="middle">o añadir paquetes</text>
+  <path class="fg-flecha" d="M669 150 L669 200"/>
+  <path class="fg-flecha" d="M672.9 191.9 L669 200 L665.1 191.9"/>
+  <rect class="fg-caja" x="554" y="200" width="230" height="108" rx="12"/>
+  <text class="fg-texto fg-negrita" x="669.0" y="224" text-anchor="middle">Reinicio</text>
+  <text class="fg-tenue fg-peque" x="669.0" y="246" text-anchor="middle">solo si llega un núcleo nuevo</text>
+  <text class="fg-tenue fg-peque" x="669.0" y="264" text-anchor="middle">(proxmox-kernel-…), con las</text>
+  <text class="fg-tenue fg-peque" x="669.0" y="282" text-anchor="middle">máquinas movidas o apagadas</text>
+  <path class="fg-flecha" d="M554 254 L515 254" stroke-dasharray="5 4"/>
+  <path class="fg-flecha" d="M523.1 257.9 L515 254 L523.1 250.1"/>
+  <rect class="fg-caja" x="285" y="200" width="230" height="108" rx="12"/>
+  <text class="fg-texto fg-negrita" x="400.0" y="224" text-anchor="middle">Menú de arranque</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="246" text-anchor="middle">el núcleo anterior sigue en</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="264" text-anchor="middle">Advanced options: es la</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="282" text-anchor="middle">vuelta atrás si algo falla</text>
+  <rect class="fg-caja" x="16" y="200" width="230" height="108" rx="12"/>
+  <text class="fg-texto fg-negrita" x="131.0" y="224" text-anchor="middle">¿Por qué no upgrade?</text>
+  <text class="fg-tenue fg-peque" x="131.0" y="246" text-anchor="middle">upgrade no quita ni añade</text>
+  <text class="fg-tenue fg-peque" x="131.0" y="264" text-anchor="middle">paquetes y dejaría la</text>
+  <text class="fg-tenue fg-peque" x="131.0" y="282" text-anchor="middle">actualización a medias</text>
+  <circle class="fg-num" cx="285" cy="60" r="11"/>
+  <text class="fg-num-t" x="285" y="64" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="554" cy="60" r="11"/>
+  <text class="fg-num-t" x="554" y="64" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="554" cy="200" r="11"/>
+  <text class="fg-num-t" x="554" y="204" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="285" cy="200" r="11"/>
+  <text class="fg-num-t" x="285" y="204" text-anchor="middle">4</text>
+</svg>

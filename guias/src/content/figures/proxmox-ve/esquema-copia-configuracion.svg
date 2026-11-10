@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Qué se guarda en la copia de la configuración y adónde va</text>
+  <rect class="fg-lateral" x="16" y="50" width="360" height="290" rx="14"/>
+  <text class="fg-tenue fg-peque" x="30" y="68">NODO PVE1</text>
+  <rect class="fg-caja" x="36" y="84" width="320" height="120" rx="12"/>
+  <text class="fg-texto fg-negrita" x="196.0" y="108" text-anchor="middle">Configuración del nodo</text>
+  <text class="fg-tenue fg-peque" x="196.0" y="130" text-anchor="middle">/etc/pve: usuarios, permisos, almacenamiento</text>
+  <text class="fg-tenue fg-peque" x="196.0" y="148" text-anchor="middle">y configuración de las máquinas virtuales</text>
+  <text class="fg-tenue fg-peque" x="196.0" y="166" text-anchor="middle">/etc/network/interfaces: red, puentes y VLAN</text>
+  <text class="fg-tenue fg-peque" x="196.0" y="184" text-anchor="middle">/etc/hosts y /etc/hostname</text>
+  <path class="fg-flecha" d="M196 204 L196 250"/>
+  <path class="fg-flecha" d="M199.9 241.9 L196 250 L192.1 241.9"/>
+  <text class="fg-tenue fg-peque" x="206" y="232">tar -czf</text>
+  <rect class="fg-caja fg-caja--clave" x="36" y="250" width="320" height="74" rx="12"/>
+  <text class="fg-texto fg-negrita" x="196.0" y="274" text-anchor="middle">/root/pve1-antes-cambio.tar.gz</text>
+  <text class="fg-tenue fg-peque" x="196.0" y="296" text-anchor="middle">un solo archivo comprimido</text>
+  <rect class="fg-caja" x="456" y="84" width="328" height="88" rx="12"/>
+  <text class="fg-texto fg-negrita" x="620.0" y="108" text-anchor="middle">Otro equipo</text>
+  <text class="fg-tenue fg-peque" x="620.0" y="130" text-anchor="middle">descarga el archivo</text>
+  <text class="fg-tenue fg-peque" x="620.0" y="148" text-anchor="middle">por SFTP o con scp</text>
+  <path class="fg-flecha fg-flecha--datos" d="M356 287 C 410 287, 410 140, 456 140"/>
+  <path class="fg-flecha fg-flecha--datos" d="M447.9 136.1 L456 140 L447.9 143.9"/>
+  <rect class="fg-caja fg-caja--clave" x="456" y="206" width="328" height="74" rx="12"/>
+  <text class="fg-texto fg-negrita" x="620.0" y="230" text-anchor="middle">Repositorio de copias</text>
+  <text class="fg-tenue fg-peque" x="620.0" y="252" text-anchor="middle">de la empresa, fuera del servidor</text>
+  <path class="fg-flecha" d="M620 172 L620 206"/>
+  <path class="fg-flecha" d="M623.9 197.9 L620 206 L616.1 197.9"/>
+  <text class="fg-tenue fg-peque" x="456" y="316">No incluye los discos de las máquinas virtuales:</text>
+  <text class="fg-tenue fg-peque" x="456" y="332">esos se copian con vzdump.</text>
+  <circle class="fg-num" cx="36" cy="84" r="11"/>
+  <text class="fg-num-t" x="36" y="88" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="36" cy="250" r="11"/>
+  <text class="fg-num-t" x="36" y="254" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="456" cy="84" r="11"/>
+  <text class="fg-num-t" x="456" y="88" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="456" cy="206" r="11"/>
+  <text class="fg-num-t" x="456" y="210" text-anchor="middle">4</text>
+</svg>

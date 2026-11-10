@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Quién pregunta, por dónde entra y dónde está el usuario SNMPv3</text>
+  <rect class="fg-caja" x="16" y="60" width="190" height="100" rx="12"/>
+  <text class="fg-texto fg-negrita" x="111.0" y="84" text-anchor="middle">Monitorización</text>
+  <text class="fg-tenue fg-peque" x="111.0" y="106" text-anchor="middle">192.168.10.40</text>
+  <text class="fg-tenue fg-peque" x="111.0" y="124" text-anchor="middle">SNMPv3 authPriv</text>
+  <text class="fg-tenue fg-peque" x="111.0" y="142" text-anchor="middle">SHA y AES</text>
+  <path class="fg-flecha fg-flecha--datos" d="M206 110 L276 110"/>
+  <path class="fg-flecha fg-flecha--datos" d="M267.9 106.1 L276 110 L267.9 113.9"/>
+  <text class="fg-tenue fg-peque" x="241" y="101" text-anchor="middle">UDP 161</text>
+  <rect class="fg-caja" x="276" y="60" width="200" height="100" rx="12"/>
+  <text class="fg-texto fg-negrita" x="376.0" y="84" text-anchor="middle">Firewall de Proxmox</text>
+  <text class="fg-tenue fg-peque" x="376.0" y="106" text-anchor="middle">deja pasar UDP 161</text>
+  <text class="fg-tenue fg-peque" x="376.0" y="124" text-anchor="middle">solo desde 192.168.10.40</text>
+  <path class="fg-flecha fg-flecha--datos" d="M476 110 L546 110"/>
+  <path class="fg-flecha fg-flecha--datos" d="M537.9 106.1 L546 110 L537.9 113.9"/>
+  <rect class="fg-caja fg-caja--clave" x="546" y="60" width="238" height="100" rx="12"/>
+  <text class="fg-texto fg-negrita" x="665.0" y="84" text-anchor="middle">snmpd</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="106" text-anchor="middle">agente SNMP del nodo</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="124" text-anchor="middle">responde solo lectura</text>
+  <rect class="fg-caja" x="276" y="220" width="240" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="396.0" y="244" text-anchor="middle">/var/lib/snmp/snmpd.conf</text>
+  <text class="fg-tenue fg-peque" x="396.0" y="266" text-anchor="middle">createUser monitor SHA … AES …</text>
+  <text class="fg-tenue fg-peque" x="396.0" y="284" text-anchor="middle">se añade con snmpd parado; al</text>
+  <text class="fg-tenue fg-peque" x="396.0" y="302" text-anchor="middle">arrancar pasa a claves derivadas</text>
+  <rect class="fg-caja" x="546" y="220" width="238" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="665.0" y="244" text-anchor="middle">/etc/snmp/snmpd.conf</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="266" text-anchor="middle">agentaddress udp:161</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="284" text-anchor="middle">rouser monitor priv</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="302" text-anchor="middle">(solo lectura, con cifrado)</text>
+  <path class="fg-flecha" d="M665 220 L665 160"/>
+  <path class="fg-flecha" d="M661.1 168.1 L665 160 L668.9 168.1"/>
+  <path class="fg-flecha" d="M516 236 L590 160"/>
+  <path class="fg-flecha" d="M581.5 163.1 L590 160 L587.2 168.5"/>
+  <circle class="fg-num" cx="276" cy="220" r="11"/>
+  <text class="fg-num-t" x="276" y="224" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="546" cy="220" r="11"/>
+  <text class="fg-num-t" x="546" y="224" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="276" cy="60" r="11"/>
+  <text class="fg-num-t" x="276" y="64" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="16" cy="60" r="11"/>
+  <text class="fg-num-t" x="16" y="64" text-anchor="middle">4</text>
+</svg>

@@ -32,6 +32,18 @@ preflight:
   - text: Ten a mano la consola física del nodo por si se pierde la red.
 steps:
   - title: Extraer la copia aparte
+    figure:
+      id: proxmox-ve/esquema-restaurar
+      alt: >-
+        Esquema: el archivo de la copia se extrae con tar -xzf en /root/restaurar; desde
+        ahí se compara con diff y se copian con cp solo el 101.conf de la máquina
+        virtual y, si hace falta, /etc/network/interfaces, que están en uso.
+      caption: >-
+        Esquema. 1 La copia se extrae aparte, en /root/restaurar, sin tocar la
+        configuración en uso. 2 diff compara cada archivo con el que está en uso. 3 Para
+        recuperar una máquina virtual se copia solo su 101.conf, con la máquina apagada.
+        4 La red se devuelve con cp e ifreload -a, desde la consola física. Los discos
+        de las máquinas vuelven desde una copia de la máquina virtual.
     commands:
       - mkdir -p /root/restaurar
       - tar -xzf /root/{{backupName}}.tar.gz -C /root/restaurar

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 190" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="189" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">Proxmox VE</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="155"/>
+  <path class="fg-linea" d="M161 34 V189 M311 34 V189"/>
+  <text class="fg-texto" x="16" y="62">Datacenter</text>
+  <text class="fg-texto" x="32" y="88">pve1</text>
+  <text class="fg-texto" x="48" y="114">101</text>
+  <rect class="fg-seleccion" x="4" y="126" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="48" y="140">copias-nas</text>
+  <rect class="fg-banda" x="166" y="45" width="140" height="24" rx="3"/>
+  <text class="fg-texto fg-negrita" x="176" y="62">Backups</text>
+  <circle class="fg-num" cx="140" cy="140" r="11"/>
+  <text class="fg-num-t" x="140" y="144" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="286" cy="62" r="11"/>
+  <text class="fg-num-t" x="286" y="66" text-anchor="middle">2</text>
+  <rect class="fg-boton" x="326" y="48" width="80" height="26" rx="3"/>
+  <text class="fg-texto" x="366.0" y="66" text-anchor="middle">Remove</text>
+  <rect class="fg-resalte" x="320" y="42" width="92" height="38" rx="6"/>
+  <circle class="fg-num" cx="426" cy="61" r="11"/>
+  <text class="fg-num-t" x="426" y="65" text-anchor="middle">4</text>
+  <rect class="fg-banda" x="320" y="92" width="470" height="26" rx="0"/>
+  <text class="fg-texto fg-negrita" x="328" y="110">vzdump-qemu-101-…</text>
+  <rect class="fg-resalte" x="318" y="90" width="474" height="30" rx="6"/>
+  <circle class="fg-num" cx="490" cy="105" r="11"/>
+  <text class="fg-num-t" x="490" y="109" text-anchor="middle">3</text>
+</svg>

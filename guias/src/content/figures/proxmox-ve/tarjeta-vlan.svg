@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="399" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">Proxmox VE</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="365"/>
+  <path class="fg-linea" d="M161 34 V399 M311 34 V399"/>
+  <text class="fg-texto" x="16" y="62">Datacenter</text>
+  <text class="fg-texto" x="32" y="88">pve1</text>
+  <rect class="fg-seleccion" x="4" y="100" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="48" y="114">101</text>
+  <rect class="fg-banda" x="166" y="45" width="140" height="24" rx="3"/>
+  <text class="fg-texto fg-negrita" x="176" y="62">Hardware</text>
+  <circle class="fg-num" cx="286" cy="62" r="11"/>
+  <text class="fg-num-t" x="286" y="66" text-anchor="middle">1</text>
+  <rect class="fg-boton" x="326" y="48" width="60" height="26" rx="3"/>
+  <text class="fg-texto" x="356.0" y="66" text-anchor="middle">Edit</text>
+  <rect class="fg-banda" x="320" y="92" width="470" height="26" rx="0"/>
+  <text class="fg-texto fg-negrita" x="328" y="110">Network Device</text>
+  <rect class="fg-resalte" x="318" y="90" width="474" height="30" rx="6"/>
+  <circle class="fg-num" cx="470" cy="105" r="11"/>
+  <text class="fg-num-t" x="470" y="109" text-anchor="middle">2</text>
+  <rect class="fg-ventana" x="420" y="170" width="340" height="180" rx="6"/>
+  <rect class="fg-barra" x="420.5" y="170.5" width="339" height="28" rx="6"/>
+  <text class="fg-texto fg-negrita" x="432" y="189">Edit: Network Device</text>
+  <text class="fg-texto" x="438" y="238">VLAN Tag:</text>
+  <rect class="fg-campo" x="530" y="220" width="120" height="26" rx="4"/>
+  <text class="fg-texto" x="539" y="238">20</text>
+  <rect class="fg-resalte" x="524" y="214" width="132" height="38" rx="6"/>
+  <circle class="fg-num" cx="670" cy="233" r="11"/>
+  <text class="fg-num-t" x="670" y="237" text-anchor="middle">3</text>
+  <rect class="fg-boton fg-boton--principal" x="660" y="306" width="80" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="700.0" y="324" text-anchor="middle">OK</text>
+</svg>

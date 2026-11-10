@@ -37,6 +37,20 @@ preflight:
   - text: Ten las dos claves guardadas en el gestor de contraseñas de la empresa.
 steps:
   - title: Instalar el agente SNMP
+    figure:
+      id: proxmox-ve/esquema-snmp
+      alt: >-
+        Esquema: el servidor de monitorización 192.168.10.40 consulta por UDP 161 con
+        SNMPv3; el cortafuegos de Proxmox solo le deja pasar a él; snmpd responde en
+        solo lectura, con el usuario en /var/lib/snmp/snmpd.conf y agentaddress y rouser
+        en /etc/snmp/snmpd.conf.
+      caption: >-
+        Esquema. 1 El usuario monitor se añade, con snmpd parado, a
+        /var/lib/snmp/snmpd.conf; al arrancar, snmpd lo cambia por claves derivadas. 2
+        En /etc/snmp/snmpd.conf, agentaddress udp:161 lo pone a escuchar en la red y
+        rouser monitor priv da solo lectura con cifrado. 3 El cortafuegos de Proxmox
+        deja pasar UDP 161 solo desde 192.168.10.40. 4 El servidor de monitorización
+        consulta con SNMPv3 authPriv, SHA y AES.
     commands:
       - apt update
       - apt install snmpd
