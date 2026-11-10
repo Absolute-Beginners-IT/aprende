@@ -1,6 +1,6 @@
 """Redrawn Veeam Backup & Replication 13 console screens and one schema for the Veeam guides.
 
-Run: python -I guias/scripts/figures/veeam_br.py
+Run: python guias/scripts/figures/veeam_br.py
 """
 import kit
 from kit import Svg

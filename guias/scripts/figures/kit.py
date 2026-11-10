@@ -2,7 +2,7 @@
 
 Screens are simplified, redrawn from the documented field names; schemas explain what travels where. Classes are the
 fg-* ones in guias/src/styles.css, so every figure follows the light and dark themes. Each platform has its own script:
-    python -I guias/scripts/figures/<platform>.py
+    python guias/scripts/figures/<platform>.py
 writes its SVGs into guias/src/content/figures/<platform>/.
 """
 from html import escape

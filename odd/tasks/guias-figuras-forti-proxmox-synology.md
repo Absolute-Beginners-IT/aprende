@@ -20,11 +20,11 @@ Branch: feat/guias-figuras-plataformas · Delivery: one PR per platform slice (a
 
 | ID | Specs | Route | Status | Commit |
 | --- | --- | --- | --- | --- |
-| T1 | S6 | inline | in progress | |
-| T2 | S1–S4 (FortiGate) | delegated (parallel unit) | pending | |
-| T3 | S1–S4 (Proxmox VE) | delegated (parallel unit) | pending | |
-| T4 | S1–S4 (Synology DSM) | delegated (parallel unit) | pending | |
-| T5 | S5, integration, browser check, PR | inline | pending | |
+| T1 | S6 | inline | done | 9841505 |
+| T2 | S1–S4 (FortiGate) | delegated (parallel unit) | done (3 schemas) | |
+| T3 | S1–S4 (Proxmox VE) | delegated (parallel unit) | done (4 screens, 9 schemas) | |
+| T4 | S1–S4 (Synology DSM) | delegated (parallel unit) | done (10 screens, 3 schemas) | |
+| T5 | S5, integration, browser check, PR | inline | done | |
 
 Route evidence: T2–T4 are independent units with disjoint edit surfaces (their own figures folder, procedures folder
 and generator), each several files of work, launched together. The parent owns git, the shared test and the changelog.
@@ -37,3 +37,10 @@ and generator), each several files of work, launched together. The parent owns g
   «las imagenes son demasiado grandes» (fixed in PR #44: figures capped at 80 % of their natural width).
 - **L3** Decision: screens for web/console steps, schemas for command guides (S3), because a command step has no screen
   to redraw and the user asked for images that explain why.
+- **L4** (2026-11-10, user, verbatim): «No es mas sencillo usar imagenes ya existentes de los paneles de configuracion?»
+  Answered: vendor screenshots are copyrighted and the site is public; options were the user's own screenshots or redrawn.
+- **L5** (2026-11-10, user, verbatim): «de momento redibujadas». S2 stands: redrawn screens.
+- **L6** Verification: guias vitest 348/348, tsc ok, biome 0 errors (6 old warnings); all 29 new SVGs measured in the
+  browser with real text boxes: nothing off-canvas, overlapping or spilling out of a field, button or box. Unconfirmed
+  labels are drawn as grey bars and said so in the caption (Synology help pages need JavaScript; Proxmox installer disk
+  field label not documented).
