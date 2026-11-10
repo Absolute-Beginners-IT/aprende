@@ -25,6 +25,10 @@ Una infraestructura no es una lista de equipos: son **capas** que se apoyan unas
 | Servicios | Directorio activo, DNS, DHCP, ficheros, aplicaciones | ¿Qué usan las personas? |
 | Protección | Copias de seguridad, SAI, monitorización | ¿Qué evita perder datos o servicio? |
 
+Pulsa cada etapa para ver cómo se apoya una capa en la anterior:
+
+{{< evolucion datos="capas-infraestructura" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 Que un servidor responda a ping no significa que el servicio funcione. La capa física puede estar bien y el servicio (por ejemplo, el DNS) estar caído.
 {{< /aviso >}}
@@ -48,6 +52,10 @@ Esta tabla sale de la misma base de conocimiento que usa el mapa:
 | Pensar que dos equipos iguales dan alta disponibilidad completa. | Buscar los demás puntos únicos de fallo: alimentación, switch core, almacenamiento. |
 | Hacer copias de seguridad en el mismo disco o la misma cabina. | Copias 3-2-1 y pruebas de restauración. |
 | Olvidar las impresoras y los SAI en el inventario. | Inventariar todo lo que tenga IP o alimente algo crítico. |
+
+El primer error es el más traicionero. Pulsa cada etapa para ver de qué dependen dos servidores «redundantes»:
+
+{{< evolucion datos="puntos-de-fallo" >}}
 
 {{< pregunta texto="¿Cómo se llama la regla de copias «3 copias, 2 soportes distintos, 1 fuera de la oficina»?" respuesta="3-2-1|321|3 2 1|regla 3-2-1" >}}
 {{% /tarea %}}

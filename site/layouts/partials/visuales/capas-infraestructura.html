@@ -1,0 +1,56 @@
+{{- /* Drawing of a small business infrastructure by layers for the evolucion shortcode
+  (data/visuales/evoluciones/capas-infraestructura.json), in a 900 × 350 canvas. The physical layer is always drawn;
+  each layer's colour matches the map. The logical group comes first so its VLAN boxes sit behind the devices. */ -}}
+<g data-elemento="logica">
+  <rect class="viz__tramo viz__tramo--resto" x="64" y="222" width="212" height="96" rx="16"/>
+  <text class="viz__tramo-texto viz__tramo-texto--resto" x="170" y="338" text-anchor="middle">VLAN 10 · oficina</text>
+  <rect class="viz__tramo viz__tramo--resto" x="354" y="222" width="242" height="96" rx="16"/>
+  <text class="viz__tramo-texto viz__tramo-texto--resto" x="475" y="338" text-anchor="middle">VLAN 20 · servidores</text>
+  <text class="viz__detalle" x="336" y="74">decide qué VLAN habla con cuál</text>
+</g>
+<rect class="viz__tarjeta" x="40" y="34" width="120" height="44" rx="22"/>
+<text class="viz__nombre" x="100" y="61" text-anchor="middle">Internet</text>
+<path class="viz__cable viz__cable--fijo" d="M160 56 L 274 56"/>
+<path class="viz__cable viz__cable--fijo" d="M300 82 L 300 150"/>
+<circle class="viz__tarjeta" cx="300" cy="56" r="26"/>
+<g class="viz__icono" transform="translate(300 56)">{{ partial "visuales/icono.html" "router" }}</g>
+<text class="viz__nombre" x="336" y="52">Firewall</text>
+<path class="viz__cable viz__cable--fijo" d="M260 190 C 260 215, 120 215, 120 236"/>
+<path class="viz__cable viz__cable--fijo" d="M282 190 C 282 215, 220 215, 220 236"/>
+<path class="viz__cable viz__cable--fijo" d="M318 190 C 318 212, 420 212, 420 232"/>
+<path class="viz__cable viz__cable--fijo" d="M342 190 C 342 212, 540 212, 540 236"/>
+<rect class="viz__tarjeta" x="240" y="150" width="120" height="40" rx="12"/>
+<g class="viz__icono" transform="translate(300 170)">{{ partial "visuales/icono.html" "switch" }}</g>
+<text class="viz__nombre" x="372" y="175">Switch</text>
+<rect class="viz__tarjeta" x="80" y="236" width="80" height="66" rx="14"/>
+<g class="viz__icono" transform="translate(120 256)">{{ partial "visuales/icono.html" "portatil" }}</g>
+<text class="viz__nombre" x="120" y="296" text-anchor="middle">PC 1</text>
+<rect class="viz__tarjeta" x="180" y="236" width="80" height="66" rx="14"/>
+<g class="viz__icono" transform="translate(220 256)">{{ partial "visuales/icono.html" "portatil" }}</g>
+<text class="viz__nombre" x="220" y="296" text-anchor="middle">PC 2</text>
+<rect class="viz__tarjeta" x="370" y="232" width="100" height="70" rx="14"/>
+<g class="viz__icono" transform="translate(420 256)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__nombre" x="420" y="296" text-anchor="middle">Servidor</text>
+<rect class="viz__tarjeta" x="500" y="236" width="80" height="66" rx="14"/>
+<g class="viz__icono" transform="translate(540 256)"><rect x="-16" y="-16" width="32" height="30" rx="4"/><path d="M-9 -7 h18 M-9 0 h18 M-9 7 h18"/></g>
+<text class="viz__nombre" x="540" y="296" text-anchor="middle">NAS</text>
+<g data-elemento="servicios">
+  <path class="viz__guia" d="M470 266 H 612 M612 192 V 312 M612 192 H 630 M612 232 H 630 M612 272 H 630 M612 312 H 630"/>
+  <text class="viz__detalle" x="630" y="166">lo que usan las personas</text>
+  <rect class="viz__insignia viz__insignia--servicios" x="630" y="176" width="240" height="32" rx="16"/>
+  <text class="viz__nombre" x="646" y="197">DNS: nombres a IP</text>
+  <rect class="viz__insignia viz__insignia--servicios" x="630" y="216" width="240" height="32" rx="16"/>
+  <text class="viz__nombre" x="646" y="237">DHCP: reparte IP</text>
+  <rect class="viz__insignia viz__insignia--servicios" x="630" y="256" width="240" height="32" rx="16"/>
+  <text class="viz__nombre" x="646" y="277">Directorio activo</text>
+  <rect class="viz__insignia viz__insignia--servicios" x="630" y="296" width="240" height="32" rx="16"/>
+  <text class="viz__nombre" x="646" y="317">Ficheros compartidos</text>
+</g>
+<g data-elemento="proteccion">
+  <rect class="viz__insignia viz__insignia--proteccion" x="600" y="18" width="270" height="32" rx="16"/>
+  <text class="viz__nombre" x="616" y="39">SAI: aguanta un apagón</text>
+  <rect class="viz__insignia viz__insignia--proteccion" x="600" y="58" width="270" height="32" rx="16"/>
+  <text class="viz__nombre" x="616" y="79">Copias 3-2-1: NAS y fuera</text>
+  <rect class="viz__insignia viz__insignia--proteccion" x="600" y="98" width="270" height="32" rx="16"/>
+  <text class="viz__nombre" x="616" y="119">Monitorización: avisa</text>
+</g>

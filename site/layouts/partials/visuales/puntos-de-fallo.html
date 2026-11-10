@@ -1,0 +1,43 @@
+{{- /* Drawing of two "redundant" servers for the evolucion shortcode (data/visuales/evoluciones/puntos-de-fallo.json),
+  in a 900 × 340 canvas. The installation is always drawn; each stage adds a warning mark on another single point of failure. */ -}}
+<rect class="viz__tarjeta" x="60" y="52" width="140" height="76" rx="14"/>
+<g class="viz__icono" transform="translate(130 78)">{{ partial "visuales/icono.html" "portatil" }}</g>
+<text class="viz__nombre" x="130" y="118" text-anchor="middle">20 puestos</text>
+<path class="viz__cable viz__cable--fijo" d="M200 90 L 320 90"/>
+<path class="viz__cable viz__cable--fijo" d="M350 110 C 350 140, 295 140, 295 170"/>
+<path class="viz__cable viz__cable--fijo" d="M410 110 C 410 140, 465 140, 465 170"/>
+<path class="viz__cable viz__cable--fijo" d="M295 246 C 295 262, 350 262, 350 276"/>
+<path class="viz__cable viz__cable--fijo" d="M465 246 C 465 262, 410 262, 410 276"/>
+<rect class="viz__tarjeta" x="320" y="70" width="120" height="40" rx="12"/>
+<g class="viz__icono" transform="translate(380 90)">{{ partial "visuales/icono.html" "switch" }}</g>
+<text class="viz__nombre" x="380" y="58" text-anchor="middle">Switch core</text>
+<rect class="viz__tarjeta" x="240" y="170" width="110" height="76" rx="14"/>
+<g class="viz__icono" transform="translate(295 194)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__nombre" x="295" y="236" text-anchor="middle">Servidor A</text>
+<rect class="viz__tarjeta" x="410" y="170" width="110" height="76" rx="14"/>
+<g class="viz__icono" transform="translate(465 194)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__nombre" x="465" y="236" text-anchor="middle">Servidor B</text>
+<rect class="viz__tarjeta" x="320" y="276" width="120" height="50" rx="14"/>
+<text class="viz__nombre" x="380" y="298" text-anchor="middle">Cabina</text>
+<text class="viz__detalle" x="380" y="316" text-anchor="middle">datos y copias</text>
+<path class="viz__guia" d="M620 198 H 520 M740 170 V 90 H 440"/>
+<rect class="viz__tarjeta" x="620" y="170" width="140" height="56" rx="14"/>
+<text class="viz__nombre" x="690" y="195" text-anchor="middle">Una regleta</text>
+<text class="viz__detalle" x="690" y="214" text-anchor="middle">da corriente a todo</text>
+<g data-elemento="switch">
+  <circle class="viz__fallo" cx="440" cy="70" r="13"/>
+  <text class="viz__fallo-texto" x="440" y="76" text-anchor="middle">!</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="462" y="64">Si cae, nadie llega a ningún servidor</text>
+</g>
+<g data-elemento="alimentacion">
+  <circle class="viz__fallo" cx="760" cy="170" r="13"/>
+  <text class="viz__fallo-texto" x="760" y="176" text-anchor="middle">!</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="690" y="254" text-anchor="middle">Un corte apaga los dos</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="690" y="272" text-anchor="middle">y también el switch</text>
+</g>
+<g data-elemento="cabina">
+  <circle class="viz__fallo" cx="440" cy="276" r="13"/>
+  <text class="viz__fallo-texto" x="440" y="282" text-anchor="middle">!</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="458" y="306">Los dos usan los mismos discos</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="458" y="324">y las copias están aquí</text>
+</g>
