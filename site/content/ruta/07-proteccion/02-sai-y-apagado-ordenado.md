@@ -86,5 +86,9 @@ No todo se apaga a la vez. Si apagas la cabina de almacenamiento antes que los h
 
 ¿Por qué hay que **probarlo**? Porque es una configuración que solo se ejecuta en una emergencia. Si una contraseña del agente caducó, un servidor nuevo no tiene el agente o el tiempo de apagado es más largo que la autonomía, lo descubrirás el día del corte. Pruébalo al menos una vez al año, en una ventana de mantenimiento pactada y con copias recientes, y apunta cuánto tarda cada fase.
 
+Pulsa cada etapa para seguir un corte de luz de principio a fin:
+
+{{< evolucion datos="apagado-sai" >}}
+
 En el laboratorio no tienes SAI, pero sí puedes preparar el plan: escribe el orden de apagado y de encendido de tu laboratorio (Ubuntu, `SRV-DC01` y el hipervisor) y marca la tarea.
 {{% /tarea %}}

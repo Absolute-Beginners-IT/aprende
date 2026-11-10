@@ -1,0 +1,27 @@
+{{- /* Drawing of RPO and RTO on a timeline for the evolucion shortcode (data/visuales/evoluciones/rpo-rto.json), in a
+  900 × 240 canvas. The timeline runs at y = 120; the lost data spans back to the last backup and the outage forward to the
+  recovery. */ -}}
+<path class="viz__cable viz__cable--fijo" d="M50 120 L 860 120"/>
+<text class="viz__detalle" x="860" y="142" text-anchor="end">tiempo →</text>
+<circle class="viz__insignia" cx="160" cy="120" r="10"/>
+<text class="viz__nombre" x="160" y="90" text-anchor="middle">Última copia</text>
+<text class="viz__detalle" x="160" y="70" text-anchor="middle">ayer, 22:00</text>
+<g data-elemento="incidente">
+  <circle class="viz__fallo" cx="520" cy="120" r="13"/>
+  <text class="viz__fallo-texto" x="520" y="126" text-anchor="middle">!</text>
+  <text class="viz__nombre" x="520" y="90" text-anchor="middle">Ransomware</text>
+  <text class="viz__detalle" x="520" y="70" text-anchor="middle">hoy, 10:00</text>
+</g>
+<g data-elemento="rpo">
+  <rect class="viz__tramo viz__tramo--resto" x="172" y="140" width="336" height="34" rx="8"/>
+  <text class="viz__tramo-texto viz__tramo-texto--resto" x="340" y="162" text-anchor="middle">RPO: 12 h de datos perdidos</text>
+  <text class="viz__detalle" x="340" y="198" text-anchor="middle">← mira hacia atrás</text>
+</g>
+<g data-elemento="rto">
+  <rect class="viz__tramo viz__tramo--equipo" x="532" y="140" width="228" height="34" rx="8"/>
+  <text class="viz__tramo-texto viz__tramo-texto--equipo" x="646" y="162" text-anchor="middle">RTO: 4 h sin servicio</text>
+  <text class="viz__detalle" x="646" y="198" text-anchor="middle">mira hacia delante →</text>
+  <circle class="viz__insignia viz__insignia--servicios" cx="770" cy="120" r="10"/>
+  <text class="viz__nombre" x="770" y="90" text-anchor="middle">Vuelve el servicio</text>
+  <text class="viz__detalle" x="770" y="70" text-anchor="middle">hoy, 14:00</text>
+</g>

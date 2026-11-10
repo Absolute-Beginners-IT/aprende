@@ -1,0 +1,28 @@
+{
+  "titulo": "Una semana de copias en dos filas: arriba, una completa el domingo e incrementales pequeñas de lunes a miércoles; abajo, la misma completa y diferenciales que crecen cada día. Para restaurar el jueves, la fila incremental necesita cuatro copias y la diferencial, dos.",
+  "pie": "Incremental: copias pequeñas, restauración larga. Diferencial: copias que crecen, restauración con dos piezas.",
+  "lienzo": [900, 310],
+  "elementos": ["incrementales", "diferenciales", "restaurar"],
+  "etapas": [
+    {
+      "titulo": "Una completa el domingo",
+      "muestra": [],
+      "porque": "El domingo se copia todo. Es la base de las dos estrategias: tarda más y ocupa más, pero por sí sola basta para restaurar."
+    },
+    {
+      "titulo": "Incrementales",
+      "muestra": ["incrementales"],
+      "porque": "De lunes a miércoles, cada incremental guarda solo lo que cambió desde la copia anterior, sea del tipo que sea. Cada una es pequeña y rápida."
+    },
+    {
+      "titulo": "Diferenciales",
+      "muestra": ["incrementales", "diferenciales"],
+      "porque": "Cada diferencial guarda todo lo que cambió desde la última completa, así que el miércoles incluye también lo del lunes y el martes. Crecen cada día hasta la siguiente completa."
+    },
+    {
+      "titulo": "Restaurar el jueves",
+      "muestra": ["incrementales", "diferenciales", "restaurar"],
+      "porque": "Con incrementales necesitas la completa y todas las incrementales posteriores, en orden: si falta una, no llegas al miércoles. Con diferenciales basta la completa y la última diferencial."
+    }
+  ]
+}
