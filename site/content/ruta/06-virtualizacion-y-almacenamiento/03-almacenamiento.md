@@ -56,6 +56,10 @@ RAID te protege de **un** tipo de problema: que se rompa un disco. Contra todo l
 - Si un *ransomware* (programa que cifra tus datos para pedir un rescate) cifra los ficheros, el RAID guarda fielmente los ficheros cifrados.
 - Si hay un incendio, se inunda la sala o roban el servidor, se pierden todos los discos juntos.
 
+Pulsa cada etapa para ver qué te salva un espejo y qué no:
+
+{{< evolucion datos="raid-espejo" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 RAID sirve para **disponibilidad**: que el servicio no se pare por un disco roto. Las copias de seguridad sirven para **recuperar** datos perdidos. Necesitas las dos cosas; una no sustituye a la otra.
 {{< /aviso >}}

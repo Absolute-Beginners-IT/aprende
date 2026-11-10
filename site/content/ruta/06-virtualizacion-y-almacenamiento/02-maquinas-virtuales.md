@@ -38,6 +38,10 @@ Una **instantánea** (*snapshot*; en Hyper-V, **punto de control**) congela el e
 
 Una instantánea olvidada sigue creciendo con cada cambio, ocupa espacio en el almacén y hace que el disco de la VM vaya más lento.
 
+Pulsa cada etapa para ver qué pasa con los ficheros del disco:
+
+{{< evolucion datos="instantanea" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 Una instantánea **no es una copia de seguridad**. Depende del disco original y vive en el mismo almacenamiento: si ese disco se corrompe, se borra o se pierde el servidor, la instantánea desaparece con él. Una copia de seguridad es una copia independiente, guardada en otro sitio. Lo verás a fondo en el módulo 7.
 {{< /aviso >}}

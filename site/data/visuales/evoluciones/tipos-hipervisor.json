@@ -1,0 +1,28 @@
+{
+  "titulo": "Dos pilas comparadas: a la izquierda un hipervisor de tipo 2, que corre como aplicación sobre el sistema operativo de un PC; a la derecha uno de tipo 1, instalado directamente sobre el servidor. Al final, cómo encaja Hyper-V.",
+  "pie": "Tipo 2 para laboratorios y pruebas; tipo 1 para los servidores de la empresa.",
+  "lienzo": [900, 320],
+  "elementos": ["tipo2", "tipo1", "hyperv"],
+  "etapas": [
+    {
+      "titulo": "El hardware",
+      "muestra": [],
+      "porque": "Todo empieza en el hardware: procesador, memoria, discos y red. La diferencia entre los dos tipos está en qué se instala justo encima."
+    },
+    {
+      "titulo": "Tipo 2: una aplicación más",
+      "muestra": ["tipo2"],
+      "porque": "En tu PC, encima del hardware va Windows, Linux o macOS, y el hipervisor (VirtualBox, VMware Workstation) es un programa más. Las VM compiten con el escritorio por los recursos y se paran si el sistema se reinicia para actualizarse."
+    },
+    {
+      "titulo": "Tipo 1: sobre el metal",
+      "muestra": ["tipo2", "tipo1"],
+      "porque": "En un servidor, el hipervisor (Proxmox VE, ESXi o Hyper-V) se instala directamente sobre el hardware, sin sistema debajo. Solo se dedica a las VM: rinde más y es más estable."
+    },
+    {
+      "titulo": "El caso de Hyper-V",
+      "muestra": ["tipo2", "tipo1", "hyperv"],
+      "porque": "Hyper-V se activa desde Windows, pero al arrancar va primero el hipervisor, sobre el hardware, y tu Windows pasa a correr encima como una partición de gestión, casi como una VM más. Por eso es de tipo 1."
+    }
+  ]
+}

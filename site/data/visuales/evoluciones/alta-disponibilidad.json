@@ -1,0 +1,23 @@
+{
+  "titulo": "Un clúster de tres hosts con almacenamiento compartido y una VM en cada uno; una VM pasa del host A al B con migración en vivo, sin apagarse; después el host C cae y la alta disponibilidad arranca de nuevo su VM en el host A.",
+  "pie": "La migración en vivo la lanzas tú y no corta el servicio. La alta disponibilidad actúa sola cuando un host cae, pero la VM se reinicia: acorta el corte, no lo evita.",
+  "lienzo": [900, 320],
+  "elementos": ["migracion", "ha"],
+  "etapas": [
+    {
+      "titulo": "Un clúster de tres hosts",
+      "muestra": [],
+      "porque": "Cada host ejecuta una VM, pero los discos de todas están en el almacenamiento compartido. Por eso cualquier host puede ejecutar cualquier VM."
+    },
+    {
+      "titulo": "Migración en vivo",
+      "muestra": ["migracion"],
+      "porque": "Quieres actualizar el host A en horario laboral. Mueves VM-FICHEROS al host B con migración en vivo: se copia su memoria y se cambia de host sin apagarla. El host A queda vacío y lo puedes reiniciar."
+    },
+    {
+      "titulo": "Un host cae: alta disponibilidad",
+      "muestra": ["migracion", "ha"],
+      "porque": "Al host C se le rompe la placa. VM-APP se apaga de golpe, y la alta disponibilidad la arranca de nuevo en el host A. Funciona porque su disco está en el almacenamiento compartido, pero hay un corte de unos minutos."
+    }
+  ]
+}

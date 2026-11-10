@@ -24,6 +24,10 @@ En la sala «Monta tu laboratorio» instalaste un hipervisor en tu ordenador. Es
 
 Un hipervisor de tipo 1 rinde más y es más estable, porque no compite con un sistema operativo de escritorio por los recursos ni se reinicia cuando ese sistema se actualiza.
 
+Pulsa cada etapa para comparar las dos pilas:
+
+{{< evolucion datos="tipos-hipervisor" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 Hyper-V parece de tipo 2 porque lo activas desde Windows, pero no lo es: al activarlo, el hipervisor arranca primero, sobre el hardware, y tu Windows pasa a ejecutarse encima de él como una partición especial de gestión. Por eso se considera de **tipo 1**.
 {{< /aviso >}}
