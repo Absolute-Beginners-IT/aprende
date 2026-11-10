@@ -1,0 +1,37 @@
+{{- /* Drawing of two VLANs routed by the firewall for the evolucion shortcode (data/visuales/evoluciones/vlan-troncal.json),
+  in a 900 × 340 canvas. The switch and the two access VLANs are always drawn; the trunk and firewall, its subinterfaces and
+  the DHCP relay appear on top. The subinterfaces stage covers the "they cannot see each other" verdict with a viz__tapa. */ -}}
+<rect class="viz__tramo viz__tramo--resto" x="60" y="236" width="280" height="100" rx="16"/>
+<text class="viz__tramo-texto viz__tramo-texto--resto" x="328" y="258" text-anchor="end">VLAN 10 · usuarios</text>
+<rect class="viz__tramo viz__tramo--grupo" x="560" y="236" width="280" height="100" rx="16"/>
+<text class="viz__tramo-texto viz__tramo-texto--grupo" x="572" y="258">VLAN 50 · servidores</text>
+<path class="viz__cable viz__cable--fijo" d="M360 210 C 250 210, 125 220, 125 250"/>
+<path class="viz__cable viz__cable--fijo" d="M540 210 C 650 210, 775 220, 775 250"/>
+<rect class="viz__tarjeta" x="360" y="180" width="180" height="42" rx="12"/>
+<g class="viz__icono" transform="translate(450 201)">{{ partial "visuales/icono.html" "switch" }}</g>
+<rect class="viz__tarjeta" x="80" y="250" width="90" height="58" rx="14"/>
+<g class="viz__icono" transform="translate(125 272)">{{ partial "visuales/icono.html" "portatil" }}</g>
+<text class="viz__detalle" x="125" y="328" text-anchor="middle">PC · 192.168.10.25</text>
+<rect class="viz__tarjeta" x="730" y="250" width="90" height="58" rx="14"/>
+<g class="viz__icono" transform="translate(775 276)">{{ partial "visuales/icono.html" "servidor" }}</g>
+<text class="viz__detalle" x="775" y="328" text-anchor="middle">DHCP · 192.168.50.10</text>
+<text class="viz__veredicto viz__veredicto--no" x="450" y="292" text-anchor="middle">✗ No se ven</text>
+<g data-elemento="troncal">
+  <path class="viz__cable viz__cable--fijo" d="M450 86 L 450 180"/>
+  <circle class="viz__tarjeta" cx="450" cy="60" r="26"/>
+  <g class="viz__icono" transform="translate(450 60)">{{ partial "visuales/icono.html" "router" }}</g>
+  <text class="viz__nombre" x="450" y="24" text-anchor="middle">Firewall</text>
+  <text class="viz__detalle" x="462" y="162">troncal 802.1Q: etiquetas 10 y 50</text>
+</g>
+<g data-elemento="subinterfaces">
+  <path class="viz__guia" d="M424 60 H 250 V 100 M476 60 H 650 V 100"/>
+  <rect class="viz__insignia" x="120" y="100" width="260" height="34" rx="17"/>
+  <text class="viz__nombre" x="250" y="122" text-anchor="middle">192.168.10.1 · VLAN 10</text>
+  <rect class="viz__insignia" x="520" y="100" width="260" height="34" rx="17"/>
+  <text class="viz__nombre" x="650" y="122" text-anchor="middle">192.168.50.1 · VLAN 50</text>
+  <rect class="viz__tapa" x="346" y="272" width="208" height="28"/>
+  <text class="viz__veredicto viz__veredicto--si" x="450" y="292" text-anchor="middle">✓ Por el firewall</text>
+</g>
+<g data-elemento="relay">
+  <text class="viz__tramo-texto viz__tramo-texto--equipo" x="250" y="158" text-anchor="middle">DHCP relay → 192.168.50.10</text>
+</g>

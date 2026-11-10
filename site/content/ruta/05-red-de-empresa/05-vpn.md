@@ -70,6 +70,10 @@ Una VPN conecta redes, y para enrutar entre ellas **no pueden usar la misma subr
 
 Por eso conviene evitar esos rangos tan comunes al diseñar la red de una empresa. Existen trucos para arreglarlo a posteriori (traducir direcciones dentro del túnel), pero complican mucho el diagnóstico.
 
+Pulsa cada etapa para ver el problema y su arreglo:
+
+{{< evolucion datos="vpn-subredes" >}}
+
 {{< pregunta texto="¿Pueden la central y la delegación usar las dos la subred 192.168.10.0/24 en una VPN sitio a sitio, sin traducir direcciones? (sí/no)" respuesta="no" >}}
 {{% /tarea %}}
 

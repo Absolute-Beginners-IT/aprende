@@ -81,6 +81,10 @@ Las VLAN se comunican a través de un equipo que tenga una «pata» (una IP de p
 
 Hay un detalle que suele romper cosas: los clientes piden IP por **DHCP con un broadcast**, y los broadcasts no salen de su VLAN. Si el servidor DHCP está en la VLAN 50, la puerta de enlace de la VLAN 10 tiene que recoger esas peticiones y reenviárselas. Esa función se llama **DHCP relay** (en algunos fabricantes, *IP helper*).
 
+Pulsa cada etapa para ver cómo se juntan las piezas de esta sala:
+
+{{< evolucion datos="vlan-troncal" >}}
+
 {{< pregunta texto="Los equipos de la VLAN 10 no reciben IP porque el servidor DHCP está en la VLAN 50. ¿Qué función hay que activar en la puerta de enlace de la VLAN 10?" respuesta="dhcp relay|relay dhcp|ip helper|ip helper-address|retransmision dhcp|agente de retransmision dhcp" pista="Es un reenvío: la puerta de enlace recoge el broadcast y lo manda al servidor." >}}
 {{% /tarea %}}
 

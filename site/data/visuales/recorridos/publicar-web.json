@@ -1,0 +1,107 @@
+{
+  "titulo": "Un cliente en internet con un navegador, el firewall de la empresa con la IP pública, un switch y un servidor web interno. El firewall redirige el puerto 443 de la IP pública al servidor.",
+  "lienzo": [900, 400],
+  "zonas": [{ "x": 20, "y": 196, "ancho": 220, "alto": 196 }],
+  "rotulos": [
+    { "x": 130, "y": 382, "texto": "INTERNET", "centro": true },
+    { "x": 300, "y": 388, "texto": "OFICINA · VLAN 50, servidores, 192.168.50.0/24" }
+  ],
+  "pantalla": {
+    "tipo": "navegador",
+    "x": 30,
+    "y": 24,
+    "ancho": 260,
+    "alto": 140,
+    "lineas": 2,
+    "guia": "cliente",
+    "inicial": { "barra": "", "lineas": ["Página en blanco", "Escribe una dirección"] }
+  },
+  "nodos": {
+    "cliente": { "nombre": "Cliente", "detalle": "198.51.100.7", "x": 130, "y": 300, "icono": "portatil" },
+    "firewall": { "nombre": "Firewall", "detalle": "pública 203.0.113.10", "x": 400, "y": 300, "icono": "router", "nat": true },
+    "switch": { "nombre": "Switch", "detalle": "VLAN 50", "x": 600, "y": 300, "icono": "switch", "rol": "switch" },
+    "web": { "nombre": "Servidor web", "detalle": "192.168.50.40", "x": 790, "y": 300, "icono": "servidor" }
+  },
+  "cables": [
+    { "a": "cliente", "b": "firewall" },
+    { "a": "firewall", "b": "switch" },
+    { "a": "switch", "b": "web" }
+  ],
+  "pie": "Las IP son de los rangos reservados para documentación. Se omite la consulta DNS: web.example.com apunta a 203.0.113.10.",
+  "pasos": [
+    {
+      "en": "cliente",
+      "tipo": "pregunta",
+      "fase": "Llamar a la IP pública",
+      "cambio": "Paquete nuevo",
+      "hace": "Alguien en internet abre https://web.example.com. Su navegador ya sabe por DNS que ese nombre es 203.0.113.10, la IP pública de la empresa, y envía la petición a su puerto 443.",
+      "porque": "Desde fuera solo se ve la IP pública. Los servidores de dentro tienen IP privadas, que no circulan por internet.",
+      "paquete": { "nombre": "Petición HTTPS a la IP pública", "origen": "198.51.100.7:51000", "destino": "203.0.113.10:443" },
+      "pantalla": { "barra": "https://web.example.com", "teclear": true, "lineas": ["Cargando…", "Conectando con 203.0.113.10"] }
+    },
+    {
+      "desde": "cliente",
+      "en": "firewall",
+      "tipo": "pregunta",
+      "fase": "Redirigir el puerto",
+      "cambio": "Cambia el destino (redirección de puertos)",
+      "cambia": ["destino"],
+      "hace": "Una regla de redirección de puertos dice que lo que llega al puerto 443 de la IP pública va al servidor web interno, 192.168.50.40. El firewall cambia el destino y apunta la conexión.",
+      "porque": "Además de la redirección, una regla tiene que permitir ese tráfico. Solo se publica el 443: el resto de puertos de la IP pública siguen cerrados.",
+      "paquete": { "nombre": "Petición HTTPS a la IP pública", "origen": "198.51.100.7:51000", "destino": "192.168.50.40:443" }
+    },
+    {
+      "desde": "firewall",
+      "en": "switch",
+      "tipo": "pregunta",
+      "fase": "Redirigir el puerto",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la trama al servidor web por su puerto.",
+      "porque": "El firewall ya ha puesto la IP interna. Dentro de la oficina todo va con IP privadas.",
+      "paquete": { "nombre": "Petición HTTPS a la IP pública", "origen": "198.51.100.7:51000", "destino": "192.168.50.40:443" }
+    },
+    {
+      "desde": "switch",
+      "en": "web",
+      "tipo": "respuesta",
+      "fase": "Responder",
+      "cambio": "Ahora es una respuesta",
+      "cambia": ["nombre"],
+      "hace": "El servidor web atiende la petición y responde a quien se la pidió: la IP del cliente.",
+      "porque": "El servidor ve la IP real del cliente, porque el firewall solo ha cambiado el destino. Por eso en sus registros aparece 198.51.100.7.",
+      "paquete": { "nombre": "Respuesta HTTPS con la página", "origen": "192.168.50.40:443", "destino": "198.51.100.7:51000" }
+    },
+    {
+      "desde": "web",
+      "en": "switch",
+      "tipo": "respuesta",
+      "fase": "Responder",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la trama hacia el firewall, la puerta de enlace del servidor.",
+      "porque": "198.51.100.7 no es de la VLAN 50, así que el servidor la ha mandado a su puerta de enlace.",
+      "paquete": { "nombre": "Respuesta HTTPS con la página", "origen": "192.168.50.40:443", "destino": "198.51.100.7:51000" }
+    },
+    {
+      "desde": "switch",
+      "en": "firewall",
+      "tipo": "respuesta",
+      "fase": "Deshacer la redirección",
+      "cambio": "Cambia el origen (deshace la redirección)",
+      "cambia": ["origen"],
+      "hace": "Reconoce la conexión que apuntó a la ida y cambia el origen privado por su IP pública, 203.0.113.10:443.",
+      "porque": "El cliente habló con 203.0.113.10: si la respuesta le llegara desde 192.168.50.40, la descartaría. Y como el firewall tiene estado, deja pasar la respuesta sin necesitar otra regla.",
+      "paquete": { "nombre": "Respuesta HTTPS con la página", "origen": "203.0.113.10:443", "destino": "198.51.100.7:51000" }
+    },
+    {
+      "desde": "firewall",
+      "en": "cliente",
+      "tipo": "respuesta",
+      "fase": "Deshacer la redirección",
+      "cambio": "Sin cambios",
+      "hace": "Llega la respuesta y la página se carga.",
+      "porque": "El cliente nunca sabe que detrás de la IP pública hay un servidor con una IP privada.",
+      "paquete": { "nombre": "Respuesta HTTPS con la página", "origen": "203.0.113.10:443", "destino": "198.51.100.7:51000" },
+      "pantalla": { "lineas": ["Web de la empresa", "Página cargada por HTTPS"], "candado": true }
+    }
+  ]
+}
