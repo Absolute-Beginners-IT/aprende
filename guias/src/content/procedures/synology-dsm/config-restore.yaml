@@ -21,6 +21,17 @@ steps:
       Configurations pulsa Restore, elige el archivo de tu ordenador con Browse (o una
       versión de tu cuenta Synology) y escribe la contraseña si la copia está cifrada.
   - title: Elegir qué partes restaurar
+    figure:
+      id: synology-dsm/restaurar-partes
+      alt: >-
+        Ventana simplificada de la restauración: una lista de partes con casillas, entre ellas Network sin
+        marcar; la casilla Overwrite conflicting settings sin marcar y el botón Apply.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 Las
+        partes que puedes restaurar: marca solo las que necesites. 2 Network: restaurarla puede cambiar la
+        IP del NAS. 3 Overwrite conflicting settings sobrescribe los usuarios, grupos, carpetas y servicios
+        que ya existan. 4 Apply inicia la restauración, que confirmas con Yes. Las barras grises son
+        elementos que la guía no nombra.
     manual: true
     explanation: >-
       Marca solo lo que necesites devolver: carpetas y usuarios, red, seguridad, servicios.

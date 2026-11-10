@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="759" height="469" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h742 a8 8 0 0 1 8 8 v25 h-758 z"/>
+  <text class="fg-texto" x="14" y="22">Control Panel</text>
+  <path class="fg-icono" d="M736 12 l10 10 M746 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="180" height="435"/>
+  <rect class="fg-banda" x="16" y="51" width="70" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="81" width="107" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="111" width="84" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="141" width="121" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="171" width="98" height="10" rx="3"/>
+  <rect class="fg-seleccion" x="4" y="196" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="210">Terminal &amp; SNMP</text>
+  <rect class="fg-banda" x="16" y="231" width="112" height="10" rx="3"/>
+  <rect class="fg-banda" x="198" y="57" width="60" height="10" rx="3"/>
+  <text class="fg-texto fg-negrita" x="286" y="66">SNMP</text>
+  <rect class="fg-seleccion" x="286" y="74" width="29" height="3"/>
+  <path class="fg-linea" d="M181 78 H759"/>
+  <rect class="fg-casilla fg-casilla--si" x="206" y="100" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M209 107 l3 3 l6 -6"/>
+  <text class="fg-texto" x="228" y="112">Enable SNMP service</text>
+  <rect class="fg-casilla" x="226" y="130" width="14" height="14" rx="2"/>
+  <text class="fg-tenue" x="248" y="142">SNMPv1, SNMPv2c service</text>
+  <rect class="fg-casilla fg-casilla--si" x="226" y="158" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M229 165 l3 3 l6 -6"/>
+  <text class="fg-texto" x="248" y="170">SNMPv3 service</text>
+  <rect class="fg-resalte" x="200" y="92" width="260" height="86" rx="6"/>
+  <circle class="fg-num" cx="474" cy="106" r="11"/>
+  <text class="fg-num-t" x="474" y="110" text-anchor="middle">1</text>
+  <rect class="fg-banda" x="246" y="194" width="90" height="10" rx="3"/>
+  <rect class="fg-campo" x="380" y="186" width="220" height="26" rx="4"/>
+  <text class="fg-texto" x="389" y="204">monitor</text>
+  <rect class="fg-banda" x="246" y="224" width="110" height="10" rx="3"/>
+  <rect class="fg-campo" x="380" y="216" width="220" height="26" rx="4"/>
+  <text class="fg-texto" x="389" y="234">••••••••</text>
+  <text class="fg-texto" x="246" y="264">Protocol</text>
+  <rect class="fg-campo" x="380" y="246" width="120" height="26" rx="4"/>
+  <text class="fg-texto" x="389" y="264">SHA</text>
+  <path class="fg-icono" d="M482 256 l5 5 l5 -5"/>
+  <rect class="fg-resalte" x="372" y="180" width="236" height="98" rx="6"/>
+  <circle class="fg-num" cx="622" cy="196" r="11"/>
+  <text class="fg-num-t" x="622" y="200" text-anchor="middle">2</text>
+  <rect class="fg-casilla fg-casilla--si" x="206" y="300" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M209 307 l3 3 l6 -6"/>
+  <text class="fg-texto" x="228" y="312">Enable SNMP privacy</text>
+  <text class="fg-texto" x="246" y="344">Protocol</text>
+  <rect class="fg-campo" x="380" y="326" width="120" height="26" rx="4"/>
+  <text class="fg-texto" x="389" y="344">AES</text>
+  <path class="fg-icono" d="M482 336 l5 5 l5 -5"/>
+  <rect class="fg-banda" x="246" y="364" width="110" height="10" rx="3"/>
+  <rect class="fg-campo" x="380" y="356" width="220" height="26" rx="4"/>
+  <text class="fg-texto" x="389" y="374">••••••••</text>
+  <rect class="fg-resalte" x="200" y="292" width="408" height="96" rx="6"/>
+  <circle class="fg-num" cx="622" cy="306" r="11"/>
+  <text class="fg-num-t" x="622" y="310" text-anchor="middle">3</text>
+  <rect class="fg-boton fg-boton--principal" x="654" y="426" width="86" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="697.0" y="444" text-anchor="middle">Apply</text>
+  <circle class="fg-num" cx="634" cy="439" r="11"/>
+  <text class="fg-num-t" x="634" y="443" text-anchor="middle">4</text>
+</svg>

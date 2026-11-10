@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 290" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="599" height="289" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h582 a8 8 0 0 1 8 8 v25 h-598 z"/>
+  <text class="fg-texto" x="14" y="22"></text>
+  <path class="fg-icono" d="M576 12 l10 10 M586 12 l-10 10"/>
+  <text class="fg-texto" x="24" y="76">Name</text>
+  <rect class="fg-campo" x="170" y="58" width="300" height="26" rx="4"/>
+  <text class="fg-texto" x="179" y="76">jconde</text>
+  <circle class="fg-num" cx="486" cy="71" r="11"/>
+  <text class="fg-num-t" x="486" y="75" text-anchor="middle">1</text>
+  <rect class="fg-banda" x="24" y="104" width="90" height="10" rx="3"/>
+  <rect class="fg-campo" x="170" y="92" width="300" height="26" rx="4"/>
+  <text class="fg-texto" x="179" y="110"></text>
+  <rect class="fg-banda" x="24" y="138" width="60" height="10" rx="3"/>
+  <rect class="fg-campo" x="170" y="126" width="300" height="26" rx="4"/>
+  <text class="fg-texto" x="179" y="144"></text>
+  <text class="fg-texto" x="24" y="178">Password</text>
+  <rect class="fg-campo" x="170" y="160" width="300" height="26" rx="4"/>
+  <text class="fg-texto" x="179" y="178">••••••••</text>
+  <circle class="fg-num" cx="486" cy="173" r="11"/>
+  <text class="fg-num-t" x="486" y="177" text-anchor="middle">2</text>
+  <text class="fg-enlace" x="170" y="220">Generate Random Password</text>
+  <circle class="fg-num" cx="374" cy="216" r="11"/>
+  <text class="fg-num-t" x="374" y="220" text-anchor="middle">3</text>
+</svg>

@@ -26,6 +26,17 @@ preflight:
       directamente en DSM; esta guía no las pide.
 steps:
   - title: Activar SNMPv3
+    figure:
+      id: synology-dsm/snmp-v3
+      alt: >-
+        Pantalla simplificada de Control Panel con la sección Terminal & SNMP abierta en la pestaña SNMP:
+        Enable SNMP service y SNMPv3 service marcados, SNMPv1, SNMPv2c service sin marcar, el usuario
+        monitor con SHA, Enable SNMP privacy marcado con AES y el botón Apply.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 Enable
+        SNMP service y SNMPv3 service marcados; SNMPv1, SNMPv2c service sin marcar. 2 El usuario de ejemplo
+        monitor, la clave de autenticación y SHA en Protocol. 3 Enable SNMP privacy, AES en Protocol y la
+        clave de cifrado. 4 Apply. Las barras grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       Ve a Control Panel, Terminal & SNMP, pestaña SNMP. Marca Enable SNMP service y
@@ -37,6 +48,16 @@ steps:
       Marca Enable SNMP privacy, elige AES en Protocol, escribe la clave de cifrado y
       pulsa Apply.
   - title: Limitar el acceso al servidor de monitorización
+    figure:
+      id: synology-dsm/esquema-snmp
+      alt: >-
+        Esquema: el servidor de monitorización 192.168.10.40 consulta al NAS por UDP 161 y el cortafuegos de
+        DSM lo deja pasar; la consulta de otro equipo de la red se queda en el cortafuegos.
+      caption: >-
+        Esquema. 1 El servidor de monitorización 192.168.10.40 consulta por SNMPv3 (authPriv, SHA y AES) al
+        puerto UDP 161. 2 El cortafuegos de DSM permite ese puerto solo desde esa IP y lo deniega al resto.
+        3 Desde otro equipo, la misma consulta no responde. 4 El NAS solo atiende SNMPv3. Las IP son los
+        valores de ejemplo.
     manual: true
     explanation: >-
       En Control Panel, Security, Firewall, añade al perfil activo una regla que permita el

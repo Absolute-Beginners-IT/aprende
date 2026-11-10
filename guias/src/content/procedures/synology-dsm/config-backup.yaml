@@ -16,12 +16,35 @@ preflight:
       con Hyper Backup.
 steps:
   - title: Exportar la configuración
+    figure:
+      id: synology-dsm/copia-configuracion
+      alt: >-
+        Pantalla simplificada de Control Panel con la sección Update & Restore abierta en la pestaña
+        Configuration Backup: el botón Export en Manual Export, la opción Self-defined en Automatic Backup y
+        el botón Restore en Restore DSM Configurations.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 La
+        pestaña Configuration Backup de Update & Restore. 2 Export, en Manual Export, descarga el archivo
+        .dss a tu ordenador. 3 En Automatic Backup, si activas la copia en tu cuenta Synology, elige el
+        cifrado Self-defined. Las barras grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       Ve a Control Panel, Update & Restore, pestaña Configuration Backup. En Manual Export
       pulsa Export: se descarga a tu ordenador un archivo con el nombre del modelo y la
       fecha, con extensión .dss.
   - title: Guardar la copia en su sitio
+    figure:
+      id: synology-dsm/esquema-copia-configuracion
+      alt: >-
+        Esquema: la configuración sale del NAS con Export, llega a tu ordenador como archivo .dss y se mueve
+        al repositorio de copias de la empresa; aparte, la copia opcional en la cuenta Synology y los datos
+        de las carpetas compartidas, que se copian con Hyper Backup.
+      caption: >-
+        Esquema. 1 Desde el NAS exportas la configuración con Export. 2 El archivo .dss llega a tu
+        ordenador, con el nombre del modelo y la fecha. 3 Lo mueves al repositorio de copias de la empresa,
+        fuera del NAS. 4 La copia automática en la cuenta Synology es opcional: guarda una versión por NAS y
+        se borra si no se sube nada en 180 días. 5 Los datos de las carpetas compartidas no van en el .dss:
+        se copian con Hyper Backup.
     manual: true
     explanation: >-
       Mueve el archivo .dss al repositorio de copias de la empresa. Una copia que solo está

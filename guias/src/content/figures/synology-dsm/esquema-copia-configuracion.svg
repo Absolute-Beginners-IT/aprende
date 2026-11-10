@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Adónde va la copia de la configuración de un NAS Synology</text>
+  <rect class="fg-caja" x="20" y="56" width="230" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="135.0" y="80" text-anchor="middle">NAS Synology</text>
+  <text class="fg-tenue fg-peque" x="135.0" y="102" text-anchor="middle">Update &amp; Restore,</text>
+  <text class="fg-tenue fg-peque" x="135.0" y="120" text-anchor="middle">Configuration Backup:</text>
+  <text class="fg-tenue fg-peque" x="135.0" y="138" text-anchor="middle">Manual Export, Export</text>
+  <rect class="fg-caja fg-caja--clave" x="290" y="56" width="220" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="400.0" y="80" text-anchor="middle">Tu ordenador</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="102" text-anchor="middle">se descarga un archivo .dss</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="120" text-anchor="middle">con el nombre del modelo</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="138" text-anchor="middle">y la fecha</text>
+  <rect class="fg-caja fg-caja--clave" x="550" y="56" width="230" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="665.0" y="80" text-anchor="middle">Repositorio de copias</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="102" text-anchor="middle">de la empresa, fuera del NAS</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="120" text-anchor="middle">una copia que solo está en</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="138" text-anchor="middle">tu ordenador se pierde con él</text>
+  <path class="fg-flecha fg-flecha--datos" d="M250 108 L288 108 M280 102 L288 108 L280 114"/>
+  <path class="fg-flecha fg-flecha--datos" d="M510 108 L548 108 M540 102 L548 108 L540 114"/>
+  <rect class="fg-caja" x="20" y="216" width="360" height="110" rx="12"/>
+  <text class="fg-texto fg-negrita" x="200.0" y="240" text-anchor="middle">Cuenta Synology (Automatic Backup)</text>
+  <text class="fg-tenue fg-peque" x="200.0" y="262" text-anchor="middle">opcional: una versión por NAS</text>
+  <text class="fg-tenue fg-peque" x="200.0" y="280" text-anchor="middle">se borra si no se sube nada en 180 días</text>
+  <text class="fg-tenue fg-peque" x="200.0" y="298" text-anchor="middle">si la usas, cifrado Self-defined</text>
+  <path class="fg-flecha" d="M135 160 V214" stroke-dasharray="5 4"/>
+  <rect class="fg-caja" x="420" y="216" width="360" height="110" rx="12"/>
+  <text class="fg-texto fg-negrita" x="600.0" y="240" text-anchor="middle">Datos de las carpetas compartidas</text>
+  <text class="fg-tenue fg-peque" x="600.0" y="262" text-anchor="middle">no van dentro del .dss</text>
+  <text class="fg-tenue fg-peque" x="600.0" y="280" text-anchor="middle">se copian aparte con Hyper Backup</text>
+  <circle class="fg-num" cx="20" cy="56" r="11"/>
+  <text class="fg-num-t" x="20" y="60" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="290" cy="56" r="11"/>
+  <text class="fg-num-t" x="290" y="60" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="550" cy="56" r="11"/>
+  <text class="fg-num-t" x="550" y="60" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="20" cy="216" r="11"/>
+  <text class="fg-num-t" x="20" y="220" text-anchor="middle">4</text>
+  <circle class="fg-num" cx="420" cy="216" r="11"/>
+  <text class="fg-num-t" x="420" y="220" text-anchor="middle">5</text>
+</svg>

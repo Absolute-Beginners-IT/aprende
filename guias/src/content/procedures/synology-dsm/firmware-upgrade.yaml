@@ -16,6 +16,17 @@ preflight:
   - text: Lee las notas de la versión y hazlo en una ventana de mantenimiento, avisando del corte.
 steps:
   - title: Buscar la actualización
+    figure:
+      id: synology-dsm/actualizar-dsm
+      alt: >-
+        Pantalla simplificada de Control Panel con la sección Update & Restore abierta en la pestaña DSM
+        Update: los botones Download y Update Now y, en Update Settings, la opción Automatically install
+        important updates marcada.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 La
+        pestaña DSM Update de Update & Restore. 2 Download descarga la versión nueva. 3 Update Now la
+        instala y reinicia el NAS. 4 En Update Settings, Automatically install important updates. Las barras
+        grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       Ve a Control Panel, Update & Restore, DSM Update. Si hay una versión nueva, aparece con

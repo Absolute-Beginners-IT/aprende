@@ -29,11 +29,30 @@ preflight:
   - text: Confirma que {{ipCidr}} está libre en la red de gestión.
 steps:
   - title: Buscar el NAS con Web Assistant
+    figure:
+      id: synology-dsm/web-assistant
+      alt: >-
+        Pantalla simplificada de Web Assistant en finds.synology.com: una fila con el NAS en estado Not
+        installed y el botón Connect.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 El NAS
+        aparece con el estado Not installed. 2 Selecciónalo y pulsa Connect. Las barras grises son elementos
+        que la guía no nombra.
     manual: true
     explanation: >-
       En el navegador, entra en finds.synology.com. El NAS aparece con el estado Not
       installed (sin instalar). Selecciónalo y pulsa Connect.
   - title: Instalar DSM
+    figure:
+      id: synology-dsm/esquema-instalacion
+      alt: >-
+        Esquema de cuatro pasos en orden: buscar el NAS en finds.synology.com, instalar DSM (formatea los
+        discos y reinicia), crear la cuenta de administración y poner la IP fija 192.168.99.30/24.
+      caption: >-
+        Esquema. 1 Web Assistant encuentra el NAS sin instalar. 2 La instalación descarga DSM, formatea los
+        discos y reinicia el NAS: por eso la copia de los datos va antes. 3 La cuenta de administración se
+        crea con el sistema ya instalado. 4 La IP fija va al final: al aplicarla la sesión se corta y
+        vuelves a entrar por la IP nueva. Las IP son los valores de ejemplo.
     manual: true
     explanation: >-
       Pulsa Install y sigue los pasos en pantalla. Web Assistant descarga la última versión

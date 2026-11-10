@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 250" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Instalación de un NAS nuevo: cada paso necesita el anterior</text>
+  <rect class="fg-caja" x="16" y="60" width="182" height="130" rx="12"/>
+  <text class="fg-texto fg-negrita" x="107.0" y="84" text-anchor="middle">Buscar el NAS</text>
+  <text class="fg-tenue fg-peque" x="107.0" y="106" text-anchor="middle">finds.synology.com</text>
+  <text class="fg-tenue fg-peque" x="107.0" y="124" text-anchor="middle">estado Not installed</text>
+  <text class="fg-tenue fg-peque" x="107.0" y="142" text-anchor="middle">pulsa Connect</text>
+  <circle class="fg-num" cx="16" cy="60" r="11"/>
+  <text class="fg-num-t" x="16" y="64" text-anchor="middle">1</text>
+  <rect class="fg-caja fg-caja--clave" x="210" y="60" width="182" height="130" rx="12"/>
+  <text class="fg-texto fg-negrita" x="301.0" y="84" text-anchor="middle">Instalar DSM</text>
+  <text class="fg-tenue fg-peque" x="301.0" y="106" text-anchor="middle">descarga DSM</text>
+  <text class="fg-tenue fg-peque" x="301.0" y="124" text-anchor="middle">formatea los discos:</text>
+  <text class="fg-tenue fg-peque" x="301.0" y="142" text-anchor="middle">se borra todo</text>
+  <text class="fg-tenue fg-peque" x="301.0" y="160" text-anchor="middle">el NAS se reinicia</text>
+  <circle class="fg-num" cx="210" cy="60" r="11"/>
+  <text class="fg-num-t" x="210" y="64" text-anchor="middle">2</text>
+  <path class="fg-flecha" d="M198 125 L209 125 M201 119 L209 125 L201 131"/>
+  <rect class="fg-caja" x="404" y="60" width="182" height="130" rx="12"/>
+  <text class="fg-texto fg-negrita" x="495.0" y="84" text-anchor="middle">Administración</text>
+  <text class="fg-tenue fg-peque" x="495.0" y="106" text-anchor="middle">cuenta con nombre propio</text>
+  <text class="fg-tenue fg-peque" x="495.0" y="124" text-anchor="middle">contraseña fuerte</text>
+  <text class="fg-tenue fg-peque" x="495.0" y="142" text-anchor="middle">guardada en el gestor</text>
+  <circle class="fg-num" cx="404" cy="60" r="11"/>
+  <text class="fg-num-t" x="404" y="64" text-anchor="middle">3</text>
+  <path class="fg-flecha" d="M392 125 L403 125 M395 119 L403 125 L395 131"/>
+  <rect class="fg-caja fg-caja--clave" x="598" y="60" width="182" height="130" rx="12"/>
+  <text class="fg-texto fg-negrita" x="689.0" y="84" text-anchor="middle">IP fija</text>
+  <text class="fg-tenue fg-peque" x="689.0" y="106" text-anchor="middle">IP 192.168.99.30/24</text>
+  <text class="fg-tenue fg-peque" x="689.0" y="124" text-anchor="middle">p. enlace 192.168.99.1</text>
+  <text class="fg-tenue fg-peque" x="689.0" y="142" text-anchor="middle">DNS 192.168.10.5</text>
+  <text class="fg-tenue fg-peque" x="689.0" y="160" text-anchor="middle">entra por la IP nueva</text>
+  <circle class="fg-num" cx="598" cy="60" r="11"/>
+  <text class="fg-num-t" x="598" y="64" text-anchor="middle">4</text>
+  <path class="fg-flecha" d="M586 125 L597 125 M589 119 L597 125 L589 131"/>
+  <text class="fg-tenue fg-peque" x="20" y="226">Al cambiar la IP la sesión se corta: vuelve a entrar por 192.168.99.30:5000.</text>
+</svg>

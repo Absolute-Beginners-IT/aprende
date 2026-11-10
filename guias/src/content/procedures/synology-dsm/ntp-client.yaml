@@ -21,6 +21,17 @@ steps:
     manual: true
     explanation: Ve a Control Panel, Regional Options, pestaña Time.
   - title: Elegir el servidor de tiempo
+    figure:
+      id: synology-dsm/hora-ntp
+      alt: >-
+        Pantalla simplificada de Control Panel con la sección Regional Options abierta en la pestaña Time:
+        la lista Time zone, la opción Synchronize with NTP server marcada con el servidor 192.168.10.5, el
+        botón Update Now y el botón Apply.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 La
+        pestaña Time de Regional Options. 2 La zona horaria (Time zone). 3 Synchronize with NTP server, con
+        el servidor de ejemplo 192.168.10.5. 4 Update Now comprueba que el NAS sincroniza. 5 Apply guarda el
+        cambio. Las barras grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       Revisa la zona horaria (Time zone). En Time Setting elige Synchronize with NTP server

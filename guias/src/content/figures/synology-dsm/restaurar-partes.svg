@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="559" height="339" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h542 a8 8 0 0 1 8 8 v25 h-558 z"/>
+  <text class="fg-texto" x="14" y="22"></text>
+  <path class="fg-icono" d="M536 12 l10 10 M546 12 l-10 10"/>
+  <rect class="fg-casilla fg-casilla--si" x="24" y="62" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M27 69 l3 3 l6 -6"/>
+  <text class="fg-texto" x="46" y="74"></text>
+  <rect class="fg-banda" x="46" y="64" width="160" height="10" rx="3"/>
+  <rect class="fg-casilla" x="24" y="92" width="14" height="14" rx="2"/>
+  <text class="fg-texto" x="46" y="104">Network</text>
+  <rect class="fg-casilla" x="24" y="122" width="14" height="14" rx="2"/>
+  <text class="fg-texto" x="46" y="134"></text>
+  <rect class="fg-banda" x="46" y="124" width="130" height="10" rx="3"/>
+  <rect class="fg-casilla" x="24" y="152" width="14" height="14" rx="2"/>
+  <text class="fg-texto" x="46" y="164"></text>
+  <rect class="fg-banda" x="46" y="154" width="110" height="10" rx="3"/>
+  <rect class="fg-resalte" x="16" y="54" width="230" height="128" rx="6"/>
+  <circle class="fg-num" cx="260" cy="70" r="11"/>
+  <text class="fg-num-t" x="260" y="74" text-anchor="middle">1</text>
+  <rect class="fg-resalte" x="98" y="86" width="30" height="26" rx="6"/>
+  <circle class="fg-num" cx="142" cy="99" r="11"/>
+  <text class="fg-num-t" x="142" y="103" text-anchor="middle">2</text>
+  <path class="fg-linea" d="M1 200 H559"/>
+  <rect class="fg-casilla" x="24" y="222" width="14" height="14" rx="2"/>
+  <text class="fg-texto" x="46" y="234">Overwrite conflicting settings</text>
+  <rect class="fg-resalte" x="16" y="214" width="266" height="30" rx="6"/>
+  <circle class="fg-num" cx="296" cy="229" r="11"/>
+  <text class="fg-num-t" x="296" y="233" text-anchor="middle">3</text>
+  <rect class="fg-boton fg-boton--principal" x="454" y="290" width="86" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="497.0" y="308" text-anchor="middle">Apply</text>
+  <circle class="fg-num" cx="434" cy="303" r="11"/>
+  <text class="fg-num-t" x="434" y="307" text-anchor="middle">4</text>
+</svg>
