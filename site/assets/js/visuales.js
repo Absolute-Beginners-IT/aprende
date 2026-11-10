@@ -123,8 +123,9 @@
       marcarCambios(p);
       pintarPantalla(i);
       const llegar = () => {
-        colocar(...centro(p.en));
+        // Label first: the card is clamped inside the drawing with its new width.
         etiquetar(p);
+        colocar(...centro(p.en));
         if (reproduciendo) espera = setTimeout(siguiente, 2400);
       };
       if (!p.desde) { llegar(); return; }
