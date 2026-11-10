@@ -29,6 +29,19 @@ preflight:
       la configuración de todo el equipo.
 steps:
   - title: Enviar la copia al servidor TFTP
+    figure:
+      id: fortinet-fortigate/esquema-copia-tftp
+      alt: >-
+        Esquema de la copia: el FortiGate envía su configuración completa por TFTP al servidor
+        192.168.10.40 como fgt60f-antes-cambio.conf; después el archivo se mueve a mano al
+        repositorio de copias de la empresa. Sin contraseña, el archivo viaja y se guarda sin
+        cifrar.
+      caption: >-
+        Esquema. 1 El FortiGate envía la configuración completa con execute backup config tftp
+        (con VDOM, antes config global). 2 El servidor TFTP la recibe, pero no pide usuario ni
+        contraseña, así que solo es un paso intermedio. 3 La copia se mueve a mano al
+        repositorio de copias de la empresa. 4 Sin contraseña al final del comando, el archivo
+        queda sin cifrar.
     commands:
       - execute backup config tftp {{backupName}} {{tftpServer}}
     explanation: >-

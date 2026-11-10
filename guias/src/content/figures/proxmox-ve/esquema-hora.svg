@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 330" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">De dónde toma la hora el nodo</text>
+  <rect class="fg-caja" x="16" y="60" width="200" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="116.0" y="84" text-anchor="middle">/etc/chrony/chrony.conf</text>
+  <text class="fg-tenue fg-peque" x="116.0" y="106" text-anchor="middle">server 192.168.10.5 iburst</text>
+  <text class="fg-tenue fg-peque" x="116.0" y="124" text-anchor="middle">línea añadida al final</text>
+  <path class="fg-flecha" d="M216 105 L300 105"/>
+  <path class="fg-flecha" d="M291.9 101.1 L300 105 L291.9 108.9"/>
+  <text class="fg-tenue fg-peque" x="258" y="96" text-anchor="middle">lee</text>
+  <rect class="fg-caja fg-caja--clave" x="300" y="60" width="200" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="400.0" y="84" text-anchor="middle">chronyd (nodo)</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="106" text-anchor="middle">systemctl restart chronyd</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="124" text-anchor="middle">aplica la configuración</text>
+  <path class="fg-flecha fg-flecha--datos" d="M500 95 L584 95"/>
+  <path class="fg-flecha fg-flecha--datos" d="M575.9 91.1 L584 95 L575.9 98.9"/>
+  <text class="fg-tenue fg-peque" x="542" y="86" text-anchor="middle">consulta</text>
+  <path class="fg-flecha fg-flecha--datos" d="M584 125 L500 125"/>
+  <path class="fg-flecha fg-flecha--datos" d="M508.1 128.9 L500 125 L508.1 121.1"/>
+  <text class="fg-tenue fg-peque" x="542" y="143" text-anchor="middle">hora</text>
+  <rect class="fg-caja" x="584" y="60" width="200" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="684.0" y="84" text-anchor="middle">Servidor de tiempo</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="106" text-anchor="middle">192.168.10.5</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="124" text-anchor="middle">de la empresa</text>
+  <rect class="fg-caja" x="300" y="200" width="200" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="400.0" y="224" text-anchor="middle">chronyc sources</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="246" text-anchor="middle">lista los servidores;</text>
+  <text class="fg-tenue fg-peque" x="400.0" y="264" text-anchor="middle">^* es el que se usa</text>
+  <path class="fg-flecha" d="M400 150 L400 200" stroke-dasharray="5 4"/>
+  <path class="fg-flecha" d="M403.9 191.9 L400 200 L396.1 191.9"/>
+  <text class="fg-tenue fg-peque" x="20" y="230">iburst: la primera</text>
+  <text class="fg-tenue fg-peque" x="20" y="246">sincronización tarda</text>
+  <text class="fg-tenue fg-peque" x="20" y="262">segundos en vez de minutos.</text>
+  <circle class="fg-num" cx="16" cy="60" r="11"/>
+  <text class="fg-num-t" x="16" y="64" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="300" cy="60" r="11"/>
+  <text class="fg-num-t" x="300" y="64" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="584" cy="60" r="11"/>
+  <text class="fg-num-t" x="584" y="64" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="300" cy="200" r="11"/>
+  <text class="fg-num-t" x="300" y="204" text-anchor="middle">4</text>
+</svg>

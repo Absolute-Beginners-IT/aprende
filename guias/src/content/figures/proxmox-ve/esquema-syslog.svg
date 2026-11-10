@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Cómo salen los registros del nodo hacia el servidor syslog</text>
+  <rect class="fg-caja" x="16" y="60" width="190" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="111.0" y="84" text-anchor="middle">journald</text>
+  <text class="fg-tenue fg-peque" x="111.0" y="106" text-anchor="middle">registro del sistema</text>
+  <text class="fg-tenue fg-peque" x="111.0" y="124" text-anchor="middle">del nodo</text>
+  <path class="fg-flecha" d="M206 105 L276 105"/>
+  <path class="fg-flecha" d="M267.9 101.1 L276 105 L267.9 108.9"/>
+  <text class="fg-tenue fg-peque" x="241" y="96" text-anchor="middle">lee</text>
+  <rect class="fg-caja fg-caja--clave" x="276" y="60" width="238" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="395.0" y="84" text-anchor="middle">rsyslog</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="106" text-anchor="middle">lee journald y reenvía</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="124" text-anchor="middle">los mensajes</text>
+  <path class="fg-flecha fg-flecha--datos" d="M514 105 L584 105"/>
+  <path class="fg-flecha fg-flecha--datos" d="M575.9 101.1 L584 105 L575.9 108.9"/>
+  <text class="fg-tenue fg-peque" x="549" y="96" text-anchor="middle">UDP 514</text>
+  <rect class="fg-caja" x="584" y="60" width="200" height="90" rx="12"/>
+  <text class="fg-texto fg-negrita" x="684.0" y="84" text-anchor="middle">Servidor syslog</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="106" text-anchor="middle">192.168.10.30</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="124" text-anchor="middle">filtra por la IP del nodo</text>
+  <rect class="fg-caja" x="276" y="210" width="238" height="112" rx="12"/>
+  <text class="fg-texto fg-negrita" x="395.0" y="234" text-anchor="middle">90-servidor-remoto.conf</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="256" text-anchor="middle">en /etc/rsyslog.d/</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="274" text-anchor="middle">*.* @192.168.10.30:514</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="292" text-anchor="middle">*.*: todo origen y severidad</text>
+  <text class="fg-tenue fg-peque" x="395.0" y="310" text-anchor="middle">@ = UDP; @@ sería TCP</text>
+  <path class="fg-flecha" d="M395 210 L395 150"/>
+  <path class="fg-flecha" d="M391.1 158.1 L395 150 L398.9 158.1"/>
+  <circle class="fg-num" cx="276" cy="60" r="11"/>
+  <text class="fg-num-t" x="276" y="64" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="276" cy="210" r="11"/>
+  <text class="fg-num-t" x="276" y="214" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="549" cy="128" r="11"/>
+  <text class="fg-num-t" x="549" y="132" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="584" cy="60" r="11"/>
+  <text class="fg-num-t" x="584" y="64" text-anchor="middle">4</text>
+</svg>

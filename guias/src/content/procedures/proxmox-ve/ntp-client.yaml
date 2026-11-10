@@ -22,6 +22,18 @@ preflight:
   - text: En un clúster, aplica el mismo servidor en todos los nodos.
 steps:
   - title: Añadir el servidor de tiempo
+    figure:
+      id: proxmox-ve/esquema-hora
+      alt: >-
+        Esquema: la línea server 192.168.10.5 iburst en /etc/chrony/chrony.conf; chronyd
+        la lee al reiniciar, consulta al servidor de tiempo 192.168.10.5 y recibe la
+        hora; chronyc sources muestra el servidor en uso.
+      caption: >-
+        Esquema. 1 La línea server 192.168.10.5 iburst se añade a
+        /etc/chrony/chrony.conf. 2 Al reiniciar, chronyd lee la configuración y pide la
+        hora. 3 Responde el servidor de tiempo de la empresa; con iburst, la primera
+        sincronización tarda segundos. 4 chronyc sources marca con ^* el servidor que se
+        usa.
     commands:
       - echo 'server {{ntpServer}} iburst' >> /etc/chrony/chrony.conf
     explanation: >-

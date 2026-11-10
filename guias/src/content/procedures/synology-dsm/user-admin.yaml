@@ -20,14 +20,41 @@ preflight:
   - text: No cierres tu sesión actual hasta comprobar que la cuenta nueva entra.
 steps:
   - title: Abrir el asistente de creación de usuarios
+    figure:
+      id: synology-dsm/crear-usuario
+      alt: >-
+        Pantalla simplificada de Control Panel con la sección User & Group abierta en la pestaña User, el
+        botón Create y la lista de usuarios.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 La
+        pestaña User de User & Group. 2 Create abre el asistente. Las barras grises son elementos que la
+        guía no nombra.
     manual: true
     explanation: Ve a Control Panel, User & Group, pestaña User, y pulsa Create.
   - title: Escribir los datos del usuario
+    figure:
+      id: synology-dsm/usuario-datos
+      alt: >-
+        Ventana simplificada del asistente: el campo Name con jconde, dos campos más, el campo Password y el
+        enlace Generate Random Password.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 Name,
+        con el nombre de ejemplo jconde. 2 La contraseña. 3 Generate Random Password, si prefieres una
+        aleatoria; guárdala en el gestor. La descripción y el correo se dibujan con barras grises: la guía
+        no nombra sus rótulos.
     manual: true
     explanation: >-
       En Name escribe {{userName}}, añade una descripción y un correo para los avisos, y
       escribe la contraseña (o pulsa Generate Random Password y guárdala en el gestor).
   - title: Añadirlo al grupo administrators
+    figure:
+      id: synology-dsm/usuario-grupos
+      alt: >-
+        Ventana simplificada del asistente en Join groups, con la casilla administrators marcada y otros
+        grupos sin marcar.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 En
+        Join groups, administrators marcado. Las barras grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       En Join groups marca administrators. Deja los permisos de carpetas, cuotas y

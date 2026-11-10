@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 285" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Dónde queda la copia de una máquina virtual y cómo se prueba</text>
+  <rect class="fg-caja" x="16" y="60" width="220" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="126.0" y="84" text-anchor="middle">Máquina 101</text>
+  <text class="fg-tenue fg-peque" x="126.0" y="106" text-anchor="middle">modo snapshot: sigue en marcha</text>
+  <text class="fg-tenue fg-peque" x="126.0" y="124" text-anchor="middle">modo stop: se para mientras</text>
+  <text class="fg-tenue fg-peque" x="126.0" y="142" text-anchor="middle">se copia (el más consistente)</text>
+  <path class="fg-flecha fg-flecha--datos" d="M236 112 L296 112"/>
+  <path class="fg-flecha fg-flecha--datos" d="M287.9 108.1 L296 112 L287.9 115.9"/>
+  <text class="fg-tenue fg-peque" x="266" y="103" text-anchor="middle">vzdump</text>
+  <rect class="fg-caja fg-caja--clave" x="296" y="60" width="220" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="406.0" y="84" text-anchor="middle">copias-nas</text>
+  <text class="fg-tenue fg-peque" x="406.0" y="106" text-anchor="middle">otro almacenamiento</text>
+  <text class="fg-tenue fg-peque" x="406.0" y="124" text-anchor="middle">vzdump-qemu-101-….vma.zst</text>
+  <text class="fg-tenue fg-peque" x="406.0" y="142" text-anchor="middle">comprimido con zstd</text>
+  <path class="fg-flecha fg-flecha--datos" d="M516 112 L584 112"/>
+  <path class="fg-flecha fg-flecha--datos" d="M575.9 108.1 L584 112 L575.9 115.9"/>
+  <text class="fg-tenue fg-peque" x="550" y="103" text-anchor="middle">qmrestore</text>
+  <rect class="fg-caja" x="584" y="60" width="200" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="684.0" y="84" text-anchor="middle">Prueba</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="106" text-anchor="middle">restaurada con otro número</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="124" text-anchor="middle">libre, sin tocar la original;</text>
+  <text class="fg-tenue fg-peque" x="684.0" y="142" text-anchor="middle">después se borra</text>
+  <text class="fg-tenue fg-peque" x="20" y="214">No guardes la copia en el mismo almacenamiento donde están los discos de la máquina.</text>
+  <text class="fg-tenue fg-peque" x="20" y="262">Una copia solo está comprobada cuando se ha restaurado alguna vez.</text>
+  <circle class="fg-num" cx="16" cy="60" r="11"/>
+  <text class="fg-num-t" x="16" y="64" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="296" cy="60" r="11"/>
+  <text class="fg-num-t" x="296" y="64" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="584" cy="60" r="11"/>
+  <text class="fg-num-t" x="584" y="64" text-anchor="middle">3</text>
+</svg>

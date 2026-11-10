@@ -25,6 +25,19 @@ steps:
       - config log syslogd setting
     explanation: El prompt cambia a (setting).
   - title: Activar el envío al servidor
+    figure:
+      id: fortinet-fortigate/esquema-syslog
+      alt: >-
+        Esquema del envío de registros: en config log syslogd setting del FortiGate, status
+        enable y server 192.168.10.30; los registros viajan por UDP 514 con la facility local7
+        al servidor syslog, que debe aceptar mensajes del FortiGate. Si la hora no está
+        sincronizada, llegan con la hora mal.
+      caption: >-
+        Esquema. 1 status enable activa el envío, que de fábrica está desactivado. 2 server
+        indica a qué servidor van los registros. 3 Sin cambiar nada más, viajan por UDP al
+        puerto 514 con la facility local7, los valores de fábrica. 4 El servidor syslog tiene
+        que aceptar mensajes desde la IP del FortiGate; ahí se buscan filtrando por esa IP.
+        5 Con la hora sin sincronizar, los registros llegan con la hora mal.
     commands:
       - set status enable
       - set server {{serverIp}}

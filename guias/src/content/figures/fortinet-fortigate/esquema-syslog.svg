@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Qué envía el FortiGate al servidor syslog y con qué valores</text>
+  <rect class="fg-caja fg-caja--clave" x="20" y="60" width="320" height="150" rx="12"/>
+  <text class="fg-texto fg-negrita" x="180.0" y="86" text-anchor="middle">FortiGate</text>
+  <text class="fg-tenue" x="60" y="120">config log syslogd setting</text>
+  <text class="fg-texto" x="60" y="148">status enable  (de fábrica: disable)</text>
+  <text class="fg-texto" x="60" y="176">server 192.168.10.30</text>
+  <circle class="fg-num" cx="40" cy="144" r="11"/>
+  <text class="fg-num-t" x="40" y="148" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="40" cy="172" r="11"/>
+  <text class="fg-num-t" x="40" y="176" text-anchor="middle">2</text>
+  <path class="fg-flecha fg-flecha--datos" d="M340 135 H520 M511 129 L520 135 L511 141"/>
+  <text class="fg-tenue fg-peque" x="430" y="124" text-anchor="middle">registros</text>
+  <text class="fg-tenue fg-peque" x="430" y="156" text-anchor="middle">UDP 514 · facility local7</text>
+  <circle class="fg-num" cx="430" cy="178" r="11"/>
+  <text class="fg-num-t" x="430" y="182" text-anchor="middle">3</text>
+  <rect class="fg-caja fg-caja--clave" x="520" y="60" width="260" height="150" rx="12"/>
+  <text class="fg-texto fg-negrita" x="650.0" y="84" text-anchor="middle">Servidor syslog</text>
+  <text class="fg-tenue fg-peque" x="650.0" y="106" text-anchor="middle">192.168.10.30</text>
+  <text class="fg-tenue fg-peque" x="650.0" y="124" text-anchor="middle">acepta mensajes del FortiGate</text>
+  <text class="fg-tenue fg-peque" x="650.0" y="142" text-anchor="middle">busca sus registros filtrando</text>
+  <text class="fg-tenue fg-peque" x="650.0" y="160" text-anchor="middle">por la IP del FortiGate</text>
+  <circle class="fg-num" cx="520" cy="60" r="11"/>
+  <text class="fg-num-t" x="520" y="64" text-anchor="middle">4</text>
+  <rect class="fg-lateral" x="20" y="240" width="760" height="40" rx="10"/>
+  <text class="fg-texto" x="44" y="265">Si la hora del FortiGate no está sincronizada, los registros llegan con la hora mal.</text>
+  <circle class="fg-num" cx="20" cy="240" r="11"/>
+  <text class="fg-num-t" x="20" y="244" text-anchor="middle">5</text>
+</svg>

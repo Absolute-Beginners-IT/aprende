@@ -26,6 +26,18 @@ steps:
       - config system ntp
     explanation: El prompt cambia a (ntp).
   - title: Activar la sincronización con un servidor propio
+    figure:
+      id: fortinet-fortigate/esquema-ntp
+      alt: >-
+        Esquema de la sección config system ntp del FortiGate con ntpsync enable, type custom y
+        la entrada 1 de ntpserver con el servidor 192.168.10.5; la hora llega por NTP desde el
+        servidor de tiempo de la empresa y el servidor de FortiGuard ya no se usa.
+      caption: >-
+        Esquema. 1 ntpsync enable activa la sincronización, que de fábrica está desactivada.
+        2 type custom usa la lista ntpserver en lugar del servidor de FortiGuard, el valor de
+        fábrica. 3 La entrada 1 de la lista apunta a 192.168.10.5; si pones un nombre, el
+        FortiGate necesita DNS. 4 El FortiGate coge la hora de ese servidor; puede tardar unos
+        minutos en sincronizar.
     commands:
       - set ntpsync enable
       - set type custom

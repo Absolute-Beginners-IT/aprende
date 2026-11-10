@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="719" height="219" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h702 a8 8 0 0 1 8 8 v25 h-718 z"/>
+  <text class="fg-texto" x="14" y="22">finds.synology.com</text>
+  <path class="fg-icono" d="M696 12 l10 10 M706 12 l-10 10"/>
+  <text class="fg-titulo" x="18" y="72">Web Assistant</text>
+  <rect class="fg-campo" x="18" y="100" width="684" height="46" rx="4"/>
+  <rect class="fg-icono" x="32" y="110" width="20" height="26" rx="3"/>
+  <rect class="fg-banda" x="66" y="118" width="150" height="10" rx="3"/>
+  <text class="fg-texto fg-negrita" x="300" y="128">Not installed</text>
+  <rect class="fg-resalte" x="292" y="108" width="116" height="30" rx="6"/>
+  <circle class="fg-num" cx="422" cy="123" r="11"/>
+  <text class="fg-num-t" x="422" y="127" text-anchor="middle">1</text>
+  <rect class="fg-boton fg-boton--principal" x="590" y="110" width="96" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="638.0" y="128" text-anchor="middle">Connect</text>
+  <circle class="fg-num" cx="568" cy="123" r="11"/>
+  <text class="fg-num-t" x="568" y="127" text-anchor="middle">2</text>
+</svg>

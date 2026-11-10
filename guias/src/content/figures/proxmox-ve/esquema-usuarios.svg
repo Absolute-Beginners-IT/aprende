@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 350" aria-hidden="true">
+  <text class="fg-texto fg-negrita" x="20" y="30">Por qué el usuario nuevo puede administrarlo todo</text>
+  <rect class="fg-caja" x="16" y="70" width="240" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="136.0" y="94" text-anchor="middle">jconde@pve</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="116" text-anchor="middle">reino pve (usuarios de Proxmox)</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="134" text-anchor="middle">contraseña con pveum passwd</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="152" text-anchor="middle">segundo factor TOTP</text>
+  <path class="fg-flecha" d="M256 122 L306 122"/>
+  <path class="fg-flecha" d="M297.9 118.1 L306 122 L297.9 125.9"/>
+  <text class="fg-tenue fg-peque" x="281" y="113" text-anchor="middle">miembro</text>
+  <rect class="fg-caja" x="306" y="70" width="200" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="406.0" y="94" text-anchor="middle">Grupo admin</text>
+  <text class="fg-tenue fg-peque" x="406.0" y="116" text-anchor="middle">comentario: Administradores</text>
+  <path class="fg-flecha" d="M506 122 L546 122"/>
+  <path class="fg-flecha" d="M537.9 118.1 L546 122 L537.9 125.9"/>
+  <rect class="fg-caja fg-caja--clave" x="546" y="70" width="238" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="665.0" y="94" text-anchor="middle">/ (raíz)</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="116" text-anchor="middle">permiso: grupo admin</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="134" text-anchor="middle">rol Administrator</text>
+  <text class="fg-tenue fg-peque" x="665.0" y="152" text-anchor="middle">se hereda en todo lo demás</text>
+  <rect class="fg-caja" x="16" y="220" width="240" height="104" rx="12"/>
+  <text class="fg-texto fg-negrita" x="136.0" y="244" text-anchor="middle">root@pam</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="266" text-anchor="middle">reino Linux PAM</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="284" text-anchor="middle">entra siempre por consola o SSH</text>
+  <text class="fg-tenue fg-peque" x="136.0" y="302" text-anchor="middle">no depende de estos usuarios</text>
+  <text class="fg-tenue fg-peque" x="286" y="262">Cada administrador entra con su propia cuenta,</text>
+  <text class="fg-tenue fg-peque" x="286" y="278">para no trabajar con root.</text>
+  <circle class="fg-num" cx="306" cy="70" r="11"/>
+  <text class="fg-num-t" x="306" y="74" text-anchor="middle">1</text>
+  <circle class="fg-num" cx="546" cy="70" r="11"/>
+  <text class="fg-num-t" x="546" y="74" text-anchor="middle">2</text>
+  <circle class="fg-num" cx="16" cy="70" r="11"/>
+  <text class="fg-num-t" x="16" y="74" text-anchor="middle">3</text>
+  <circle class="fg-num" cx="16" cy="220" r="11"/>
+  <text class="fg-num-t" x="16" y="224" text-anchor="middle">4</text>
+</svg>

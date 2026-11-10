@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="799" height="419" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h782 a8 8 0 0 1 8 8 v25 h-798 z"/>
+  <text class="fg-texto" x="14" y="22">Proxmox VE</text>
+  <path class="fg-icono" d="M776 12 l10 10 M786 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="160" height="385"/>
+  <path class="fg-linea" d="M161 34 V419 M311 34 V419"/>
+  <text class="fg-texto" x="16" y="62">Datacenter</text>
+  <rect class="fg-seleccion" x="4" y="74" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="32" y="88">pve1</text>
+  <text class="fg-texto" x="48" y="114">101</text>
+  <text class="fg-texto" x="176" y="62">System</text>
+  <rect class="fg-banda" x="166" y="71" width="140" height="24" rx="3"/>
+  <text class="fg-texto fg-negrita" x="192" y="88">Network</text>
+  <circle class="fg-num" cx="286" cy="88" r="11"/>
+  <text class="fg-num-t" x="286" y="92" text-anchor="middle">1</text>
+  <rect class="fg-boton" x="326" y="48" width="60" height="26" rx="3"/>
+  <text class="fg-texto" x="356.0" y="66" text-anchor="middle">Edit</text>
+  <rect class="fg-boton" x="396" y="48" width="160" height="26" rx="3"/>
+  <text class="fg-texto" x="476.0" y="66" text-anchor="middle">Apply Configuration</text>
+  <rect class="fg-resalte" x="390" y="42" width="172" height="38" rx="6"/>
+  <circle class="fg-num" cx="576" cy="61" r="11"/>
+  <text class="fg-num-t" x="576" y="65" text-anchor="middle">4</text>
+  <rect class="fg-banda" x="320" y="92" width="470" height="24" rx="0"/>
+  <text class="fg-texto" x="328" y="109">Name</text>
+  <rect class="fg-banda" x="320" y="118" width="470" height="26" rx="0"/>
+  <text class="fg-texto fg-negrita" x="328" y="136">vmbr0</text>
+  <rect class="fg-resalte" x="318" y="116" width="474" height="30" rx="6"/>
+  <circle class="fg-num" cx="410" cy="131" r="11"/>
+  <text class="fg-num-t" x="410" y="135" text-anchor="middle">2</text>
+  <rect class="fg-ventana" x="420" y="186" width="340" height="200" rx="6"/>
+  <rect class="fg-barra" x="420.5" y="186.5" width="339" height="28" rx="6"/>
+  <text class="fg-texto fg-negrita" x="432" y="205">Edit</text>
+  <text class="fg-texto" x="438" y="248">Name:</text>
+  <rect class="fg-campo" x="520" y="230" width="220" height="26" rx="4"/>
+  <text class="fg-tenue" x="529" y="248">vmbr0</text>
+  <rect class="fg-casilla fg-casilla--si" x="520" y="280" width="14" height="14" rx="2"/>
+  <path class="fg-visto" d="M523 287 l3 3 l6 -6"/>
+  <text class="fg-texto" x="542" y="292">VLAN aware</text>
+  <rect class="fg-resalte" x="512" y="272" width="120" height="30" rx="6"/>
+  <circle class="fg-num" cx="646" cy="287" r="11"/>
+  <text class="fg-num-t" x="646" y="291" text-anchor="middle">3</text>
+  <rect class="fg-boton fg-boton--principal" x="660" y="344" width="80" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="700.0" y="362" text-anchor="middle">OK</text>
+</svg>

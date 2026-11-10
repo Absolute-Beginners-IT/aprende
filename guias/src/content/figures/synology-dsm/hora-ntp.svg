@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="759" height="399" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h742 a8 8 0 0 1 8 8 v25 h-758 z"/>
+  <text class="fg-texto" x="14" y="22">Control Panel</text>
+  <path class="fg-icono" d="M736 12 l10 10 M746 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="180" height="365"/>
+  <rect class="fg-banda" x="16" y="51" width="70" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="81" width="107" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="111" width="84" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="141" width="121" height="10" rx="3"/>
+  <rect class="fg-seleccion" x="4" y="166" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="180">Regional Options</text>
+  <rect class="fg-banda" x="16" y="201" width="75" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="231" width="112" height="10" rx="3"/>
+  <text class="fg-texto fg-negrita" x="198" y="66">Time</text>
+  <rect class="fg-seleccion" x="198" y="74" width="29" height="3"/>
+  <rect class="fg-banda" x="255.2" y="57" width="60" height="10" rx="3"/>
+  <rect class="fg-banda" x="343.2" y="57" width="60" height="10" rx="3"/>
+  <path class="fg-linea" d="M181 78 H759"/>
+  <circle class="fg-num" cx="241.2" cy="44" r="11"/>
+  <text class="fg-num-t" x="241.2" y="48" text-anchor="middle">1</text>
+  <text class="fg-texto" x="206" y="118">Time zone</text>
+  <rect class="fg-campo" x="300" y="100" width="330" height="26" rx="4"/>
+  <text class="fg-texto" x="309" y="118"></text>
+  <path class="fg-icono" d="M612 110 l5 5 l5 -5"/>
+  <circle class="fg-num" cx="646" cy="113" r="11"/>
+  <text class="fg-num-t" x="646" y="117" text-anchor="middle">2</text>
+  <rect class="fg-banda" x="198" y="146" width="546" height="24" rx="0"/>
+  <text class="fg-texto" x="206" y="163">Time Setting</text>
+  <circle class="fg-casilla" cx="213" cy="191" r="7"/>
+  <text class="fg-texto" x="228" y="196"></text>
+  <rect class="fg-banda" x="228" y="186" width="180" height="10" rx="3"/>
+  <circle class="fg-casilla" cx="213" cy="221" r="7"/>
+  <circle class="fg-seleccion" cx="213" cy="221" r="4"/>
+  <text class="fg-texto" x="228" y="226">Synchronize with NTP server</text>
+  <rect class="fg-campo" x="228" y="240" width="230" height="26" rx="4"/>
+  <text class="fg-texto" x="237" y="258">192.168.10.5</text>
+  <rect class="fg-resalte" x="200" y="206" width="266" height="68" rx="6"/>
+  <circle class="fg-num" cx="480" cy="221" r="11"/>
+  <text class="fg-num-t" x="480" y="225" text-anchor="middle">3</text>
+  <rect class="fg-boton" x="494" y="240" width="110" height="26" rx="3"/>
+  <text class="fg-texto" x="549.0" y="258" text-anchor="middle">Update Now</text>
+  <circle class="fg-num" cx="620" cy="253" r="11"/>
+  <text class="fg-num-t" x="620" y="257" text-anchor="middle">4</text>
+  <rect class="fg-boton fg-boton--principal" x="654" y="350" width="86" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="697.0" y="368" text-anchor="middle">Apply</text>
+  <circle class="fg-num" cx="634" cy="363" r="11"/>
+  <text class="fg-num-t" x="634" y="367" text-anchor="middle">5</text>
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" aria-hidden="true">
+  <rect class="fg-ventana" x="0.5" y="0.5" width="759" height="379" rx="8"/>
+  <path class="fg-barra" d="M1 9 a8 8 0 0 1 8 -8 h742 a8 8 0 0 1 8 8 v25 h-758 z"/>
+  <text class="fg-texto" x="14" y="22">Control Panel</text>
+  <path class="fg-icono" d="M736 12 l10 10 M746 12 l-10 10"/>
+  <rect class="fg-lateral" x="1" y="34" width="180" height="345"/>
+  <rect class="fg-banda" x="16" y="51" width="70" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="81" width="107" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="111" width="84" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="141" width="121" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="171" width="98" height="10" rx="3"/>
+  <rect class="fg-banda" x="16" y="201" width="75" height="10" rx="3"/>
+  <rect class="fg-seleccion" x="4" y="226" width="3" height="20"/>
+  <text class="fg-texto fg-negrita" x="16" y="240">Update &amp; Restore</text>
+  <text class="fg-texto" x="198" y="66">DSM Update</text>
+  <text class="fg-texto fg-negrita" x="299.0" y="66">Configuration Backup</text>
+  <rect class="fg-seleccion" x="299.0" y="74" width="146" height="3"/>
+  <path class="fg-linea" d="M181 78 H759"/>
+  <circle class="fg-num" cx="471.0" cy="62" r="11"/>
+  <text class="fg-num-t" x="471.0" y="66" text-anchor="middle">1</text>
+  <rect class="fg-banda" x="198" y="96" width="546" height="24" rx="0"/>
+  <text class="fg-texto" x="206" y="113">Manual Export</text>
+  <rect class="fg-boton fg-boton--principal" x="206" y="132" width="90" height="26" rx="3"/>
+  <text class="fg-texto fg-negrita" x="251.0" y="150" text-anchor="middle">Export</text>
+  <rect class="fg-resalte" x="200" y="126" width="102" height="38" rx="6"/>
+  <circle class="fg-num" cx="316" cy="145" r="11"/>
+  <text class="fg-num-t" x="316" y="149" text-anchor="middle">2</text>
+  <rect class="fg-banda" x="198" y="184" width="546" height="24" rx="0"/>
+  <text class="fg-texto" x="206" y="201">Automatic Backup</text>
+  <circle class="fg-casilla" cx="213" cy="227" r="7"/>
+  <text class="fg-texto" x="228" y="232"></text>
+  <rect class="fg-banda" x="228" y="222" width="180" height="10" rx="3"/>
+  <circle class="fg-casilla" cx="213" cy="255" r="7"/>
+  <circle class="fg-seleccion" cx="213" cy="255" r="4"/>
+  <text class="fg-texto" x="228" y="260">Self-defined</text>
+  <rect class="fg-resalte" x="200" y="240" width="116" height="30" rx="6"/>
+  <circle class="fg-num" cx="330" cy="255" r="11"/>
+  <text class="fg-num-t" x="330" y="259" text-anchor="middle">3</text>
+  <rect class="fg-banda" x="198" y="292" width="546" height="24" rx="0"/>
+  <text class="fg-texto" x="206" y="309">Restore DSM Configurations</text>
+  <rect class="fg-boton" x="206" y="328" width="90" height="26" rx="3"/>
+  <text class="fg-texto" x="251.0" y="346" text-anchor="middle">Restore</text>
+</svg>

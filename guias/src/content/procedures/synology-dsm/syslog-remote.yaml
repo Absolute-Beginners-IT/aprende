@@ -19,6 +19,17 @@ steps:
     manual: true
     explanation: Abre Log Center (en el menú principal) y ve a Log Sending.
   - title: Indicar el servidor
+    figure:
+      id: synology-dsm/envio-registros
+      alt: >-
+        Pantalla simplificada de Log Center en Log Sending: Send logs to a syslog server marcado, Server
+        192.168.10.30, Port 514, Transfer protocol UDP, Log format BSD (RFC 3164), y los botones Send test
+        log y Apply.
+      caption: >-
+        Pantalla redibujada y simplificada a partir de la guía de Synology DSM (no es una captura). 1 Send
+        logs to a syslog server. 2 Server, con la IP de ejemplo 192.168.10.30, y Port 514. 3 Transfer
+        protocol UDP y Log format BSD (RFC 3164). 4 Send test log envía un registro de prueba. 5 Apply. Las
+        barras grises son elementos que la guía no nombra.
     manual: true
     explanation: >-
       Marca Send logs to a syslog server. En Server escribe {{serverIp}}, en Port deja 514,

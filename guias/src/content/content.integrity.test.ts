@@ -318,14 +318,17 @@ describe('content catalog', () => {
     expect(new Set(used)).toEqual(new Set(Object.keys(figures)))
   })
 
-  it('illustrates every Veeam guide with at least one figure', () => {
-    for (const procedure of catalog.procedures.filter((item) => item.platform === 'veeam-br')) {
-      expect(
-        procedure.steps.some((step) => step.figure),
-        procedure.task,
-      ).toBe(true)
-    }
-  })
+  it.each(['veeam-br', 'fortinet-fortigate', 'proxmox-ve', 'synology-dsm'])(
+    'illustrates every %s guide with at least one figure',
+    (platform) => {
+      for (const procedure of catalog.procedures.filter((item) => item.platform === platform)) {
+        expect(
+          procedure.steps.some((step) => step.figure),
+          procedure.task,
+        ).toBe(true)
+      }
+    },
+  )
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'takes SNMP on %s from enabling the agent to an SNMPv3 user with SHA and AES',

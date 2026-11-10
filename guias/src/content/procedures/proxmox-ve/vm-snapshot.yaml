@@ -31,6 +31,18 @@ preflight:
     command: qm listsnapshot {{vmid}}
 steps:
   - title: Hacer la snapshot
+    figure:
+      id: proxmox-ve/esquema-snapshot
+      alt: >-
+        Esquema: qm snapshot guarda antes_actualizar; después del cambio, si funciona,
+        qm delsnapshot; si sale mal, qm rollback vuelve a la snapshot.
+      caption: >-
+        Esquema. 1 qm snapshot guarda el estado de los discos con el nombre
+        antes_actualizar; con --vmstate 1, también la memoria. 2 Se hace el cambio y se
+        comprueba. 3 Si funciona, qm delsnapshot borra la snapshot y el cambio se queda.
+        4 Si sale mal, qm rollback vuelve al estado de la snapshot y se pierde lo
+        cambiado después; sin memoria, la máquina queda apagada y se arranca con qm
+        start 101.
     commands:
       - qm snapshot {{vmid}} {{snapName}} --description "Antes del cambio"
     explanation: >-

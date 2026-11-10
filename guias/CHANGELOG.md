@@ -8,6 +8,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Figuras en todas las guías de FortiGate, Proxmox VE y Synology DSM, como las de Veeam: pantallas redibujadas y
+  simplificadas para los pasos de la interfaz web (no son capturas) y esquemas que explican qué viaja y dónde se guarda
+  en las guías de comandos. Lo que la guía no nombra se dibuja como una barra gris, y la leyenda lo dice. Los
+  generadores de todas las figuras están en `guias/scripts/figures/`, con un kit de dibujo común.
 - Figuras en los pasos de las guías: cada paso puede llevar un dibujo con su descripción para lectores de pantalla y una
   leyenda. Las guías de Veeam tienen ocho: pantallas de la consola redibujadas y simplificadas (no son capturas), con
   números que señalan lo que nombra el paso, y un esquema de qué viaja y dónde se guarda en una copia. Siguen el tema

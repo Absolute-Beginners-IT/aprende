@@ -40,6 +40,18 @@ preflight:
     command: pvesm status
 steps:
   - title: Hacer la copia
+    figure:
+      id: proxmox-ve/esquema-vzdump
+      alt: >-
+        Esquema: vzdump copia la máquina 101 en el almacenamiento copias-nas como
+        vzdump-qemu-101-….vma.zst; qmrestore la restaura con otro número libre para
+        probarla.
+      caption: >-
+        Esquema. 1 En modo snapshot la máquina 101 sigue en marcha; en modo stop se para
+        mientras se copia. 2 vzdump deja la copia, comprimida con zstd (.vma.zst), en
+        copias-nas, un almacenamiento distinto del de los discos de la máquina. 3 Para
+        probarla, se restaura con qmrestore y otro número libre, sin tocar la original,
+        y después se borra.
     commands:
       - vzdump {{vmid}} --storage {{storage}} --mode {{mode}} --compress zstd
     explanation: >-
@@ -67,6 +79,15 @@ rollback:
     web.
   steps:
     - title: Borrar la copia
+      figure:
+        id: proxmox-ve/copia-borrar
+        alt: >-
+          Interfaz web de Proxmox VE: almacenamiento copias-nas, Backups, con la copia
+          vzdump-qemu-101-… elegida y el botón Remove.
+        caption: >-
+          Pantalla redibujada y simplificada a partir de la guía de Proxmox VE (no es
+          una captura). 1 El almacenamiento copias-nas. 2 La pestaña Backups. 3 La copia
+          de la máquina 101. 4 Remove la borra.
       manual: true
       explanation: >-
         En la interfaz web, abre el almacenamiento {{storage}}, pestaña Backups, elige la
