@@ -82,6 +82,10 @@ Los grupos de seguridad tienen un **ámbito**, que decide qué pueden contener y
 
 La receta clásica se llama **AGDLP**: las cuentas (*Accounts*) entran en grupos **G**lobales, los grupos globales entran en grupos de **D**ominio **L**ocal, y los grupos de dominio local reciben los **P**ermisos. Parece rebuscado con un solo recurso, pero cuando tienes veinte carpetas y diez departamentos, sabes siempre dónde mirar.
 
+Pulsa cada etapa para ver cómo se monta la cadena:
+
+{{< evolucion datos="agdlp" >}}
+
 Crea los dos grupos y anídalos:
 
 ```

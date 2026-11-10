@@ -1,0 +1,28 @@
+{
+  "titulo": "La receta AGDLP por etapas: tres cuentas y una carpeta; dos cuentas entran en el grupo global GG-Contabilidad; ese grupo entra en el grupo de dominio local DL-Contabilidad-M; y ese grupo recibe el permiso Modificar sobre la carpeta.",
+  "pie": "AGDLP: las cuentas (A) van a grupos globales (G), estos a grupos de dominio local (DL), y estos reciben los permisos (P).",
+  "lienzo": [900, 260],
+  "elementos": ["gg", "dl", "permiso"],
+  "etapas": [
+    {
+      "titulo": "Permisos a personas",
+      "muestra": [],
+      "porque": "Lo rápido sería dar permiso sobre la carpeta a ana.garcia y a marta.sanz, una a una. Funciona hoy, pero cuando Ana cambie de departamento nadie se acordará de quitárselo, y con veinte carpetas nadie sabrá quién tiene qué."
+    },
+    {
+      "titulo": "A en G",
+      "muestra": ["gg"],
+      "porque": "Las cuentas de Contabilidad entran en GG-Contabilidad, un grupo global que dice quiénes son. luis.martin no está en él, así que no tendrá acceso. Cuando alguien cambie de departamento, basta con cambiarlo de grupo."
+    },
+    {
+      "titulo": "G en DL",
+      "muestra": ["gg", "dl"],
+      "porque": "GG-Contabilidad entra en DL-Contabilidad-M, un grupo de dominio local que representa un permiso concreto: modificar esa carpeta. Si mañana Dirección también necesita modificarla, se añade su grupo global aquí, sin tocar la carpeta."
+    },
+    {
+      "titulo": "DL recibe el permiso",
+      "muestra": ["gg", "dl", "permiso"],
+      "porque": "En los permisos de la carpeta solo aparece DL-Contabilidad-M, con Modificar. Para saber quién puede entrar se sigue la cadena hacia atrás: carpeta, grupo de dominio local, grupos globales y personas."
+    }
+  ]
+}

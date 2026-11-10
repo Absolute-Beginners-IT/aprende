@@ -74,6 +74,10 @@ Add-DnsServerForwarder -IPAddress 1.1.1.1
 Get-DnsServerForwarder
 ```
 
+Pulsa el botón para seguir una consulta que tu DNS no conoce, paso a paso:
+
+{{< recorrido datos="dns-reenviador" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 En una red con Active Directory, **todos** los equipos deben usar como DNS los controladores de dominio, nunca un DNS público directamente. Si un portátil usa `8.8.8.8`, navegará por Internet, pero no encontrará el dominio: fallarán el inicio de sesión, las directivas y las carpetas compartidas. Lo público lo resuelve el reenviador.
 {{< /aviso >}}
@@ -167,6 +171,10 @@ Get-DhcpServerv4Lease -ScopeId 192.168.50.0
 ```
 
 Si tienes una VM cliente en la misma red interna, configúrala en automático y, en Windows, ejecuta `ipconfig /release` y luego `ipconfig /renew`: debería recibir una IP del ámbito, la puerta de enlace y el DNS `192.168.50.10`.
+
+Así consigue el cliente su IP, mensaje a mensaje:
+
+{{< recorrido datos="dhcp" >}}
 
 {{< pregunta texto="¿Qué dato del equipo usa una reserva DHCP para reconocerlo?" respuesta="mac|direccion mac|la mac|la direccion mac" >}}
 {{% /tarea %}}

@@ -1,0 +1,33 @@
+{{- /* Drawing of the AGDLP recipe for the evolucion shortcode (data/visuales/evoluciones/agdlp.json), in a 900 × 260 canvas.
+  Columns from left to right: accounts (A), global group (G), domain local group (DL) and the folder that gets the permission (P). */ -}}
+<text class="viz__rotulo" x="115" y="28" text-anchor="middle">A · CUENTAS</text>
+<rect class="viz__tarjeta" x="40" y="40" width="150" height="44" rx="12"/>
+<text class="viz__nombre" x="115" y="67" text-anchor="middle">ana.garcia</text>
+<rect class="viz__tarjeta" x="40" y="104" width="150" height="44" rx="12"/>
+<text class="viz__nombre" x="115" y="131" text-anchor="middle">marta.sanz</text>
+<rect class="viz__tarjeta" x="40" y="168" width="150" height="44" rx="12"/>
+<text class="viz__nombre" x="115" y="195" text-anchor="middle">luis.martin</text>
+<rect class="viz__tarjeta" x="740" y="96" width="140" height="56" rx="14"/>
+<text class="viz__nombre" x="810" y="120" text-anchor="middle">Contabilidad</text>
+<text class="viz__detalle" x="810" y="140" text-anchor="middle">carpeta compartida</text>
+<g data-elemento="gg">
+  <path class="viz__cable viz__cable--fijo" d="M190 62 C 228 62, 228 116, 260 116"/>
+  <path class="viz__cable viz__cable--fijo" d="M190 126 C 228 126, 228 130, 260 130"/>
+  <text class="viz__rotulo" x="345" y="84" text-anchor="middle">G · GRUPO GLOBAL</text>
+  <rect class="viz__insignia" x="260" y="100" width="170" height="46" rx="14"/>
+  <text class="viz__nombre" x="345" y="128" text-anchor="middle">GG-Contabilidad</text>
+  <text class="viz__detalle" x="345" y="168" text-anchor="middle">quiénes son</text>
+  <text class="viz__detalle" x="115" y="234" text-anchor="middle">sin grupo: sin acceso</text>
+</g>
+<g data-elemento="dl">
+  <path class="viz__cable viz__cable--fijo" d="M430 123 L 480 123"/>
+  <text class="viz__rotulo" x="575" y="84" text-anchor="middle">DL · DOMINIO LOCAL</text>
+  <rect class="viz__insignia viz__insignia--nueva" x="480" y="100" width="190" height="46" rx="14"/>
+  <text class="viz__nombre" x="575" y="128" text-anchor="middle">DL-Contabilidad-M</text>
+  <text class="viz__detalle" x="575" y="168" text-anchor="middle">qué pueden hacer</text>
+</g>
+<g data-elemento="permiso">
+  <path class="viz__cable viz__cable--fijo" d="M670 123 L 740 123"/>
+  <text class="viz__rotulo" x="810" y="84" text-anchor="middle">P · PERMISO</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="810" y="176" text-anchor="middle">Modificar</text>
+</g>
