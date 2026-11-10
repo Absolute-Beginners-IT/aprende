@@ -1,0 +1,38 @@
+{
+  "titulo": "Las seis fases para hacerse cargo de una red, encadenadas: descubrir, inventariar, monitorizar, alertar, actuaciones y medir la red, que lleva de vuelta a descubrir.",
+  "pie": "Cada fase usa lo que dejó la anterior. Por eso se hacen en este orden, y por eso el ciclo vuelve a empezar.",
+  "lienzo": [900, 270],
+  "elementos": ["inventariar", "monitorizar", "alertar", "actuaciones", "medir"],
+  "etapas": [
+    {
+      "titulo": "Descubrir",
+      "muestra": [],
+      "porque": "Lo primero es saber qué hay: barrer la red, mirar los switches y preguntar. No se puede cuidar lo que no se sabe que existe."
+    },
+    {
+      "titulo": "Inventariar",
+      "muestra": ["inventariar"],
+      "porque": "Lo descubierto se apunta en un único inventario: qué es cada equipo, dónde está y de quién depende. Sin descubrir antes, el inventario tendría huecos."
+    },
+    {
+      "titulo": "Monitorizar",
+      "muestra": ["inventariar", "monitorizar"],
+      "porque": "La monitorización vigila lo que está en el inventario. Lo que no está inventariado no se vigila, y te enteras cuando llama el usuario."
+    },
+    {
+      "titulo": "Alertar",
+      "muestra": ["inventariar", "monitorizar", "alertar"],
+      "porque": "De todo lo que se vigila, solo se convierte en alerta lo que exige actuar. Sin datos de monitorización no hay nada que alertar; con demasiadas alertas, nadie las lee."
+    },
+    {
+      "titulo": "Actuaciones",
+      "muestra": ["inventariar", "monitorizar", "alertar", "actuaciones"],
+      "porque": "Con el inventario y las alertas se planifica: parches, renovaciones antes de que acabe el soporte, cambios con vuelta atrás. El mantenimiento deja de ser apagar fuegos."
+    },
+    {
+      "titulo": "Medir la red",
+      "muestra": ["inventariar", "monitorizar", "alertar", "actuaciones", "medir"],
+      "porque": "Medir la velocidad, la latencia y las caídas da datos para decidir y para hablar con la operadora. Lo que se aprende al medir lleva a descubrir de nuevo, y el ciclo sigue."
+    }
+  ]
+}

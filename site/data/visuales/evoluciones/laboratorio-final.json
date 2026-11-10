@@ -1,0 +1,33 @@
+{
+  "titulo": "El laboratorio del proyecto final de Talleres Brisa, sala a sala: el plan de la red de servidores; SRV-DC01 y SRV-FS01; el firewall FW01 con la VLAN de puestos; las copias de seguridad; y SRV-MON01 con la monitorización.",
+  "pie": "Cada sala se apoya en la anterior: sin dominio no hay permisos por grupo, sin red no hay puestos, y sin todo lo anterior no hay nada que copiar ni que vigilar.",
+  "lienzo": [900, 336],
+  "elementos": ["dominio", "red", "copias", "monitorizacion"],
+  "etapas": [
+    {
+      "titulo": "Diseño",
+      "muestra": [],
+      "porque": "Antes de instalar nada, el plan: la red de servidores 192.168.50.0/24, qué IP fija lleva cada servidor y qué rango reparte el DHCP. Las IP fijas nunca dentro del ámbito."
+    },
+    {
+      "titulo": "Dominio y ficheros",
+      "muestra": ["dominio"],
+      "porque": "SRV-DC01 (.10) da el dominio lab.example.com, el DNS y el DHCP. SRV-FS01 (.11) guarda las carpetas de cada departamento, con permisos por grupo."
+    },
+    {
+      "titulo": "Red segmentada",
+      "muestra": ["dominio", "red"],
+      "porque": "FW01 separa los puestos (VLAN 10) de los servidores (VLAN 50) y da salida a internet. Los puestos reciben IP de SRV-DC01 a través del relay DHCP del firewall."
+    },
+    {
+      "titulo": "Copias de seguridad",
+      "muestra": ["dominio", "red", "copias"],
+      "porque": "SRV-FS01 copia las carpetas a un disco aparte, se prueba una restauración y una copia sale fuera: la regla 3-2-1."
+    },
+    {
+      "titulo": "Monitorización e inventario",
+      "muestra": ["dominio", "red", "copias", "monitorizacion"],
+      "porque": "SRV-MON01 (.20) vigila con Zabbix a todos los anteriores y avisa por correo si uno cae. Su inventario se importa en «Mi infraestructura»."
+    }
+  ]
+}

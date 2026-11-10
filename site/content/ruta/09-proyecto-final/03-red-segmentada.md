@@ -85,6 +85,10 @@ En pfSense, una interfaz nueva como `PUESTOS` **no tiene ninguna regla**, así q
 
 Las reglas se evalúan **de arriba abajo y gana la primera que coincide**. Si pusieras la regla «Pass a Any» en primer lugar, el bloqueo de la red de gestión nunca llegaría a aplicarse.
 
+Pulsa cada etapa para seguir dos paquetes por las reglas:
+
+{{< evolucion datos="reglas-firewall" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 Esta es una política sencilla para aprender. En producción irías más allá: de puestos a servidores permitirías solo los puertos que hacen falta (DNS, Kerberos, LDAP, SMB…) y registrarías lo bloqueado. Empieza abierto y controlado; endurece cuando sepas qué tráfico es normal, que es justo lo que te dará la monitorización.
 {{< /aviso >}}

@@ -1,0 +1,38 @@
+{{- /* Drawing of the six roadmap phases for the evolucion shortcode (data/visuales/evoluciones/fases-operar.json), in a
+  900 × 270 canvas. The phases snake left to right on the top row and right to left on the bottom one; each phase brings its
+  incoming link, and the last one loops back to the first. */ -}}
+<rect class="viz__insignia" x="40" y="30" width="240" height="80" rx="16"/>
+<text class="viz__nombre" x="160" y="64" text-anchor="middle">1. Descubrir</text>
+<text class="viz__detalle" x="160" y="88" text-anchor="middle">saber qué hay</text>
+<g data-elemento="inventariar">
+  <path class="viz__cable viz__cable--fijo" d="M280 70 L 330 70"/>
+  <rect class="viz__insignia" x="330" y="30" width="240" height="80" rx="16"/>
+  <text class="viz__nombre" x="450" y="64" text-anchor="middle">2. Inventariar</text>
+  <text class="viz__detalle" x="450" y="88" text-anchor="middle">una sola fuente de verdad</text>
+</g>
+<g data-elemento="monitorizar">
+  <path class="viz__cable viz__cable--fijo" d="M570 70 L 620 70"/>
+  <rect class="viz__insignia" x="620" y="30" width="240" height="80" rx="16"/>
+  <text class="viz__nombre" x="740" y="64" text-anchor="middle">3. Monitorizar</text>
+  <text class="viz__detalle" x="740" y="88" text-anchor="middle">ver antes que el usuario</text>
+</g>
+<g data-elemento="alertar">
+  <path class="viz__cable viz__cable--fijo" d="M740 110 L 740 170"/>
+  <rect class="viz__insignia viz__insignia--proteccion" x="620" y="170" width="240" height="80" rx="16"/>
+  <text class="viz__nombre" x="740" y="204" text-anchor="middle">4. Alertar</text>
+  <text class="viz__detalle" x="740" y="228" text-anchor="middle">pocas alertas, todas útiles</text>
+</g>
+<g data-elemento="actuaciones">
+  <path class="viz__cable viz__cable--fijo" d="M620 210 L 570 210"/>
+  <rect class="viz__insignia viz__insignia--servicios" x="330" y="170" width="240" height="80" rx="16"/>
+  <text class="viz__nombre" x="450" y="204" text-anchor="middle">5. Actuaciones</text>
+  <text class="viz__detalle" x="450" y="228" text-anchor="middle">mantenimiento planificado</text>
+</g>
+<g data-elemento="medir">
+  <path class="viz__cable viz__cable--fijo" d="M330 210 L 280 210"/>
+  <rect class="viz__insignia viz__insignia--nueva" x="40" y="170" width="240" height="80" rx="16"/>
+  <text class="viz__nombre" x="160" y="204" text-anchor="middle">6. Medir la red</text>
+  <text class="viz__detalle" x="160" y="228" text-anchor="middle">datos para la operadora</text>
+  <path class="viz__guia" d="M160 170 L 160 110"/>
+  <text class="viz__detalle" x="172" y="144">vuelta a empezar</text>
+</g>

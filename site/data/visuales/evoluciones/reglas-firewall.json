@@ -1,0 +1,28 @@
+{
+  "titulo": "Las reglas de la interfaz PUESTOS de FW01, de arriba abajo: un puesto que intenta llegar a la red de gestión choca con la regla 1, Block; uno que va al servidor de ficheros pasa por la regla 2, Pass; y con las reglas invertidas la red de gestión queda abierta.",
+  "pie": "Las reglas se evalúan de arriba abajo y gana la primera que coincide. Si no coincide ninguna, pfSense bloquea.",
+  "lienzo": [900, 290],
+  "elementos": ["gestion", "servidor", "invertidas"],
+  "etapas": [
+    {
+      "titulo": "Dos reglas, en orden",
+      "muestra": [],
+      "porque": "En la interfaz PUESTOS hay dos reglas: primero bloquear la red de gestión, 192.168.99.0/24, y después dejar pasar todo lo demás."
+    },
+    {
+      "titulo": "Un puesto va a la red de gestión",
+      "muestra": ["gestion"],
+      "porque": "El paquete hacia 192.168.99.5 se compara con la regla 1, que coincide: bloqueado. Las reglas de debajo ni se miran."
+    },
+    {
+      "titulo": "Un puesto va al servidor de ficheros",
+      "muestra": ["gestion", "servidor"],
+      "porque": "El paquete hacia 192.168.50.11, puerto 445, no coincide con la regla 1, porque no va a la red de gestión. Pasa a la regla 2, Pass a cualquier destino, que sí coincide: permitido."
+    },
+    {
+      "titulo": "Si las inviertes",
+      "muestra": ["gestion", "servidor", "invertidas"],
+      "porque": "Con Pass a Any arriba, todo coincide con la primera regla, también lo que va a la red de gestión. El bloqueo de debajo no llega a aplicarse nunca."
+    }
+  ]
+}
