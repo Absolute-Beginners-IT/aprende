@@ -1,0 +1,29 @@
+{{- /* Drawing of first-match firewall rules for the evolucion shortcode (data/visuales/evoluciones/reglas-firewall.json), in a
+  900 × 290 canvas. The rules in the right order sit on the left; each packet adds its line, its result and a frame on the
+  rule that matched. The inverted rules appear on the right. */ -}}
+<text class="viz__rotulo" x="40" y="36">INTERFAZ PUESTOS · ORDEN CORRECTO</text>
+<rect class="viz__tarjeta" x="40" y="50" width="390" height="110" rx="14"/>
+<text class="viz__nombre" x="60" y="90">1 · Block → 192.168.99.0/24</text>
+<path class="viz__guia" d="M56 106 H 414"/>
+<text class="viz__nombre" x="60" y="140">2 · Pass → Any</text>
+<g data-elemento="gestion">
+  <rect class="viz__marco" x="48" y="62" width="374" height="40" rx="10"/>
+  <text class="viz__detalle" x="40" y="194">puesto 192.168.10.120 → 192.168.99.5 (gestión)</text>
+  <text class="viz__tramo-texto viz__tramo-texto--resto" x="40" y="216">✗ Coincide la regla 1: bloqueado</text>
+</g>
+<g data-elemento="servidor">
+  <rect class="viz__marco" x="48" y="112" width="374" height="40" rx="10"/>
+  <text class="viz__detalle" x="40" y="250">puesto 192.168.10.120 → 192.168.50.11:445 (ficheros)</text>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="40" y="272">✓ La 1 no coincide; la 2 sí: permitido</text>
+</g>
+<g data-elemento="invertidas">
+  <text class="viz__rotulo" x="470" y="36">SI LAS INVIERTES</text>
+  <rect class="viz__tarjeta" x="470" y="50" width="390" height="110" rx="14"/>
+  <text class="viz__nombre" x="490" y="90">1 · Pass → Any</text>
+  <path class="viz__guia" d="M486 106 H 844"/>
+  <text class="viz__nombre" x="490" y="140">2 · Block → 192.168.99.0/24</text>
+  <rect class="viz__marco" x="478" y="62" width="374" height="40" rx="10"/>
+  <text class="viz__detalle" x="470" y="194">el mismo puesto → 192.168.99.5 (gestión)</text>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="470" y="216">✗ Gana Pass: la gestión queda abierta</text>
+  <text class="viz__detalle" x="844" y="140" text-anchor="end">nunca se aplica</text>
+</g>

@@ -14,4 +14,8 @@ requisitos:
 
 No intentes hacerlo todo a la vez: cada fase se apoya en la anterior. Sin inventario no sabes qué monitorizar, y sin monitorización no tienes nada que alertar. Marca cada fase cuando la hayas terminado en tu empresa (o en tu laboratorio).
 
+Pulsa cada etapa para ver qué le deja cada fase a la siguiente:
+
+{{< evolucion datos="fases-operar" >}}
+
 {{< hoja-de-ruta >}}

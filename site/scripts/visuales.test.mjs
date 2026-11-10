@@ -15,9 +15,9 @@ const enlace = (a, b) => [a, b].sort().join('-');
 const recorridos = todos('recorridos');
 const evoluciones = todos('evoluciones');
 
-test('there are walkthroughs for the web request, tracert, SSH, DHCP, DNS forwarding and a published web server, and stage stories for modules 1 to 7', () => {
+test('there are walkthroughs for the web request, tracert, SSH, DHCP, DNS forwarding and a published web server, and stage stories for modules 1 to 9', () => {
   assert.deepEqual(recorridos.map(([n]) => n).sort(), ['dhcp', 'dns-reenviador', 'publicar-web', 'ssh', 'tracert', 'web']);
-  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['agdlp', 'alta-disponibilidad', 'apagado-sai', 'capas-infraestructura', 'instantanea', 'mascara-ip', 'permisos-compartidos', 'permisos-linux', 'puntos-de-fallo', 'raid-espejo', 'red-oficina', 'rpo-rto', 'servidor-windows', 'tabla-mac', 'tipos-copia', 'tipos-hipervisor', 'vlan-troncal', 'vpn-subredes']);
+  assert.deepEqual(evoluciones.map(([n]) => n).sort(), ['agdlp', 'alta-disponibilidad', 'apagado-sai', 'capas-infraestructura', 'fases-operar', 'instantanea', 'laboratorio-final', 'mascara-ip', 'permisos-compartidos', 'permisos-linux', 'puntos-de-fallo', 'raid-espejo', 'red-oficina', 'reglas-firewall', 'rpo-rto', 'servidor-windows', 'tabla-mac', 'tipos-copia', 'tipos-hipervisor', 'vlan-troncal', 'vpn-subredes']);
 });
 
 for (const [nombre, { nodos, cables, pasos, pantalla }] of recorridos) {
@@ -93,7 +93,7 @@ test('every visual used in the route has its data', () => {
       for (const [, tipo, datos] of texto.matchAll(/\{\{<\s*(recorrido|evolucion)\s+datos="([^"]+)"\s*>\}\}/g)) usados.push([tipo, datos]);
     }
   }
-  assert.ok(usados.length >= 24, `only ${usados.length} visuals found in the route`);
+  assert.ok(usados.length >= 27, `only ${usados.length} visuals found in the route`);
   for (const [tipo, nombre] of usados) {
     assert.ok(existsSync(join(datos, tipo === 'recorrido' ? 'recorridos' : 'evoluciones', `${nombre}.json`)), `${tipo} ${nombre} has no data`);
   }

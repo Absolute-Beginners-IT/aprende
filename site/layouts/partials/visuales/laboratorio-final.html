@@ -1,0 +1,43 @@
+{{- /* Drawing of the final project lab for the evolucion shortcode (data/visuales/evoluciones/laboratorio-final.json), in a
+  900 × 336 canvas. The servers' VLAN 50 is always drawn; each room of the project adds its machines. */ -}}
+<rect class="viz__tramo viz__tramo--grupo" x="40" y="150" width="560" height="156" rx="18"/>
+<text class="viz__tramo-texto viz__tramo-texto--grupo" x="56" y="172">VLAN 50 · servidores · 192.168.50.0/24</text>
+<text class="viz__detalle" x="40" y="328">plan: IP fijas de .2 a .99 · ámbito DHCP de .100 a .199</text>
+<g data-elemento="dominio">
+  <rect class="viz__tarjeta" x="60" y="182" width="170" height="82" rx="14"/>
+  <text class="viz__nombre" x="145" y="210" text-anchor="middle">SRV-DC01</text>
+  <text class="viz__detalle" x="145" y="230" text-anchor="middle">.10</text>
+  <text class="viz__detalle" x="145" y="250" text-anchor="middle">AD, DNS y DHCP</text>
+  <rect class="viz__tarjeta" x="245" y="182" width="170" height="82" rx="14"/>
+  <text class="viz__nombre" x="330" y="210" text-anchor="middle">SRV-FS01</text>
+  <text class="viz__detalle" x="330" y="230" text-anchor="middle">.11</text>
+  <text class="viz__detalle" x="330" y="250" text-anchor="middle">carpetas por grupo</text>
+</g>
+<g data-elemento="red">
+  <rect class="viz__tarjeta" x="470" y="8" width="140" height="32" rx="16"/>
+  <text class="viz__nombre" x="540" y="29" text-anchor="middle">Internet</text>
+  <path class="viz__cable viz__cable--fijo" d="M540 40 L 540 56"/>
+  <path class="viz__cable viz__cable--fijo" d="M516 90 C 400 90, 320 116, 320 150"/>
+  <path class="viz__cable viz__cable--fijo" d="M564 90 C 680 90, 750 116, 750 150"/>
+  <circle class="viz__tarjeta" cx="540" cy="80" r="24"/>
+  <g class="viz__icono" transform="translate(540 80)">{{ partial "visuales/icono.html" "router" }}</g>
+  <text class="viz__nombre" x="578" y="62">FW01 · .1</text>
+  <rect class="viz__tramo viz__tramo--resto" x="640" y="150" width="220" height="156" rx="18"/>
+  <text class="viz__tramo-texto viz__tramo-texto--resto" x="652" y="172">VLAN 10 · puestos</text>
+  <rect class="viz__tarjeta" x="690" y="182" width="120" height="82" rx="14"/>
+  <g class="viz__icono" transform="translate(750 206)">{{ partial "visuales/icono.html" "portatil" }}</g>
+  <text class="viz__detalle" x="750" y="252" text-anchor="middle">.100 a .199</text>
+  <text class="viz__detalle" x="750" y="290" text-anchor="middle">IP por relay DHCP</text>
+</g>
+<g data-elemento="copias">
+  <rect class="viz__insignia viz__insignia--proteccion" x="245" y="272" width="170" height="26" rx="13"/>
+  <text class="viz__tramo-texto viz__tramo-texto--proteccion" x="330" y="290" text-anchor="middle">copias 3-2-1</text>
+</g>
+<g data-elemento="monitorizacion">
+  <rect class="viz__tarjeta" x="430" y="182" width="160" height="82" rx="14"/>
+  <text class="viz__nombre" x="510" y="210" text-anchor="middle">SRV-MON01</text>
+  <text class="viz__detalle" x="510" y="230" text-anchor="middle">.20</text>
+  <text class="viz__detalle" x="510" y="250" text-anchor="middle">Zabbix</text>
+  <rect class="viz__insignia viz__insignia--servicios" x="430" y="272" width="160" height="26" rx="13"/>
+  <text class="viz__tramo-texto viz__tramo-texto--grupo" x="510" y="290" text-anchor="middle">alertas por correo</text>
+</g>
