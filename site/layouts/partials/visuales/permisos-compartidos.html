@@ -1,0 +1,26 @@
+{{- /* Drawing of the two permission layers of a shared folder for the evolucion shortcode
+  (data/visuales/evoluciones/permisos-compartidos.json), in a 900 × 270 canvas. The path from the user to the folder is always
+  drawn; the share and NTFS layers appear over it as two gates, and the effective permission below. */ -}}
+<path class="viz__cable viz__cable--fijo" d="M170 125 L 740 125"/>
+<rect class="viz__tarjeta" x="40" y="90" width="130" height="70" rx="14"/>
+<g class="viz__icono" transform="translate(105 116)">{{ partial "visuales/icono.html" "portatil" }}</g>
+<text class="viz__detalle" x="105" y="182" text-anchor="middle">ana.garcia, por la red</text>
+<rect class="viz__tarjeta" x="740" y="90" width="140" height="70" rx="14"/>
+<text class="viz__nombre" x="810" y="120" text-anchor="middle">Contabilidad</text>
+<text class="viz__detalle" x="810" y="142" text-anchor="middle">\\SRV-DC01</text>
+<g data-elemento="recurso">
+  <rect class="viz__tramo viz__tramo--red" x="240" y="56" width="150" height="136" rx="16"/>
+  <text class="viz__tramo-texto viz__tramo-texto--red" x="315" y="84" text-anchor="middle">Recurso compartido</text>
+  <text class="viz__nombre" x="315" y="110" text-anchor="middle">Cambiar</text>
+  <text class="viz__detalle" x="315" y="160" text-anchor="middle">solo por la red</text>
+</g>
+<g data-elemento="ntfs">
+  <rect class="viz__tramo viz__tramo--equipo" x="490" y="56" width="150" height="136" rx="16"/>
+  <text class="viz__tramo-texto viz__tramo-texto--equipo" x="565" y="84" text-anchor="middle">NTFS</text>
+  <text class="viz__nombre" x="565" y="110" text-anchor="middle">Lectura</text>
+  <text class="viz__detalle" x="565" y="160" text-anchor="middle">red y en local</text>
+</g>
+<g data-elemento="efectivo">
+  <text class="viz__veredicto viz__veredicto--no" x="440" y="232" text-anchor="middle">Por la red: solo Lectura, la más restrictiva</text>
+  <text class="viz__detalle" x="440" y="256" text-anchor="middle">en el servidor solo cuenta NTFS: también Lectura</text>
+</g>

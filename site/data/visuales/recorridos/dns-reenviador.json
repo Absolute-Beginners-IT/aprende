@@ -1,0 +1,284 @@
+{
+  "titulo": "Un portátil del dominio, un switch, el controlador de dominio SRV-DC01 con el DNS, el router de salida y un DNS reenviador en internet. Una ventana de PowerShell muestra Resolve-DnsName.",
+  "lienzo": [
+    900,
+    412
+  ],
+  "zonas": [
+    {
+      "x": 680,
+      "y": 40,
+      "ancho": 206,
+      "alto": 216
+    }
+  ],
+  "rotulos": [
+    {
+      "x": 783,
+      "y": 242,
+      "texto": "INTERNET",
+      "centro": true
+    },
+    {
+      "x": 40,
+      "y": 24,
+      "texto": "LABORATORIO · red 192.168.50.0/24"
+    }
+  ],
+  "pantalla": {
+    "tipo": "terminal",
+    "x": 40,
+    "y": 240,
+    "ancho": 380,
+    "alto": 150,
+    "lineas": 4,
+    "guia": "portatil",
+    "inicial": {
+      "barra": "Windows PowerShell",
+      "lineas": [
+        "PS C:\\> _"
+      ]
+    }
+  },
+  "nodos": {
+    "portatil": {
+      "nombre": "Portátil",
+      "detalle": "192.168.50.100",
+      "x": 100,
+      "y": 150,
+      "icono": "portatil"
+    },
+    "switch": {
+      "nombre": "Switch",
+      "detalle": "une el laboratorio",
+      "x": 320,
+      "y": 150,
+      "icono": "switch",
+      "rol": "switch"
+    },
+    "dc": {
+      "nombre": "SRV-DC01",
+      "detalle": "DNS · 192.168.50.10",
+      "x": 600,
+      "y": 330,
+      "icono": "servidor"
+    },
+    "router": {
+      "nombre": "Router",
+      "detalle": "pública 203.0.113.5",
+      "x": 560,
+      "y": 150,
+      "icono": "router",
+      "nat": true
+    },
+    "reenviador": {
+      "nombre": "Reenviador",
+      "detalle": "DNS público 1.1.1.1",
+      "x": 783,
+      "y": 150,
+      "icono": "dns"
+    }
+  },
+  "cables": [
+    {
+      "a": "portatil",
+      "b": "switch"
+    },
+    {
+      "a": "switch",
+      "b": "dc",
+      "d": "M320 150 C 320 260, 480 330, 600 330"
+    },
+    {
+      "a": "switch",
+      "b": "router"
+    },
+    {
+      "a": "router",
+      "b": "reenviador"
+    }
+  ],
+  "pie": "La IP de www.example.com y la pública del router son de los rangos reservados para documentación. La salida de Resolve-DnsName está abreviada.",
+  "pasos": [
+    {
+      "en": "portatil",
+      "tipo": "pregunta",
+      "fase": "Preguntar al DNS del dominio",
+      "cambio": "Paquete nuevo",
+      "hace": "Escribes Resolve-DnsName www.example.com. El portátil envía la consulta a su DNS, que es el controlador de dominio.",
+      "porque": "En un dominio, todos los equipos usan como DNS los controladores de dominio: es la única forma de que encuentren lab.example.com y sus servicios.",
+      "paquete": {
+        "nombre": "Consulta DNS: ¿IP de www.example.com?",
+        "origen": "192.168.50.100",
+        "destino": "192.168.50.10"
+      },
+      "pantalla": {
+        "lineas": [
+          "PS C:\\> Resolve-DnsName www.example.com"
+        ]
+      }
+    },
+    {
+      "desde": "portatil",
+      "en": "switch",
+      "tipo": "pregunta",
+      "fase": "Preguntar al DNS del dominio",
+      "cambio": "Sin cambios",
+      "hace": "Lee la MAC de destino, la de SRV-DC01, y reenvía la trama por su puerto.",
+      "porque": "El portátil y el controlador de dominio están en la misma red: basta el switch.",
+      "paquete": {
+        "nombre": "Consulta DNS: ¿IP de www.example.com?",
+        "origen": "192.168.50.100",
+        "destino": "192.168.50.10"
+      }
+    },
+    {
+      "desde": "switch",
+      "en": "dc",
+      "tipo": "pregunta",
+      "fase": "Reenviar lo que no conoce",
+      "cambio": "Consulta nueva al reenviador",
+      "cambia": [
+        "nombre"
+      ],
+      "hace": "SRV-DC01 mira sus zonas: tiene lab.example.com, pero www.example.com no está dentro, y tampoco lo tiene en la caché. Así que se lo pregunta a su reenviador, 1.1.1.1.",
+      "porque": "Así reparte el trabajo: lo interno lo resuelve él y lo de fuera lo pregunta. Un DNS público no conocería lab.example.com; el del dominio, gracias al reenviador, conoce las dos cosas.",
+      "paquete": {
+        "nombre": "Consulta reenviada: ¿IP de www.example.com?",
+        "origen": "192.168.50.10",
+        "destino": "1.1.1.1"
+      }
+    },
+    {
+      "desde": "dc",
+      "en": "switch",
+      "tipo": "pregunta",
+      "fase": "Reenviar lo que no conoce",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la trama hacia el router, la puerta de enlace.",
+      "porque": "1.1.1.1 no es de la red del laboratorio, así que SRV-DC01 la ha mandado a su puerta de enlace.",
+      "paquete": {
+        "nombre": "Consulta reenviada: ¿IP de www.example.com?",
+        "origen": "192.168.50.10",
+        "destino": "1.1.1.1"
+      }
+    },
+    {
+      "desde": "switch",
+      "en": "router",
+      "tipo": "pregunta",
+      "fase": "Salir a internet",
+      "cambio": "Cambia el origen (NAT)",
+      "cambia": [
+        "origen"
+      ],
+      "hace": "Cambia el origen privado 192.168.50.10 por su IP pública, 203.0.113.5, y apunta el cambio para deshacerlo a la vuelta.",
+      "porque": "Las IP privadas no se usan en internet: la respuesta tiene que volver a una dirección pública.",
+      "paquete": {
+        "nombre": "Consulta reenviada: ¿IP de www.example.com?",
+        "origen": "203.0.113.5",
+        "destino": "1.1.1.1"
+      }
+    },
+    {
+      "desde": "router",
+      "en": "reenviador",
+      "tipo": "respuesta",
+      "fase": "Responder",
+      "cambio": "Ahora es una respuesta",
+      "cambia": [
+        "nombre"
+      ],
+      "hace": "El reenviador conoce la respuesta (o la busca por internet) y contesta: www.example.com es la 198.51.100.80.",
+      "porque": "Para el reenviador, la pregunta llega de 203.0.113.5: no sabe nada de la red de dentro.",
+      "paquete": {
+        "nombre": "Respuesta DNS: www.example.com es 198.51.100.80",
+        "origen": "1.1.1.1",
+        "destino": "203.0.113.5"
+      }
+    },
+    {
+      "desde": "reenviador",
+      "en": "router",
+      "tipo": "respuesta",
+      "fase": "Responder",
+      "cambio": "Cambia el destino (NAT)",
+      "cambia": [
+        "destino"
+      ],
+      "hace": "Mira su tabla, ve que esa respuesta es para SRV-DC01 y cambia el destino a 192.168.50.10.",
+      "porque": "Es el cambio que apuntó a la ida, deshecho al revés.",
+      "paquete": {
+        "nombre": "Respuesta DNS: www.example.com es 198.51.100.80",
+        "origen": "1.1.1.1",
+        "destino": "192.168.50.10"
+      }
+    },
+    {
+      "desde": "router",
+      "en": "switch",
+      "tipo": "respuesta",
+      "fase": "Responder",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la trama a SRV-DC01.",
+      "porque": "El switch solo mira la MAC de destino; no cambia nada.",
+      "paquete": {
+        "nombre": "Respuesta DNS: www.example.com es 198.51.100.80",
+        "origen": "1.1.1.1",
+        "destino": "192.168.50.10"
+      }
+    },
+    {
+      "desde": "switch",
+      "en": "dc",
+      "tipo": "respuesta",
+      "fase": "Contestar al portátil",
+      "cambio": "Respuesta nueva para el portátil",
+      "cambia": [
+        "nombre"
+      ],
+      "hace": "SRV-DC01 guarda la respuesta en su caché y contesta al portátil, que era quien había preguntado.",
+      "porque": "Gracias a la caché, si otro equipo pregunta lo mismo en los próximos minutos, responderá sin salir a internet.",
+      "paquete": {
+        "nombre": "Respuesta DNS al portátil: 198.51.100.80",
+        "origen": "192.168.50.10",
+        "destino": "192.168.50.100"
+      }
+    },
+    {
+      "desde": "dc",
+      "en": "switch",
+      "tipo": "respuesta",
+      "fase": "Contestar al portátil",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la trama al portátil.",
+      "porque": "Misma red otra vez: no hace falta el router.",
+      "paquete": {
+        "nombre": "Respuesta DNS al portátil: 198.51.100.80",
+        "origen": "192.168.50.10",
+        "destino": "192.168.50.100"
+      }
+    },
+    {
+      "desde": "switch",
+      "en": "portatil",
+      "tipo": "respuesta",
+      "fase": "Contestar al portátil",
+      "cambio": "Sin cambios",
+      "hace": "Llega la respuesta y Resolve-DnsName muestra la IP.",
+      "porque": "El portátil solo ha hablado con su DNS. Que detrás haya un reenviador no lo sabe ni le hace falta.",
+      "paquete": {
+        "nombre": "Respuesta DNS al portátil: 198.51.100.80",
+        "origen": "192.168.50.10",
+        "destino": "192.168.50.100"
+      },
+      "pantalla": {
+        "lineas": [
+          "PS C:\\> Resolve-DnsName www.example.com",
+          "Name             Type  IPAddress",
+          "www.example.com  A     198.51.100.80"
+        ]
+      }
+    }
+  ]
+}

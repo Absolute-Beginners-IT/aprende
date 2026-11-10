@@ -24,6 +24,10 @@ Cuando alguien abre una carpeta compartida desde la red, Windows comprueba **dos
 
 NTFS es el sistema de archivos de Windows, y sus permisos viajan con la carpeta. Por la red, el permiso efectivo es **el más restrictivo de los dos**. Por eso la práctica habitual es sencilla: permisos de recurso compartido amplios y el control fino en NTFS, donde vive de verdad.
 
+Pulsa cada etapa para ver qué capas atraviesa la petición:
+
+{{< evolucion datos="permisos-compartidos" >}}
+
 {{< aviso titulo="La distinción que importa" >}}
 Si el recurso compartido da Control total y NTFS da solo Lectura, el usuario solo puede leer. Y al revés también: NTFS con Modificar y el recurso compartido con Lectura dejan solo Lectura. Cuando alguien «tiene permisos pero no puede escribir», revisa las dos capas.
 {{< /aviso >}}

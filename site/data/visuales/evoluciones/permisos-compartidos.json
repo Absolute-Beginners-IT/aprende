@@ -1,0 +1,28 @@
+{
+  "titulo": "Las dos capas de permisos de una carpeta compartida: ana.garcia entra por la red, pasa primero por los permisos del recurso compartido (Cambiar) y después por los permisos NTFS (Lectura), y el permiso efectivo es Lectura.",
+  "pie": "Por la red cuentan las dos capas y gana la más restrictiva. Sentado delante del servidor solo cuenta NTFS.",
+  "lienzo": [900, 270],
+  "elementos": ["recurso", "ntfs", "efectivo"],
+  "etapas": [
+    {
+      "titulo": "Entrar por la red",
+      "muestra": [],
+      "porque": "ana.garcia abre \\\\SRV-DC01\\Contabilidad desde su ordenador. Antes de dejarla pasar, Windows comprueba dos listas de permisos, una detrás de otra."
+    },
+    {
+      "titulo": "Permisos del recurso compartido",
+      "muestra": ["recurso"],
+      "porque": "La primera capa solo existe para quien llega por la red. Aquí el recurso compartido le permite Cambiar: leer, crear y modificar."
+    },
+    {
+      "titulo": "Permisos NTFS",
+      "muestra": ["recurso", "ntfs"],
+      "porque": "La segunda capa va con la carpeta en el disco y se aplica siempre, se entre por la red o sentado delante del servidor. Aquí NTFS solo le permite Lectura."
+    },
+    {
+      "titulo": "El permiso efectivo",
+      "muestra": ["recurso", "ntfs", "efectivo"],
+      "porque": "Por la red tiene que pasar las dos capas, así que gana la más restrictiva: solo puede leer. Por eso se dejan amplios los permisos del recurso compartido y el control fino se hace en NTFS."
+    }
+  ]
+}

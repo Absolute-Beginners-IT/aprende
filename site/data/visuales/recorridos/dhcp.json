@@ -1,0 +1,130 @@
+{
+  "titulo": "Una VM cliente sin IP y el servidor SRV-DC01 con el rol DHCP, en la misma red de laboratorio y unidos por un switch. Una ventana de PowerShell muestra ipconfig /renew.",
+  "lienzo": [900, 412],
+  "zonas": [],
+  "rotulos": [{ "x": 40, "y": 402, "texto": "LABORATORIO · red 192.168.50.0/24" }],
+  "pantalla": {
+    "tipo": "terminal",
+    "x": 40,
+    "y": 14,
+    "ancho": 440,
+    "alto": 176,
+    "lineas": 6,
+    "guia": "cliente",
+    "inicial": { "barra": "Windows PowerShell", "lineas": ["PS C:\\> _"] }
+  },
+  "nodos": {
+    "cliente": { "nombre": "VM cliente", "detalle": "sin IP todavía", "x": 140, "y": 314, "icono": "portatil" },
+    "switch": { "nombre": "Switch", "detalle": "une el laboratorio", "x": 450, "y": 314, "icono": "switch", "rol": "switch" },
+    "dhcp": { "nombre": "SRV-DC01", "detalle": "DHCP · 192.168.50.10", "x": 760, "y": 314, "icono": "servidor" }
+  },
+  "cables": [
+    { "a": "cliente", "b": "switch" },
+    { "a": "switch", "b": "dhcp" }
+  ],
+  "pie": "La salida de ipconfig está abreviada. El servidor DHCP escucha en el puerto 67 y el cliente en el 68. Las cuatro fases se recuerdan como DORA: Discover, Offer, Request y Ack.",
+  "pasos": [
+    {
+      "en": "cliente",
+      "tipo": "pregunta",
+      "fase": "Discover",
+      "cambio": "Paquete nuevo",
+      "hace": "Ejecutas ipconfig /release y después ipconfig /renew. El equipo se queda sin IP y no sabe dónde hay un servidor DHCP, así que pregunta a toda la red con un DHCPDISCOVER.",
+      "porque": "Sin IP no puede escribir a nadie en concreto: usa como origen 0.0.0.0 y como destino la difusión 255.255.255.255, que reciben todos los equipos de la red.",
+      "paquete": { "nombre": "DHCPDISCOVER: ¿hay algún DHCP?", "origen": "0.0.0.0:68", "destino": "255.255.255.255:67" },
+      "pantalla": { "lineas": ["PS C:\\> ipconfig /release", "PS C:\\> ipconfig /renew"] }
+    },
+    {
+      "desde": "cliente",
+      "en": "switch",
+      "tipo": "pregunta",
+      "fase": "Discover",
+      "cambio": "Sin cambios",
+      "hace": "Es una difusión: la reenvía por todos sus puertos menos por el que llegó.",
+      "porque": "Las difusiones no cruzan routers. Por eso el DHCP tiene que estar en la misma red que los clientes, o el router tiene que retransmitirle las peticiones (un agente de retransmisión DHCP).",
+      "paquete": { "nombre": "DHCPDISCOVER: ¿hay algún DHCP?", "origen": "0.0.0.0:68", "destino": "255.255.255.255:67" }
+    },
+    {
+      "desde": "switch",
+      "en": "dhcp",
+      "tipo": "respuesta",
+      "fase": "Offer",
+      "cambio": "Ahora es una oferta",
+      "cambia": ["nombre"],
+      "hace": "El servicio DHCP, autorizado en Active Directory, elige una IP libre del ámbito LAB-Clientes, por ejemplo la 192.168.50.100, y la ofrece con un DHCPOFFER.",
+      "porque": "Antes de ofrecerla comprueba que no está excluida ni reservada para otra MAC. Si el servidor no estuviera autorizado en AD, aquí no respondería nadie.",
+      "paquete": { "nombre": "DHCPOFFER: te ofrezco la 192.168.50.100", "origen": "192.168.50.10:67", "destino": "255.255.255.255:68" }
+    },
+    {
+      "desde": "dhcp",
+      "en": "switch",
+      "tipo": "respuesta",
+      "fase": "Offer",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la oferta por todos sus puertos.",
+      "porque": "El cliente aún no tiene IP, así que la oferta viaja como difusión. El cliente sabe que es para él porque dentro va su MAC.",
+      "paquete": { "nombre": "DHCPOFFER: te ofrezco la 192.168.50.100", "origen": "192.168.50.10:67", "destino": "255.255.255.255:68" }
+    },
+    {
+      "desde": "switch",
+      "en": "cliente",
+      "tipo": "pregunta",
+      "fase": "Request",
+      "cambio": "Ahora es una petición",
+      "cambia": ["nombre"],
+      "hace": "El cliente acepta la oferta y pide esa IP a ese servidor con un DHCPREQUEST.",
+      "porque": "Todavía no puede usar la IP: hasta que el servidor confirme, sigue enviando desde 0.0.0.0. La petición va otra vez a todos para que, si hubiera otro DHCP, sepa que su oferta no se ha elegido.",
+      "paquete": { "nombre": "DHCPREQUEST: quiero la 192.168.50.100", "origen": "0.0.0.0:68", "destino": "255.255.255.255:67" }
+    },
+    {
+      "desde": "cliente",
+      "en": "switch",
+      "tipo": "pregunta",
+      "fase": "Request",
+      "cambio": "Sin cambios",
+      "hace": "Otra difusión: la reenvía por todos sus puertos.",
+      "porque": "El switch no entiende de DHCP: solo ve una trama para todos y la reparte.",
+      "paquete": { "nombre": "DHCPREQUEST: quiero la 192.168.50.100", "origen": "0.0.0.0:68", "destino": "255.255.255.255:67" }
+    },
+    {
+      "desde": "switch",
+      "en": "dhcp",
+      "tipo": "respuesta",
+      "fase": "Ack",
+      "cambio": "Ahora es la confirmación",
+      "cambia": ["nombre"],
+      "hace": "El servidor apunta la concesión durante 8 días y la confirma con un DHCPACK, que lleva también las opciones: 003, la puerta de enlace 192.168.50.1; 006, el DNS 192.168.50.10; y 015, el dominio lab.example.com.",
+      "porque": "Desde ahora la IP es del cliente mientras dure la concesión, y aparece en Get-DhcpServerv4Lease. Antes de que caduque, el cliente la renovará.",
+      "paquete": { "nombre": "DHCPACK: 192.168.50.100 por 8 días y opciones", "origen": "192.168.50.10:67", "destino": "255.255.255.255:68" }
+    },
+    {
+      "desde": "dhcp",
+      "en": "switch",
+      "tipo": "respuesta",
+      "fase": "Ack",
+      "cambio": "Sin cambios",
+      "hace": "Reenvía la confirmación por todos sus puertos.",
+      "porque": "Igual que la oferta: el cliente la reconoce por su MAC.",
+      "paquete": { "nombre": "DHCPACK: 192.168.50.100 por 8 días y opciones", "origen": "192.168.50.10:67", "destino": "255.255.255.255:68" }
+    },
+    {
+      "desde": "switch",
+      "en": "cliente",
+      "tipo": "respuesta",
+      "fase": "Ack",
+      "cambio": "Sin cambios",
+      "hace": "El cliente se configura la IP, la máscara, la puerta de enlace y el DNS, e ipconfig muestra el resultado.",
+      "porque": "Todo lo que antes había que escribir a mano en cada equipo ha llegado en cuatro mensajes. Si en vez de esto ves una 169.254.x.x, es que ningún DHCP ha contestado.",
+      "paquete": { "nombre": "DHCPACK: 192.168.50.100 por 8 días y opciones", "origen": "192.168.50.10:67", "destino": "255.255.255.255:68" },
+      "pantalla": {
+        "lineas": [
+          "PS C:\\> ipconfig /release",
+          "PS C:\\> ipconfig /renew",
+          "   Dirección IPv4. . . : 192.168.50.100",
+          "   Máscara de subred . : 255.255.255.0",
+          "   Puerta de enlace. . : 192.168.50.1"
+        ]
+      }
+    }
+  ]
+}
