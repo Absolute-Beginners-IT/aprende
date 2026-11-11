@@ -1,14 +1,12 @@
-import type { Device } from '../domain/types';
+import type { Topology } from '../domain/types';
+import type { TopologyChange } from '../domain/topology';
 
 /**
- * Storage port for the learner's inventory. Today it is backed by localStorage;
- * a future HTTP adapter against api.example.com must honour the same contract,
- * so the UI never knows where the data lives.
+ * Storage port for the learner's infrastructure: devices, links and groups. Today it is backed by localStorage;
+ * a future HTTP adapter against api.example.com must honour the same contract, so the UI never knows where the data lives.
  */
 export interface InventoryRepository {
-  list(): Promise<Device[]>;
-  save(device: Device): Promise<void>;
-  /** Saves several devices and removes others as one change: on failure, nothing is stored. */
-  saveAll(devices: Device[], removedIds?: string[]): Promise<void>;
-  remove(id: string): Promise<void>;
+  load(): Promise<Topology>;
+  /** Applies one change to what is stored right now and stores the result as one write: on failure, nothing is stored. */
+  apply(change: TopologyChange): Promise<void>;
 }

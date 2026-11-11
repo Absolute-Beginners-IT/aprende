@@ -3,9 +3,13 @@ import { matchPlatform } from '../../domain/platformPatterns'
 import type { Platform } from '../../domain/schema'
 
 /**
- * Where the website's «Mi infraestructura» (app/src/adapters/localStorageInventoryRepository.ts) keeps its inventory.
- * The app and these guides are served from the same origin, so they share the browser's storage.
+ * Where the website's «Mi infraestructura» (app/src/adapters/localStorageInventoryRepository.ts) keeps its topology:
+ * `{ version: 2, equipos, enlaces, grupos }`. The app and these guides are served from the same origin, so they share
+ * the browser's storage.
  */
+export const TOPOLOGY_STORAGE_KEY = 'mapa-infra:topologia'
+
+/** Where the first version of «Mi infraestructura» kept its inventory: read only while there is no topology. */
 export const INVENTORY_STORAGE_KEY = 'mapa-infra:inventario'
 
 // Only the fields the planner and the runbooks use; keys stay in Spanish because they mirror the inventory.
@@ -32,9 +36,50 @@ export function inventorySwitches(raw: unknown): InventorySwitch[] {
   })
 }
 
-/** The switches of the inventory kept in this browser; none when storage is blocked or holds something else. */
+// Link types whose `b` end is what the `a` end hangs from; mirrors `isHierarchical` in app/src/domain/topology.ts.
+const HIERARCHICAL_LINK_TYPES = new Set(['datos', 'troncal', 'lag', 'wan', 'almacenamiento'])
+
+const TopologySchema = z.object({
+  version: z.literal(2),
+  equipos: z.array(z.unknown()),
+  enlaces: z.array(z.unknown()),
+})
+
+const TopologyLinkSchema = z.object({
+  a: z.object({ equipo: z.string() }),
+  b: z.object({ equipo: z.string() }),
+  tipo: z.string(),
+})
+
+/**
+ * The switches of a stored topology, read from untrusted JSON. Each one gets `uplinks`, the devices it hangs from
+ * through hierarchical links, so the planner joins switches exactly as it did with the first inventory.
+ */
+export function topologySwitches(raw: unknown): InventorySwitch[] {
+  const parsed = TopologySchema.safeParse(raw)
+  if (!parsed.success) return []
+  const uplinks = new Map<string, string[]>()
+  for (const item of parsed.data.enlaces) {
+    const link = TopologyLinkSchema.safeParse(item)
+    if (!link.success || !HIERARCHICAL_LINK_TYPES.has(link.data.tipo)) continue
+    const from = uplinks.get(link.data.a.equipo) ?? []
+    if (!from.includes(link.data.b.equipo)) uplinks.set(link.data.a.equipo, [...from, link.data.b.equipo])
+  }
+  const devices = parsed.data.equipos.map((item) => {
+    const device = InventoryDeviceSchema.omit({ uplinks: true }).safeParse(item)
+    return device.success ? { ...device.data, uplinks: uplinks.get(device.data.id) ?? [] } : item
+  })
+  return inventorySwitches(devices)
+}
+
+/**
+ * The switches «Mi infraestructura» keeps in this browser: its topology when there is one, otherwise the first
+ * inventory. None when storage is blocked or holds something else.
+ */
 export function readInventorySwitches(): InventorySwitch[] {
   try {
+    const topology = localStorage.getItem(TOPOLOGY_STORAGE_KEY)
+    if (topology !== null) return topologySwitches(JSON.parse(topology))
     return inventorySwitches(JSON.parse(localStorage.getItem(INVENTORY_STORAGE_KEY) ?? '[]'))
   } catch {
     return []

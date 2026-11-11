@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 import type { Device, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
-import { GRID, connectDevices, connectionsOf, disconnectDevices, layoutDevices, moveDevice, placeUnplaced, newDevice, withoutDevice } from '../../domain/infraMap';
+import { GRID, connectDevices, connectionsOf, layoutDevices, moveDevice, placeUnplaced, newDevice } from '../../domain/infraMap';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
@@ -51,13 +51,13 @@ function freeSpot(center: Position, taken: Position[]): Position {
   return center;
 }
 
-/** «Mi infraestructura» as a map: the inventory drawn as devices joined by their uplinks, edited with the mouse. */
+/** «Mi infraestructura» as a map: the inventory drawn as devices joined by their links, edited with the mouse. */
 export function InfraMapPage({ repository }: { repository: InventoryRepository }) {
   return <ReactFlowProvider><InfraMap repository={repository} /></ReactFlowProvider>;
 }
 
 function InfraMap({ repository }: { repository: InventoryRepository }) {
-  const { devices, loaded, message, setMessage, persist } = useInventory(repository);
+  const { topology, devices, loaded, message, setMessage, persist } = useInventory(repository);
   const { screenToFlowPosition } = useReactFlow();
   const canvas = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -66,12 +66,12 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
 
   const byId = useMemo(() => new Map(devices.map(d => [d.id, d])), [devices]);
   const nameOf = (id: string) => byId.get(id)?.nombre ?? id;
-  const findings = useMemo(() => analyzeInventory(devices, new Date()), [devices]);
+  const findings = useMemo(() => analyzeInventory(topology, new Date()), [topology]);
   const selected = selectedId ? byId.get(selectedId) : undefined;
 
   // React Flow keeps the measured size on each node: rebuild them from the inventory without losing it.
   useEffect(() => {
-    const positions = layoutDevices(devices);
+    const positions = layoutDevices(topology);
     setNodes(prev => {
       const old = new Map(prev.map(n => [n.id, n]));
       return devices.map(d => ({
@@ -81,16 +81,16 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     });
     setEdges(prev => {
       const picked = new Set(prev.filter(e => e.selected).map(e => e.id));
-      return connectionsOf(devices).map(c => ({ id: c.id, source: c.from, target: c.to, selected: picked.has(c.id), ariaLabel: `Conexión entre ${nameOf(c.from)} y ${nameOf(c.to)}` }));
+      return connectionsOf(topology).map(c => ({ id: c.id, source: c.from, target: c.to, selected: picked.has(c.id), ariaLabel: `Conexión entre ${nameOf(c.from)} y ${nameOf(c.to)}` }));
     });
-  }, [devices]);
+  }, [topology]);
   useEffect(() => setNodes(ns => ns.map(n => (n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId }))), [selectedId]);
 
   // Every write starts from what is stored right now, so quick successive edits never overwrite each other with stale copies.
   const edit = async (id: string, change: (d: Device) => Device | null) => {
-    const current = (await repository.list()).find(d => d.id === id);
+    const current = (await repository.load()).equipos.find(d => d.id === id);
     const next = current && change(current);
-    if (next) await repository.save(next);
+    if (next) await repository.apply({ saveDevices: [next] });
   };
 
   // The selection is ours (it opens the ficha); nodes are deleted only from the ficha, never with the keyboard.
@@ -108,13 +108,13 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     if (moved.length) void persist(async () => {
       // Devices still placed by the map are pinned where they are, or the move would make them reflow onto each other.
       // Pins and moves go in one write, so a full storage never leaves the move half saved.
-      const current = await repository.list();
+      const current = await repository.load();
       const changed = new Map(placeUnplaced(current).map(d => [d.id, d]));
       for (const c of moved) {
-        const device = changed.get(c.id) ?? current.find(d => d.id === c.id);
+        const device = changed.get(c.id) ?? current.equipos.find(d => d.id === c.id);
         if (device) changed.set(c.id, moveDevice(device, c.position!));
       }
-      await repository.saveAll([...changed.values()]);
+      await repository.apply({ saveDevices: [...changed.values()] });
     }, '');
   };
 
@@ -123,19 +123,17 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const onConnect = ({ source, target }: FlowConnection) => {
     const to = byId.get(target);
     if (!to || !byId.has(source)) return;
-    void persist(() => edit(source, from => connectDevices(from, to)), `${nameOf(source)} conectado a ${to.nombre}.`);
+    // The dragged device hangs from the one it is dropped on, unless the pair is already joined that way.
+    void persist(async () => {
+      const link = connectDevices(await repository.load(), source, target);
+      if (link) await repository.apply({ addLinks: [link] });
+    }, `${nameOf(source)} conectado a ${to.nombre}.`);
   };
 
-  const disconnect = (pairs: [string, string][]) => {
-    const success = pairs.length === 1 ? `Conexión entre ${nameOf(pairs[0][0])} y ${nameOf(pairs[0][1])} quitada.` : `${pairs.length} conexiones quitadas.`;
-    void persist(async () => {
-      let current = await repository.list();
-      const changed = new Map<string, Device>();
-      for (const [a, b] of pairs) {
-        for (const d of disconnectDevices(current, a, b)) { changed.set(d.id, d); current = current.map(x => (x.id === d.id ? d : x)); }
-      }
-      await repository.saveAll([...changed.values()]);
-    }, success);
+  /** Removes the given links in one write; `between` names the two devices of each one for the message. */
+  const disconnect = (links: { id: string; between: [string, string] }[]) => {
+    const success = links.length === 1 ? `Conexión entre ${nameOf(links[0].between[0])} y ${nameOf(links[0].between[1])} quitada.` : `${links.length} conexiones quitadas.`;
+    void persist(() => repository.apply({ removeLinks: links.map(l => l.id) }), success);
   };
 
   const add = async (tipoId: string, at?: Position) => {
@@ -148,8 +146,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     }
     let added: Device | undefined;
     const ok = await persist(async () => {
-      added = newDevice(tipo.id, tipo.nombre, await repository.list(), spot);
-      await repository.save(added);
+      added = newDevice(tipo.id, tipo.nombre, (await repository.load()).equipos, spot);
+      await repository.apply({ saveDevices: [added] });
     }, () => `${added!.nombre} añadido.`);
     if (ok && added) setSelectedId(added.id);
   };
@@ -171,15 +169,15 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     return update(d, current => ({ ...current, nombre }));
   };
   const remove = async (d: Device) => {
-    const removed = await persist(async () => {
-      // The device and the uplinks that pointed to it go in one write: never a half-deleted device.
-      await repository.saveAll(withoutDevice(await repository.list(), d.id), [d.id]);
-    }, `${d.nombre} borrado.`);
+    // The device, its links and its place in any group go in one write: never a half-deleted device.
+    const removed = await persist(() => repository.apply({ removeDevices: [d.id] }), `${d.nombre} borrado.`);
     if (removed) setSelectedId(null);
   };
 
+  // One entry per link of the selected device, named after the device at its other end.
   const connections = selected
-    ? connectionsOf(devices).filter(c => c.from === selected.id || c.to === selected.id).map(c => (c.from === selected.id ? c.to : c.from)).map(id => ({ id, nombre: nameOf(id) }))
+    ? connectionsOf(topology).filter(c => c.from === selected.id || c.to === selected.id)
+      .map(c => ({ id: c.id, other: c.from === selected.id ? c.to : c.from })).map(c => ({ ...c, nombre: nameOf(c.other) }))
     : [];
 
   return (
@@ -191,7 +189,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
         <section className="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
           onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
           <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-            onNodeClick={(_, node) => setSelectedId(node.id)} onEdgesDelete={es => disconnect(es.map(e => [e.source, e.target]))}
+            onNodeClick={(_, node) => setSelectedId(node.id)} onEdgesDelete={es => disconnect(es.map(e => ({ id: e.id, between: [e.source, e.target] })))}
             deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
             <Background variant={BackgroundVariant.Dots} gap={20} />
             <Controls showInteractive={false} fitViewOptions={FIT_VIEW} />
@@ -204,7 +202,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
         </section>
         {selected ? (
           <DeviceInspector key={selected.id} device={selected} connections={connections} findings={findings.filter(f => f.deviceId === selected.id)}
-            onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={other => disconnect([[selected.id, other]])} onDelete={() => void remove(selected)} />
+            onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={id => disconnect(connections.filter(c => c.id === id).map(c => ({ id, between: [selected.id, c.other] })))} onDelete={() => void remove(selected)} />
         ) : <InventoryOverview empty={devices.length === 0} findings={findings} />}
       </div>
     </section>

@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { deploymentPlan, DEPLOYMENT_ORDER, planStepIds } from './deploymentPlan';
 import { content } from '../content';
-import type { Device } from './types';
+import type { Link } from './types';
 import { slugify } from './inventoryCsv';
+import { fromInventoryV1, type DeviceV1 } from './topology';
 
 const BASE = './guias/';
-const dev = (id: string, extra: Partial<Device> = {}): Device => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
-const plan = (devices: Device[]) => deploymentPlan(devices, content, BASE);
-const order = (devices: Device[]) => plan(devices).map(p => p.nombre);
+const dev = (id: string, extra: Partial<DeviceV1> = {}): DeviceV1 => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
+const plan = (devices: DeviceV1[]) => deploymentPlan(fromInventoryV1(devices), content, BASE);
+const order = (devices: DeviceV1[]) => plan(devices).map(p => p.nombre);
+const link = (id: string, a: string, b: string, tipo: Link['tipo']): Link => ({ id, a: { equipo: a }, b: { equipo: b }, tipo });
 const tipo = (id: string) => content.tipos.find(t => t.id === id)!;
 
 describe('deploymentPlan order', () => {
@@ -45,6 +47,16 @@ describe('deploymentPlan order', () => {
   it('says what each device hangs from, ignoring uplinks to devices no longer in the inventory', () => {
     const devices = [dev('core', { uplinks: ['fw', 'gone'] }), dev('fw', { nombre: 'FW01', tipo: 'firewall' }), dev('sw2', { uplinks: ['core', 'fw'] })];
     expect(plan(devices).map(p => [p.nombre, p.cuelgaDe])).toEqual([['FW01', []], ['CORE', ['FW01']], ['SW2', ['CORE', 'FW01']]]);
+  });
+
+  it('orders and says what each device hangs from by hierarchical links only, once per device', () => {
+    const [isp, fw1, fw2, core] = fromInventoryV1([dev('isp', { tipo: 'internet', nombre: 'Internet' }), dev('fw1', { tipo: 'firewall' }), dev('fw2', { tipo: 'firewall' }), dev('core')]).equipos;
+    const topology = {
+      equipos: [core, fw2, fw1, isp],
+      enlaces: [link('1', 'fw1', 'isp', 'wan'), link('2', 'fw2', 'isp', 'wan'), link('3', 'fw1', 'fw2', 'ha'), link('4', 'core', 'fw1', 'lag'), link('5', 'core', 'fw1', 'datos'), link('6', 'core', 'fw2', 'gestion')],
+      grupos: [],
+    };
+    expect(deploymentPlan(topology, content, BASE).map(p => [p.nombre, p.cuelgaDe])).toEqual([['FW1', ['Internet']], ['FW2', ['Internet']], ['CORE', ['FW1']]]);
   });
 
   it('describes each device by its type, brand and model', () => {

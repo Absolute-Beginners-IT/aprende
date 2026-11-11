@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseInventoryCsv, toInventoryCsv } from './inventoryCsv';
+import { fromInventoryV1 } from './topology';
+import type { Link } from './types';
 
 const HEADER = 'Nombre;Tipo;Marca;Modelo;IP_Gestion;Ubicacion;Rol;Criticidad;Uplink;Firmware;Fin_Soporte;Metodo_Monitorizacion;Monitorizado;Notas';
 
@@ -26,7 +28,7 @@ describe('parseInventoryCsv', () => {
 describe('toInventoryCsv', () => {
   it('writes the toolkit format and round-trips through the parser', () => {
     const devices = parseInventoryCsv(`${HEADER}\nFW01;firewall;;;10.0.0.1;;;Alta;;;;;Sí;a;b`);
-    const csv = toInventoryCsv(devices);
+    const csv = toInventoryCsv(fromInventoryV1(devices));
     expect(csv.split('\r\n')[0]).toBe(`﻿${HEADER}`);
     expect(parseInventoryCsv(csv)).toEqual(devices);
   });
@@ -34,13 +36,25 @@ describe('toInventoryCsv', () => {
   it('round-trips values that start with formula characters or an apostrophe unchanged', () => {
     const tricky = ['=SUM(A1)', '+34 600 000 000', '-', '@admin', "'=already quoted", "'normal"];
     const devices = tricky.map((notas, i) => ({ id: `d${i}`, nombre: `D${i}`, tipo: 'otro', criticidad: 'Baja' as const, monitorizado: false, notas }));
-    expect(parseInventoryCsv(toInventoryCsv(devices)).map(d => d.notas)).toEqual(tricky);
+    expect(parseInventoryCsv(toInventoryCsv(fromInventoryV1(devices))).map(d => d.notas)).toEqual(tricky);
   });
 
   it('neutralises spreadsheet formulas so Excel does not execute them', () => {
-    const csv = toInventoryCsv([{ id: 'x', nombre: '=HYPERLINK("http://evil")', tipo: 'otro', criticidad: 'Baja', monitorizado: false, notas: '+cmd|calc' }]);
+    const csv = toInventoryCsv({ equipos: [{ id: 'x', nombre: '=HYPERLINK("http://evil")', tipo: 'otro', criticidad: 'Baja', monitorizado: false, notas: '+cmd|calc' }], enlaces: [], grupos: [] });
     const row = csv.split('\r\n')[1];
     expect(row.startsWith(`"'=HYPERLINK(""http://evil"")"`)).toBe(true);
     expect(row.endsWith("'+cmd|calc")).toBe(true);
+  });
+
+  it('round-trips what each device hangs from through the Uplink column', () => {
+    const devices = parseInventoryCsv(`${HEADER}\nCORE;switch;;;;;;;FW01,FW02;;;;No;\nFW01;firewall;;;;;;;;;;;No;`);
+    expect(parseInventoryCsv(toInventoryCsv(fromInventoryV1(devices)))).toEqual(devices);
+  });
+
+  it('lists in the Uplink column the devices it hangs from by hierarchical links only, missing ones included', () => {
+    const link = (id: string, a: string, b: string, tipo: Link['tipo']): Link => ({ id, a: { equipo: a }, b: { equipo: b }, tipo });
+    const core = { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Media' as const, monitorizado: false };
+    const csv = toInventoryCsv({ equipos: [core], enlaces: [link('1', 'core', 'fw1', 'lag'), link('2', 'core', 'fw1', 'troncal'), link('3', 'core', 'core2', 'stack'), link('4', 'core', 'gone', 'datos'), link('5', 'p1', 'core', 'datos')], grupos: [] });
+    expect(csv.split('\r\n')[1]).toBe('CORE;switch;;;;;;Media;fw1,gone;;;;No;');
   });
 });

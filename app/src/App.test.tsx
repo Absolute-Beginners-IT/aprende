@@ -98,6 +98,47 @@ describe('App', () => {
     expect(screen.queryByRole('button', { name: 'Importar' })).toBeNull();
   });
 
+  it('builds the deployment plan from the version 2 topology when there is one, ahead of the old inventory', async () => {
+    localStorage.setItem('mapa-infra:inventario', JSON.stringify([{ id: 'old', nombre: 'VIEJO', tipo: 'switch', criticidad: 'Alta', monitorizado: false }]));
+    localStorage.setItem('mapa-infra:topologia', JSON.stringify({
+      version: 2,
+      equipos: [
+        { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: false },
+        { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false },
+      ],
+      enlaces: [{ id: 'core--fw', a: { equipo: 'core' }, b: { equipo: 'fw' }, tipo: 'troncal' }],
+      grupos: [],
+    }));
+    location.hash = '#mi-infraestructura/plan';
+    render(<App />);
+    const cards = await screen.findAllByRole('article');
+    expect(cards.map(c => within(c).getByRole('heading', { level: 3 }).textContent)).toEqual(['1. FW01', '2. CORE']);
+    expect(screen.getByText(/cuelga de FW01/)).toBeTruthy();
+  });
+
+  it('saves the first change to a migrated inventory as the version 2 topology and leaves the old key as it was', async () => {
+    const old = JSON.stringify([
+      { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: false, uplinks: ['fw'] },
+      { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false },
+      { id: 'p1', nombre: 'P1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+    ]);
+    localStorage.setItem('mapa-infra:inventario', old);
+    location.hash = '#mi-infraestructura/lista';
+    render(<App />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Borrar CORE' }));
+    expect(await screen.findByText('CORE borrado.')).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem('mapa-infra:topologia') ?? 'null')).toEqual({
+      version: 2,
+      equipos: [
+        { id: 'fw', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: false },
+        { id: 'p1', nombre: 'P1', tipo: 'switch', criticidad: 'Media', monitorizado: false },
+      ],
+      enlaces: [],
+      grupos: [],
+    });
+    expect(localStorage.getItem('mapa-infra:inventario')).toBe(old);
+  });
+
   it('presents the reference map as part of Aprender, with a way back to it', () => {
     render(<App />);
     expect(screen.getByText('Aprender · Mapa de referencia')).toBeTruthy();

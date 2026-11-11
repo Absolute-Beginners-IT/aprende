@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalog } from '../../content/catalog'
-import { INVENTORY_STORAGE_KEY } from './inventoryImport'
+import { INVENTORY_STORAGE_KEY, TOPOLOGY_STORAGE_KEY } from './inventoryImport'
 import { PlannerPage } from './PlannerPage'
 import { twoSwitchPlan } from './planFixtures'
 import { PLAN_STORAGE_KEY } from './usePlan'
@@ -305,6 +305,29 @@ describe('PlannerPage', () => {
       expect(screen.queryByRole('button', { name: /^Quitar el switch/ })).not.toBeInTheDocument()
       expect(screen.getByText(/salen de Mi infraestructura/)).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Traer switches del inventario' })).not.toBeInTheDocument()
+    })
+
+    it('takes the switches and their connections from the topology that «Mi infraestructura» now stores', async () => {
+      const { uplinks: _, ...p1 } = inventory[1] as (typeof inventory)[number] & { uplinks?: string[] }
+      localStorage.setItem(
+        TOPOLOGY_STORAGE_KEY,
+        JSON.stringify({
+          version: 2,
+          equipos: [inventory[0], p1, inventory[2]],
+          enlaces: [{ id: 'p1--core', a: { equipo: 'p1' }, b: { equipo: 'core' }, tipo: 'troncal' }],
+          grupos: [],
+        }),
+      )
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      await openTab(user, /^Enlaces/)
+
+      await user.type(screen.getByRole('textbox', { name: 'Puerto A del enlace 1' }), '1/1/49')
+      expect(storedPlan().switches.map((item: { deviceId: string }) => item.deviceId)).toEqual(['core', 'p1'])
+      expect(storedPlan().links).toEqual([
+        { id: 'ln-1', a: { switch: 'sw-1', interface: '1/1/49' }, b: { switch: 'sw-2', interface: '' }, nativeVlan: 1 },
+      ])
     })
 
     it('lets the user pick the model only when brand and model match none of the manual', async () => {
