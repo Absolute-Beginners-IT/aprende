@@ -74,7 +74,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
 | T4 | S17–S20 (slice 3) | delegated (context backstop) | done (PR #48, b22c464) | |
-| T5 | S21–S23 (slice 4) | delegated (context backstop) | in progress | |
+| T5 | S21–S23 (slice 4) | delegated (context backstop) | in progress (S22–S23 implemented, checks green) | |
 
 ## Log
 
@@ -151,3 +151,12 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   click-to-connect with `document.elementFromPoint` stubbed). Checks: app vitest 220/220, app build OK. Browser check
   pending (parent).
 - **L13** (2026-11-11, user, verbatim): «Sí, mergea» (PR #48, merged as b22c464) and «Sí, arranca» — start slice 4. Decision: the guides read the map's ports and never write the app's storage (single source for inventory links).
+- **L14** (2026-11-11, T5 writer, S22–S23) Deployment plan: after the usual sort, `groupedTogether` moves the members of a
+  group (`groupOf`) to the place of the first one, keeping their sorted order; `PlanDevice.grupo` is «name (type)» with
+  `GROUP_TYPE_NAMES` («Par FortiGate (HA)») and the card adds it to its description. «Qué te falta» adds: an HA or stack
+  group of two or more members with no link of its type between members (warn), an HA group with exactly one (info, «si
+  ese cable falla, cada equipo cree que el otro ha caído»), a group with one member (info; link checks skipped, clusters
+  have none), a switch with dependants (`downstreamOf`) and exactly one hierarchical link up (info; links counted, so two
+  cables to one core are enough), the same trimmed port of a device in two or more links (warn, «usa el puerto «p» en N
+  enlaces»). Group findings carry no `deviceId`, so they show in the overview only. RED 9 failing (plan 2, page 1,
+  analysis 6), then GREEN; negative cases and existing tests already green. Checks: app vitest 233/233, app build OK.
