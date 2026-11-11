@@ -1,6 +1,6 @@
 import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan, PlanLink, PlanSwitch } from '../../domain/networkPlan'
-import { type InventorySwitch, nameKey, platformFor, switchPlatforms } from './inventoryImport'
+import { type InventorySwitch, type LinkPorts, nameKey, platformFor, switchPlatforms } from './inventoryImport'
 import { nextId } from './usePlan'
 
 export interface CombinedPlan {
@@ -12,7 +12,12 @@ export interface CombinedPlan {
   deducedModels: Set<string>
   /** Names that two or more inventory switches share: no stored switch is matched by them. */
   duplicates: string[]
+  /** The link sides whose port comes from the map of «Mi infraestructura» (see mapPortKey); only changed there. */
+  mapPorts: ReadonlySet<string>
 }
+
+/** How `CombinedPlan.mapPorts` names one side of a link. */
+export const mapPortKey = (linkId: string, end: 'a' | 'b') => `${linkId}:${end}`
 
 const samePair = (link: PlanLink, x: string, y: string) =>
   (link.a.switch === x && link.b.switch === y) || (link.a.switch === y && link.b.switch === x)
@@ -20,8 +25,9 @@ const samePair = (link: PlanLink, x: string, y: string) =>
 /**
  * The plan seen through «Mi infraestructura»: one switch per inventory switch, with its name and management
  * address, and one link per connection between two of them. What only the plan knows (gateway, bridge, the ports
- * of each link, native VLAN, access ports and VLANs) is kept from the stored plan. A stored switch is found by its
- * device id or, the first time, by its name.
+ * of each link, native VLAN, access ports and VLANs) is kept from the stored plan, except the ports set on the map:
+ * those fill their side of the link (`mapPorts`). A stored switch is found by its device id or, the first time, by
+ * its name.
  */
 export function combineWithInventory(stored: NetworkPlan, devices: InventorySwitch[], catalog: Catalog): CombinedPlan {
   const byDevice = new Map<string, PlanSwitch>()
@@ -97,19 +103,39 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
 
   const links: PlanLink[] = []
   const takenLinks: { id: string }[] = [...stored.links]
+  const mapPorts = new Set<string>()
+  // The ports set on the map fill the side of their switch, whichever end of the planner's link it is.
+  const withMapPorts = (link: PlanLink, child: string, parent: string, ports: LinkPorts | undefined): PlanLink => {
+    const portFor = (planSwitch: string) =>
+      planSwitch === child ? ports?.own : planSwitch === parent ? ports?.upstream : undefined
+    const sides = (['a', 'b'] as const).map((end) => {
+      const port = portFor(link[end].switch)
+      if (port === undefined) return link[end]
+      mapPorts.add(mapPortKey(link.id, end))
+      return { ...link[end], interface: port }
+    })
+    return { ...link, a: sides[0] as PlanLink['a'], b: sides[1] as PlanLink['b'] }
+  }
   for (const device of devices) {
     for (const uplink of device.uplinks ?? []) {
       const child = switchOf(device.id)
       const parent = deviceIds.has(uplink) ? switchOf(uplink) : undefined
       if (!child || !parent || child === parent || links.some((link) => samePair(link, child, parent))) continue
+      const ports = device.uplinkPorts?.[uplink]
       const kept = stored.links.find((link) => samePair(link, child, parent))
       if (kept) {
-        links.push(kept)
+        links.push(withMapPorts(kept, child, parent, ports))
         continue
       }
       const id = nextId('ln', takenLinks)
       takenLinks.push({ id })
-      links.push({ id, a: { switch: parent, interface: '' }, b: { switch: child, interface: '' }, nativeVlan: 1 })
+      const fresh: PlanLink = {
+        id,
+        a: { switch: parent, interface: '' },
+        b: { switch: child, interface: '' },
+        nativeVlan: 1,
+      }
+      links.push(withMapPorts(fresh, child, parent, ports))
     }
   }
   // Stored links keep their place, so the list does not jump around when the inventory changes.
@@ -125,6 +151,7 @@ export function combineWithInventory(stored: NetworkPlan, devices: InventorySwit
       .map((item) => item.name.trim() || 'un switch sin nombre'),
     deducedModels,
     duplicates,
+    mapPorts,
   }
 }
 
@@ -180,17 +207,39 @@ function inStoredOrder<T extends { id: string }>(
 }
 
 /**
- * The plan to store after the user edits a combined one: the edits, plus the switches, links and ports that were
- * out of sight. A port removed from a shown switch stays removed; hidden ones come back with their switch.
+ * The links with the planner's own port on each side the map fills (`mapPorts`): the map's port is shown, never
+ * stored, so the planner's value is back as soon as the map has no port for that side.
  */
-export function storeCombined(stored: NetworkPlan, combined: NetworkPlan): NetworkPlan {
+function withOwnPorts(stored: NetworkPlan, links: PlanLink[], mapPorts: ReadonlySet<string>): PlanLink[] {
+  if (mapPorts.size === 0) return links
+  return links.map((link) => {
+    const before = stored.links.find((item) => item.id === link.id)
+    const own = (end: 'a' | 'b') =>
+      mapPorts.has(mapPortKey(link.id, end))
+        ? { ...link[end], interface: before?.[end].switch === link[end].switch ? before[end].interface : '' }
+        : link[end]
+    return { ...link, a: own('a'), b: own('b') }
+  })
+}
+
+/**
+ * The plan to store after the user edits a combined one: the edits, plus the switches, links and ports that were
+ * out of sight. A port removed from a shown switch stays removed; hidden ones come back with their switch. The
+ * ports that come from the map (`mapPorts`) are not stored: each side keeps the planner's own value.
+ */
+export function storeCombined(
+  stored: NetworkPlan,
+  combined: NetworkPlan,
+  mapPorts: ReadonlySet<string> = new Set(),
+): NetworkPlan {
   const shownSwitches = new Set(combined.switches.map((item) => item.id))
   const shownLinks = new Set(combined.links.map((link) => link.id))
+  const links = withOwnPorts(stored, combined.links, mapPorts)
   return {
     ...combined,
     // The shown order decides the core; hidden switches have no place in it, so they go last.
     switches: [...combined.switches, ...stored.switches.filter((item) => !shownSwitches.has(item.id))],
-    links: inStoredOrder(stored.links, combined.links, (link) => !shownLinks.has(link.id), 'ln'),
+    links: inStoredOrder(stored.links, links, (link) => !shownLinks.has(link.id), 'ln'),
     ports: inStoredOrder(stored.ports, combined.ports, (port) => !shownSwitches.has(port.switch), 'pt'),
   }
 }
@@ -200,8 +249,13 @@ export function storeCombined(stored: NetworkPlan, combined: NetworkPlan): Netwo
  * two shown switches stay even if the inventory no longer connects them, so their ports come back with the connection.
  * Switches named like two inventory switches (`sharedNames`) are not missing, so they stay with their links and ports.
  */
-export function discardHidden(stored: NetworkPlan, combined: NetworkPlan, sharedNames: string[] = []): NetworkPlan {
-  const saved = storeCombined(stored, combined)
+export function discardHidden(
+  stored: NetworkPlan,
+  combined: NetworkPlan,
+  sharedNames: string[] = [],
+  mapPorts: ReadonlySet<string> = new Set(),
+): NetworkPlan {
+  const saved = storeCombined(stored, combined, mapPorts)
   const shared = new Set(sharedNames.map(nameKey))
   const shown = new Set([
     ...combined.switches.map((item) => item.id),

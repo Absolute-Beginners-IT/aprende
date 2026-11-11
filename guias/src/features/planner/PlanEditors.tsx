@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
 import {
   type NetworkPlan,
@@ -9,6 +10,7 @@ import {
 } from '../../domain/networkPlan'
 import { PURPOSE_LABELS } from '../labels'
 import { switchPlatforms } from './inventoryImport'
+import { mapPortKey } from './inventoryPlan'
 import { PLAN_TEMPLATES } from './planTemplates'
 import { nextId } from './usePlan'
 import { interfaceParam } from './validatePlan'
@@ -17,6 +19,8 @@ import { interfaceParam } from './validatePlan'
 export interface InventoryView {
   /** Switches whose model follows from their brand and model in the inventory. */
   deducedModels: ReadonlySet<string>
+  /** Link sides whose port is set on the map of «Mi infraestructura» (keys from mapPortKey). */
+  mapPorts?: ReadonlySet<string>
 }
 
 export interface EditorProps {
@@ -365,7 +369,7 @@ export function LinkEditor({ plan, catalog, onChange, inventory }: EditorProps) 
       {inventory && (
         <p className="muted">
           Los enlaces son las conexiones entre switches de Mi infraestructura: únelos o sepáralos en su Mapa. Aquí
-          indicas qué puerto de cada switch usan.
+          indicas qué puerto de cada switch usan, salvo los puertos que ya estén puestos en ese mapa.
         </p>
       )}
       {plan.links.length > 0 && (
@@ -393,6 +397,7 @@ export function LinkEditor({ plan, catalog, onChange, inventory }: EditorProps) 
                       catalog={catalog}
                       label={`${end.toUpperCase()} del enlace ${index + 1}`}
                       fixedSwitch={Boolean(inventory)}
+                      fromMap={inventory?.mapPorts?.has(mapPortKey(link.id, end)) ?? false}
                       endpoint={link[end]}
                       onChange={(endpoint) => update(index, { [end]: endpoint })}
                     />
@@ -446,6 +451,7 @@ function EndpointCells({
   catalog,
   label,
   fixedSwitch,
+  fromMap,
   endpoint,
   onChange,
 }: {
@@ -454,9 +460,12 @@ function EndpointCells({
   label: string
   /** The switch is set by the inventory's connection; only the port is chosen here. */
   fixedSwitch: boolean
+  /** The port is set on the map of «Mi infraestructura»: shown here, changed only there. */
+  fromMap: boolean
   endpoint: PlanLink['a']
   onChange: (endpoint: PlanLink['a']) => void
 }) {
+  const hintId = useId()
   return (
     <>
       <td>
@@ -479,8 +488,15 @@ function EndpointCells({
           placeholder={interfaceHint(catalog, plan, endpoint.switch)}
           value={endpoint.interface}
           spellCheck={false}
+          readOnly={fromMap}
+          aria-describedby={fromMap ? hintId : undefined}
           onChange={(event) => onChange({ ...endpoint, interface: event.target.value })}
         />
+        {fromMap && (
+          <span id={hintId} className="plan-map-port">
+            Se cambia en el mapa de Mi infraestructura
+          </span>
+        )}
       </td>
     </>
   )

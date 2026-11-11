@@ -1,5 +1,5 @@
 import type { Topology } from './types';
-import { upstreamOf } from './topology';
+import { downstreamOf, GROUP_TYPE_NAMES, isHierarchical, upstreamOf } from './topology';
 
 export interface Finding {
   nivel: 'crit' | 'warn' | 'info';
@@ -11,7 +11,7 @@ const RANK = { crit: 0, warn: 1, info: 2 } as const;
 const DAY_MS = 864e5;
 
 /** Compares the learner's inventory with what a typical SME should have and lists the gaps. */
-export function analyzeInventory({ equipos: devices, enlaces }: Topology, today: Date): Finding[] {
+export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology, today: Date): Finding[] {
   if (!devices.length) return [];
   const count = (tipo: string) => devices.filter(d => d.tipo === tipo).length;
   const findings: Finding[] = [];
@@ -42,6 +42,30 @@ export function analyzeInventory({ equipos: devices, enlaces }: Topology, today:
     for (const up of upstreamOf(enlaces, d.id)) {
       if (!ids.has(up)) findings.push({ nivel: 'info', mensaje: `${d.nombre} depende de «${up}», que no está en el inventario.`, deviceId: d.id });
     }
+    if (d.tipo === 'switch' && downstreamOf(enlaces, d.id).length > 0 && enlaces.filter(l => isHierarchical(l) && l.a.equipo === d.id).length === 1) {
+      findings.push({ nivel: 'info', mensaje: `${d.nombre} tiene equipos que cuelgan de él y un solo enlace hacia arriba: si ese enlace cae, se quedan aislados.`, deviceId: d.id });
+    }
+    const ports = new Map<string, number>();
+    for (const l of enlaces) {
+      for (const end of [l.a, l.b]) {
+        const port = end.equipo === d.id ? end.puerto?.trim() : undefined;
+        if (port) ports.set(port, (ports.get(port) ?? 0) + 1);
+      }
+    }
+    for (const [port, uses] of ports) {
+      if (uses > 1) findings.push({ nivel: 'warn', mensaje: `${d.nombre} usa el puerto «${port}» en ${uses} enlaces.`, deviceId: d.id });
+    }
+  }
+
+  for (const g of grupos) {
+    const name = `El grupo ${GROUP_TYPE_NAMES[g.tipo]} «${g.nombre}»`;
+    if (g.miembros.length === 1) findings.push({ nivel: 'info', mensaje: `${name} solo tiene un equipo.` });
+    if (g.miembros.length < 2 || g.tipo === 'cluster') continue;
+    // Links between two members of the group of the type that keeps it together: HA heartbeat or stacking cable.
+    const joining = enlaces.filter(l => l.tipo === g.tipo && l.a.equipo !== l.b.equipo && g.miembros.includes(l.a.equipo) && g.miembros.includes(l.b.equipo)).length;
+    const kind = g.tipo === 'ha' ? 'HA' : 'de stack';
+    if (joining === 0) findings.push({ nivel: 'warn', mensaje: `${name} no tiene ningún enlace ${kind} entre sus equipos.` });
+    else if (joining === 1 && g.tipo === 'ha') findings.push({ nivel: 'info', mensaje: `${name} tiene un solo enlace HA entre sus equipos: si ese cable falla, cada equipo cree que el otro ha caído.` });
   }
   return findings.sort((a, b) => RANK[a.nivel] - RANK[b.nivel]);
 }

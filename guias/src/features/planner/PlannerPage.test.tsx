@@ -367,6 +367,78 @@ describe('PlannerPage', () => {
       ])
     })
 
+    describe('with ports set on the map', () => {
+      const { uplinks: _, ...p1 } = inventory[1] as (typeof inventory)[number] & { uplinks?: string[] }
+      const seedTopology = (enlace: object) =>
+        localStorage.setItem(
+          TOPOLOGY_STORAGE_KEY,
+          JSON.stringify({ version: 2, equipos: [inventory[0], p1, inventory[2]], enlaces: [enlace], grupos: [] }),
+        )
+
+      it('shows the map port read-only with where to change it, and leaves the other side editable', async () => {
+        seedTopology({
+          id: 'p1--core',
+          a: { equipo: 'p1', puerto: 'gi1/0/48' },
+          b: { equipo: 'core' },
+          tipo: 'troncal',
+        })
+        const topologyText = localStorage.getItem(TOPOLOGY_STORAGE_KEY)
+        const user = userEvent.setup()
+        render(<PlannerPage catalog={catalog} />)
+
+        await openTab(user, /^Enlaces/)
+
+        // Side a is the core (what p1 hangs from); side b is p1, whose port the map sets.
+        const fromMap = screen.getByRole('textbox', { name: 'Puerto B del enlace 1' })
+        expect(fromMap).toHaveValue('gi1/0/48')
+        expect(fromMap).toHaveAttribute('readonly')
+        expect(fromMap).toHaveAccessibleDescription('Se cambia en el mapa de Mi infraestructura')
+        const own = screen.getByRole('textbox', { name: 'Puerto A del enlace 1' })
+        expect(own).not.toHaveAttribute('readonly')
+        expect(own).not.toHaveAccessibleDescription()
+        await user.type(own, '1/1/49')
+        await user.type(fromMap, 'x')
+        expect(fromMap).toHaveValue('gi1/0/48')
+        expect(storedPlan().links).toEqual([
+          {
+            id: 'ln-1',
+            a: { switch: 'sw-1', interface: '1/1/49' },
+            b: { switch: 'sw-2', interface: '' },
+            nativeVlan: 1,
+          },
+        ])
+        expect(localStorage.getItem(TOPOLOGY_STORAGE_KEY)).toBe(topologyText)
+      })
+
+      it('puts the map port on the side of its switch when the plan has the link the other way round', async () => {
+        localStorage.setItem(
+          PLAN_STORAGE_KEY,
+          JSON.stringify({
+            ...twoSwitchPlan(),
+            switches: twoSwitchPlan().switches.map((item, index) => ({ ...item, deviceId: ['core', 'p1'][index] })),
+            links: [
+              {
+                id: 'ln-1',
+                a: { switch: 'sw-2', interface: 'gi1/0/1' },
+                b: { switch: 'sw-1', interface: '1/1/1' },
+                nativeVlan: 1,
+              },
+            ],
+          }),
+        )
+        seedTopology({ id: 'p1--core', a: { equipo: 'p1' }, b: { equipo: 'core', puerto: '1/1/52' }, tipo: 'datos' })
+        const user = userEvent.setup()
+        render(<PlannerPage catalog={catalog} />)
+
+        await openTab(user, /^Enlaces/)
+
+        expect(screen.getByRole('textbox', { name: 'Puerto A del enlace 1' })).toHaveValue('gi1/0/1')
+        expect(screen.getByRole('textbox', { name: 'Puerto A del enlace 1' })).not.toHaveAttribute('readonly')
+        expect(screen.getByRole('textbox', { name: 'Puerto B del enlace 1' })).toHaveValue('1/1/52')
+        expect(screen.getByRole('textbox', { name: 'Puerto B del enlace 1' })).toHaveAttribute('readonly')
+      })
+    })
+
     it('keeps the plan made before, matching its switches by name, and names the ones the inventory lacks', () => {
       seedInventory()
       const plan = twoSwitchPlan()

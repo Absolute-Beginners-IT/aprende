@@ -21,11 +21,11 @@ function StepList({ steps, done, onToggle }: { steps: PlanStep[]; done: Set<stri
   );
 }
 
-/** One device of the plan: what it is and hangs from, and its three columns of steps. */
+/** One device of the plan: what it is, hangs from and the group it is in, and its three columns of steps. */
 export function PlanDeviceCard({ device, done, onToggle }: { device: PlanDevice; done: Set<string>; onToggle: (stepId: string) => void }) {
   const titleId = useId();
   const ids = planStepIds(device);
-  const description = [device.tipoNombre, device.marcaModelo, device.cuelgaDe.length ? `cuelga de ${device.cuelgaDe.join(', ')}` : ''].filter(Boolean).join(' · ');
+  const description = [device.tipoNombre, device.marcaModelo, device.cuelgaDe.length ? `cuelga de ${device.cuelgaDe.join(', ')}` : '', device.grupo ?? ''].filter(Boolean).join(' · ');
   return (
     <article className="card plan-device" aria-labelledby={titleId}>
       <header className="plan-device__head">

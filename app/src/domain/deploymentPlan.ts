@@ -3,7 +3,7 @@ import { guidesForDevice, type DeviceGuides } from './deviceGuides';
 import { snippetsForDevice } from './vendorSnippets';
 import { levelFinder } from './infraMap';
 import { slugify } from './inventoryCsv';
-import { upstreamOf } from './topology';
+import { GROUP_TYPE_NAMES, groupOf, upstreamOf } from './topology';
 
 // The deployment plan of «Mi infraestructura»: the learner's devices in the order they are set up, each with what to
 // configure (its guides), watch (its type's monitoring) and maintain (its type's tasks). Nothing here is new content:
@@ -23,6 +23,8 @@ export interface PlanDevice {
   marcaModelo: string;
   /** Names of the devices it hangs from that are still in the inventory. */
   cuelgaDe: string[];
+  /** The group it belongs to, as «name (type)», e.g. «Par FortiGate (HA)». */
+  grupo?: string;
   /** What the guides offer it: when it is not `cubierto`, Configurar explains why instead of listing steps. */
   guias: DeviceGuides;
   configurar: PlanStep[];
@@ -54,17 +56,34 @@ function watchSteps(device: Device, type: DeviceType | undefined, snippets: Vend
   ];
 }
 
-/** The plan, edge first: by how far each device hangs from the edge, then the most critical, then by name. */
+/** `sorted` with the members of each group moved up, one after another, to the place of the first member. */
+function groupedTogether(sorted: Device[], grupos: Topology['grupos']): Device[] {
+  const placed = new Set<string>();
+  return sorted.flatMap(d => {
+    if (placed.has(d.id)) return [];
+    const group = groupOf(grupos, d.id);
+    const run = group ? sorted.filter(m => group.miembros.includes(m.id)) : [d];
+    for (const m of run) placed.add(m.id);
+    return run;
+  });
+}
+
+/**
+ * The plan, edge first: by how far each device hangs from the edge, then the most critical, then by name. The members
+ * of a group go one after another, in the place of the first one.
+ */
 export function deploymentPlan(topology: Topology, sources: PlanSources, guidesBase: string): PlanDevice[] {
   const devices = topology.equipos;
   const levelOf = levelFinder(topology);
   const byId = new Map(devices.map(d => [d.id, d]));
   const types = new Map(sources.tipos.map(t => [t.id, t]));
-  return devices.filter(d => d.tipo !== NOT_DEPLOYED)
-    .sort((a, b) => levelOf(a.id) - levelOf(b.id) || CRITICALITY[a.criticidad] - CRITICALITY[b.criticidad] || a.nombre.localeCompare(b.nombre, 'es'))
+  const sorted = devices.filter(d => d.tipo !== NOT_DEPLOYED)
+    .sort((a, b) => levelOf(a.id) - levelOf(b.id) || CRITICALITY[a.criticidad] - CRITICALITY[b.criticidad] || a.nombre.localeCompare(b.nombre, 'es'));
+  return groupedTogether(sorted, topology.grupos)
     .map((d, index) => {
       const type = types.get(d.tipo) ?? types.get('otro');
       const guias = guidesForDevice(d, sources.guias, guidesBase);
+      const group = groupOf(topology.grupos, d.id);
       return {
         numero: index + 1,
         id: d.id,
@@ -72,6 +91,7 @@ export function deploymentPlan(topology: Topology, sources: PlanSources, guidesB
         tipoNombre: type?.nombre ?? d.tipo,
         marcaModelo: [d.marca, d.modelo].filter(Boolean).join(' '),
         cuelgaDe: upstreamOf(topology.enlaces, d.id).flatMap(u => byId.get(u)?.nombre ?? []),
+        ...(group ? { grupo: `${group.nombre} (${GROUP_TYPE_NAMES[group.tipo]})` } : {}),
         guias,
         configurar: configSteps(guias),
         vigilar: watchSteps(d, type, sources.fabricantes),

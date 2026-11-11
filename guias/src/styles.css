@@ -1292,6 +1292,19 @@ thead th {
   min-width: 5rem;
 }
 
+/* A port set on the map of «Mi infraestructura»: shown, not edited here. */
+.plan-table input[readonly] {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.plan-map-port {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 .plan-fixed {
   display: inline-block;
   padding: 0.35rem 0;
