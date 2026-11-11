@@ -75,6 +75,21 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   inventory, then setting link types, ports and groups on the map and exporting the whole schema as JSON), final project
   room 1 (the drawn map shows each device's links, HA pairs and stacks), the switches lesson (the map can draw trunks
   and LAGs), and «Qué es esto». CSV wording that is still true stays.
+- **S28** (slice 6, power) A new device type «Regleta (PDU)» (`regleta`, family power), in the Energía tier next to the
+  SAI, with its own content entry (what it is, what to watch, typical mistakes) like every other type. The CSV import
+  recognises «regleta», «PDU» and «power strip» as this type.
+- **S29** (slice 6) An `energia` link carries no network data: the link form and the line ficha show no network ports,
+  speed or VLANs for it. Instead they offer, both optional, «Toma» on the SAI or regleta side (the outlet) and «Fuente
+  de alimentación» on the other side (for example «Fuente 1», «Fuente 2»). They are stored in the existing `puerto`
+  fields, so no format change is needed. The drawing labels the line with them when set.
+- **S30** (slice 6) Who feeds whom comes from the device types, not from `a`/`b`: the power source of an `energia` link
+  is the end that is a SAI or a regleta (the SAI when both are). The forms show «X se alimenta de Y». A link between two
+  devices that are neither is allowed but has no source.
+- **S31** (slice 6) «Qué te falta» follows the power path (device → regleta(s) → SAI) and reports, naming devices and
+  SAIs: a device with criticidad Alta whose every power path ends in the same single SAI (info: «si ese SAI cae, X se
+  apaga; si tiene dos fuentes, conéctalas a SAIs distintos»); a device with two or more power links whose paths all end
+  in the same SAI (aviso: the second power supply gives no protection if that SAI fails); a regleta with no SAI behind it
+  (aviso). The port-reuse finding words a repeated outlet as «toma».
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -88,7 +103,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | done (PR #47) | e790798 |
 | T4 | S17–S20 (slice 3) | delegated (context backstop) | done (PR #48, b22c464) | |
 | T5 | S21–S23 (slice 4) | delegated (context backstop) | done (PR #49) | dcf57b6 |
-| T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | app unit (S24–S26) implemented, checks green; site unit (S27) separate | |
+| T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | done (PR #50) | a9b1489 |
+| T7 | S28–S31 (slice 6, power) | delegated (context backstop) | in progress | |
 
 ## Log
 
@@ -185,3 +201,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   VLAN, line ficha, Ctrl + clic / Mayúsculas + arrastrar and «Agrupar», «Colocar por capas», legend toggles, JSON) and two
   list hints. RED 14 failing (domain 4, adapter 1, page 8, help 1), CSV pin green, then GREEN. Checks: app vitest
   248/248, app build OK.
+- **L17** (2026-11-11, user, verbatim): «Los enlaces del SAI no son de datos con lo cual no hay que conectar el cable a un puerto
+  como tal, son cables de energía. Normalmente se conecta una regleta al SAI y de esa regleta salen cables de corrientes que
+  van a los diferentes aparatos (Router, Firewall, switches, etc) Es asi como se suelen formar los racks. Es mas algunos
+  aparatos permiten más de una toma de corriente por si un sai cae el otro cable del otro sai lo alimenta y lo mantiene
+  encendido en caso de emergencia» — after PR #50 (a9b1489) was merged. Slice 6 (S28–S31) models power properly.
