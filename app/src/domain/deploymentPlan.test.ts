@@ -59,6 +59,25 @@ describe('deploymentPlan order', () => {
     expect(deploymentPlan(topology, content, BASE).map(p => [p.nombre, p.cuelgaDe])).toEqual([['FW1', ['Internet']], ['FW2', ['Internet']], ['CORE', ['FW1']]]);
   });
 
+  it('lists the members of a group one after another, in the place of the first member', () => {
+    const { equipos } = fromInventoryV1([dev('fw1', { tipo: 'firewall' }), dev('fw2', { tipo: 'firewall' }), dev('core'), dev('acc')]);
+    const topology = {
+      equipos,
+      enlaces: [link('1', 'core', 'fw1', 'datos'), link('2', 'fw2', 'core', 'datos'), link('3', 'acc', 'core', 'datos')],
+      grupos: [{ id: 'grupo-1', tipo: 'ha' as const, nombre: 'Par FortiGate', miembros: ['fw2', 'fw1'] }],
+    };
+    // Without the group the order would be FW1, CORE, then ACC and FW2 (both hang from CORE).
+    const steps = deploymentPlan(topology, content, BASE);
+    expect(steps.map(p => p.nombre)).toEqual(['FW1', 'FW2', 'CORE', 'ACC']);
+    expect(steps.map(p => p.numero)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('names the group of each member, and no group for the rest', () => {
+    const { equipos } = fromInventoryV1([dev('fw1', { tipo: 'firewall' }), dev('fw2', { tipo: 'firewall' }), dev('core')]);
+    const topology = { equipos, enlaces: [], grupos: [{ id: 'grupo-1', tipo: 'ha' as const, nombre: 'Par FortiGate', miembros: ['fw1', 'fw2'] }] };
+    expect(deploymentPlan(topology, content, BASE).map(p => [p.nombre, p.grupo])).toEqual([['CORE', undefined], ['FW1', 'Par FortiGate (HA)'], ['FW2', 'Par FortiGate (HA)']]);
+  });
+
   it('describes each device by its type, brand and model', () => {
     const [p] = plan([dev('fw', { tipo: 'firewall', marca: 'Fortinet', modelo: 'FortiGate 60F' })]);
     expect(p).toMatchObject({ id: 'fw', tipoNombre: 'Firewall', marcaModelo: 'Fortinet FortiGate 60F' });

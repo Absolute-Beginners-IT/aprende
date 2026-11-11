@@ -39,6 +39,14 @@ describe('DeploymentPlanPage', () => {
     expect(screen.getByText(/solo en este navegador/)).toBeTruthy();
   });
 
+  it('names the group of each member on its card', async () => {
+    const topology = fromInventoryV1([dev('fw1', { nombre: 'FW1', tipo: 'firewall' }), dev('fw2', { nombre: 'FW2', tipo: 'firewall' })]);
+    render(<DeploymentPlanPage repository={createMemoryInventoryRepository({ ...topology, grupos: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par FortiGate', miembros: ['fw1', 'fw2'] }] })} storage={localStorage} />);
+    await screen.findAllByRole('article');
+    expect(card('1. FW1').getByText('Firewall · Par FortiGate (HA)')).toBeTruthy();
+    expect(card('2. FW2').getByText('Firewall · Par FortiGate (HA)')).toBeTruthy();
+  });
+
   it('shows the three columns: guides to configure, what to watch and what to maintain', async () => {
     renderPage();
     await screen.findAllByRole('article');

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeInventory } from './inventoryAnalysis';
-import type { Link } from './types';
+import type { DeviceGroup, Link } from './types';
 import { fromInventoryV1, type DeviceV1 } from './topology';
 
 const TODAY = new Date(2026, 9, 29, 12, 0);
@@ -81,5 +81,63 @@ describe('analyzeInventory', () => {
     const link = (id: string, b: string, tipo: Link['tipo']): Link => ({ id, a: { equipo: 'acc1' }, b: { equipo: b }, tipo });
     const findings = analyzeInventory({ ...topology, enlaces: [link('1', 'troncal-perdido', 'troncal'), link('2', 'par-perdido', 'ha')] }, TODAY);
     expect(findings).toEqual([{ nivel: 'info', mensaje: 'Acceso 1 depende de «troncal-perdido», que no está en el inventario.', deviceId: 'acc1' }]);
+  });
+});
+
+describe('analyzeInventory groups and links', () => {
+  const base = fromInventoryV1([...complete, dev('core1', 'switch', { nombre: 'Core 1' }), dev('core2', 'switch', { nombre: 'Core 2' }), dev('acc1', 'switch', { nombre: 'Acceso 1' })]);
+  const end = (equipo: string, puerto?: string) => (puerto === undefined ? { equipo } : { equipo, puerto });
+  const link = (id: string, a: string, b: string, tipo: Link['tipo'], puertos: [string?, string?] = []): Link => ({ id, a: end(a, puertos[0]), b: end(b, puertos[1]), tipo });
+  const group = (tipo: DeviceGroup['tipo'], nombre: string, miembros: string[]): DeviceGroup => ({ id: `g-${nombre}`, tipo, nombre, miembros });
+  const run = (enlaces: Link[], grupos: DeviceGroup[] = []) => analyzeInventory({ ...base, enlaces, grupos }, TODAY);
+
+  it('keeps reporting nothing for the complete inventory with a well-linked HA pair', () => {
+    expect(run([link('1', 'fw1', 'fw2', 'ha'), link('2', 'fw1', 'fw2', 'ha')], [group('ha', 'Par FortiGate', ['fw1', 'fw2'])])).toEqual([]);
+  });
+
+  it('warns about an HA group with no ha link between its members', () => {
+    expect(run([link('1', 'fw1', 'fw2', 'datos')], [group('ha', 'Par FortiGate', ['fw1', 'fw2'])])).toEqual([
+      { nivel: 'warn', mensaje: 'El grupo HA «Par FortiGate» no tiene ningún enlace HA entre sus equipos.' },
+    ]);
+  });
+
+  it('notes an HA group with exactly one ha link', () => {
+    expect(run([link('1', 'fw1', 'fw2', 'ha')], [group('ha', 'Par FortiGate', ['fw1', 'fw2'])])).toEqual([
+      { nivel: 'info', mensaje: 'El grupo HA «Par FortiGate» tiene un solo enlace HA entre sus equipos: si ese cable falla, cada equipo cree que el otro ha caído.' },
+    ]);
+  });
+
+  it('warns about a stack group with no stack link, but not when it has one', () => {
+    expect(run([], [group('stack', 'Núcleo', ['core1', 'core2'])])).toEqual([
+      { nivel: 'warn', mensaje: 'El grupo Stack «Núcleo» no tiene ningún enlace de stack entre sus equipos.' },
+    ]);
+    expect(run([link('1', 'core1', 'core2', 'stack')], [group('stack', 'Núcleo', ['core1', 'core2'])])).toEqual([]);
+  });
+
+  it('notes a group with a single member', () => {
+    expect(run([], [group('cluster', 'Clúster VMware', ['esx1'])])).toEqual([
+      { nivel: 'info', mensaje: 'El grupo Clúster «Clúster VMware» solo tiene un equipo.' },
+    ]);
+  });
+
+  it('notes a switch with devices hanging from it and a single link upwards', () => {
+    expect(run([link('1', 'acc1', 'core1', 'datos'), link('2', 'core1', 'fw1', 'troncal')])).toEqual([
+      { nivel: 'info', mensaje: 'Core 1 tiene equipos que cuelgan de él y un solo enlace hacia arriba: si ese enlace cae, se quedan aislados.', deviceId: 'core1' },
+    ]);
+  });
+
+  it('does not note the switch when it has two links upwards, or nothing hanging from it', () => {
+    expect(run([link('1', 'acc1', 'core1', 'datos'), link('2', 'core1', 'fw1', 'troncal'), link('3', 'core1', 'fw2', 'troncal')])).toEqual([]);
+    expect(run([link('1', 'core1', 'fw1', 'troncal'), link('2', 'acc1', 'core1', 'ha')])).toEqual([]);
+  });
+
+  it('warns about the same port of a device used by two links', () => {
+    expect(run([link('1', 'acc1', 'core1', 'gestion', ['', 'port1']), link('2', 'core1', 'core2', 'stack', ['port1', 'port9'])])).toEqual([
+      { nivel: 'warn', mensaje: 'Core 1 usa el puerto «port1» en 2 enlaces.', deviceId: 'core1' },
+    ]);
+  });
+
+  it('does not warn when the ports differ or are empty', () => {
+    expect(run([link('1', 'acc1', 'core1', 'gestion', ['', 'port1']), link('2', 'core1', 'core2', 'stack', ['port2', 'port1']), link('3', 'acc1', 'core2', 'gestion', ['', ' '])])).toEqual([]);
   });
 });

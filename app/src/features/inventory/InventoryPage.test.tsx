@@ -143,6 +143,18 @@ describe('InventoryPage', () => {
     expect(repo.topology.enlaces).toEqual([{ id: 'acc1--core', a: { equipo: 'acc1' }, b: { equipo: 'core' }, tipo: 'datos' } satisfies Link]);
   });
 
+  it('lists in «Qué te falta» the gaps of groups and links, naming the group or the device', async () => {
+    const dev = (id: string, tipo: string): DeviceV1 => ({ id, nombre: id.toUpperCase(), tipo, criticidad: 'Media', monitorizado: true });
+    const topology = fromInventoryV1([dev('fw1', 'firewall'), dev('fw2', 'firewall'), dev('core', 'switch')]);
+    const enlaces: Link[] = [
+      { id: '1', a: { equipo: 'core', puerto: '1/1/49' }, b: { equipo: 'fw1' }, tipo: 'troncal' },
+      { id: '2', a: { equipo: 'core', puerto: '1/1/49' }, b: { equipo: 'fw2' }, tipo: 'troncal' },
+    ];
+    render(<InventoryPage repository={createMemoryInventoryRepository({ ...topology, enlaces, grupos: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par FortiGate', miembros: ['fw1', 'fw2'] }] })} />);
+    expect(await screen.findByText('El grupo HA «Par FortiGate» no tiene ningún enlace HA entre sus equipos.')).toBeTruthy();
+    expect(screen.getByText('CORE usa el puerto «1/1/49» en 2 enlaces.')).toBeTruthy();
+  });
+
   it('shows an error when the saved inventory cannot be read', async () => {
     const repo = memoryRepository();
     repo.load = async () => { throw new Error('SecurityError'); };
