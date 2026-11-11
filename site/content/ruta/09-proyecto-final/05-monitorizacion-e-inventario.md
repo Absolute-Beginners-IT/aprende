@@ -157,13 +157,17 @@ Ajusta los modelos a las versiones que hayas instalado y rellena **Fin_Soporte**
 {{% tarea n="5" titulo="Importa el inventario en «Mi infraestructura»" %}}
 Abre [Mi infraestructura]({{< param "appURL" >}}#mi-infraestructura) en la aplicación del mapa. En la tarjeta **Importar o exportar**, pega el contenido de tu CSV (con la cabecera) y pulsa **Importar**. La aplicación te dirá cuántos equipos ha importado.
 
-Después, mira el panel **Qué te falta**: compara tu inventario con una pyme típica y te señala carencias como equipos sin monitorizar, la falta de SAI o de alta disponibilidad. Que salgan avisos es normal en un laboratorio; lo importante es que sepas explicar cada uno. Por ejemplo, ¿qué harías para que `FW01` pasara a «Monitorizado»? (Pista: la plantilla `ICMP Ping` en Zabbix).
+El CSV solo dice de qué equipo cuelga cada uno: cada uplink entra como un enlace de tipo **Datos**. El resto lo completas en el **Mapa**. Pulsa una línea para abrir su ficha y ponle el tipo, los puertos de cada extremo y la velocidad; si unes dos equipos, el enlace nuevo también te pide su tipo y sus puertos. Si tuvieras dos firewalls en alta disponibilidad, por ejemplo, el cable que los une entre sí sería un enlace de tipo **HA**. Para formar un grupo (HA, Stack o Clúster), selecciona sus equipos con Ctrl + clic o con Mayúsculas + arrastrar y pulsa **Agrupar**. **Colocar por capas** ordena el dibujo de arriba abajo.
+
+Después, mira el panel **Qué te falta**: compara tu inventario con una pyme típica y te señala carencias como equipos sin monitorizar, la falta de SAI o de alta disponibilidad. Que salgan avisos es normal en un laboratorio; lo importante es que sepas explicar cada uno. Por ejemplo, ¿qué harías para que `FW01` pasara a «Monitorizado»? (Pista: la plantilla `ICMP Ping` en Zabbix). Cuando añades grupos y puertos, **Qué te falta** también los revisa: te avisa, por ejemplo, de un grupo HA sin enlace HA entre sus miembros o de un puerto usado en dos enlaces.
+
+Por último, en la página **Lista**, pulsa **Exportar el esquema (JSON)**: descarga `mi-infraestructura.json` con el esquema completo, es decir, los equipos, los enlaces con su tipo y sus puertos, y los grupos.
 
 {{< aviso titulo="La distinción que importa" >}}
-El inventario de la aplicación se guarda **solo en tu navegador**: no se envía a ningún servidor, y si borras los datos del navegador, se pierde. El fichero CSV es tu copia buena: guárdalo junto al resto de la documentación del laboratorio y usa **Exportar CSV** cuando cambies algo en la aplicación.
+El inventario de la aplicación se guarda **solo en tu navegador**: no se envía a ningún servidor, y si borras los datos del navegador, se pierde. El fichero CSV es tu copia buena de los equipos: guárdalo junto al resto de la documentación del laboratorio y usa **Exportar CSV** cuando cambies algo en la aplicación. El CSV no guarda los tipos de enlace, los puertos ni los grupos; eso lo guarda el JSON, que recuperas con **Importar el esquema (JSON)**. Guarda los dos ficheros.
 {{< /aviso >}}
 
-**Cómo sabes que está bien:** **Tus equipos** muestra todos los equipos de tu CSV, cada uno «conectado a» su uplink, y los servidores aparecen como «Monitorizado». Cuando lo tengas, marca la tarea.
+**Cómo sabes que está bien:** **Tus equipos** muestra todos los equipos de tu CSV, cada uno «conectado a» su uplink, y los servidores aparecen como «Monitorizado». En el **Mapa**, cada enlace muestra el tipo que le has puesto, los grupos que hayas creado aparecen en su recuadro, y tienes `mi-infraestructura.json` guardado en tu carpeta «Documentación». Cuando lo tengas, marca la tarea.
 {{% /tarea %}}
 
 {{% tarea n="6" titulo="¡Enhorabuena!" %}}
