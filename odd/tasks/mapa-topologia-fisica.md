@@ -1,5 +1,5 @@
 Redesign «Mi infraestructura» so its map can show a real physical infrastructure diagram (HA pairs, stacks, LAGs, ports).
-Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR per slice · Tests: vitest (app, guias), tsc, biome (guias).
+Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 2) · Delivery: ask-on-risk, one PR per slice · Tests: vitest (app, guias), tsc, biome (guias).
 
 ## Specs
 
@@ -22,6 +22,24 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
   a …», uplink field when adding), CSV import/export (column `uplink` kept: import makes `datos` links, export lists
   the device's upstream devices), deployment plan («cuelga de»), inventory analysis («depende de … que no está en el
   inventario»), and the guides' planner (reads `mapa-infra:topologia` first, then the old key).
+- **S10** (slice 2) Tiers, top to bottom, from the device type: Operadora (internet), Perímetro (firewall, router),
+  Red (switch, wifi), Servidores (hipervisor, servidor, vm, impresora, otro), Almacenamiento y copias (almacenamiento,
+  backup), Energía (sai). Inside a tier, a device that hangs from another device of the same tier (hierarchical link)
+  goes on a lower sub-row, so a core switch sits above its access switches. Each tier shows its name at the left edge.
+- **S11** (slice 2) Devices placed by the user (`posicion`) stay where they are; the tier layout places only unplaced
+  devices. A «Colocar por capas» action re-places every device by tiers, asks for confirmation first, and saves all the
+  new positions in one write.
+- **S12** (slice 2) Members of a group, and devices joined by an `ha` or `stack` link, sit side by side in their tier,
+  inside a labelled box: the group name, or «HA» / «Stack» when there is no group.
+- **S13** (slice 2) Lines are orthogonal. Hierarchical links leave the top of the lower device and enter the bottom of
+  the upper one; `ha` and `stack` links run horizontally between the peers. Several links between the same pair are
+  drawn apart so each one is visible. Style per type: datos solid; troncal thicker; lag thick with a «LAG» label; ha
+  dashed; stack thick dotted; wan, almacenamiento and energia in their family colour; gestion thin dotted. The speed, if
+  any, is shown as a label.
+- **S14** (slice 2) A legend lists the link types present on the map. «Gestión» and «Energía» lines can be hidden with
+  a toggle (remembered per browser only).
+- **S15** (slice 2) Accessibility: each line has an accessible name «A – B: tipo»; each group box is labelled.
+- **S16** (slice 2) Stored data changes only through «Colocar por capas» and moving devices, as today.
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -32,7 +50,7 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
 | --- | --- | --- | --- | --- |
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
-| T3 | S9 slice 2: tiers, groups, typed lines | pending decision after T1 | pending | |
+| T3 | S10–S16 (slice 2) | delegated (context backstop) | in progress | |
 
 ## Log
 
@@ -73,3 +91,4 @@ Branch: feat/mapa-topologia-modelo (slice 1) · Delivery: ask-on-risk, one PR pe
   R1-001 and R4-rollback-stale-v1 (old key kept stale after v2 writes), R4-unknown-version-overwrite (a future version
   would be overwritten), R3-form-readd-accumulates-links (re-adding a device from the form adds links again),
   R3-onconnect-untested.
+- **L8** (2026-11-11, user, verbatim): «Sí, mergea» (PR #46, merged as 230f278) and «Sí, arranca» — start slice 2. Layout by hand by tiers, no new dependency (elkjs only if this falls short). Creating ha/stack links and groups from the screen is slice 3.
