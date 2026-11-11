@@ -1,20 +1,31 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import {
-  ReactFlow, ReactFlowProvider, Background, BackgroundVariant, Controls, applyEdgeChanges, applyNodeChanges, useReactFlow,
-  type AriaLabelConfig, type Connection as FlowConnection, type Edge, type EdgeChange, type NodeChange, type NodePositionChange, type NodeSelectionChange,
+  ReactFlow, ReactFlowProvider, Background, BackgroundVariant, Controls, applyNodeChanges, useReactFlow,
+  type AriaLabelConfig, type Connection as FlowConnection, type EdgeChange, type NodeChange, type NodePositionChange, type NodeSelectionChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { Device, Position } from '../../domain/types';
+import type { Device, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
-import { GRID, connectDevices, connectionsOf, layoutDevices, moveDevice, placeUnplaced, newDevice } from '../../domain/infraMap';
+import {
+  GRID, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, groupBoxes, layoutDevices, linkName, linkTypesIn, moveDevice,
+  newDevice, placeUnplaced, routeEdges, tierLabels,
+} from '../../domain/infraMap';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
+import { InfraEdge, type InfraEdgeType } from './InfraEdge';
+import { GroupBoxNode, TierLabelNode, type GroupBoxNodeType, type TierLabelNodeType } from './MapDecorations';
+import { MapLegend, loadHiddenLines, saveHiddenLines } from './MapLegend';
 import { DevicePalette, PALETTE_DRAG_TYPE } from './DevicePalette';
 import { DeviceInspector, InventoryOverview } from './DeviceInspector';
 
-const nodeTypes = { device: DeviceNode };
+type MapNode = DeviceNodeType | GroupBoxNodeType | TierLabelNodeType;
+
+const nodeTypes = { device: DeviceNode, groupBox: GroupBoxNode, tierLabel: TierLabelNode };
+const edgeTypes = { infra: InfraEdge };
+/** Decorations stay behind the devices and take no gesture, focus or selection. */
+const DECORATION = { draggable: false, selectable: false, focusable: false, connectable: false, deletable: false, zIndex: -1 } as const;
 // A small inventory is shown at its real size instead of blown up to fill the canvas.
 const FIT_VIEW = { padding: 0.2, maxZoom: 1 };
 /** Rough size of a device on the map, to centre a new one on the spot where it is added. */
@@ -35,6 +46,7 @@ const ARIA_LABELS: Partial<AriaLabelConfig> = {
 
 const isSelection = (c: NodeChange<DeviceNodeType>): c is NodeSelectionChange => c.type === 'select';
 const isDrop = (c: NodeChange<DeviceNodeType>): c is NodePositionChange => c.type === 'position' && c.dragging === false && !!c.position;
+const changedId = (c: NodeChange<MapNode>) => ('id' in c ? c.id : c.item.id);
 
 /** The first spot around `center`, ring by ring on the map grid, that no device covers. */
 function freeSpot(center: Position, taken: Position[]): Position {
@@ -58,11 +70,13 @@ export function InfraMapPage({ repository }: { repository: InventoryRepository }
 
 function InfraMap({ repository }: { repository: InventoryRepository }) {
   const { topology, devices, loaded, message, setMessage, persist } = useInventory(repository);
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, fitView } = useReactFlow();
   const canvas = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [nodes, setNodes] = useState<DeviceNodeType[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [pickedEdges, setPickedEdges] = useState<ReadonlySet<string>>(new Set());
+  const [hiddenLines, setHiddenLines] = useState<LinkType[]>(loadHiddenLines);
+  const [confirmingArrange, setConfirmingArrange] = useState(false);
 
   const byId = useMemo(() => new Map(devices.map(d => [d.id, d])), [devices]);
   const nameOf = (id: string) => byId.get(id)?.nombre ?? id;
@@ -79,12 +93,49 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
         selected: d.id === selectedId, deletable: false, ariaLabel: d.nombre,
       }));
     });
-    setEdges(prev => {
-      const picked = new Set(prev.filter(e => e.selected).map(e => e.id));
-      return connectionsOf(topology).map(c => ({ id: c.id, source: c.from, target: c.to, selected: picked.has(c.id), ariaLabel: `Conexión entre ${nameOf(c.from)} y ${nameOf(c.to)}` }));
-    });
   }, [topology]);
   useEffect(() => setNodes(ns => ns.map(n => (n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId }))), [selectedId]);
+
+  // Boxes, tier names and lines follow the devices where they are shown right now, so they move along while dragging.
+  const decorations = useMemo((): MapNode[] => {
+    const shown = new Map(nodes.map(n => [n.id, n]));
+    const rectOf = (id: string) => {
+      const n = shown.get(id);
+      return n && { ...n.position, width: n.measured?.width ?? NODE_SIZE.width, height: n.measured?.height ?? NODE_SIZE.height };
+    };
+    const boxes: GroupBoxNodeType[] = groupBoxes(topology, rectOf).map(box => ({
+      ...DECORATION, id: `box:${box.id}`, type: 'groupBox', position: { x: box.x, y: box.y }, width: box.width, height: box.height,
+      data: { nombre: box.nombre, label: `${box.nombre}: ${box.miembros.map(nameOf).join(', ')}` },
+    }));
+    const tiers: TierLabelNodeType[] = tierLabels(devices, new Map(nodes.map(n => [n.id, n.position]))).map(tier => ({
+      ...DECORATION, id: `tier:${tier.id}`, type: 'tierLabel', position: { x: tier.x, y: tier.y }, data: { nombre: tier.nombre },
+    }));
+    return [...tiers, ...boxes];
+  }, [topology, nodes]);
+  const flowNodes = useMemo(() => [...decorations, ...nodes], [decorations, nodes]);
+
+  const edges = useMemo((): InfraEdgeType[] => {
+    // Lines are routed by the centre of each device as shown now, so devices of different widths order their lines right.
+    const centres = new Map(nodes.map(n => [n.id, {
+      x: n.position.x + (n.measured?.width ?? NODE_SIZE.width) / 2, y: n.position.y + (n.measured?.height ?? NODE_SIZE.height) / 2,
+    }]));
+    const visible = drawnLinks(topology).filter(l => !hiddenLines.includes(l.tipo));
+    const routes = routeEdges(visible, id => centres.get(id));
+    return visible.map(l => {
+      const route = routes.get(l.id)!;
+      return {
+        id: l.id, type: 'infra', source: route.source, sourceHandle: route.sourceHandle, target: route.target, targetHandle: route.targetHandle,
+        selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}`, ariaLabel: linkName(l, nameOf), data: { link: l, route },
+      };
+    });
+  }, [topology, nodes, hiddenLines, pickedEdges]);
+  const linkTypes = useMemo(() => linkTypesIn(topology), [topology]);
+
+  const toggleLines = (tipo: LinkType, show: boolean) => {
+    const next = show ? hiddenLines.filter(t => t !== tipo) : [...hiddenLines.filter(t => t !== tipo), tipo];
+    setHiddenLines(next);
+    saveHiddenLines(next);
+  };
 
   // Every write starts from what is stored right now, so quick successive edits never overwrite each other with stale copies.
   const edit = async (id: string, change: (d: Device) => Device | null) => {
@@ -94,12 +145,16 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   };
 
   // The selection is ours (it opens the ficha); nodes are deleted only from the ficha, never with the keyboard.
-  const onNodesChange = (changes: NodeChange<DeviceNodeType>[]) => {
+  const onNodesChange = (all: NodeChange<MapNode>[]) => {
+    // Boxes and tier names are worked out from the devices: only changes to devices count.
+    const changes = all.filter(c => byId.has(changedId(c))) as NodeChange<DeviceNodeType>[];
     const selection = changes.filter(isSelection);
     const chosen = selection.find(c => c.selected);
     if (chosen) setSelectedId(chosen.id);
     else if (selection.some(c => c.id === selectedId)) setSelectedId(null);
-    setNodes(ns => applyNodeChanges(changes.filter(c => c.type !== 'select' && c.type !== 'remove'), ns));
+    // Only real changes touch the nodes: a new array for nothing would redraw the decorations and measure them again, forever.
+    const applied = changes.filter(c => c.type !== 'select' && c.type !== 'remove');
+    if (applied.length) setNodes(ns => applyNodeChanges(applied, ns));
     // A drag that ends or a move with the arrow keys leaves the device in its new place.
     const moved = changes.filter(isDrop).filter(c => {
       const stored = byId.get(c.id)?.posicion;
@@ -118,7 +173,21 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     }, '');
   };
 
-  const onEdgesChange = (changes: EdgeChange[]) => setEdges(es => applyEdgeChanges(changes, es));
+  // Lines are worked out from the links; only which ones are selected is kept here. A removal goes through onEdgesDelete.
+  const onEdgesChange = (changes: EdgeChange<InfraEdgeType>[]) => setPickedEdges(prev => {
+    const next = new Set(prev);
+    for (const c of changes) if (c.type === 'select') { if (c.selected) next.add(c.id); else next.delete(c.id); }
+    return next.size === prev.size && [...next].every(id => prev.has(id)) ? prev : next;
+  });
+
+  // Every device by tiers, the ones the user placed included, in one write: only after the learner confirms it.
+  const arrange = async () => {
+    setConfirmingArrange(false);
+    const ok = await persist(async () => {
+      await repository.apply({ saveDevices: arrangeByTiers(await repository.load()) });
+    }, 'Equipos colocados por capas.');
+    if (ok) setTimeout(() => void fitView(FIT_VIEW));
+  };
 
   const onConnect = ({ source, target }: FlowConnection) => {
     const to = byId.get(target);
@@ -186,20 +255,34 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       {message && <p className="muted" role="status">{message}</p>}
       <div className="infra-workspace">
         <DevicePalette onAdd={tipo => void add(tipo)} />
-        <section className="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
-          onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
-          <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-            onNodeClick={(_, node) => setSelectedId(node.id)} onEdgesDelete={es => disconnect(es.map(e => ({ id: e.id, between: [e.source, e.target] })))}
-            deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
-            <Background variant={BackgroundVariant.Dots} gap={20} />
-            <Controls showInteractive={false} fitViewOptions={FIT_VIEW} />
-          </ReactFlow>
-          {loaded && devices.length === 0 && (
-            <div className="infra-empty">
-              <p><b>Tu mapa está vacío.</b> Pulsa un tipo de equipo en la paleta para añadir el primero, o importa tu inventario en CSV desde <a href="#mi-infraestructura/lista">Lista</a>.</p>
-            </div>
-          )}
-        </section>
+        <div className="infra-stage">
+          <div className="infra-toolbar">
+            {confirmingArrange ? (
+              <div className="infra-confirm" role="group" aria-label="Confirmar la colocación por capas">
+                <span>Todos los equipos se colocarán por capas y se perderá la posición que hayas dado a cada uno. ¿Quieres seguir?</span>
+                <button type="button" onClick={() => void arrange()}>Sí, colocar por capas</button>
+                <button type="button" onClick={() => setConfirmingArrange(false)}>Cancelar</button>
+              </div>
+            ) : <button type="button" disabled={devices.length === 0} onClick={() => setConfirmingArrange(true)}>Colocar por capas</button>}
+          </div>
+          <section className="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
+            onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
+            <ReactFlow<MapNode, InfraEdgeType> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
+              onNodeClick={(_, node) => { if (node.type === 'device') setSelectedId(node.id); }}
+              onEdgesDelete={es => disconnect(es.flatMap(e => (e.data ? [{ id: e.id, between: [e.data.link.a.equipo, e.data.link.b.equipo] as [string, string] }] : [])))}
+              deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
+              <Background variant={BackgroundVariant.Dots} gap={20} />
+              <Controls showInteractive={false} fitViewOptions={FIT_VIEW} />
+            </ReactFlow>
+            {loaded && devices.length === 0 && (
+              <div className="infra-empty">
+                <p><b>Tu mapa está vacío.</b> Pulsa un tipo de equipo en la paleta para añadir el primero, o importa tu inventario en CSV desde <a href="#mi-infraestructura/lista">Lista</a>.</p>
+              </div>
+            )}
+          </section>
+          <MapLegend types={linkTypes} hidden={hiddenLines} onToggle={toggleLines} />
+        </div>
         {selected ? (
           <DeviceInspector key={selected.id} device={selected} connections={connections} findings={findings.filter(f => f.deviceId === selected.id)}
             onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={id => disconnect(connections.filter(c => c.id === id).map(c => ({ id, between: [selected.id, c.other] })))} onDelete={() => void remove(selected)} />

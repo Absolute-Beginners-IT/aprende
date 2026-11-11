@@ -3,12 +3,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { InfraMapPage } from './InfraMapPage';
 import { mockReactFlow } from './reactFlowTestSetup';
-import type { Link, Topology } from '../../domain/types';
+import type { Device, Link, Topology } from '../../domain/types';
 import { fromInventoryV1, upstreamOf, type DeviceV1 } from '../../domain/topology';
 import { createMemoryInventoryRepository } from '../../adapters/memoryInventoryRepository';
+import { arrangeByTiers, layoutDevices } from '../../domain/infraMap';
 
 mockReactFlow();
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); });
 
 type Repo = ReturnType<typeof createMemoryInventoryRepository>;
 const memoryRepository = (initial: DeviceV1[] | Topology = []) => createMemoryInventoryRepository(Array.isArray(initial) ? fromInventoryV1(initial) : initial);
@@ -190,14 +191,16 @@ describe('InfraMapPage', () => {
       { id: 'acc1', nombre: 'ACC1', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
       { id: 'esx01', nombre: 'ESX01', tipo: 'hipervisor', criticidad: 'Alta', monitorizado: true, uplinks: ['core'] },
     ]);
+    const shown = layoutDevices(repo.topology);
     const { container } = render(<InfraMapPage repository={repo} />);
     fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
     fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
 
     await waitFor(() => expect(stored(repo, 'acc1')?.posicion).toBeTruthy());
-    expect(stored(repo, 'esx01')?.posicion).toEqual({ x: 190, y: 220 });
-    expect(stored(repo, 'fw01')?.posicion).toEqual({ x: 0, y: 0 });
-    expect(stored(repo, 'acc1')?.posicion).not.toEqual({ x: 190, y: 220 });
+    expect(stored(repo, 'esx01')?.posicion).toEqual(shown.get('esx01'));
+    expect(stored(repo, 'fw01')?.posicion).toEqual(shown.get('fw01'));
+    expect(stored(repo, 'core')?.posicion).toEqual(shown.get('core'));
+    expect(stored(repo, 'acc1')?.posicion).not.toEqual(shown.get('acc1'));
   });
 
   it('leaves every stored device as it was when a move cannot be saved', async () => {
@@ -276,5 +279,114 @@ describe('InfraMapPage', () => {
     expect((await screen.findByRole('status')).textContent).toBe('FW1 borrado.');
     expect(repo.topology).toEqual({ equipos: [fw2], enlaces: [], grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw2'] }] });
     expect(writes).toBe(1);
+  });
+});
+
+// Two firewalls in HA with two HA links, a stack of two cores, an access switch with a 10G LAG, a host in a cluster,
+// a UPS with a power line and a management line.
+const drawing = (): Topology => {
+  const d = (id: string, tipo: string, posicion?: { x: number; y: number }): Device => ({ id, nombre: id.toUpperCase(), tipo, criticidad: 'Alta', monitorizado: true, ...(posicion ? { posicion } : {}) });
+  return {
+    equipos: [d('fw1', 'firewall', { x: 900, y: 900 }), d('fw2', 'firewall'), d('core1', 'switch'), d('core2', 'switch'), d('acc1', 'switch'), d('esx1', 'hipervisor'), d('sai', 'sai')],
+    enlaces: [
+      link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha'), link('s1', 'core1', 'core2', 'stack'),
+      link('c1', 'core1', 'fw1', 'datos'), { ...link('l1', 'acc1', 'core1', 'lag'), velocidad: '10G' }, link('e1', 'esx1', 'core2', 'datos'),
+      link('p1', 'sai', 'fw1', 'energia'), link('g1', 'core1', 'acc1', 'gestion'),
+    ],
+    grupos: [{ id: 'cl', tipo: 'cluster', nombre: 'Clúster', miembros: ['esx1'] }],
+  };
+};
+const edgesOf = (container: HTMLElement) => container.querySelectorAll('.react-flow__edge');
+
+describe('InfraMapPage drawing', () => {
+  it('names every line «A – B: tipo», two HA lines between the same firewalls included', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+    expect(container.querySelectorAll('[aria-label="FW1 – FW2: HA"], [aria-label="FW2 – FW1: HA"]')).toHaveLength(2);
+    expect(container.querySelector('[aria-label="ACC1 – CORE1: LAG"]')).toBeTruthy();
+    expect(container.querySelector('[aria-label="SAI – FW1: Energía"]')).toBeTruthy();
+    expect(container.querySelector('.react-flow__edge.infra-edge--stack')).toBeTruthy();
+  });
+
+  it('shows the speed and «LAG» on the line of a LAG', async () => {
+    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    expect(await screen.findByText('LAG · 10G')).toBeTruthy();
+  });
+
+  it('draws a labelled box around each group and each HA or stack pair, and names the tiers', async () => {
+    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    expect(await screen.findByRole('group', { name: 'HA: FW1, FW2' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Stack: CORE1, CORE2' })).toBeTruthy();
+    expect(screen.getByRole('group', { name: 'Clúster: ESX1' })).toBeTruthy();
+    for (const tier of ['Perímetro', 'Red', 'Servidores', 'Energía']) expect(screen.getByText(tier, { selector: '.infra-tier' })).toBeTruthy();
+  });
+
+  it('lists in the legend only the link types on the map', async () => {
+    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    const legend = within(await screen.findByRole('region', { name: 'Leyenda del mapa' }));
+    expect(legend.getAllByRole('listitem').map(li => li.textContent)).toEqual(['Datos', 'LAG', 'HA', 'Stack', 'Gestión', 'Energía']);
+  });
+
+  it('hides management and power lines with their toggles and remembers it in this browser', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
+    expect(container.querySelector('.react-flow__edge.infra-edge--gestion')).toBeNull();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de energía' }));
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(6));
+    cleanup();
+
+    const again = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    await screen.findByText('FW1', { selector: '.infra-node__name' });
+    await waitFor(() => expect(edgesOf(again.container)).toHaveLength(6));
+    expect((screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }) as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de energía' }));
+    await waitFor(() => expect(edgesOf(again.container)).toHaveLength(7));
+  });
+
+  it('keeps showing every line when the browser storage cannot be read', async () => {
+    const getItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = () => { throw new Error('SecurityError'); };
+    try {
+      const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+      await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+    } finally { Storage.prototype.getItem = getItem; }
+  });
+
+  it('places every device by tiers in one write only after confirming', async () => {
+    const repo = memoryRepository(drawing());
+    const before = repo.topology;
+    let writes = 0;
+    const apply = repo.apply;
+    repo.apply = change => { writes++; return apply(change); };
+    render(<InfraMapPage repository={repo} />);
+    await screen.findByText('FW1', { selector: '.infra-node__name' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Colocar por capas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(writes).toBe(0);
+    expect(repo.topology).toBe(before);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Colocar por capas' }));
+    expect(screen.getByText(/se perderá la posición que hayas dado/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Sí, colocar por capas' }));
+    expect((await screen.findByRole('status')).textContent).toBe('Equipos colocados por capas.');
+    expect(writes).toBe(1);
+    expect(repo.topology.equipos).toEqual(arrangeByTiers(before));
+    expect(repo.topology.enlaces).toEqual(before.enlaces);
+    expect(repo.topology.grupos).toEqual(before.grupos);
+  });
+
+  it('writes nothing just by drawing the map', async () => {
+    const repo = memoryRepository(drawing());
+    let writes = 0;
+    const apply = repo.apply;
+    repo.apply = change => { writes++; return apply(change); };
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
+    expect(writes).toBe(0);
   });
 });
