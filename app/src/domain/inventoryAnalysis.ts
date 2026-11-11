@@ -1,5 +1,5 @@
-import type { Topology } from './types';
-import { downstreamOf, GROUP_TYPE_NAMES, isHierarchical, upstreamOf } from './topology';
+import type { Link, Topology } from './types';
+import { downstreamOf, GROUP_TYPE_NAMES, isHierarchical, isPowerSupplier, powerEndRoles, powerSourceOf, upstreamOf } from './topology';
 
 export interface Finding {
   nivel: 'crit' | 'warn' | 'info';
@@ -8,6 +8,35 @@ export interface Finding {
 }
 
 const RANK = { crit: 0, warn: 1, info: 2 } as const;
+
+/**
+ * The power paths of a topology: `feedsOf(id)` lists, for each power link that feeds `id` from a SAI or a regleta, the
+ * SAIs that link leads to through regletas; `saisBehind(id)` lists the SAIs behind a SAI or regleta. Each device is
+ * visited once, so a loop of regletas ends.
+ */
+function powerPaths(topology: Topology) {
+  const typeOf = new Map(topology.equipos.map(d => [d.id, d.tipo]));
+  const cables = topology.enlaces.filter(l => l.tipo === 'energia' && l.a.equipo !== l.b.equipo);
+  const otherEnd = (l: Link, id: string) => (l.a.equipo === id ? l.b.equipo : l.a.equipo);
+  const saisBehind = (start: string): string[] => {
+    const found: string[] = [];
+    const seen = new Set([start]);
+    const queue = [start];
+    while (queue.length) {
+      const id = queue.shift()!;
+      if (typeOf.get(id) === 'sai') { found.push(id); continue; }
+      for (const l of cables) {
+        if (l.a.equipo !== id && l.b.equipo !== id) continue;
+        const next = otherEnd(l, id);
+        if (!seen.has(next) && isPowerSupplier(typeOf.get(next))) { seen.add(next); queue.push(next); }
+      }
+    }
+    return found;
+  };
+  const feedsOf = (id: string) => cables.filter(l => (l.a.equipo === id || l.b.equipo === id) && powerSourceOf(topology, l) === otherEnd(l, id))
+    .map(l => saisBehind(otherEnd(l, id)));
+  return { saisBehind, feedsOf };
+}
 const DAY_MS = 864e5;
 
 /** Compares the learner's inventory with what a typical SME should have and lists the gaps. */
@@ -25,6 +54,9 @@ export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology
   if (isp === 1) findings.push({ nivel: 'warn', mensaje: 'Solo hay una línea de Internet: sin respaldo, un corte de la operadora aísla la empresa.' });
 
   const ids = new Set(devices.map(d => d.id));
+  const nameOf = (id: string) => devices.find(d => d.id === id)?.nombre ?? id;
+  const typeOf = (id: string) => devices.find(d => d.id === id)?.tipo;
+  const power = powerPaths({ equipos: devices, enlaces, grupos });
   // Compare calendar dates, not instants, so the count does not depend on the time of day.
   const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
   for (const d of devices) {
@@ -45,15 +77,35 @@ export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology
     if (d.tipo === 'switch' && downstreamOf(enlaces, d.id).length > 0 && enlaces.filter(l => isHierarchical(l) && l.a.equipo === d.id).length === 1) {
       findings.push({ nivel: 'info', mensaje: `${d.nombre} tiene equipos que cuelgan de él y un solo enlace hacia arriba: si ese enlace cae, se quedan aislados.`, deviceId: d.id });
     }
-    const ports = new Map<string, number>();
-    for (const l of enlaces) {
-      for (const end of [l.a, l.b]) {
-        const port = end.equipo === d.id ? end.puerto?.trim() : undefined;
-        if (port) ports.set(port, (ports.get(port) ?? 0) + 1);
+    if (d.tipo === 'regleta' && power.saisBehind(d.id).length === 0) {
+      findings.push({ nivel: 'warn', mensaje: `${d.nombre} no tiene ningún SAI detrás: un corte de luz apaga todo lo que está enchufado a ella.`, deviceId: d.id });
+    }
+    const feeds = isPowerSupplier(d.tipo) ? [] : power.feedsOf(d.id);
+    const sais = new Set(feeds.flat());
+    if (feeds.length && feeds.every(path => path.length > 0) && sais.size === 1) {
+      const sai = nameOf([...sais][0]);
+      if (d.criticidad === 'Alta') {
+        findings.push({ nivel: 'info', mensaje: `${d.nombre} solo recibe corriente del SAI ${sai}: si ese SAI cae, ${d.nombre} se apaga; si tiene dos fuentes, conéctalas a SAIs distintos.`, deviceId: d.id });
+      }
+      if (feeds.length > 1) {
+        findings.push({ nivel: 'warn', mensaje: `${d.nombre} tiene ${feeds.length} cables de corriente y todos acaban en el SAI ${sai}: si ese SAI cae, la segunda fuente de alimentación no lo protege.`, deviceId: d.id });
       }
     }
-    for (const [port, uses] of ports) {
-      if (uses > 1) findings.push({ nivel: 'warn', mensaje: `${d.nombre} usa el puerto «${port}» en ${uses} enlaces.`, deviceId: d.id });
+    // The same port in two links; on a power link the end is an outlet («toma») or a power supply, not a network port.
+    const ports = new Map<string, { word: string; port: string; uses: number }>();
+    for (const l of enlaces) {
+      const roles = l.tipo === 'energia' ? powerEndRoles(typeOf(l.a.equipo), typeOf(l.b.equipo)) : undefined;
+      for (const side of ['a', 'b'] as const) {
+        const port = l[side].equipo === d.id ? l[side].puerto?.trim() : undefined;
+        if (!port) continue;
+        const word = !roles ? 'el puerto' : roles[side] === 'toma' ? 'la toma' : 'la fuente de alimentación';
+        const key = JSON.stringify([word, port]);
+        const seen = ports.get(key);
+        ports.set(key, { word, port, uses: (seen?.uses ?? 0) + 1 });
+      }
+    }
+    for (const { word, port, uses } of ports.values()) {
+      if (uses > 1) findings.push({ nivel: 'warn', mensaje: `${d.nombre} usa ${word} «${port}» en ${uses} enlaces.`, deviceId: d.id });
     }
   }
 

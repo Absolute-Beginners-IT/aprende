@@ -132,6 +132,7 @@ export function InventoryOverview({ empty, findings }: { empty: boolean; finding
         <li>Pulsa un tipo de la paleta (o arrástralo al mapa) para añadir un equipo.</li>
         <li>Arrastra un equipo para colocarlo donde quieras.</li>
         <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga. Antes de guardar, elige el tipo de enlace (datos, troncal, LAG, HA, stack, WAN, almacenamiento, gestión o energía), los puertos de cada lado, la velocidad y, en troncales y LAG, las VLAN.</li>
+        <li>Un enlace de energía es un cable de corriente, no de datos: no lleva puertos de red ni velocidad. Indica, si quieres, la toma del SAI o de la regleta y la fuente de alimentación del equipo («Fuente 1», «Fuente 2»). Quién alimenta a quién sale del tipo de equipo: el SAI o la regleta.</li>
         <li>Pulsa en un equipo para abrir su ficha y cambiar su nombre, su tipo y sus datos.</li>
         <li>Pulsa en una línea para abrir su ficha: cambia su tipo, sus puertos, su velocidad, sus VLAN y sus notas, o quita el enlace.</li>
         <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayúsculas pulsada, y pulsa «Agrupar» para formar un par HA, un stack o un clúster.</li>

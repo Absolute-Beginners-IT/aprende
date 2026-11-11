@@ -7,8 +7,9 @@ const COLUMNS = ['Nombre', 'Tipo', 'Marca', 'Modelo', 'IP_Gestion', 'Ubicacion',
 const OPTIONAL = { marca: 'marca', modelo: 'modelo', ip_gestion: 'ip', ip: 'ip', ubicacion: 'ubicacion', rol: 'rol', firmware: 'firmware', fin_soporte: 'finSoporte', notas: 'notas' } as const;
 
 const KNOWN_TYPES = new Set(content.tipos.map(t => t.id));
+// Power strips go first, so «PDU del SAI» or «regleta del servidor» is not read as the device it feeds.
 const TYPE_HINTS: [RegExp, string][] = [
-  [/fire|fw/, 'firewall'], [/switch/, 'switch'], [/hiper|esx|hyper|proxmox|host/, 'hipervisor'], [/\bvm\b|virtual/, 'vm'],
+  [/regleta|\bpdu\b|power ?strip/, 'regleta'], [/fire|fw/, 'firewall'], [/switch/, 'switch'], [/hiper|esx|hyper|proxmox|host/, 'hipervisor'], [/\bvm\b|virtual/, 'vm'],
   [/serv/, 'servidor'], [/nas|cabina|almac|san/, 'almacenamiento'], [/back|copia/, 'backup'], [/sai|ups/, 'sai'],
   [/wifi|\bap\b|wlan/, 'wifi'], [/router/, 'router'], [/impres|print/, 'impresora'], [/internet|isp|wan/, 'internet'],
 ];

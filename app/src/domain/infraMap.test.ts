@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
   arrangeByTiers, connectDevices, connectionsOf, editLink, edgeEnds, groupRefusal, linkRefusal, groupBoxes, levelFinder, layoutByTiers, layoutDevices, linkName, linkTypesIn, moveDevice, newDevice,
-  edgeGeometry, peerSets, placeUnplaced, routeEdges, tierLabels, GRID,
+  edgeGeometry, peerSets, placeUnplaced, routeEdges, tierLabels, tierOf, TIERS, GRID,
 } from './infraMap';
 import { fromInventoryV1, type DeviceV1 } from './topology';
 
@@ -378,5 +378,24 @@ describe('peerSets and groupBoxes', () => {
     expect(box.y).toBeLessThan(100);
     expect(box.x + box.width).toBeGreaterThan(360);
     expect(box.y + box.height).toBeGreaterThan(160);
+  });
+});
+
+describe('power links', () => {
+  it('puts the regleta in the Energía tier, next to the SAI', () => {
+    expect(TIERS[tierOf('regleta')].nombre).toBe('Energía');
+    expect(tierOf('regleta')).toBe(tierOf('sai'));
+  });
+
+  it('stores no speed or VLANs on a power link, only the outlet and the power supply in the ports', () => {
+    const topology: Topology = { equipos: [plain(dev('fw', { tipo: 'firewall' })), plain(dev('ups', { tipo: 'sai' }))], enlaces: [], grupos: [] };
+    expect(connectDevices(topology, 'fw', 'ups', { tipo: 'energia', puertoA: 'Fuente 1', puertoB: '3', velocidad: '1G', vlans: '10' }))
+      .toEqual({ a: { equipo: 'fw', puerto: 'Fuente 1' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' });
+    expect(editLink({ ...link('p', 'fw', 'ups', 'datos'), velocidad: '1G' }, { tipo: 'energia', velocidad: '1G' })).toEqual(link('p', 'fw', 'ups', 'energia'));
+  });
+
+  it('keeps the speed of every other link type', () => {
+    const topology: Topology = { equipos: [plain(dev('a')), plain(dev('b'))], enlaces: [], grupos: [] };
+    expect(connectDevices(topology, 'a', 'b', { tipo: 'gestion', velocidad: '1G' })).toEqual({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'gestion', velocidad: '1G' });
   });
 });

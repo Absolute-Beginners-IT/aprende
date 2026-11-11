@@ -1,6 +1,6 @@
 import { LINK_TYPES, type Device, type DeviceGroup, type Link, type LinkType, type Position, type Topology } from './types';
 import { slugify } from './inventoryCsv';
-import { LINK_TYPE_NAMES, groupOf, isHierarchical, isPeerLink, upstreamOf, type NewLink } from './topology';
+import { LINK_TYPE_NAMES, groupOf, isHierarchical, isPeerLink, upstreamOf, type NewLink, type PowerRole } from './topology';
 
 // The map of «Mi infraestructura» edits the topology itself: one line per link, the devices by tiers (what kind of
 // device it is) and, inside a tier, by hierarchical links (what each device hangs from). The place on the map is the
@@ -75,7 +75,7 @@ export const TIERS: readonly Tier[] = [
   { id: 'red', nombre: 'Red', tipos: ['switch', 'wifi'] },
   { id: 'servidores', nombre: 'Servidores', tipos: ['hipervisor', 'servidor', 'vm', 'impresora', 'otro'] },
   { id: 'almacenamiento', nombre: 'Almacenamiento y copias', tipos: ['almacenamiento', 'backup'] },
-  { id: 'energia', nombre: 'Energía', tipos: ['sai'] },
+  { id: 'energia', nombre: 'Energía', tipos: ['sai', 'regleta'] },
 ];
 const SERVERS_TIER = TIERS.findIndex(t => t.id === 'servidores');
 
@@ -337,6 +337,20 @@ export function edgeGeometry(handles: { sourceX: number; sourceY: number; target
 /** The accessible name of a line: «A – B: tipo». */
 export const linkName = (link: Link, nameOf: (id: string) => string) => `${nameOf(link.a.equipo)} – ${nameOf(link.b.equipo)}: ${LINK_TYPE_NAMES[link.tipo]}`;
 
+/**
+ * The outlet and the power supply of a power link as its line shows them, the outlet first: «Toma 3 · Fuente 1». A
+ * value that already starts with its word («Fuente 1») is shown as it is. Empty when neither is set.
+ */
+export function powerLabel(link: Pick<Link, 'a' | 'b'>, roles: { a: PowerRole; b: PowerRole }): string {
+  const named = (role: PowerRole, value: string) => {
+    const word = role === 'toma' ? 'Toma' : 'Fuente';
+    return value.toLowerCase().startsWith(word.toLowerCase()) ? value : `${word} ${value}`;
+  };
+  return (['a', 'b'] as const).filter(side => link[side].puerto?.trim())
+    .sort((x, y) => Number(roles[x] !== 'toma') - Number(roles[y] !== 'toma'))
+    .map(side => named(roles[side], link[side].puerto!.trim())).join(' · ');
+}
+
 /** The link types of the lines on the map, once each, in the order of `LINK_TYPES`. */
 export function linkTypesIn(topology: Topology): LinkType[] {
   const present = new Set(drawnLinks(topology).map(l => l.tipo));
@@ -348,6 +362,9 @@ export interface LinkDraft { tipo: LinkType; puertoA?: string; puertoB?: string;
 
 /** Only trunks and LAGs carry a list of VLANs. */
 export const carriesVlans = (tipo: LinkType) => tipo === 'troncal' || tipo === 'lag';
+
+/** A power cable carries no network data: no network ports, speed or VLANs; its ports hold the outlet and the power supply. */
+export const carriesNetworkData = (tipo: LinkType) => tipo !== 'energia';
 
 /** Why a link cannot be made: both ends on one device, or a hierarchical link opposite to one the pair already has. */
 export type LinkRefusal = 'mismo-equipo' | 'sentido-contrario';
@@ -366,10 +383,10 @@ export function linkRefusal({ enlaces }: Topology, from: string, to: string, tip
 const filled = (text?: string) => text?.trim() || undefined;
 const end = (equipo: string, puerto?: string) => (filled(puerto) ? { equipo, puerto: filled(puerto) } : { equipo });
 
-/** The fields of a link as the draft gives them: empty texts left out, VLANs only on trunks and LAGs. */
+/** The fields of a link as the draft gives them: empty texts left out, VLANs only on trunks and LAGs, no speed on power links. */
 function linkData(from: string, to: string, { tipo, puertoA, puertoB, velocidad, vlans, notas }: LinkDraft): NewLink {
   const link: NewLink = { a: end(from, puertoA), b: end(to, puertoB), tipo };
-  if (filled(velocidad)) link.velocidad = filled(velocidad);
+  if (carriesNetworkData(tipo) && filled(velocidad)) link.velocidad = filled(velocidad);
   if (carriesVlans(tipo) && filled(vlans)) link.vlans = filled(vlans);
   if (filled(notas)) link.notas = filled(notas);
   return link;
