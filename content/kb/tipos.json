@@ -766,6 +766,44 @@
     ]
   },
   {
+    "id": "regleta",
+    "nombre": "Regleta (PDU)",
+    "familia": "power",
+    "icono": "plug",
+    "metodo": "Una regleta básica no tiene nada que monitorizar; una PDU gestionada o con medición se consulta por SNMP de su tarjeta de red",
+    "plantillaZabbix": "Plantilla SNMP de la PDU de tu marca (solo PDU gestionadas)",
+    "metricas": [
+      "Consumo, si la PDU lo mide",
+      "Estado de cada toma, si la PDU es gestionada"
+    ],
+    "alertas": [
+      {
+        "que": "Consumo alto en la PDU",
+        "aviso": ">80 % de su máximo",
+        "critico": ">90 % de su máximo",
+        "severidad": "media",
+        "canal": "Correo",
+        "horario": "Laboral",
+        "accion": "Repartir equipos entre regletas"
+      }
+    ],
+    "actuaciones": [
+      {
+        "que": "Revisar qué equipo va a cada toma y que la regleta va al SAI",
+        "frecuencia": "Anual",
+        "disparador": "Al montar o mover equipos en el rack"
+      }
+    ],
+    "queEs": "Regleta de rack que reparte la corriente del SAI entre varios equipos. Las PDU gestionadas permiten además medir el consumo o encender y apagar cada toma a distancia.",
+    "paraQue": "Llevar la corriente del SAI a todos los equipos del rack. Si un equipo tiene dos fuentes de alimentación, cada una va a una regleta de un SAI distinto.",
+    "siFalla": "Se apagan todos los equipos enchufados a ella, aunque el SAI siga funcionando.",
+    "errores": [
+      "Enchufar la regleta a la pared en lugar de al SAI.",
+      "Conectar las dos fuentes de un equipo a la misma regleta o al mismo SAI.",
+      "Enchufar más equipos de los que admite."
+    ]
+  },
+  {
     "id": "impresora",
     "nombre": "Impresora",
     "familia": "other",

@@ -629,3 +629,75 @@ describe('InfraMapPage groups', () => {
     expect(writes.count).toBe(1);
   });
 });
+
+// Slice 6: power links carry an outlet and a power supply instead of network data.
+const powered = (enlaces: Link[] = []): Topology => {
+  const d = (id: string, tipo: string): Device => ({ id, nombre: id.toUpperCase(), tipo, criticidad: 'Alta', monitorizado: true });
+  return { equipos: [d('fw1', 'firewall'), d('core', 'switch'), d('ups', 'sai'), d('pdu', 'regleta')], enlaces, grupos: [] };
+};
+
+describe('InfraMapPage power links', () => {
+  it('offers the regleta in the palette', async () => {
+    render(<InfraMapPage repository={memoryRepository(powered())} />);
+    expect(await screen.findByRole('button', { name: 'Añadir Regleta (PDU)' })).toBeTruthy();
+  });
+
+  it('asks for the outlet and the power supply instead of ports, speed and VLANs, and stores them in the right ends', async () => {
+    const repo = memoryRepository(powered());
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'fw1', 'ups');
+    const form = linkForm();
+    fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
+    expect(form.getByText('FW1 se alimenta de UPS.')).toBeTruthy();
+    for (const label of ['Puerto en FW1', 'Puerto en UPS', 'Velocidad', 'VLAN']) expect(form.queryByLabelText(label)).toBeNull();
+    fireEvent.change(form.getByLabelText('Toma en UPS'), { target: { value: '3' } });
+    fireEvent.change(form.getByLabelText('Fuente de alimentación en FW1'), { target: { value: 'Fuente 1' } });
+    fireEvent.click(form.getByRole('button', { name: 'Crear enlace' }));
+    await screen.findByRole('status');
+    expect(repo.topology.enlaces).toEqual([{ id: 'fw1--ups', a: { equipo: 'fw1', puerto: 'Fuente 1' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]);
+  });
+
+  it('stores the outlet on the SAI end when the SAI was dragged onto the device', async () => {
+    const repo = memoryRepository(powered());
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'ups', 'fw1');
+    const form = linkForm();
+    fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
+    expect(form.getByText('FW1 se alimenta de UPS.')).toBeTruthy();
+    fireEvent.change(form.getByLabelText('Toma en UPS'), { target: { value: '3' } });
+    fireEvent.change(form.getByLabelText('Fuente de alimentación en FW1'), { target: { value: 'Fuente 2' } });
+    fireEvent.click(form.getByRole('button', { name: 'Crear enlace' }));
+    await screen.findByRole('status');
+    expect(repo.topology.enlaces).toEqual([{ id: 'ups--fw1', a: { equipo: 'ups', puerto: '3' }, b: { equipo: 'fw1', puerto: 'Fuente 2' }, tipo: 'energia' }]);
+  });
+
+  it('says the device is fed by the regleta, by the SAI between a SAI and a regleta, and by nobody between two other devices', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(powered())} />);
+    await join(container, 'pdu', 'core');
+    fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
+    expect(linkForm().getByText('CORE se alimenta de PDU.')).toBeTruthy();
+    fireEvent.click(linkForm().getByRole('button', { name: 'Cancelar' }));
+    await join(container, 'pdu', 'ups');
+    fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
+    expect(linkForm().getByText('PDU se alimenta de UPS.')).toBeTruthy();
+    fireEvent.click(linkForm().getByRole('button', { name: 'Cancelar' }));
+    await join(container, 'core', 'fw1');
+    fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
+    expect(linkForm().getByText('CORE y FW1 quedan unidos por un cable de energía, sin que uno alimente al otro.')).toBeTruthy();
+  });
+
+  it('shows the outlet and the power supply in the ficha of a power line and on the line itself', async () => {
+    const repo = memoryRepository(powered([{ id: 'p1', a: { equipo: 'fw1', puerto: 'Fuente 1' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]));
+    const { container } = render(<InfraMapPage repository={repo} />);
+    expect(await screen.findByText('Toma 3 · Fuente 1')).toBeTruthy();
+    fireEvent.click(container.querySelector('[aria-label="FW1 – UPS: Energía"]') as HTMLElement);
+    const f = linkFicha();
+    expect(f.getByText('FW1 se alimenta de UPS.')).toBeTruthy();
+    expect(f.queryByLabelText('Velocidad')).toBeNull();
+    expect((f.getByLabelText('Toma en UPS') as HTMLInputElement).value).toBe('3');
+    fireEvent.change(f.getByLabelText('Fuente de alimentación en FW1'), { target: { value: 'Fuente 2' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await screen.findByRole('status');
+    expect(repo.topology.enlaces).toEqual([{ id: 'p1', a: { equipo: 'fw1', puerto: 'Fuente 2' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]);
+  });
+});

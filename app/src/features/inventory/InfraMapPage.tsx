@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 import type { Device, DeviceGroup, GroupType, Link, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
-import { LINK_TYPE_NAMES, groupOf } from '../../domain/topology';
+import { LINK_TYPE_NAMES, groupOf, powerEndRoles } from '../../domain/topology';
 import {
   GRID, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, editLink, groupBoxes, groupRefusal, layoutDevices, linkName, linkRefusal,
   linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, type LinkDraft, type LinkRefusal,
@@ -136,7 +136,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       const route = routes.get(l.id)!;
       return {
         id: l.id, type: 'infra', source: route.source, sourceHandle: route.sourceHandle, target: route.target, targetHandle: route.targetHandle,
-        selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}`, ariaLabel: linkName(l, nameOf), data: { link: l, route },
+        selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}`, ariaLabel: linkName(l, nameOf),
+        data: { link: l, route, ...(l.tipo === 'energia' ? { power: powerEndRoles(byId.get(l.a.equipo)?.tipo, byId.get(l.b.equipo)?.tipo) } : {}) },
       };
     });
   }, [topology, nodes, hiddenLines, pickedEdges]);
@@ -313,10 +314,12 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   // devices selected together, the ficha of the selected device, or the gaps of the whole inventory.
   const inspector = () => {
     if (pendingLink) {
-      return <NewLinkForm key={`${pendingLink.from}>${pendingLink.to}`} nameA={nameOf(pendingLink.from)} nameB={nameOf(pendingLink.to)} onCreate={createLink} onCancel={() => setPendingLink(null)} />;
+      return <NewLinkForm key={`${pendingLink.from}>${pendingLink.to}`} nameA={nameOf(pendingLink.from)} nameB={nameOf(pendingLink.to)}
+        types={{ tipoA: byId.get(pendingLink.from)?.tipo, tipoB: byId.get(pendingLink.to)?.tipo }} onCreate={createLink} onCancel={() => setPendingLink(null)} />;
     }
     if (selectedLink) {
-      return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf} onSave={draft => saveLink(selectedLink, draft)}
+      return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf}
+        types={{ tipoA: byId.get(selectedLink.a.equipo)?.tipo, tipoB: byId.get(selectedLink.b.equipo)?.tipo }} onSave={draft => saveLink(selectedLink, draft)}
         onRemove={() => disconnect([{ id: selectedLink.id, between: [selectedLink.a.equipo, selectedLink.b.equipo] }])} onClose={() => setPickedEdges(new Set())} />;
     }
     if (selectedDevices.length > 1) return <GroupPanel key={selectedIds.join(' ')} devices={selectedDevices} onGroup={group} />;

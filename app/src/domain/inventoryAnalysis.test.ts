@@ -141,3 +141,55 @@ describe('analyzeInventory groups and links', () => {
     expect(run([link('1', 'acc1', 'core1', 'gestion', ['', 'port1']), link('2', 'core1', 'core2', 'stack', ['port2', 'port1']), link('3', 'acc1', 'core2', 'gestion', ['', ' '])])).toEqual([]);
   });
 });
+
+describe('analyzeInventory power paths', () => {
+  const base = fromInventoryV1([
+    ...complete.map(d => (d.id === 'sai' ? { ...d, nombre: 'SAI 1' } : d)), dev('sai2', 'sai', { nombre: 'SAI 2' }),
+    dev('pdu1', 'regleta', { nombre: 'Regleta 1' }), dev('pdu2', 'regleta', { nombre: 'Regleta 2' }),
+    dev('srv', 'servidor', { nombre: 'ERP', criticidad: 'Alta' }), dev('nas', 'almacenamiento', { nombre: 'NAS' }),
+  ]);
+  const end = (equipo: string, puerto?: string) => (puerto === undefined ? { equipo } : { equipo, puerto });
+  const power = (id: string, a: string, b: string, puertos: [string?, string?] = []): Link => ({ id, a: end(a, puertos[0]), b: end(b, puertos[1]), tipo: 'energia' });
+  const behind = [power('r1', 'pdu1', 'sai'), power('r2', 'pdu2', 'sai2')];
+  const run = (enlaces: Link[]) => analyzeInventory({ ...base, enlaces }, TODAY);
+
+  it('notes a critical device whose every power path ends in the same SAI, through regletas', () => {
+    expect(run([...behind, power('1', 'srv', 'pdu1'), power('2', 'sai', 'srv')])).toContainEqual(
+      { nivel: 'info', mensaje: 'ERP solo recibe corriente del SAI SAI 1: si ese SAI cae, ERP se apaga; si tiene dos fuentes, conéctalas a SAIs distintos.', deviceId: 'srv' },
+    );
+  });
+
+  it('does not note a critical device fed by two different SAIs, nor a non-critical device fed by one', () => {
+    expect(run([...behind, power('1', 'srv', 'pdu1'), power('2', 'srv', 'pdu2'), power('3', 'nas', 'sai')])).toEqual([]);
+  });
+
+  it('warns about a device with two power links whose paths all end in the same SAI', () => {
+    expect(run([...behind, power('1', 'nas', 'pdu1'), power('2', 'sai', 'nas')])).toEqual([
+      { nivel: 'warn', mensaje: 'NAS tiene 2 cables de corriente y todos acaban en el SAI SAI 1: si ese SAI cae, la segunda fuente de alimentación no lo protege.', deviceId: 'nas' },
+    ]);
+  });
+
+  it('does not warn when two power supplies go to two different SAIs', () => {
+    expect(run([...behind, power('1', 'nas', 'pdu1'), power('2', 'sai2', 'nas')])).toEqual([]);
+  });
+
+  it('warns about a regleta with no SAI behind it, but not about one with a SAI behind, even through another regleta', () => {
+    expect(run([power('1', 'nas', 'pdu1'), power('2', 'pdu2', 'sai2')])).toEqual([
+      { nivel: 'warn', mensaje: 'Regleta 1 no tiene ningún SAI detrás: un corte de luz apaga todo lo que está enchufado a ella.', deviceId: 'pdu1' },
+    ]);
+    expect(run([power('1', 'pdu1', 'pdu2'), power('2', 'pdu2', 'sai2')])).toEqual([]);
+  });
+
+  it('follows a loop of regletas without hanging', () => {
+    expect(run([power('1', 'pdu1', 'pdu2'), power('2', 'pdu2', 'pdu1'), power('3', 'nas', 'pdu1')]).map(f => f.mensaje)).toEqual([
+      'Regleta 1 no tiene ningún SAI detrás: un corte de luz apaga todo lo que está enchufado a ella.',
+      'Regleta 2 no tiene ningún SAI detrás: un corte de luz apaga todo lo que está enchufado a ella.',
+    ]);
+  });
+
+  it('words a repeated outlet as «toma» and keeps «puerto» for data links', () => {
+    expect(run([...behind, power('1', 'nas', 'sai', ['', '3']), power('2', 'sai', 'sai2', ['3', '']), power('3', 'nas', 'sai2')])).toContainEqual(
+      { nivel: 'warn', mensaje: 'SAI 1 usa la toma «3» en 2 enlaces.', deviceId: 'sai' },
+    );
+  });
+});

@@ -41,6 +41,40 @@ export const isHierarchical = (link: Pick<Link, 'tipo'>) => HIERARCHICAL.has(lin
 /** Links that join peers working as one, side by side: an HA pair or a stack. */
 export const isPeerLink = (link: Pick<Link, 'tipo'>) => link.tipo === 'ha' || link.tipo === 'stack';
 
+/** What a power link end is: the outlet of the SAI or regleta that feeds it («toma»), or a power supply of the device fed. */
+export type PowerRole = 'toma' | 'fuente';
+
+// How strongly each device type feeds the others over a power link: the SAI feeds the regleta, the regleta the rest.
+const POWER_RANK: Record<string, number> = { sai: 2, regleta: 1 };
+const powerRank = (tipo?: string) => (tipo ? POWER_RANK[tipo] ?? 0 : 0);
+
+/** Whether a device type gives power to what is plugged into it: a SAI or a regleta. */
+export const isPowerSupplier = (tipo?: string) => powerRank(tipo) > 0;
+
+/**
+ * The end of a power link that feeds the other, from the types of its two devices (not from `a`/`b`): the SAI or the
+ * regleta, the SAI when the other end is a regleta. Null when both ends are of the same kind.
+ */
+export function powerSourceSide(tipoA?: string, tipoB?: string): 'a' | 'b' | null {
+  const [ra, rb] = [powerRank(tipoA), powerRank(tipoB)];
+  return ra > rb ? 'a' : rb > ra ? 'b' : null;
+}
+
+/** What each end of a power link is: the feeding end and any SAI or regleta with no clear source are outlets. */
+export function powerEndRoles(tipoA?: string, tipoB?: string): { a: PowerRole; b: PowerRole } {
+  const side = powerSourceSide(tipoA, tipoB);
+  const role = (end: 'a' | 'b', tipo?: string): PowerRole => (side ? (side === end ? 'toma' : 'fuente') : isPowerSupplier(tipo) ? 'toma' : 'fuente');
+  return { a: role('a', tipoA), b: role('b', tipoB) };
+}
+
+/** The device that feeds the other over an `energia` link (see `powerSourceSide`); null for other links or with no source. */
+export function powerSourceOf({ equipos }: Topology, link: Link): string | null {
+  if (link.tipo !== 'energia') return null;
+  const tipoOf = (id: string) => equipos.find(d => d.id === id)?.tipo;
+  const side = powerSourceSide(tipoOf(link.a.equipo), tipoOf(link.b.equipo));
+  return side ? link[side].equipo : null;
+}
+
 /** The name of each link type as the learner reads it on the map and its legend. */
 export const LINK_TYPE_NAMES: Record<LinkType, string> = {
   datos: 'Datos', troncal: 'Troncal', lag: 'LAG', ha: 'HA', stack: 'Stack', wan: 'WAN', almacenamiento: 'Almacenamiento', gestion: 'Gestión', energia: 'Energía',

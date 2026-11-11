@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
   applyTopologyChange, downstreamOf, emptyTopology, fromInventoryV1, fromStoredTopology, groupOf, importInventoryV1,
-  isHierarchical, nextLinkId, readTopologyDocument, topologyDocument, upstreamOf, type DeviceV1,
+  isHierarchical, nextLinkId, powerEndRoles, powerSourceOf, readTopologyDocument, topologyDocument, upstreamOf, type DeviceV1,
 } from './topology';
 import { parseInventoryCsv, toInventoryCsv } from './inventoryCsv';
 import { deploymentPlan } from './deploymentPlan';
@@ -199,5 +199,36 @@ describe('topology document (JSON export and import)', () => {
   it('replaces the whole topology when a change carries one', () => {
     const before = fromInventoryV1([dev('old', { uplinks: ['gone'] })]);
     expect(applyTopologyChange(before, { replace: topology })).toEqual(topology);
+  });
+});
+
+describe('powerSourceOf', () => {
+  const power = (equipos: Device[], a: string, b: string, tipo: Link['tipo'] = 'energia') => powerSourceOf({ equipos, enlaces: [], grupos: [] }, link('p', a, b, tipo));
+
+  it('takes the SAI end as the source, whichever end it is', () => {
+    const equipos = [plain('ups', { tipo: 'sai' }), plain('fw', { tipo: 'firewall' })];
+    expect(power(equipos, 'fw', 'ups')).toBe('ups');
+    expect(power(equipos, 'ups', 'fw')).toBe('ups');
+  });
+
+  it('takes the regleta end as the source, and the SAI when the other end is a regleta', () => {
+    const equipos = [plain('ups', { tipo: 'sai' }), plain('pdu', { tipo: 'regleta' }), plain('fw', { tipo: 'firewall' })];
+    expect(power(equipos, 'fw', 'pdu')).toBe('pdu');
+    expect(power(equipos, 'ups', 'pdu')).toBe('ups');
+    expect(power(equipos, 'pdu', 'ups')).toBe('ups');
+  });
+
+  it('gives no source when neither end is a SAI or a regleta, or the link is not a power link', () => {
+    const equipos = [plain('ups', { tipo: 'sai' }), plain('fw', { tipo: 'firewall' }), plain('core', { tipo: 'switch' })];
+    expect(power(equipos, 'fw', 'core')).toBeNull();
+    expect(power(equipos, 'fw', 'ups', 'gestion')).toBeNull();
+  });
+
+  it('names the outlet end «toma» and the other end «fuente»', () => {
+    expect(powerEndRoles('firewall', 'sai')).toEqual({ a: 'fuente', b: 'toma' });
+    expect(powerEndRoles('regleta', 'servidor')).toEqual({ a: 'toma', b: 'fuente' });
+    expect(powerEndRoles('regleta', 'sai')).toEqual({ a: 'fuente', b: 'toma' });
+    expect(powerEndRoles('regleta', 'regleta')).toEqual({ a: 'toma', b: 'toma' });
+    expect(powerEndRoles('firewall', 'switch')).toEqual({ a: 'fuente', b: 'fuente' });
   });
 });

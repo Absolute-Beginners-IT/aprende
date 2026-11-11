@@ -20,6 +20,13 @@ describe('parseInventoryCsv', () => {
     ]);
   });
 
+  it('recognises power strips as regletas and keeps reading SAIs', () => {
+    const csv = ['Nombre,Tipo', 'R1,Regleta', 'R2,PDU', 'R3,Power strip', 'R4,PDU del SAI', 'U1,SAI', 'U2,UPS APC'].join('\n');
+    expect(parseInventoryCsv(csv).map(d => [d.nombre, d.tipo])).toEqual([
+      ['R1', 'regleta'], ['R2', 'regleta'], ['R3', 'regleta'], ['R4', 'regleta'], ['U1', 'sai'], ['U2', 'sai'],
+    ]);
+  });
+
   it('returns nothing for empty input', () => {
     expect(parseInventoryCsv('   ')).toEqual([]);
   });
