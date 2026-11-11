@@ -40,6 +40,17 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   a toggle (remembered per browser only).
 - **S15** (slice 2) Accessibility: each line has an accessible name «A – B: tipo»; each group box is labelled.
 - **S16** (slice 2) Stored data changes only through «Colocar por capas» and moving devices, as today.
+- **S17** (slice 3) Joining two devices on the map opens a small form before anything is saved: link type (default
+  «Datos»), optional port on each side, optional speed, and VLANs when the type is troncal or lag. «Crear enlace» saves
+  it in one write; «Cancelar» saves nothing. For hierarchical types the dragged device is `a` (it hangs from the
+  target). A hierarchical link is refused, with a message, when the pair already has a hierarchical link in the
+  opposite direction; any other extra link between the same pair is allowed.
+- **S18** (slice 3) Selecting a line opens its ficha: the two ends, type, ports, speed, VLANs and notes, editable and
+  saved in one write, plus «Quitar enlace».
+- **S19** (slice 3) Selecting two or more devices offers «Agrupar»: type (HA, Stack, Clúster) and a name. A device
+  belongs to at most one group; if a selected device is already in one, grouping is refused with a message naming it.
+  A device's ficha shows its group with «Sacar del grupo» and «Deshacer el grupo». Every change is one write.
+- **S20** (slice 3) The forms are keyboard-usable: focus moves into them, Escape cancels, labels are associated.
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -51,6 +62,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
+| T4 | S17–S20 (slice 3) | delegated (context backstop) | in progress | |
 
 ## Log
 
@@ -112,3 +124,4 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   use them (routed by node centres). RED 4 failing (spots ordered left to right, four FW/core links as four separate
   lines, same-pair links apart, labels never in the same place and ≥16px apart on one switch), then GREEN. Checks: app
   vitest 196/196, app build OK. Browser re-check pending (parent).
+- **L11** (2026-11-11, user, verbatim): «Sí, mergea» (PR #47, merged as e790798) and «Sí, arranca» — start slice 3 (editing link types, ports and groups).
