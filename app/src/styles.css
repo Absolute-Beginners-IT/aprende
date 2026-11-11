@@ -169,6 +169,15 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-form { display: grid; gap: 8px; margin-top: 4px; }
 .infra-form label { display: grid; gap: 4px; font-size: 14px; }
 .infra-form .check { display: flex; gap: 8px; align-items: center; }
+/* New link form, ficha of a link and grouping: hint, refusal message and the buttons that send or cancel. */
+.infra-form textarea { font: inherit; resize: vertical; }
+.infra-form__hint { margin: 0; font-size: 13px; }
+.infra-form__error { margin: 0; padding: 6px 10px; border: 1px solid var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); font-size: 14px; }
+.infra-form__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.infra-link-ends { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.detail .infra-selection { margin: 0; padding-left: 18px; font-size: 14px; }
+.infra-group { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.infra-group p { margin: 0; flex-basis: 100%; }
 .detail .infra-links { list-style: none; padding: 0; display: grid; gap: 6px; }
 .infra-links li { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .infra-hints { font-size: 14px; color: var(--muted); }

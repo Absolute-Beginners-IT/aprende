@@ -62,7 +62,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
-| T4 | S17–S20 (slice 3) | delegated (context backstop) | in progress | |
+| T4 | S17–S20 (slice 3) | delegated (context backstop) | implemented, checks green; browser check pending | |
 
 ## Log
 
@@ -125,3 +125,16 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   lines, same-pair links apart, labels never in the same place and ≥16px apart on one switch), then GREEN. Checks: app
   vitest 196/196, app build OK. Browser re-check pending (parent).
 - **L11** (2026-11-11, user, verbatim): «Sí, mergea» (PR #47, merged as e790798) and «Sí, arranca» — start slice 3 (editing link types, ports and groups).
+- **L12** (2026-11-11, T4 writer) Slice 3 implemented. Domain: `TopologyChange` gained `updateLinks`, `addGroups` (id
+  `grupo-N`, first free), `saveGroups` and `removeGroups`, all in the same single write; `topology.ts` gained `groupOf`
+  and `GROUP_TYPE_NAMES`; `infraMap.ts` gained `LinkDraft`, `carriesVlans`, `linkRefusal` (`mismo-equipo`,
+  `sentido-contrario`, with the edited link left out), `connectDevices(topology, from, to, draft)` (S17 rule replaces S7's:
+  only an opposite hierarchical link is refused), `editLink`, `draftOf` and `groupRefusal`. UI: `LinkForms.tsx`
+  (`NewLinkForm` «Nuevo enlace», `LinkInspector` «Ficha del enlace»), `GroupPanel.tsx` («Equipos seleccionados» with
+  «Agrupar»), group section in the device ficha («Sacar del grupo», «Deshacer el grupo»). The page keeps a list of
+  selected devices (Ctrl/Cmd + click, Shift + drag box; `selectNodesOnDrag` off so a click selects), opens the link ficha
+  when exactly one line and no device is selected, and the inspector column shows, in order: new link form, link ficha,
+  group panel, device ficha, overview. Forms focus their first field, Escape cancels, labels wrap their fields. RED
+  observed before GREEN: domain 11 failing, page 14 failing (connect tests reach `onConnect` through React Flow's
+  click-to-connect with `document.elementFromPoint` stubbed). Checks: app vitest 220/220, app build OK. Browser check
+  pending (parent).

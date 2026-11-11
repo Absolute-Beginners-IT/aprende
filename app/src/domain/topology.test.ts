@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
-  applyTopologyChange, downstreamOf, emptyTopology, fromInventoryV1, fromStoredTopology, importInventoryV1,
+  applyTopologyChange, downstreamOf, emptyTopology, fromInventoryV1, fromStoredTopology, groupOf, importInventoryV1,
   isHierarchical, nextLinkId, upstreamOf, type DeviceV1,
 } from './topology';
 import { parseInventoryCsv, toInventoryCsv } from './inventoryCsv';
@@ -101,6 +101,32 @@ describe('applyTopologyChange', () => {
   it('adds links with ids of their own and removes links by id', () => {
     const next = applyTopologyChange(base(), { addLinks: [{ a: { equipo: 'core' }, b: { equipo: 'fw1' }, tipo: 'lag' }], removeLinks: ['fw1--fw2'] });
     expect(next.enlaces.map(l => [l.id, l.tipo])).toEqual([['core--fw1', 'datos'], ['core--fw2', 'datos'], ['core--fw1-2', 'lag']]);
+  });
+});
+
+describe('applyTopologyChange for links and groups', () => {
+  const base = (): Topology => ({
+    equipos: [plain('fw1'), plain('fw2'), plain('core')],
+    enlaces: [link('core--fw1', 'core', 'fw1'), link('fw1--fw2', 'fw1', 'fw2', 'ha')],
+    grupos: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par', miembros: ['fw1', 'fw2'] }],
+  });
+
+  it('updates links by id in their place', () => {
+    const edited: Link = { ...link('core--fw1', 'core', 'fw1', 'troncal'), velocidad: '10G' };
+    expect(applyTopologyChange(base(), { updateLinks: [edited] }).enlaces).toEqual([edited, link('fw1--fw2', 'fw1', 'fw2', 'ha')]);
+  });
+
+  it('adds groups with the first free id, saves groups by id and removes groups', () => {
+    const next = applyTopologyChange(base(), { addGroups: [{ tipo: 'stack', nombre: 'Núcleo', miembros: ['core'] }] });
+    expect(next.grupos.map(g => [g.id, g.nombre])).toEqual([['grupo-1', 'Par'], ['grupo-2', 'Núcleo']]);
+    const saved = applyTopologyChange(next, { saveGroups: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par', miembros: ['fw2'] }] });
+    expect(saved.grupos[0].miembros).toEqual(['fw2']);
+    expect(applyTopologyChange(saved, { removeGroups: ['grupo-1'] }).grupos.map(g => g.id)).toEqual(['grupo-2']);
+  });
+
+  it('finds the group a device belongs to', () => {
+    expect(groupOf(base().grupos, 'fw2')?.nombre).toBe('Par');
+    expect(groupOf(base().grupos, 'core')).toBeUndefined();
   });
 });
 
