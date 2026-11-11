@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
-  arrangeByTiers, connectDevices, connectionsOf, edgeEnds, groupBoxes, levelFinder, layoutByTiers, layoutDevices, linkName, linkTypesIn, moveDevice, newDevice,
+  arrangeByTiers, connectDevices, connectionsOf, editLink, edgeEnds, groupRefusal, linkRefusal, groupBoxes, levelFinder, layoutByTiers, layoutDevices, linkName, linkTypesIn, moveDevice, newDevice,
   edgeGeometry, peerSets, placeUnplaced, routeEdges, tierLabels, GRID,
 } from './infraMap';
 import { fromInventoryV1, type DeviceV1 } from './topology';
@@ -62,21 +62,67 @@ describe('layoutDevices', () => {
 });
 
 describe('connectDevices', () => {
-  it('makes a datos link from the dragged device to the one it now hangs from', () => {
+  const pair = (enlaces: Link[] = []): Topology => ({ equipos: [plain(dev('a')), plain(dev('b'))], enlaces, grupos: [] });
+
+  it('makes a datos link from the dragged device to the one it now hangs from when nothing else is chosen', () => {
     expect(connectDevices(v1([dev('p1'), dev('core')]), 'p1', 'core')).toEqual({ a: { equipo: 'p1' }, b: { equipo: 'core' }, tipo: 'datos' });
   });
 
-  it('does nothing for the same device or devices already joined in either direction', () => {
-    expect(connectDevices(v1([dev('core')]), 'core', 'core')).toBeNull();
-    expect(connectDevices(v1([dev('p1', { uplinks: ['core'] }), dev('core')]), 'p1', 'core')).toBeNull();
-    expect(connectDevices(v1([dev('core'), dev('p1', { uplinks: ['core'] })]), 'core', 'p1')).toBeNull();
+  it('makes the link with the chosen type, ports, speed and VLANs, leaving out empty fields', () => {
+    expect(connectDevices(pair(), 'a', 'b', { tipo: 'troncal', puertoA: ' 49 ', puertoB: '1/1/48', velocidad: '10G', vlans: '10,20' })).toEqual({
+      a: { equipo: 'a', puerto: '49' }, b: { equipo: 'b', puerto: '1/1/48' }, tipo: 'troncal', velocidad: '10G', vlans: '10,20',
+    });
+    expect(connectDevices(pair(), 'a', 'b', { tipo: 'ha', puertoA: '', puertoB: ' ', velocidad: '' })).toEqual({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'ha' });
   });
 
-  it('refuses a pair joined by any hierarchical link, and joins a pair that only has a link with no hierarchy', () => {
-    const topology = (tipo: Link['tipo']) => ({ equipos: [plain(dev('a')), plain(dev('b'))], enlaces: [link('x', 'b', 'a', tipo)], grupos: [] });
-    expect(connectDevices(topology('troncal'), 'a', 'b')).toBeNull();
-    expect(connectDevices(topology('lag'), 'a', 'b')).toBeNull();
-    expect(connectDevices(topology('ha'), 'a', 'b')).toEqual({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'datos' });
+  it('keeps VLANs only on troncal and lag links', () => {
+    expect(connectDevices(pair(), 'a', 'b', { tipo: 'lag', vlans: '30' })?.vlans).toBe('30');
+    expect(connectDevices(pair(), 'a', 'b', { tipo: 'datos', vlans: '30' })).toEqual({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'datos' });
+  });
+
+  it('makes the dragged device hang from the target for every hierarchical type', () => {
+    for (const tipo of ['datos', 'troncal', 'lag', 'wan', 'almacenamiento'] as const) {
+      expect(connectDevices(pair(), 'a', 'b', { tipo })).toMatchObject({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo });
+    }
+  });
+
+  it('refuses a hierarchical link opposite to one the pair already has, and the same device on both ends', () => {
+    expect(linkRefusal(pair([link('x', 'b', 'a', 'troncal')]), 'a', 'b', 'datos')).toBe('sentido-contrario');
+    expect(connectDevices(pair([link('x', 'b', 'a', 'troncal')]), 'a', 'b', { tipo: 'lag' })).toBeNull();
+    expect(linkRefusal(pair(), 'a', 'a', 'ha')).toBe('mismo-equipo');
+    expect(connectDevices(pair(), 'a', 'a')).toBeNull();
+  });
+
+  it('allows any other extra link between the same pair', () => {
+    expect(linkRefusal(pair([link('x', 'a', 'b', 'datos')]), 'a', 'b', 'datos')).toBeNull();
+    expect(connectDevices(pair([link('x', 'a', 'b', 'datos')]), 'a', 'b', { tipo: 'lag' })).toMatchObject({ tipo: 'lag' });
+    expect(connectDevices(pair([link('x', 'b', 'a', 'datos')]), 'a', 'b', { tipo: 'ha' })).toMatchObject({ tipo: 'ha' });
+    expect(connectDevices(pair([link('x', 'b', 'a', 'ha')]), 'a', 'b', { tipo: 'datos' })).toMatchObject({ tipo: 'datos' });
+  });
+});
+
+describe('editLink', () => {
+  it('keeps the id and the devices of the link and takes everything else from the draft', () => {
+    const before: Link = { id: 'l1', a: { equipo: 'a', puerto: '1' }, b: { equipo: 'b' }, tipo: 'troncal', vlans: '10', notas: 'viejo' };
+    expect(editLink(before, { tipo: 'lag', puertoA: '', puertoB: '24', velocidad: '20G', vlans: '10,20', notas: ' Dos cables ' })).toEqual({
+      id: 'l1', a: { equipo: 'a' }, b: { equipo: 'b', puerto: '24' }, tipo: 'lag', velocidad: '20G', vlans: '10,20', notas: 'Dos cables',
+    });
+    expect(editLink(before, { tipo: 'ha', vlans: '10' })).toEqual({ id: 'l1', a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'ha' });
+  });
+
+  it('checks the direction of an edited link against the other links only', () => {
+    const topology: Topology = { equipos: [plain(dev('a')), plain(dev('b'))], enlaces: [link('x', 'b', 'a'), link('y', 'a', 'b', 'ha')], grupos: [] };
+    expect(linkRefusal(topology, 'a', 'b', 'datos', 'y')).toBe('sentido-contrario');
+    expect(linkRefusal(topology, 'b', 'a', 'troncal', 'x')).toBeNull();
+  });
+});
+
+describe('groupRefusal', () => {
+  it('names the first chosen device that is already in a group, and that group', () => {
+    const grupo = { id: 'g', tipo: 'ha' as const, nombre: 'Par', miembros: ['b'] };
+    const topology: Topology = { equipos: ['a', 'b', 'c'].map(id => plain(dev(id))), enlaces: [], grupos: [grupo] };
+    expect(groupRefusal(topology, ['a', 'b', 'c'])).toEqual({ equipo: 'b', grupo });
+    expect(groupRefusal(topology, ['a', 'c'])).toBeNull();
   });
 });
 

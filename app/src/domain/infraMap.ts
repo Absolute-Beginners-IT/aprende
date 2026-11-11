@@ -1,6 +1,6 @@
-import { LINK_TYPES, type Device, type Link, type LinkType, type Position, type Topology } from './types';
+import { LINK_TYPES, type Device, type DeviceGroup, type Link, type LinkType, type Position, type Topology } from './types';
 import { slugify } from './inventoryCsv';
-import { LINK_TYPE_NAMES, isHierarchical, isPeerLink, upstreamOf, type NewLink } from './topology';
+import { LINK_TYPE_NAMES, groupOf, isHierarchical, isPeerLink, upstreamOf, type NewLink } from './topology';
 
 // The map of «Mi infraestructura» edits the topology itself: one line per link, the devices by tiers (what kind of
 // device it is) and, inside a tier, by hierarchical links (what each device hangs from). The place on the map is the
@@ -343,15 +343,63 @@ export function linkTypesIn(topology: Topology): LinkType[] {
   return LINK_TYPES.filter(t => present.has(t));
 }
 
+/** What the learner fills in for a link: its type and, as typed, the port on each side, the speed, VLANs and notes. */
+export interface LinkDraft { tipo: LinkType; puertoA?: string; puertoB?: string; velocidad?: string; vlans?: string; notas?: string }
+
+/** Only trunks and LAGs carry a list of VLANs. */
+export const carriesVlans = (tipo: LinkType) => tipo === 'troncal' || tipo === 'lag';
+
+/** Why a link cannot be made: both ends on one device, or a hierarchical link opposite to one the pair already has. */
+export type LinkRefusal = 'mismo-equipo' | 'sentido-contrario';
+
 /**
- * The link that makes `from` hang from `to`, a `datos` one; null when it is the same device or the pair is already
- * joined by a hierarchical link either way. A link with no hierarchy (HA, stack...) does not stop it.
+ * Why a link of type `tipo` from `from` to `to` cannot be made, or null when it can. A hierarchical link makes `from`
+ * hang from `to`, so it is refused when `to` already hangs from `from`; any other extra link between the pair is fine.
+ * `ignore` leaves one link out of the check: the link being edited.
  */
-export function connectDevices({ enlaces }: Topology, from: string, to: string): NewLink | null {
-  const joined = enlaces.some(l => isHierarchical(l)
-    && ((l.a.equipo === from && l.b.equipo === to) || (l.a.equipo === to && l.b.equipo === from)));
-  if (from === to || joined) return null;
-  return { a: { equipo: from }, b: { equipo: to }, tipo: 'datos' };
+export function linkRefusal({ enlaces }: Topology, from: string, to: string, tipo: LinkType, ignore?: string): LinkRefusal | null {
+  if (from === to) return 'mismo-equipo';
+  const opposite = isHierarchical({ tipo }) && enlaces.some(l => l.id !== ignore && isHierarchical(l) && l.a.equipo === to && l.b.equipo === from);
+  return opposite ? 'sentido-contrario' : null;
+}
+
+const filled = (text?: string) => text?.trim() || undefined;
+const end = (equipo: string, puerto?: string) => (filled(puerto) ? { equipo, puerto: filled(puerto) } : { equipo });
+
+/** The fields of a link as the draft gives them: empty texts left out, VLANs only on trunks and LAGs. */
+function linkData(from: string, to: string, { tipo, puertoA, puertoB, velocidad, vlans, notas }: LinkDraft): NewLink {
+  const link: NewLink = { a: end(from, puertoA), b: end(to, puertoB), tipo };
+  if (filled(velocidad)) link.velocidad = filled(velocidad);
+  if (carriesVlans(tipo) && filled(vlans)) link.vlans = filled(vlans);
+  if (filled(notas)) link.notas = filled(notas);
+  return link;
+}
+
+/**
+ * The link the learner drew from `from` to `to`, with what the form says (a `datos` link when nothing is chosen):
+ * `from` is its `a` end, so for hierarchical types it hangs from `to`. Null when `linkRefusal` refuses it.
+ */
+export function connectDevices(topology: Topology, from: string, to: string, draft: LinkDraft = { tipo: 'datos' }): NewLink | null {
+  return linkRefusal(topology, from, to, draft.tipo) ? null : linkData(from, to, draft);
+}
+
+/** `link` with what the ficha says: the same id and devices, everything else from the draft. */
+export function editLink(link: Link, draft: LinkDraft): Link {
+  return { id: link.id, ...linkData(link.a.equipo, link.b.equipo, draft) };
+}
+
+/** The draft that shows `link` as it is stored. */
+export const draftOf = (link: Link): LinkDraft => ({
+  tipo: link.tipo, puertoA: link.a.puerto ?? '', puertoB: link.b.puerto ?? '', velocidad: link.velocidad ?? '', vlans: link.vlans ?? '', notas: link.notas ?? '',
+});
+
+/** The first of `ids` that already belongs to a group, with that group; null when none does, so they can be grouped. */
+export function groupRefusal({ grupos }: Topology, ids: string[]): { equipo: string; grupo: DeviceGroup } | null {
+  for (const equipo of ids) {
+    const grupo = groupOf(grupos, equipo);
+    if (grupo) return { equipo, grupo };
+  }
+  return null;
 }
 
 /** The device in its new place; a position that is not a pair of numbers leaves it where it was. */

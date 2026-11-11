@@ -390,3 +390,242 @@ describe('InfraMapPage drawing', () => {
     expect(writes).toBe(0);
   });
 });
+
+// Slice 3: links and groups edited from the map. A drag between two dots is not simulated in jsdom; clicking one dot
+// and then the other is React Flow's own click-to-connect, which reaches the same `onConnect`.
+const counted = (repo: Repo) => {
+  const writes = { count: 0 };
+  const apply = repo.apply;
+  repo.apply = change => { writes.count++; return apply(change); };
+  return writes;
+};
+const dot = (container: HTMLElement, id: string, side: 'top' | 'bottom') => container.querySelector(`.react-flow__node[data-id="${id}"] .react-flow__handle-${side}`) as HTMLElement;
+/** Joins `from` to `to` as a drag from the top dot of `from` to the bottom dot of `to` would. */
+const join = async (container: HTMLElement, from: string, to: string) => {
+  // jsdom has no layout: with nothing found under the pointer, React Flow checks the clicked dot itself.
+  if (!document.elementFromPoint) document.elementFromPoint = () => null;
+  await waitFor(() => expect(dot(container, from, 'top')).toBeTruthy());
+  fireEvent.click(dot(container, from, 'top'));
+  fireEvent.click(dot(container, to, 'bottom'));
+};
+const linkForm = () => within(screen.getByRole('complementary', { name: 'Nuevo enlace' }));
+const linkFicha = () => within(screen.getByRole('complementary', { name: 'Ficha del enlace' }));
+const editing = (): Topology => {
+  const d = (id: string, tipo: string): Device => ({ id, nombre: id.toUpperCase(), tipo, criticidad: 'Alta', monitorizado: true });
+  return { equipos: [d('fw1', 'firewall'), d('fw2', 'firewall'), d('core', 'switch'), d('acc', 'switch')], enlaces: [link('c1', 'core', 'fw1', 'datos')], grupos: [] };
+};
+const coreLine = (container: HTMLElement) => container.querySelector('[aria-label="CORE – FW1: Datos"]') as HTMLElement;
+
+describe('InfraMapPage link editing', () => {
+  it('asks for the link before saving it and saves the chosen type, ports, speed and VLANs in one write', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'acc', 'core');
+
+    const form = linkForm();
+    expect(writes.count).toBe(0);
+    expect((form.getByLabelText('Tipo de enlace') as HTMLSelectElement).value).toBe('datos');
+    expect(form.queryByLabelText('VLAN')).toBeNull();
+    fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'troncal' } });
+    fireEvent.change(form.getByLabelText('Puerto en ACC'), { target: { value: '49' } });
+    fireEvent.change(form.getByLabelText('Puerto en CORE'), { target: { value: '1/1/48' } });
+    fireEvent.change(form.getByLabelText('Velocidad'), { target: { value: '10G' } });
+    fireEvent.change(form.getByLabelText('VLAN'), { target: { value: '10,20' } });
+    fireEvent.click(form.getByRole('button', { name: 'Crear enlace' }));
+
+    expect((await screen.findByRole('status')).textContent).toBe('Enlace Troncal creado entre ACC y CORE.');
+    expect(writes.count).toBe(1);
+    expect(repo.topology.enlaces[1]).toEqual({ id: 'acc--core', a: { equipo: 'acc', puerto: '49' }, b: { equipo: 'core', puerto: '1/1/48' }, tipo: 'troncal', velocidad: '10G', vlans: '10,20' });
+    expect(screen.queryByRole('complementary', { name: 'Nuevo enlace' })).toBeNull();
+  });
+
+  it('saves nothing when the new link is cancelled, with the button or with Escape', async () => {
+    const repo = memoryRepository(editing());
+    const before = repo.topology;
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'acc', 'core');
+    fireEvent.click(linkForm().getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('complementary', { name: 'Nuevo enlace' })).toBeNull();
+
+    await join(container, 'acc', 'core');
+    fireEvent.keyDown(linkForm().getByLabelText('Velocidad'), { key: 'Escape' });
+    expect(screen.queryByRole('complementary', { name: 'Nuevo enlace' })).toBeNull();
+    expect(writes.count).toBe(0);
+    expect(repo.topology).toBe(before);
+  });
+
+  it('moves the focus into the new link form and labels every field', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(editing())} />);
+    await join(container, 'acc', 'core');
+    const form = linkForm();
+    await waitFor(() => expect(document.activeElement).toBe(form.getByLabelText('Tipo de enlace')));
+    for (const label of ['Puerto en ACC', 'Puerto en CORE', 'Velocidad']) expect(form.getByLabelText(label).tagName).toBe('INPUT');
+  });
+
+  it('makes the dragged device hang from the target for a hierarchical type', async () => {
+    const repo = memoryRepository(editing());
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'acc', 'core');
+    expect(linkForm().getByText('ACC cuelga de CORE.')).toBeTruthy();
+    fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'lag' } });
+    fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
+    await screen.findByRole('status');
+    expect(hangsFrom(repo, 'acc')).toEqual(['core']);
+  });
+
+  it('refuses a hierarchical link opposite to one the pair already has, with a message, and saves nothing', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'fw1', 'core');
+    fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
+    expect(linkForm().getByRole('alert').textContent).toBe('CORE ya cuelga de FW1: FW1 no puede colgar también de CORE.');
+    expect(writes.count).toBe(0);
+  });
+
+  it('allows extra links of other types, or in the same direction, between the same pair', async () => {
+    const repo = memoryRepository(editing());
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await join(container, 'fw1', 'core');
+    fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'gestion' } });
+    fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
+    expect((await screen.findByRole('status')).textContent).toBe('Enlace Gestión creado entre FW1 y CORE.');
+
+    await join(container, 'core', 'fw1');
+    fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
+    await waitFor(() => expect(repo.topology.enlaces).toHaveLength(3));
+    expect(repo.topology.enlaces.map(l => [l.a.equipo, l.b.equipo, l.tipo])).toEqual([['core', 'fw1', 'datos'], ['fw1', 'core', 'gestion'], ['core', 'fw1', 'datos']]);
+  });
+
+  it('opens the ficha of a selected line and saves its changes in one write', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await waitFor(() => expect(coreLine(container)).toBeTruthy());
+    fireEvent.click(coreLine(container));
+
+    const f = linkFicha();
+    expect(f.getByText('CORE – FW1')).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(f.getByLabelText('Tipo de enlace')));
+    fireEvent.change(f.getByLabelText('Tipo de enlace'), { target: { value: 'lag' } });
+    fireEvent.change(f.getByLabelText('Puerto en CORE'), { target: { value: '1/1/49-50' } });
+    fireEvent.change(f.getByLabelText('Velocidad'), { target: { value: '20G' } });
+    fireEvent.change(f.getByLabelText('VLAN'), { target: { value: '1-100' } });
+    fireEvent.change(f.getByLabelText('Notas'), { target: { value: 'Dos cables' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+
+    expect((await screen.findByRole('status')).textContent).toBe('Enlace entre CORE y FW1 actualizado.');
+    expect(writes.count).toBe(1);
+    expect(repo.topology.enlaces).toEqual([{ id: 'c1', a: { equipo: 'core', puerto: '1/1/49-50' }, b: { equipo: 'fw1' }, tipo: 'lag', velocidad: '20G', vlans: '1-100', notas: 'Dos cables' }]);
+  });
+
+  it('removes the link from its ficha with «Quitar enlace»', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await waitFor(() => expect(coreLine(container)).toBeTruthy());
+    fireEvent.click(coreLine(container));
+    fireEvent.click(linkFicha().getByRole('button', { name: 'Quitar enlace' }));
+    expect((await screen.findByRole('status')).textContent).toBe('Conexión entre CORE y FW1 quitada.');
+    expect(repo.topology.enlaces).toEqual([]);
+    expect(writes.count).toBe(1);
+    expect(screen.queryByRole('complementary', { name: 'Ficha del enlace' })).toBeNull();
+  });
+
+  it('closes the ficha of the line with Escape and saves nothing', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await waitFor(() => expect(coreLine(container)).toBeTruthy());
+    fireEvent.click(coreLine(container));
+    fireEvent.change(linkFicha().getByLabelText('Velocidad'), { target: { value: '1G' } });
+    fireEvent.keyDown(linkFicha().getByLabelText('Velocidad'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('complementary', { name: 'Ficha del enlace' })).toBeNull());
+    expect(writes.count).toBe(0);
+  });
+});
+
+/** Selects several devices as a click on each with Ctrl held down does. */
+const pick = async (container: HTMLElement, ids: string[]) => {
+  await waitFor(() => expect(container.querySelector(`.react-flow__node[data-id="${ids[0]}"]`)).toBeTruthy());
+  fireEvent.keyDown(document, { key: 'Control' });
+  for (const id of ids) fireEvent.click(container.querySelector(`.react-flow__node[data-id="${id}"]`) as HTMLElement, { ctrlKey: true });
+  fireEvent.keyUp(document, { key: 'Control' });
+};
+const selection = () => within(screen.getByRole('complementary', { name: 'Equipos seleccionados' }));
+
+describe('InfraMapPage groups', () => {
+  it('groups the selected devices with a type and a name in one write', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await pick(container, ['fw1', 'fw2']);
+    fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
+    await waitFor(() => expect(document.activeElement).toBe(selection().getByLabelText('Tipo de grupo')));
+    fireEvent.change(selection().getByLabelText('Tipo de grupo'), { target: { value: 'ha' } });
+    fireEvent.change(selection().getByLabelText('Nombre del grupo'), { target: { value: 'Par de firewalls' } });
+    fireEvent.click(selection().getByRole('button', { name: 'Crear grupo' }));
+
+    expect((await screen.findByRole('status')).textContent).toBe('Grupo Par de firewalls creado.');
+    expect(writes.count).toBe(1);
+    expect(repo.topology.grupos).toEqual([{ id: 'grupo-1', tipo: 'ha', nombre: 'Par de firewalls', miembros: ['fw1', 'fw2'] }]);
+    expect(await screen.findByRole('group', { name: 'Par de firewalls: FW1, FW2' })).toBeTruthy();
+  });
+
+  it('refuses to group a device that is already in a group, naming it', async () => {
+    const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'stack', nombre: 'Núcleo', miembros: ['core'] }] });
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await pick(container, ['acc', 'core']);
+    fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
+    fireEvent.change(selection().getByLabelText('Nombre del grupo'), { target: { value: 'Acceso' } });
+    fireEvent.click(selection().getByRole('button', { name: 'Crear grupo' }));
+    expect(selection().getByRole('alert').textContent).toBe('No se puede agrupar: CORE ya está en el grupo Núcleo.');
+    expect(writes.count).toBe(0);
+  });
+
+  it('still opens the ficha of one device clicked without Ctrl after selecting several', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(editing())} />);
+    await pick(container, ['fw1', 'fw2']);
+    expect(selection().getAllByRole('listitem').map(li => li.textContent)).toEqual(['FW1', 'FW2']);
+    fireEvent.click(container.querySelector('.react-flow__node[data-id="core"]') as HTMLElement);
+    expect((ficha().getByLabelText('Nombre') as HTMLInputElement).value).toBe('CORE');
+  });
+
+  it('cancels the group form with Escape and saves nothing', async () => {
+    const repo = memoryRepository(editing());
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await pick(container, ['fw1', 'fw2']);
+    fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
+    fireEvent.keyDown(selection().getByLabelText('Nombre del grupo'), { key: 'Escape' });
+    expect(selection().queryByLabelText('Nombre del grupo')).toBeNull();
+    expect(selection().getByRole('button', { name: 'Agrupar' })).toBeTruthy();
+    expect(writes.count).toBe(0);
+  });
+
+  it('shows the group in the device ficha and takes the device out of it in one write', async () => {
+    const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'cluster', nombre: 'Granja', miembros: ['fw1', 'fw2', 'core'] }] });
+    const writes = counted(repo);
+    render(<InfraMapPage repository={repo} />);
+    const f = await openFicha('FW2');
+    expect(f.getByText('Granja (Clúster)')).toBeTruthy();
+    fireEvent.click(f.getByRole('button', { name: 'Sacar del grupo' }));
+    expect((await screen.findByRole('status')).textContent).toBe('FW2 ha salido del grupo Granja.');
+    expect(repo.topology.grupos).toEqual([{ id: 'g', tipo: 'cluster', nombre: 'Granja', miembros: ['fw1', 'core'] }]);
+    expect(writes.count).toBe(1);
+  });
+
+  it('undoes the whole group from the device ficha in one write', async () => {
+    const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'ha', nombre: 'Par', miembros: ['fw1', 'fw2'] }] });
+    const writes = counted(repo);
+    render(<InfraMapPage repository={repo} />);
+    fireEvent.click((await openFicha('FW1')).getByRole('button', { name: 'Deshacer el grupo' }));
+    expect((await screen.findByRole('status')).textContent).toBe('Grupo Par deshecho.');
+    expect(repo.topology.grupos).toEqual([]);
+    expect(repo.topology.equipos).toEqual(editing().equipos);
+    expect(writes.count).toBe(1);
+  });
+});

@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
-import type { Device } from '../../domain/types';
+import type { Device, DeviceGroup } from '../../domain/types';
+import { GROUP_TYPE_NAMES } from '../../domain/topology';
 import type { Finding } from '../../domain/inventoryAnalysis';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
 import { guidesForDevice } from '../../domain/deviceGuides';
@@ -50,7 +51,7 @@ function TextField({ label, value, placeholder, required, onCommit }: {
 }
 
 /** The ficha of the selected device: every change is saved through `onChange` as soon as it is made. */
-export function DeviceInspector({ device, connections, findings, onChange, onRename, onDisconnect, onDelete }: {
+export function DeviceInspector({ device, connections, group, findings, onChange, onRename, onDisconnect, onLeaveGroup, onUngroup, onDelete }: {
   device: Device;
   /** One entry per link of the device: the link id and the name of the device at its other end. */
   connections: { id: string; nombre: string }[];
@@ -60,6 +61,12 @@ export function DeviceInspector({ device, connections, findings, onChange, onRen
   onRename: (nombre: string) => Promise<boolean>;
   /** Removes the link with this id. */
   onDisconnect: (linkId: string) => void;
+  /** The group the device belongs to, if any. */
+  group?: DeviceGroup;
+  /** Takes the device out of its group. */
+  onLeaveGroup: () => void;
+  /** Undoes the whole group of the device. */
+  onUngroup: () => void;
   onDelete: () => void;
 }) {
   const setText = (key: OptionalText, value: string) => onChange(d => {
@@ -89,6 +96,14 @@ export function DeviceInspector({ device, connections, findings, onChange, onRen
           ))}
         </ul>
       )}
+      <h3>Grupo</h3>
+      {group ? (
+        <div className="infra-group">
+          <p>{group.nombre} ({GROUP_TYPE_NAMES[group.tipo]})</p>
+          <button type="button" className="chip" onClick={onLeaveGroup}>Sacar del grupo</button>
+          <button type="button" className="chip" onClick={onUngroup}>Deshacer el grupo</button>
+        </div>
+      ) : <p className="muted">No está en ningún grupo. Para agrupar equipos, selecciónalos con Ctrl + clic (Cmd + clic en Mac).</p>}
       <DeviceGuidesSection device={device} />
       {device.tipo === 'switch' && <p><a className="plan-link" href={PLANNER_URL}>Planificar VLAN y puertos</a></p>}
       {findings.length > 0 && <><h3>Qué le falta</h3><FindingList findings={findings} /></>}
@@ -116,9 +131,10 @@ export function InventoryOverview({ empty, findings }: { empty: boolean; finding
       <ul className="infra-hints">
         <li>Pulsa un tipo de la paleta (o arrástralo al mapa) para añadir un equipo.</li>
         <li>Arrastra un equipo para colocarlo donde quieras.</li>
-        <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga.</li>
+        <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga y elige el tipo de enlace y sus puertos.</li>
         <li>Pulsa en un equipo para abrir su ficha y cambiar su nombre, su tipo y sus datos.</li>
-        <li>Pulsa en una conexión y después Supr para quitarla.</li>
+        <li>Pulsa en una conexión para abrir su ficha: cambia su tipo y sus puertos, o quítala.</li>
+        <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayús pulsada, para agruparlos.</li>
       </ul>
     </aside>
   );

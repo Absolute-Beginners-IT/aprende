@@ -1,4 +1,4 @@
-import { GROUP_TYPES, LINK_TYPES, type Device, type DeviceGroup, type Link, type LinkType, type Topology } from './types';
+import { GROUP_TYPES, LINK_TYPES, type Device, type DeviceGroup, type GroupType, type Link, type LinkType, type Topology } from './types';
 
 // The topology of «Mi infraestructura»: devices, links of their own between them and groups of devices.
 // The first version of the inventory only had `uplinks` on each device; it is read here and turned into links.
@@ -9,7 +9,10 @@ export type DeviceV1 = Device & { uplinks?: string[] };
 /** A link about to be stored: it gets its id when the change is applied. */
 export type NewLink = Omit<Link, 'id'>;
 
-/** One change to the topology, applied and stored as a whole: removals first, then saves and new links. */
+/** A group about to be stored: it gets its id when the change is applied. */
+export type NewGroup = Omit<DeviceGroup, 'id'>;
+
+/** One change to the topology, applied and stored as a whole: removals first, then saves, updates and new entries. */
 export interface TopologyChange {
   /** Devices saved as given: a known one keeps its place, a new one goes last. */
   saveDevices?: Device[];
@@ -17,6 +20,12 @@ export interface TopologyChange {
   removeDevices?: string[];
   addLinks?: NewLink[];
   removeLinks?: string[];
+  /** Links stored again as given, in their place; an id that is not stored is ignored. */
+  updateLinks?: Link[];
+  addGroups?: NewGroup[];
+  /** Groups stored again as given, in their place; an id that is not stored is ignored. */
+  saveGroups?: DeviceGroup[];
+  removeGroups?: string[];
 }
 
 export const emptyTopology = (): Topology => ({ equipos: [], enlaces: [], grupos: [] });
@@ -34,6 +43,12 @@ export const isPeerLink = (link: Pick<Link, 'tipo'>) => link.tipo === 'ha' || li
 export const LINK_TYPE_NAMES: Record<LinkType, string> = {
   datos: 'Datos', troncal: 'Troncal', lag: 'LAG', ha: 'HA', stack: 'Stack', wan: 'WAN', almacenamiento: 'Almacenamiento', gestion: 'Gestión', energia: 'Energía',
 };
+
+/** The name of each group type as the learner reads it in the forms and the ficha. */
+export const GROUP_TYPE_NAMES: Record<GroupType, string> = { ha: 'HA', stack: 'Stack', cluster: 'Clúster' };
+
+/** The group `id` belongs to; a device is in one group at most. */
+export const groupOf = (grupos: DeviceGroup[], id: string) => grupos.find(g => g.miembros.includes(id));
 
 const unique = (ids: string[]) => [...new Set(ids)];
 
@@ -107,14 +122,31 @@ export function applyTopologyChange(topology: Topology, change: TopologyChange):
   const incoming = new Map((change.saveDevices ?? []).map(d => [d.id, d]));
   const kept = topology.equipos.filter(d => !removed.has(d.id));
   const known = new Set(kept.map(d => d.id));
+  const updatedLinks = new Map((change.updateLinks ?? []).map(l => [l.id, l]));
+  const droppedGroups = new Set(change.removeGroups ?? []);
+  const savedGroups = new Map((change.saveGroups ?? []).map(g => [g.id, g]));
+  const grupos = topology.grupos.filter(g => !droppedGroups.has(g.id)).map(g => savedGroups.get(g.id) ?? g);
   return {
     equipos: [...kept.map(d => incoming.get(d.id) ?? d), ...[...incoming.values()].filter(d => !known.has(d.id))],
     enlaces: withNewLinks(
-      topology.enlaces.filter(l => !droppedLinks.has(l.id) && !removed.has(l.a.equipo) && !removed.has(l.b.equipo)),
+      topology.enlaces.filter(l => !droppedLinks.has(l.id) && !removed.has(l.a.equipo) && !removed.has(l.b.equipo)).map(l => updatedLinks.get(l.id) ?? l),
       change.addLinks ?? [],
     ),
-    grupos: topology.grupos.map(g => (g.miembros.some(m => removed.has(m)) ? { ...g, miembros: g.miembros.filter(m => !removed.has(m)) } : g)),
+    grupos: withNewGroups(grupos, change.addGroups ?? [])
+      .map(g => (g.miembros.some(m => removed.has(m)) ? { ...g, miembros: g.miembros.filter(m => !removed.has(m)) } : g)),
   };
+}
+
+/** `grupos` followed by `added`, each new group with the first free id `grupo-N`. */
+function withNewGroups(grupos: DeviceGroup[], added: NewGroup[]): DeviceGroup[] {
+  const taken = new Set(grupos.map(g => g.id));
+  return [...grupos, ...added.map(g => {
+    let n = 1;
+    while (taken.has(`grupo-${n}`)) n++;
+    const id = `grupo-${n}`;
+    taken.add(id);
+    return { id, ...g };
+  })];
 }
 
 /**

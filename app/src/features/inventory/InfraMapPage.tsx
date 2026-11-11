@@ -4,12 +4,13 @@ import {
   type AriaLabelConfig, type Connection as FlowConnection, type EdgeChange, type NodeChange, type NodePositionChange, type NodeSelectionChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type { Device, LinkType, Position } from '../../domain/types';
+import type { Device, DeviceGroup, GroupType, Link, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
+import { LINK_TYPE_NAMES, groupOf } from '../../domain/topology';
 import {
-  GRID, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, groupBoxes, layoutDevices, linkName, linkTypesIn, moveDevice,
-  newDevice, placeUnplaced, routeEdges, tierLabels,
+  GRID, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, editLink, groupBoxes, groupRefusal, layoutDevices, linkName, linkRefusal,
+  linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, type LinkDraft, type LinkRefusal,
 } from '../../domain/infraMap';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
@@ -19,6 +20,8 @@ import { GroupBoxNode, TierLabelNode, type GroupBoxNodeType, type TierLabelNodeT
 import { MapLegend, loadHiddenLines, saveHiddenLines } from './MapLegend';
 import { DevicePalette, PALETTE_DRAG_TYPE } from './DevicePalette';
 import { DeviceInspector, InventoryOverview } from './DeviceInspector';
+import { LinkInspector, NewLinkForm } from './LinkForms';
+import { GroupPanel } from './GroupPanel';
 
 type MapNode = DeviceNodeType | GroupBoxNodeType | TierLabelNodeType;
 
@@ -30,13 +33,15 @@ const DECORATION = { draggable: false, selectable: false, focusable: false, conn
 const FIT_VIEW = { padding: 0.2, maxZoom: 1 };
 /** Rough size of a device on the map, to centre a new one on the spot where it is added. */
 const NODE_SIZE = { width: 160, height: 64 } as const;
+/** Ctrl + click (Cmd + click on a Mac) adds a device to the selection or takes it out; Shift + drag selects with a box. */
+const MULTI_SELECTION_KEYS = ['Control', 'Meta'];
 
 const DIRECTION: Record<string, string> = { up: 'arriba', down: 'abajo', left: 'la izquierda', right: 'la derecha' };
 const ARIA_LABELS: Partial<AriaLabelConfig> = {
   'node.a11yDescription.default': 'Pulsa Intro o Espacio para seleccionar el equipo y abrir su ficha.',
   'node.a11yDescription.keyboardDisabled': 'Pulsa Intro o Espacio para seleccionar el equipo y abrir su ficha. Después puedes moverlo con las flechas.',
   'node.a11yDescription.ariaLiveMessage': ({ direction, x, y }) => `Equipo movido hacia ${DIRECTION[direction] ?? direction}. Nueva posición: x ${x}, y ${y}.`,
-  'edge.a11yDescription.default': 'Pulsa Intro o Espacio para seleccionar la conexión y Supr para quitarla.',
+  'edge.a11yDescription.default': 'Pulsa Intro o Espacio para seleccionar la conexión y abrir su ficha, o Supr para quitarla.',
   'controls.ariaLabel': 'Controles del mapa',
   'controls.zoomIn.ariaLabel': 'Acercar',
   'controls.zoomOut.ariaLabel': 'Alejar',
@@ -72,16 +77,22 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const { topology, devices, loaded, message, setMessage, persist } = useInventory(repository);
   const { screenToFlowPosition, fitView } = useReactFlow();
   const canvas = useRef<HTMLDivElement>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // The selected devices in the order they were picked: one opens its ficha, several can be grouped.
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [nodes, setNodes] = useState<DeviceNodeType[]>([]);
   const [pickedEdges, setPickedEdges] = useState<ReadonlySet<string>>(new Set());
   const [hiddenLines, setHiddenLines] = useState<LinkType[]>(loadHiddenLines);
   const [confirmingArrange, setConfirmingArrange] = useState(false);
+  // Two devices just joined on the map: the link is saved only when its form is sent.
+  const [pendingLink, setPendingLink] = useState<{ from: string; to: string } | null>(null);
 
   const byId = useMemo(() => new Map(devices.map(d => [d.id, d])), [devices]);
   const nameOf = (id: string) => byId.get(id)?.nombre ?? id;
   const findings = useMemo(() => analyzeInventory(topology, new Date()), [topology]);
-  const selected = selectedId ? byId.get(selectedId) : undefined;
+  const selectedDevices = selectedIds.flatMap(id => byId.get(id) ?? []);
+  const selected = selectedDevices.length === 1 ? selectedDevices[0] : undefined;
+  const selectedLink = selectedDevices.length === 0 && pickedEdges.size === 1 ? drawnLinks(topology).find(l => pickedEdges.has(l.id)) : undefined;
+  const select = (id: string | null) => { setSelectedIds(id ? [id] : []); setPickedEdges(new Set()); };
 
   // React Flow keeps the measured size on each node: rebuild them from the inventory without losing it.
   useEffect(() => {
@@ -90,11 +101,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       const old = new Map(prev.map(n => [n.id, n]));
       return devices.map(d => ({
         ...old.get(d.id), id: d.id, type: 'device', position: positions.get(d.id)!, data: { device: d },
-        selected: d.id === selectedId, deletable: false, ariaLabel: d.nombre,
+        selected: selectedIds.includes(d.id), deletable: false, ariaLabel: d.nombre,
       }));
     });
   }, [topology]);
-  useEffect(() => setNodes(ns => ns.map(n => (n.selected === (n.id === selectedId) ? n : { ...n, selected: n.id === selectedId }))), [selectedId]);
+  useEffect(() => setNodes(ns => ns.map(n => (n.selected === selectedIds.includes(n.id) ? n : { ...n, selected: selectedIds.includes(n.id) }))), [selectedIds]);
 
   // Boxes, tier names and lines follow the devices where they are shown right now, so they move along while dragging.
   const decorations = useMemo((): MapNode[] => {
@@ -149,9 +160,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     // Boxes and tier names are worked out from the devices: only changes to devices count.
     const changes = all.filter(c => byId.has(changedId(c))) as NodeChange<DeviceNodeType>[];
     const selection = changes.filter(isSelection);
-    const chosen = selection.find(c => c.selected);
-    if (chosen) setSelectedId(chosen.id);
-    else if (selection.some(c => c.id === selectedId)) setSelectedId(null);
+    if (selection.length) setSelectedIds(prev => {
+      const next = prev.filter(id => !selection.some(c => c.id === id && !c.selected));
+      for (const c of selection) if (c.selected && !next.includes(c.id)) next.push(c.id);
+      return next.length === prev.length && next.every((id, i) => id === prev[i]) ? prev : next;
+    });
     // Only real changes touch the nodes: a new array for nothing would redraw the decorations and measure them again, forever.
     const applied = changes.filter(c => c.type !== 'select' && c.type !== 'remove');
     if (applied.length) setNodes(ns => applyNodeChanges(applied, ns));
@@ -189,21 +202,68 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     if (ok) setTimeout(() => void fitView(FIT_VIEW));
   };
 
+  // Joining two devices only opens the form of the new link: nothing is saved until it is sent.
   const onConnect = ({ source, target }: FlowConnection) => {
-    const to = byId.get(target);
-    if (!to || !byId.has(source)) return;
-    // The dragged device hangs from the one it is dropped on, unless the pair is already joined that way.
+    if (source === target || !byId.has(source) || !byId.has(target)) return;
+    setPendingLink({ from: source, to: target });
+  };
+
+  const refusalText = (refusal: LinkRefusal, from: string, to: string) => (refusal === 'mismo-equipo'
+    ? 'Un enlace une dos equipos distintos.'
+    : `${nameOf(to)} ya cuelga de ${nameOf(from)}: ${nameOf(from)} no puede colgar también de ${nameOf(to)}.`);
+
+  /** Saves the new link in one write, or says why it cannot be made. The dragged device is its `a` end. */
+  const createLink = (draft: LinkDraft): string | null => {
+    if (!pendingLink) return null;
+    const { from, to } = pendingLink;
+    const refusal = linkRefusal(topology, from, to, draft.tipo);
+    if (refusal) return refusalText(refusal, from, to);
+    setPendingLink(null);
     void persist(async () => {
-      const link = connectDevices(await repository.load(), source, target);
+      const link = connectDevices(await repository.load(), from, to, draft);
       if (link) await repository.apply({ addLinks: [link] });
-    }, `${nameOf(source)} conectado a ${to.nombre}.`);
+    }, `Enlace ${LINK_TYPE_NAMES[draft.tipo]} creado entre ${nameOf(from)} y ${nameOf(to)}.`);
+    return null;
+  };
+
+  /** Saves the ficha of a link in one write, or says why its new type cannot go that way. */
+  const saveLink = (link: Link, draft: LinkDraft): string | null => {
+    const refusal = linkRefusal(topology, link.a.equipo, link.b.equipo, draft.tipo, link.id);
+    if (refusal) return refusalText(refusal, link.a.equipo, link.b.equipo);
+    void persist(async () => {
+      const stored = (await repository.load()).enlaces.find(l => l.id === link.id);
+      if (stored) await repository.apply({ updateLinks: [editLink(stored, draft)] });
+    }, `Enlace entre ${nameOf(link.a.equipo)} y ${nameOf(link.b.equipo)} actualizado.`);
+    return null;
   };
 
   /** Removes the given links in one write; `between` names the two devices of each one for the message. */
   const disconnect = (links: { id: string; between: [string, string] }[]) => {
     const success = links.length === 1 ? `Conexión entre ${nameOf(links[0].between[0])} y ${nameOf(links[0].between[1])} quitada.` : `${links.length} conexiones quitadas.`;
+    // A removed line is no longer selected: a new link given the same id later must not come up selected.
+    setPickedEdges(prev => (links.some(l => prev.has(l.id)) ? new Set([...prev].filter(id => !links.some(l => l.id === id))) : prev));
     void persist(() => repository.apply({ removeLinks: links.map(l => l.id) }), success);
   };
+
+  /** Makes the selected devices one group in one write, or says why they cannot be grouped. */
+  const group = (tipo: GroupType, nombre: string): string | null => {
+    const name = nombre.trim();
+    const ids = selectedDevices.map(d => d.id);
+    if (!name) return 'Escribe un nombre para el grupo.';
+    const refusal = groupRefusal(topology, ids);
+    if (refusal) return `No se puede agrupar: ${nameOf(refusal.equipo)} ya está en el grupo ${refusal.grupo.nombre}.`;
+    void persist(async () => {
+      if (!groupRefusal(await repository.load(), ids)) await repository.apply({ addGroups: [{ tipo, nombre: name, miembros: ids }] });
+    }, `Grupo ${name} creado.`);
+    return null;
+  };
+
+  const leaveGroup = (d: Device, g: DeviceGroup) => void persist(async () => {
+    const stored = groupOf((await repository.load()).grupos, d.id);
+    if (stored) await repository.apply({ saveGroups: [{ ...stored, miembros: stored.miembros.filter(m => m !== d.id) }] });
+  }, `${d.nombre} ha salido del grupo ${g.nombre}.`);
+
+  const ungroup = (g: DeviceGroup) => void persist(() => repository.apply({ removeGroups: [g.id] }), `Grupo ${g.nombre} deshecho.`);
 
   const add = async (tipoId: string, at?: Position) => {
     const tipo = typeOf(tipoId);
@@ -218,7 +278,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       added = newDevice(tipo.id, tipo.nombre, (await repository.load()).equipos, spot);
       await repository.apply({ saveDevices: [added] });
     }, () => `${added!.nombre} añadido.`);
-    if (ok && added) setSelectedId(added.id);
+    if (ok && added) select(added.id);
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -240,7 +300,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const remove = async (d: Device) => {
     // The device, its links and its place in any group go in one write: never a half-deleted device.
     const removed = await persist(() => repository.apply({ removeDevices: [d.id] }), `${d.nombre} borrado.`);
-    if (removed) setSelectedId(null);
+    if (removed) select(null);
   };
 
   // One entry per link of the selected device, named after the device at its other end.
@@ -248,6 +308,26 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     ? connectionsOf(topology).filter(c => c.from === selected.id || c.to === selected.id)
       .map(c => ({ id: c.id, other: c.from === selected.id ? c.to : c.from })).map(c => ({ ...c, nombre: nameOf(c.other) }))
     : [];
+
+  // The inspector column shows, first to last: the form of a link being drawn, the ficha of the selected line, the
+  // devices selected together, the ficha of the selected device, or the gaps of the whole inventory.
+  const inspector = () => {
+    if (pendingLink) {
+      return <NewLinkForm key={`${pendingLink.from}>${pendingLink.to}`} nameA={nameOf(pendingLink.from)} nameB={nameOf(pendingLink.to)} onCreate={createLink} onCancel={() => setPendingLink(null)} />;
+    }
+    if (selectedLink) {
+      return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf} onSave={draft => saveLink(selectedLink, draft)}
+        onRemove={() => disconnect([{ id: selectedLink.id, between: [selectedLink.a.equipo, selectedLink.b.equipo] }])} onClose={() => setPickedEdges(new Set())} />;
+    }
+    if (selectedDevices.length > 1) return <GroupPanel key={selectedIds.join(' ')} devices={selectedDevices} onGroup={group} />;
+    if (!selected) return <InventoryOverview empty={devices.length === 0} findings={findings} />;
+    const grupo = groupOf(topology.grupos, selected.id);
+    return (
+      <DeviceInspector key={selected.id} device={selected} connections={connections} group={grupo} findings={findings.filter(f => f.deviceId === selected.id)}
+        onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={id => disconnect(connections.filter(c => c.id === id).map(c => ({ id, between: [selected.id, c.other] })))}
+        onLeaveGroup={() => grupo && leaveGroup(selected, grupo)} onUngroup={() => grupo && ungroup(grupo)} onDelete={() => void remove(selected)} />
+    );
+  };
 
   return (
     <section className="infra-map">
@@ -269,8 +349,9 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
             onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
             <ReactFlow<MapNode, InfraEdgeType> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
               onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-              onNodeClick={(_, node) => { if (node.type === 'device') setSelectedId(node.id); }}
+              onNodeClick={(e, node) => { if (node.type === 'device' && !e.ctrlKey && !e.metaKey) select(node.id); }}
               onEdgesDelete={es => disconnect(es.flatMap(e => (e.data ? [{ id: e.id, between: [e.data.link.a.equipo, e.data.link.b.equipo] as [string, string] }] : [])))}
+              selectNodesOnDrag={false} multiSelectionKeyCode={MULTI_SELECTION_KEYS}
               deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
               <Background variant={BackgroundVariant.Dots} gap={20} />
               <Controls showInteractive={false} fitViewOptions={FIT_VIEW} />
@@ -283,10 +364,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
           </section>
           <MapLegend types={linkTypes} hidden={hiddenLines} onToggle={toggleLines} />
         </div>
-        {selected ? (
-          <DeviceInspector key={selected.id} device={selected} connections={connections} findings={findings.filter(f => f.deviceId === selected.id)}
-            onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={id => disconnect(connections.filter(c => c.id === id).map(c => ({ id, between: [selected.id, c.other] })))} onDelete={() => void remove(selected)} />
-        ) : <InventoryOverview empty={devices.length === 0} findings={findings} />}
+        {inspector()}
       </div>
     </section>
   );
