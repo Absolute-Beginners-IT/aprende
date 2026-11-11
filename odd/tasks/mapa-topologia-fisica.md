@@ -85,10 +85,10 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | --- | --- | --- | --- | --- |
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
-| T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
+| T3 | S10–S16 (slice 2) | delegated (context backstop) | done (PR #47) | e790798 |
 | T4 | S17–S20 (slice 3) | delegated (context backstop) | done (PR #48, b22c464) | |
 | T5 | S21–S23 (slice 4) | delegated (context backstop) | done (PR #49) | dcf57b6 |
-| T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | in progress | |
+| T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | app unit (S24–S26) implemented, checks green; site unit (S27) separate | |
 
 ## Log
 
@@ -175,3 +175,13 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   enlaces»). Group findings carry no `deviceId`, so they show in the overview only. RED 9 failing (plan 2, page 1,
   analysis 6), then GREEN; negative cases and existing tests already green. Checks: app vitest 233/233, app build OK.
 - **L15** (2026-11-11, user, verbatim): «Sí, mergea» (PR #49, merged as dcf57b6) and «Sí, arranca» — start slice 5.
+- **L16** (2026-11-11, T6 app writer, S24–S26) Domain: `topologyDocument` (`{ version: 2, equipos, enlaces, grupos }`, also
+  used by the localStorage adapter), `readTopologyDocument(text)` (`ilegible` / `ajeno` / `vacio`, else the topology read
+  by `fromStoredTopology`) and `TopologyChange.replace` (the whole topology, applied first): no port change, still one
+  `setItem` of `mapa-infra:topologia`, old key untouched. «Lista»: «Exportar el esquema (JSON)» downloads
+  `mi-infraestructura.json`; «Importar el esquema (JSON)» (file input) shows «No se ha podido importar: …» or an inline
+  confirmation «Sustituye tus N equipos por M equipos, X enlaces y Y grupos.» (singular for 1) with «Sí, sustituir» /
+  «Cancelar»; CSV export unchanged (shared `download` helper). Help: «Cómo se usa el mapa» (link types, ports, speed,
+  VLAN, line ficha, Ctrl + clic / Mayúsculas + arrastrar and «Agrupar», «Colocar por capas», legend toggles, JSON) and two
+  list hints. RED 14 failing (domain 4, adapter 1, page 8, help 1), CSV pin green, then GREEN. Checks: app vitest
+  248/248, app build OK.
