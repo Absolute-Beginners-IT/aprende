@@ -14,6 +14,8 @@ export type NewGroup = Omit<DeviceGroup, 'id'>;
 
 /** One change to the topology, applied and stored as a whole: removals first, then saves, updates and new entries. */
 export interface TopologyChange {
+  /** The whole topology stored instead of the current one, before the rest of the change (a JSON import). */
+  replace?: Topology;
   /** Devices saved as given: a known one keeps its place, a new one goes last. */
   saveDevices?: Device[];
   /** Devices removed together with their links and their place in every group. */
@@ -115,8 +117,24 @@ export function fromStoredTopology(raw: unknown): Topology {
   return { equipos: raw.equipos.filter(isDevice), enlaces: raw.enlaces.filter(isLink), grupos: raw.grupos.filter(isGroup) };
 }
 
+/** The document stored and exported as JSON: `{ version: 2, equipos, enlaces, grupos }`. */
+export const topologyDocument = (topology: Topology) => ({ version: 2 as const, equipos: topology.equipos, enlaces: topology.enlaces, grupos: topology.grupos });
+
+/** Why a JSON file cannot be imported: it is not JSON, it is not a version 2 document, or it has no devices. */
+export type TopologyDocumentRefusal = 'ilegible' | 'ajeno' | 'vacio';
+
+/** The topology in the text of an exported JSON document, read with the same rules as what is stored. */
+export function readTopologyDocument(text: string): { ok: true; topology: Topology } | { ok: false; reason: TopologyDocumentRefusal } {
+  let raw: unknown;
+  try { raw = JSON.parse(text); } catch { return { ok: false, reason: 'ilegible' }; }
+  if (!isRecord(raw) || raw.version !== 2 || !Array.isArray(raw.equipos) || !Array.isArray(raw.enlaces) || !Array.isArray(raw.grupos)) return { ok: false, reason: 'ajeno' };
+  const topology = fromStoredTopology(raw);
+  return topology.equipos.length ? { ok: true, topology } : { ok: false, reason: 'vacio' };
+}
+
 /** The topology with `change` applied; `topology` itself is left untouched. */
-export function applyTopologyChange(topology: Topology, change: TopologyChange): Topology {
+export function applyTopologyChange(current: Topology, change: TopologyChange): Topology {
+  const topology = change.replace ?? current;
   const removed = new Set(change.removeDevices ?? []);
   const droppedLinks = new Set(change.removeLinks ?? []);
   const incoming = new Map((change.saveDevices ?? []).map(d => [d.id, d]));

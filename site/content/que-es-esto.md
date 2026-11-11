@@ -8,7 +8,7 @@ Esta web es un **prototipo**: un proyecto en desarrollo para ayudar a quien empi
 ## Qué hay ahora
 
 - **Lecciones, escenarios de incidencias y glosario**, en esta parte de la web.
-- **El mapa de infraestructura**: una pyme típica por capas, con lo que hay que vigilar de cada pieza, y el modo «Mi infraestructura», que compara tu inventario con el de referencia y te dice qué falta.
+- **El mapa de infraestructura**: una pyme típica por capas, con lo que hay que vigilar de cada pieza, y el modo «Mi infraestructura», donde dibujas tus equipos y sus enlaces, con su tipo y sus puertos, los agrupas en pares HA, stacks o clústeres, comparas tu inventario con el de referencia para ver qué falta y exportas el esquema completo en JSON.
 - **Guías de switching**: pasos para configurar switches de varias marcas, con los comandos rellenos con tus datos, la verificación y la vuelta atrás de cada cambio.
 - **[Herramientas]({{< relref "herramientas" >}})**: scripts y plantillas para descargar, cada uno con su huella SHA-256, y las herramientas que funcionan en el navegador.
 

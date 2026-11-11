@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
   applyTopologyChange, downstreamOf, emptyTopology, fromInventoryV1, fromStoredTopology, groupOf, importInventoryV1,
-  isHierarchical, nextLinkId, upstreamOf, type DeviceV1,
+  isHierarchical, nextLinkId, readTopologyDocument, topologyDocument, upstreamOf, type DeviceV1,
 } from './topology';
 import { parseInventoryCsv, toInventoryCsv } from './inventoryCsv';
 import { deploymentPlan } from './deploymentPlan';
@@ -171,5 +171,33 @@ describe('importInventoryV1', () => {
     topology = applyTopologyChange(topology, importInventoryV1(topology, parseInventoryCsv('Nombre;Tipo;Uplink\r\nACC1;switch;core2,core1')));
     expect(toInventoryCsv(topology).split('\r\n')[3]).toBe('ACC1;switch;;;;;;Media;core2,core1;;;;No;');
     expect(deploymentPlan(topology, content, './guias/').find(p => p.id === 'acc1')?.cuelgaDe).toEqual(['CORE2', 'CORE1']);
+  });
+});
+
+describe('topology document (JSON export and import)', () => {
+  const topology: Topology = {
+    equipos: [plain('fw1', { tipo: 'firewall' }), plain('fw2', { tipo: 'firewall' })],
+    enlaces: [{ ...link('fw1--fw2', 'fw1', 'fw2', 'ha'), a: { equipo: 'fw1', puerto: 'ha1' }, b: { equipo: 'fw2', puerto: 'ha1' } }],
+    grupos: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par FortiGate', miembros: ['fw1', 'fw2'] }],
+  };
+
+  it('writes the version 2 document with every device, link and group', () => {
+    expect(topologyDocument(topology)).toEqual({ version: 2, equipos: topology.equipos, enlaces: topology.enlaces, grupos: topology.grupos });
+  });
+
+  it('reads back an exported document as the same topology', () => {
+    expect(readTopologyDocument(JSON.stringify(topologyDocument(topology)))).toEqual({ ok: true, topology });
+  });
+
+  it('refuses text that is not JSON, a foreign document and a document with no devices', () => {
+    expect(readTopologyDocument('{roto')).toEqual({ ok: false, reason: 'ilegible' });
+    expect(readTopologyDocument(JSON.stringify([plain('fw1')]))).toEqual({ ok: false, reason: 'ajeno' });
+    expect(readTopologyDocument(JSON.stringify({ version: 3, equipos: [plain('fw1')], enlaces: [], grupos: [] }))).toEqual({ ok: false, reason: 'ajeno' });
+    expect(readTopologyDocument(JSON.stringify({ version: 2, equipos: [], enlaces: [], grupos: [] }))).toEqual({ ok: false, reason: 'vacio' });
+  });
+
+  it('replaces the whole topology when a change carries one', () => {
+    const before = fromInventoryV1([dev('old', { uplinks: ['gone'] })]);
+    expect(applyTopologyChange(before, { replace: topology })).toEqual(topology);
   });
 });

@@ -1,5 +1,5 @@
 import type { Topology } from '../domain/types';
-import { applyTopologyChange, emptyTopology, fromInventoryV1, fromStoredTopology } from '../domain/topology';
+import { applyTopologyChange, emptyTopology, fromInventoryV1, fromStoredTopology, topologyDocument } from '../domain/topology';
 import type { InventoryRepository } from '../ports/InventoryRepository';
 
 type KeyValueStorage = Pick<Storage, 'getItem' | 'setItem'>;
@@ -28,7 +28,7 @@ export function createLocalStorageInventoryRepository(storage: KeyValueStorage):
     async apply(change) {
       // One setItem of the whole document: if the browser refuses the write, what is stored stays exactly as it was.
       const next = applyTopologyChange(read(), change);
-      storage.setItem(TOPOLOGY_KEY, JSON.stringify({ version: 2, ...next }));
+      storage.setItem(TOPOLOGY_KEY, JSON.stringify(topologyDocument(next)));
     },
   };
 }

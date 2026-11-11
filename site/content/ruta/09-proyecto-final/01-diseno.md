@@ -138,7 +138,7 @@ Checklist del hito:
 
 1. Tabla de direcciones y de VLAN guardada.
 2. Convención de nombres apuntada.
-3. Mapa dibujado, con el uplink de cada equipo.
+3. Mapa dibujado, con los enlaces de cada equipo (su uplink incluido) y, si los hay, los pares en alta disponibilidad (HA) y los stacks.
 4. Recursos repartidos y comprobados.
 
 Guarda todo en una carpeta «Documentación» de tu laboratorio, porque lo usarás al final para el inventario, y marca la tarea.

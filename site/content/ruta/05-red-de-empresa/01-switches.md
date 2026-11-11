@@ -58,7 +58,7 @@ En un switch **gestionable** (los que tienen interfaz de administración; los de
 | **Troncal** (*trunk*) | Otro switch, un punto de acceso wifi, un hipervisor o el firewall. | Varias VLAN por el mismo cable, cada trama con su etiqueta. |
 | **Uplink** | El enlace «hacia arriba»: del switch de planta al switch core. | Normalmente es un troncal, y suele ser el puerto más rápido (por ejemplo, de fibra). |
 
-Un esquema típico de pyme, como el del mapa de referencia: los **switches de acceso** de cada planta suben por su uplink al **switch core**, y el core conecta con el firewall y los servidores.
+Un esquema típico de pyme, como el del mapa de referencia: los **switches de acceso** de cada planta suben por su uplink al **switch core**, y el core conecta con el firewall y los servidores. En [Mi infraestructura]({{< param "appURL" >}}#mi-infraestructura) puedes dibujar estos enlaces con su tipo (troncal, LAG) y los puertos de cada extremo.
 
 ```
              Firewall

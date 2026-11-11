@@ -127,14 +127,17 @@ export function InventoryOverview({ empty, findings }: { empty: boolean; finding
       {empty && <p className="muted">Añade tus equipos y aquí verás qué falta comparado con una pyme típica: copias, alta disponibilidad, SAI, monitorización y soporte.</p>}
       {!empty && findings.length === 0 && <p>No se detecta ninguna carencia. ¡Buen trabajo!</p>}
       <FindingList findings={findings} />
-      <h3>Cómo se usa el mapa</h3>
-      <ul className="infra-hints">
+      <h3 id="infra-hints-title">Cómo se usa el mapa</h3>
+      <ul className="infra-hints" aria-labelledby="infra-hints-title">
         <li>Pulsa un tipo de la paleta (o arrástralo al mapa) para añadir un equipo.</li>
         <li>Arrastra un equipo para colocarlo donde quieras.</li>
-        <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga y elige el tipo de enlace y sus puertos.</li>
+        <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga. Antes de guardar, elige el tipo de enlace (datos, troncal, LAG, HA, stack, WAN, almacenamiento, gestión o energía), los puertos de cada lado, la velocidad y, en troncales y LAG, las VLAN.</li>
         <li>Pulsa en un equipo para abrir su ficha y cambiar su nombre, su tipo y sus datos.</li>
-        <li>Pulsa en una conexión para abrir su ficha: cambia su tipo y sus puertos, o quítala.</li>
-        <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayús pulsada, para agruparlos.</li>
+        <li>Pulsa en una línea para abrir su ficha: cambia su tipo, sus puertos, su velocidad, sus VLAN y sus notas, o quita el enlace.</li>
+        <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayúsculas pulsada, y pulsa «Agrupar» para formar un par HA, un stack o un clúster.</li>
+        <li>Pulsa «Colocar por capas» para ordenar todos los equipos por capas, de la operadora a la energía; te pide confirmación porque se pierde la posición que les hayas dado.</li>
+        <li>En la leyenda puedes ocultar las líneas de gestión y de energía; tu elección se recuerda en este navegador.</li>
+        <li>En la página «Lista», «Exportar el esquema (JSON)» guarda todo el mapa en un archivo e «Importar el esquema (JSON)» lo recupera.</li>
       </ul>
     </aside>
   );
