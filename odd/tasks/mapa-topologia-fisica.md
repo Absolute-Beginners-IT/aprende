@@ -51,6 +51,17 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   belongs to at most one group; if a selected device is already in one, grouping is refused with a message naming it.
   A device's ficha shows its group with «Sacar del grupo» and «Deshacer el grupo». Every change is one write.
 - **S20** (slice 3) The forms are keyboard-usable: focus moves into them, Escape cancels, labels are associated.
+- **S21** (slice 4) The guides' planner («Red y VLAN») takes the ports of switch-to-switch links from the map: when
+  the inventory link has a port on a side, that port fills the planner's interface for that side and is shown
+  read-only with the hint «Se cambia en el mapa de Mi infraestructura»; when it has none, the planner keeps its own
+  editable value as today. The guides never write to `mapa-infra:topologia`.
+- **S22** (slice 4) The deployment plan lists the members of a group one after another, in the position of the first
+  member, and each member's step names its group («Par FortiGate (HA)»).
+- **S23** (slice 4) «Qué te falta» reports, with the device or group named:
+  an HA group with no `ha` link between its members (aviso); an HA group with exactly one `ha` link («si ese cable
+  falla, cada equipo cree que el otro ha caído»; info); a stack group with no `stack` link (aviso); a group with a
+  single member (info); a switch that has devices hanging from it and a single hierarchical link upwards (info); the
+  same port of a device used by two links (aviso).
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -62,7 +73,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
-| T4 | S17–S20 (slice 3) | delegated (context backstop) | implemented, checks green; browser check pending | |
+| T4 | S17–S20 (slice 3) | delegated (context backstop) | done (PR #48, b22c464) | |
+| T5 | S21–S23 (slice 4) | delegated (context backstop) | in progress | |
 
 ## Log
 
@@ -138,3 +150,4 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   observed before GREEN: domain 11 failing, page 14 failing (connect tests reach `onConnect` through React Flow's
   click-to-connect with `document.elementFromPoint` stubbed). Checks: app vitest 220/220, app build OK. Browser check
   pending (parent).
+- **L13** (2026-11-11, user, verbatim): «Sí, mergea» (PR #48, merged as b22c464) and «Sí, arranca» — start slice 4. Decision: the guides read the map's ports and never write the app's storage (single source for inventory links).
