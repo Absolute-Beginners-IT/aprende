@@ -131,6 +131,38 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-node__type { color: var(--fam); font-weight: 600; }
 .infra-node__model { color: var(--muted); }
 .infra-node .react-flow__handle { width: 11px; height: 11px; background: var(--fam); border: 2px solid var(--surface); }
+/* The side anchors only hold HA and stack lines: not a dot to drag from. */
+.infra-node .react-flow__handle.infra-node__anchor { width: 1px; height: 1px; min-width: 0; min-height: 0; opacity: 0; border: 0; pointer-events: none; }
+/* Canvas column: the «Colocar por capas» bar, the map and its legend. */
+.infra-stage { display: grid; gap: 8px; min-width: 0; }
+.infra-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 32px; }
+.infra-confirm { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 10px; border: 1px solid var(--accent); border-radius: 8px; background: color-mix(in srgb, var(--accent) 8%, var(--surface)); font-size: 14px; }
+/* Lines by link type: each type sets its colour, width and dash; the legend draws its samples with the same classes. */
+.infra-edge--datos, .infra-edge--troncal, .infra-edge--lag, .infra-edge--ha, .infra-edge--stack, .infra-edge--gestion { --line-color: var(--muted); }
+.infra-edge--datos { --line-width: 1.8; --line-dash: none; }
+.infra-edge--troncal { --line-width: 3; --line-dash: none; }
+.infra-edge--lag { --line-width: 4; --line-dash: none; }
+.infra-edge--ha { --line-width: 2; --line-dash: 7 5; }
+.infra-edge--stack { --line-width: 4; --line-dash: 0.1 7; }
+.infra-edge--wan { --line-color: var(--perim); --line-width: 2.2; --line-dash: none; }
+.infra-edge--almacenamiento { --line-color: var(--data); --line-width: 2.2; --line-dash: none; }
+.infra-edge--energia { --line-color: var(--power); --line-width: 1.8; --line-dash: none; }
+.infra-edge--gestion { --line-width: 1.2; --line-dash: 2 4; }
+.infra-canvas .infra-edge .react-flow__edge-path, .infra-legend__swatch line {
+  fill: none; stroke: var(--line-color, var(--muted)); stroke-width: var(--line-width, 1.8); stroke-dasharray: var(--line-dash, none); stroke-linecap: round;
+}
+.infra-canvas .infra-edge.selected .react-flow__edge-path, .infra-canvas .infra-edge:focus-visible .react-flow__edge-path { stroke: var(--accent); }
+.infra-edge__label { position: absolute; padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 11px; font-weight: 600; pointer-events: none; white-space: nowrap; }
+/* Behind the devices: boxes around groups of peers and the names of the tiers. They take no click, so the map pans through them. */
+.infra-canvas .react-flow__node-groupBox, .infra-canvas .react-flow__node-tierLabel { pointer-events: none !important; cursor: default; }
+.infra-group { box-sizing: border-box; width: 100%; height: 100%; border: 1.5px dashed color-mix(in srgb, var(--muted) 70%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--muted) 6%, transparent); }
+.infra-group__name { display: inline-block; margin: 5px 0 0 10px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.infra-tier { display: block; width: 160px; padding-top: 18px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-align: right; }
+.infra-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-size: 13px; }
+.infra-legend__items { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; }
+.infra-legend__items li { display: flex; gap: 6px; align-items: center; }
+.infra-legend__items li.is-hidden { opacity: .5; }
+.infra-legend .check { display: flex; gap: 6px; align-items: center; }
 .infra-empty { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; padding: 24px; text-align: center; pointer-events: none; }
 .infra-empty p { max-width: 380px; margin: 0; padding: 16px; background: var(--surface); border: 1px dashed var(--muted); border-radius: 12px; pointer-events: auto; }
 .infra-inspector { display: grid; gap: 4px; align-content: start; min-width: 0; }

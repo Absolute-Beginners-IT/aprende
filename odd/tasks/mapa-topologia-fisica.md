@@ -50,7 +50,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | --- | --- | --- | --- | --- |
 | T1 | S2–S8 | delegated (context backstop: long parent session) | done | 5d1cc88, f5a4caf |
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
-| T3 | S10–S16 (slice 2) | delegated (context backstop) | in progress | |
+| T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
 
 ## Log
 
@@ -92,3 +92,23 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   would be overwritten), R3-form-readd-accumulates-links (re-adding a device from the form adds links again),
   R3-onconnect-untested.
 - **L8** (2026-11-11, user, verbatim): «Sí, mergea» (PR #46, merged as 230f278) and «Sí, arranca» — start slice 2. Layout by hand by tiers, no new dependency (elkjs only if this falls short). Creating ha/stack links and groups from the screen is slice 3.
+- **L9** (2026-11-11, T3 writer) Slice 2 implemented. Domain in `app/src/domain/infraMap.ts`: `TIERS`/`tierOf`, `peerSets`
+  (groups by name, then HA/stack runs no group holds, «HA»/«Stack»), `layoutByTiers` (tiers top-down, sub-rows by
+  `levelFinder` over the tier's devices, peers contiguous on the lowest sub-row of their members, rows centred and
+  ordered under their upstream devices), `layoutDevices` (`posicion` wins; the rest by tiers below the placed ones),
+  `arrangeByTiers`, `tierLabels`, `groupBoxes`, `edgeEnds`, `parallelOffsets`, `linkName`, `linkTypesIn`; `GRID` is now
+  200×130. `topology.ts` gained `isPeerLink` and `LINK_TYPE_NAMES`. UI: four handles per device (top/bottom as before,
+  hidden side anchors for HA/stack), custom orthogonal edge `InfraEdge` (smooth-step, parallel offset on both ends and
+  the bend, «LAG · speed» label), group boxes and tier names as non-interactive background nodes, legend with
+  «Mostrar las líneas de gestión/energía» toggles stored in `mapa-infra:lineas-ocultas` (try/catch), «Colocar por capas»
+  with an inline confirmation and one `saveDevices` write. Line styles are classes in `styles.css`. RED observed before
+  GREEN: domain 14 failing, page 7 failing. Checks: app vitest 193/193, app build OK. Browser check pending (parent).
+- **L10** (2026-11-11, T3 writer, after the parent's browser check) Blocker: cross links (CORE-1→FW-2, CORE-2→FW-1,
+  ACC→other core) were drawn on top of the straight ones, so four links showed as two lines; polish: the four «LAG · 10G»
+  labels overlapped. Fix in `infraMap.ts`: `routeEdges` replaces `parallelOffsets` and gives every line end its own spot
+  on its device side, ordered by the x (top/bottom) or y (left/right) of the device at the other end, links of the same
+  pair included; vertical lines between the same two rows bend at distinct heights. `edgeGeometry` applies the route
+  and puts each label above its source end, one label higher per earlier line on that side. `InfraEdge` and the page
+  use them (routed by node centres). RED 4 failing (spots ordered left to right, four FW/core links as four separate
+  lines, same-pair links apart, labels never in the same place and ≥16px apart on one switch), then GREEN. Checks: app
+  vitest 196/196, app build OK. Browser re-check pending (parent).

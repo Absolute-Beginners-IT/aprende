@@ -27,6 +27,14 @@ const HIERARCHICAL: ReadonlySet<LinkType> = new Set<LinkType>(['datos', 'troncal
 
 export const isHierarchical = (link: Pick<Link, 'tipo'>) => HIERARCHICAL.has(link.tipo);
 
+/** Links that join peers working as one, side by side: an HA pair or a stack. */
+export const isPeerLink = (link: Pick<Link, 'tipo'>) => link.tipo === 'ha' || link.tipo === 'stack';
+
+/** The name of each link type as the learner reads it on the map and its legend. */
+export const LINK_TYPE_NAMES: Record<LinkType, string> = {
+  datos: 'Datos', troncal: 'Troncal', lag: 'LAG', ha: 'HA', stack: 'Stack', wan: 'WAN', almacenamiento: 'Almacenamiento', gestion: 'Gestión', energia: 'Energía',
+};
+
 const unique = (ids: string[]) => [...new Set(ids)];
 
 /** The devices `id` hangs from through hierarchical links, once each, whether or not they are still in the inventory. */
