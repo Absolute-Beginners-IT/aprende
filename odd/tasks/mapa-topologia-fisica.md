@@ -62,6 +62,19 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   falla, cada equipo cree que el otro ha caído»; info); a stack group with no `stack` link (aviso); a group with a
   single member (info); a switch that has devices hanging from it and a single hierarchical link upwards (info); the
   same port of a device used by two links (aviso).
+- **S24** (slice 5) The «Lista» page, next to the CSV export, offers «Exportar el esquema (JSON)»: it downloads
+  `mi-infraestructura.json` with `{ version: 2, equipos, enlaces, grupos }`. The CSV export stays as it is.
+- **S25** (slice 5) «Importar el esquema (JSON)» reads a file. Unreadable, foreign or empty content shows an error and
+  saves nothing. Valid content asks for confirmation naming what will be replaced and what comes in («Sustituye tus N
+  equipos por M equipos, X enlaces y Y grupos»); confirming replaces the whole topology in one write, cancelling saves
+  nothing. The old key `mapa-infra:inventario` is never touched.
+- **S26** (slice 5) The app's help texts («Cómo se usa el mapa» and the list page hints) explain link types and ports
+  when joining, the line ficha, Ctrl + clic / Mayúsculas + arrastrar to group, «Colocar por capas», the legend toggles
+  and the JSON export/import.
+- **S27** (slice 5) The route lessons that describe the map say what it can do now: final project room 5 (importing the
+  inventory, then setting link types, ports and groups on the map and exporting the whole schema as JSON), final project
+  room 1 (the drawn map shows each device's links, HA pairs and stacks), the switches lesson (the map can draw trunks
+  and LAGs), and «Qué es esto». CSV wording that is still true stays.
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -74,7 +87,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T2 | verification of T1 (high-risk items 1 and 3) | independent verifier | done (1 blocker fixed) | f5a4caf |
 | T3 | S10–S16 (slice 2) | delegated (context backstop) | implemented, checks green; browser check pending | |
 | T4 | S17–S20 (slice 3) | delegated (context backstop) | done (PR #48, b22c464) | |
-| T5 | S21–S23 (slice 4) | delegated (context backstop) | in progress (S22–S23 implemented, checks green) | |
+| T5 | S21–S23 (slice 4) | delegated (context backstop) | done (PR #49) | dcf57b6 |
+| T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | in progress | |
 
 ## Log
 
@@ -160,3 +174,4 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   cables to one core are enough), the same trimmed port of a device in two or more links (warn, «usa el puerto «p» en N
   enlaces»). Group findings carry no `deviceId`, so they show in the overview only. RED 9 failing (plan 2, page 1,
   analysis 6), then GREEN; negative cases and existing tests already green. Checks: app vitest 233/233, app build OK.
+- **L15** (2026-11-11, user, verbatim): «Sí, mergea» (PR #49, merged as dcf57b6) and «Sí, arranca» — start slice 5.
