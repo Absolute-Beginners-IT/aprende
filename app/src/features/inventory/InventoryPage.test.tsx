@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { InventoryPage } from './InventoryPage';
-import type { Link } from '../../domain/types';
+import type { Link, Topology } from '../../domain/types';
 import { fromInventoryV1, upstreamOf, type DeviceV1 } from '../../domain/topology';
 import { createMemoryInventoryRepository } from '../../adapters/memoryInventoryRepository';
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 type Repo = ReturnType<typeof createMemoryInventoryRepository>;
 const memoryRepository = (initial: DeviceV1[] = []) => createMemoryInventoryRepository(fromInventoryV1(initial));
@@ -170,5 +170,112 @@ describe('InventoryPage', () => {
     const links = await screen.findAllByRole('link', { name: 'Planificar VLAN y puertos' });
     expect(links).toHaveLength(1);
     expect(links[0].getAttribute('href')).toBe('./guias/#/plan');
+  });
+
+  describe('schema as JSON', () => {
+    const fw = (id: string) => ({ id, nombre: id.toUpperCase(), tipo: 'firewall', criticidad: 'Alta' as const, monitorizado: true });
+    const schema: Topology = {
+      equipos: [fw('fw1'), fw('fw2')],
+      enlaces: [{ id: 'fw1--fw2', a: { equipo: 'fw1', puerto: 'ha1' }, b: { equipo: 'fw2', puerto: 'ha1' }, tipo: 'ha' }],
+      grupos: [{ id: 'grupo-1', tipo: 'ha', nombre: 'Par FortiGate', miembros: ['fw1', 'fw2'] }],
+    };
+    /** Captures what a download link would save: the file name and the content of the blob behind it. */
+    const captureDownloads = () => {
+      const blobs: Blob[] = [];
+      const names: string[] = [];
+      URL.createObjectURL = (blob: Blob) => { blobs.push(blob); return `blob:${blobs.length}`; };
+      URL.revokeObjectURL = () => {};
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { names.push(this.download); });
+      return { blobs, names };
+    };
+    const chooseFile = (text: string) =>
+      fireEvent.change(screen.getByLabelText('Importar el esquema (JSON)'), { target: { files: [new File([text], 'mi-infraestructura.json', { type: 'application/json' })] } });
+    /** A memory repository that records every write it receives. */
+    const counted = (initial: Topology) => {
+      const repo = createMemoryInventoryRepository(initial);
+      const apply = repo.apply.bind(repo);
+      const writes: unknown[] = [];
+      repo.apply = async change => { writes.push(change); await apply(change); };
+      return { repo, writes };
+    };
+
+    it('downloads the whole schema as mi-infraestructura.json, version 2', async () => {
+      const downloads = captureDownloads();
+      render(<InventoryPage repository={createMemoryInventoryRepository(schema)} />);
+      await screen.findByText('Tus equipos (2)');
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar el esquema (JSON)' }));
+      expect(downloads.names).toEqual(['mi-infraestructura.json']);
+      expect(JSON.parse(await downloads.blobs[0].text())).toEqual({ version: 2, ...schema });
+    });
+
+    it('still downloads the CSV export as before, next to the JSON one', async () => {
+      const downloads = captureDownloads();
+      render(<InventoryPage repository={memoryRepository([
+        { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true },
+        { id: 'acc', nombre: 'ACC', tipo: 'switch', criticidad: 'Media', monitorizado: false, uplinks: ['core'] },
+      ])} />);
+      await screen.findByText('Tus equipos (2)');
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar CSV' }));
+      expect(downloads.names[0]).toMatch(/^inventario_\d{4}-\d{2}-\d{2}\.csv$/);
+      expect((await downloads.blobs[0].text()).split('\r\n')[1]).toBe('ACC;switch;;;;;;Media;core;;;;No;');
+    });
+
+    it.each([
+      ['text that is not JSON', '{roto', 'No se ha podido importar: el archivo no es un JSON válido.'],
+      ['a foreign document', JSON.stringify([{ id: 'fw1' }]), 'No se ha podido importar: el archivo no es un esquema de Mi infraestructura (versión 2).'],
+      ['a schema with no devices', JSON.stringify({ version: 2, equipos: [], enlaces: [], grupos: [] }), 'No se ha podido importar: el esquema no tiene ningún equipo.'],
+    ])('shows an error for %s and saves nothing', async (_, text, error) => {
+      const { repo, writes } = counted(fromInventoryV1([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true }]));
+      render(<InventoryPage repository={repo} />);
+      await screen.findByText('Tus equipos (1)');
+      chooseFile(text);
+      expect((await screen.findByRole('status')).textContent).toBe(error);
+      expect(screen.queryByRole('group', { name: 'Confirmar la importación del esquema' })).toBeNull();
+      expect(writes).toEqual([]);
+    });
+
+    it('asks before replacing, naming what goes and what comes in', async () => {
+      const { repo, writes } = counted(fromInventoryV1([
+        { id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true },
+        { id: 'acc', nombre: 'ACC', tipo: 'switch', criticidad: 'Media', monitorizado: false },
+        { id: 'srv', nombre: 'SRV', tipo: 'servidor', criticidad: 'Media', monitorizado: false },
+      ]));
+      render(<InventoryPage repository={repo} />);
+      await screen.findByText('Tus equipos (3)');
+      chooseFile(JSON.stringify({ version: 2, ...schema, enlaces: [...schema.enlaces, { ...schema.enlaces[0], id: 'fw1--fw2-2' }] }));
+      const confirm = await screen.findByRole('group', { name: 'Confirmar la importación del esquema' });
+      expect(confirm.textContent).toContain('Sustituye tus 3 equipos por 2 equipos, 2 enlaces y 1 grupo.');
+      expect(writes).toEqual([]);
+    });
+
+    it('replaces the whole topology in one write when the learner confirms', async () => {
+      const { repo, writes } = counted(fromInventoryV1([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true, uplinks: ['gone'] }]));
+      render(<InventoryPage repository={repo} />);
+      await screen.findByText('Tus equipos (1)');
+      chooseFile(JSON.stringify({ version: 2, ...schema }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Sí, sustituir' }));
+      expect(await screen.findByText('Esquema importado: 2 equipos, 1 enlace y 1 grupo.')).toBeTruthy();
+      expect(writes).toHaveLength(1);
+      expect(repo.topology).toEqual(schema);
+      expect(await screen.findByText('Tus equipos (2)')).toBeTruthy();
+    });
+
+    it('saves nothing when the learner cancels the import', async () => {
+      const initial = fromInventoryV1([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Alta', monitorizado: true }]);
+      const { repo, writes } = counted(initial);
+      render(<InventoryPage repository={repo} />);
+      await screen.findByText('Tus equipos (1)');
+      chooseFile(JSON.stringify({ version: 2, ...schema }));
+      fireEvent.click(await screen.findByRole('button', { name: 'Cancelar' }));
+      expect(screen.queryByRole('group', { name: 'Confirmar la importación del esquema' })).toBeNull();
+      expect(writes).toEqual([]);
+      expect(repo.topology).toEqual(initial);
+    });
+
+    it('explains what the CSV and the JSON schema carry, and where link types, ports and groups are edited', async () => {
+      render(<InventoryPage repository={memoryRepository()} />);
+      expect(await screen.findByText(/El esquema JSON lleva todo/)).toBeTruthy();
+      expect(screen.getByText(/El tipo de enlace, los puertos y los grupos se cambian en el mapa/)).toBeTruthy();
+    });
   });
 });

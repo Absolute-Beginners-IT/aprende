@@ -87,4 +87,16 @@ describe('localStorage inventory repository', () => {
     await expect(createLocalStorageInventoryRepository(storage).apply({ removeDevices: ['core'] })).rejects.toThrow('QuotaExceededError');
     expect(storage.data.get(TOPOLOGY_KEY)).toBe(before);
   });
+
+  it('replaces the whole topology in one write and never touches the old inventory', async () => {
+    const storage = new MemoryStorage();
+    const old = JSON.stringify([{ ...device('old'), uplinks: ['gone'] }]);
+    storage.data.set(V1_KEY, old);
+    storage.data.set(TOPOLOGY_KEY, JSON.stringify({ version: 2, equipos: [device('core')], enlaces: [], grupos: [] }));
+    const incoming = { equipos: [device('fw1'), device('fw2')], enlaces: [link('fw1--fw2', 'fw1', 'fw2', 'ha')], grupos: [{ id: 'grupo-1', tipo: 'ha' as const, nombre: 'Par', miembros: ['fw1', 'fw2'] }] };
+    await createLocalStorageInventoryRepository(storage).apply({ replace: incoming });
+    expect(storage.writes).toEqual([TOPOLOGY_KEY]);
+    expect(stored(storage)).toEqual({ version: 2, ...incoming });
+    expect(storage.data.get(V1_KEY)).toBe(old);
+  });
 });

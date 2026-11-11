@@ -232,3 +232,7 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
   .plan-device { break-inside: avoid; }
   .plan-progress__bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
+/* A file input shown as a chip: the label is the button; the input covers it, invisible but still focusable. */
+.file-chip { position: relative; cursor: pointer; }
+.file-chip input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.file-chip:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
