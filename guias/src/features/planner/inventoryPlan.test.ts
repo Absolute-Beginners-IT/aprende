@@ -1,5 +1,6 @@
 import { catalog } from '../../content/catalog'
 import { EMPTY_PLAN, type NetworkPlan, NetworkPlanSchema } from '../../domain/networkPlan'
+import { buildPlanGuide } from './buildPlanGuide'
 import { type InventorySwitch, inventorySwitches } from './inventoryImport'
 import { combineWithInventory, discardHidden, storeCombined } from './inventoryPlan'
 import { twoSwitchPlan } from './planFixtures'
@@ -119,6 +120,101 @@ describe('combineWithInventory', () => {
 
     const back = combineWithInventory(storeCombined(stored, apart.plan), coreAndFloor, catalog)
     expect(back.plan.links).toEqual(stored.links)
+  })
+})
+
+describe('ports from the map of Mi infraestructura', () => {
+  const withMapPorts = (ports: { own?: string; upstream?: string }) =>
+    coreAndFloor.map((item) => (item.id === 'inv-planta' ? { ...item, uplinkPorts: { 'inv-core': ports } } : item))
+
+  it('fills each side of a new link with the port of its switch on the map', () => {
+    const { plan, mapPorts } = combineWithInventory(
+      EMPTY_PLAN,
+      withMapPorts({ own: 'gi1/0/48', upstream: '1/1/49' }),
+      catalog,
+    )
+
+    // A new link has the upstream switch (NUCLEO, sw-1) on side a.
+    expect(plan.links).toEqual([
+      {
+        id: 'ln-1',
+        a: { switch: 'sw-1', interface: '1/1/49' },
+        b: { switch: 'sw-2', interface: 'gi1/0/48' },
+        nativeVlan: 1,
+      },
+    ])
+    expect([...mapPorts].sort()).toEqual(['ln-1:a', 'ln-1:b'])
+  })
+
+  it('fills the right side of a stored link whatever its order', () => {
+    const stored = twoSwitchPlan()
+    const link = stored.links[0]
+    if (!link) throw new Error('fixture')
+    // The floor switch on side a this time.
+    stored.links[0] = {
+      ...link,
+      a: { switch: 'sw-2', interface: 'gi1/0/1' },
+      b: { switch: 'sw-1', interface: '1/1/1' },
+    }
+
+    const { plan, mapPorts } = combineWithInventory(stored, withMapPorts({ own: 'gi1/0/48' }), catalog)
+
+    expect(plan.links[0]).toEqual({
+      id: 'ln-1',
+      a: { switch: 'sw-2', interface: 'gi1/0/48' },
+      b: { switch: 'sw-1', interface: '1/1/1' },
+      nativeVlan: 1,
+    })
+    expect([...mapPorts]).toEqual(['ln-1:a'])
+  })
+
+  it('keeps the planner value of a side the map gives no port, and of every side without map ports', () => {
+    const upstreamOnly = combineWithInventory(twoSwitchPlan(), withMapPorts({ upstream: '1/1/52' }), catalog)
+    expect(upstreamOnly.plan.links[0]?.a.interface).toBe('1/1/52')
+    expect(upstreamOnly.plan.links[0]?.b.interface).toBe('gi1/0/48')
+    expect([...upstreamOnly.mapPorts]).toEqual(['ln-1:a'])
+
+    const none = combineWithInventory(twoSwitchPlan(), coreAndFloor, catalog)
+    expect(none.plan.links).toEqual(twoSwitchPlan().links)
+    expect(none.mapPorts.size).toBe(0)
+  })
+
+  it('stores the planner own value, not the map port, so it comes back when the map port goes', () => {
+    const stored = twoSwitchPlan()
+    const { plan, mapPorts } = combineWithInventory(stored, withMapPorts({ own: 'gi1/0/1' }), catalog)
+    const edited = {
+      ...plan,
+      links: plan.links.map((link) => ({ ...link, a: { ...link.a, interface: '1/1/50' }, nativeVlan: 99 })),
+    }
+
+    const saved = storeCombined(stored, edited, mapPorts)
+
+    expect(saved.links).toEqual([
+      {
+        id: 'ln-1',
+        a: { switch: 'sw-1', interface: '1/1/50' },
+        b: { switch: 'sw-2', interface: 'gi1/0/48' },
+        nativeVlan: 99,
+      },
+    ])
+    expect(combineWithInventory(saved, coreAndFloor, catalog).plan.links[0]?.b.interface).toBe('gi1/0/48')
+  })
+
+  it('stores a new link with empty ports where the map fills them', () => {
+    const { plan, mapPorts } = combineWithInventory(EMPTY_PLAN, withMapPorts({ own: 'gi1/0/48' }), catalog)
+
+    expect(storeCombined(EMPTY_PLAN, plan, mapPorts).links).toEqual([
+      { id: 'ln-1', a: { switch: 'sw-1', interface: '' }, b: { switch: 'sw-2', interface: '' }, nativeVlan: 1 },
+    ])
+  })
+
+  it('builds the runbooks with the port set on the map', () => {
+    const { plan } = combineWithInventory(twoSwitchPlan(), withMapPorts({ own: 'gi1/0/24' }), catalog)
+
+    const floor = buildPlanGuide(plan, catalog).find((guide) => guide.plannedSwitch.id === 'sw-2')
+    const trunk = floor?.steps.find((step) => step.key === 'trunk-ln-1')
+    expect(trunk?.title).toBe('Enlace con NUCLEO: gi1/0/24 en trunk')
+    expect(trunk?.values).toMatchObject({ interfaceId: 'gi1/0/24' })
   })
 })
 

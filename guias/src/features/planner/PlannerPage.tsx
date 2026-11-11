@@ -74,14 +74,14 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const devices = readInventorySwitches()
   const combined = devices.length > 0 ? combineWithInventory(stored, devices, catalog) : undefined
   const plan = combined?.plan ?? stored
-  const setPlan = (next: NetworkPlan) => setStored(combined ? storeCombined(stored, next) : next)
-  const inventory = combined && { deducedModels: combined.deducedModels }
+  const setPlan = (next: NetworkPlan) => setStored(combined ? storeCombined(stored, next, combined.mapPorts) : next)
+  const inventory = combined && { deducedModels: combined.deducedModels, mapPorts: combined.mapPorts }
 
   // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id. The new
   // switches of inventory switches that share a name are not saved (see withoutNewSharedNames).
   const storedText = JSON.stringify(stored)
   const syncedText = combined
-    ? JSON.stringify(storeCombined(stored, withoutNewSharedNames(stored, combined)))
+    ? JSON.stringify(storeCombined(stored, withoutNewSharedNames(stored, combined), combined.mapPorts))
     : storedText
   useEffect(() => {
     if (syncedText !== storedText) setStored(JSON.parse(syncedText))
@@ -147,7 +147,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
               onClick={() => {
                 const names = listNames(combined.hidden)
                 if (window.confirm(`¿Quitar ${names} del plan? Se borran también sus enlaces y sus puertos.`)) {
-                  setStored(discardHidden(stored, combined.plan, combined.duplicates))
+                  setStored(discardHidden(stored, combined.plan, combined.duplicates, combined.mapPorts))
                 }
               }}
             >

@@ -70,6 +70,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
   (`mapa-infra:topologia`). Une los switches igual que antes: un switch cuelga de otro por un enlace de datos, troncal,
   LAG, WAN o almacenamiento; los enlaces de alta disponibilidad, apilamiento, gestión y energía no cuentan. Si el
   navegador solo tiene el inventario antiguo, lo sigue leyendo.
+- En el planificador, los puertos de un enlace entre switches puestos en el mapa de «Mi infraestructura» rellenan el
+  puerto de ese lado y se muestran solo para leer, con la nota «Se cambia en el mapa de Mi infraestructura»; las guías
+  generadas usan ese puerto. El lado sin puerto en el mapa sigue siendo editable, con el valor que tenía en el plan, y
+  ese valor vuelve si se quita el puerto del mapa. Si dos enlaces del mapa unen los mismos switches, el primero da los
+  puertos, porque el plan tiene un enlace por pareja. Las guías nunca escriben en el inventario.
 - El manual se llama ahora «Guías de infraestructura» (antes «Manual de Switching»), porque ya no cubre solo switches:
   título de la página, cabecera y portada del archivo independiente. Lo guardado en el navegador se conserva.
 - En la web, las guías se ven como una sección más: sin la cabecera del manual ni las pestañas de marca. Arriba queda

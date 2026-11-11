@@ -25,7 +25,16 @@ const InventoryDeviceSchema = z.object({
   uplinks: z.array(z.string()).optional(),
 })
 
-export type InventorySwitch = z.infer<typeof InventoryDeviceSchema>
+/** The ports of a link set on the map of «Mi infraestructura»: this switch's side and the upstream side. */
+export interface LinkPorts {
+  own?: string
+  upstream?: string
+}
+
+export type InventorySwitch = z.infer<typeof InventoryDeviceSchema> & {
+  /** Ports of the link to each device in `uplinks`, by that device's id. Only a stored topology carries them. */
+  uplinkPorts?: Record<string, LinkPorts>
+}
 
 /** The switches of an inventory read from untrusted JSON; entries with another shape are left out. */
 export function inventorySwitches(raw: unknown): InventorySwitch[] {
@@ -45,31 +54,53 @@ const TopologySchema = z.object({
   enlaces: z.array(z.unknown()),
 })
 
+// A port that is not text is left out, not the whole link: the switches stay joined as they are on the map.
+const TopologyEndSchema = z.object({ equipo: z.string(), puerto: z.unknown().optional() })
+
 const TopologyLinkSchema = z.object({
-  a: z.object({ equipo: z.string() }),
-  b: z.object({ equipo: z.string() }),
+  a: TopologyEndSchema,
+  b: TopologyEndSchema,
   tipo: z.string(),
 })
 
+const portOf = (end: z.infer<typeof TopologyEndSchema>) =>
+  typeof end.puerto === 'string' && end.puerto.trim() ? end.puerto.trim() : undefined
+
 /**
  * The switches of a stored topology, read from untrusted JSON. Each one gets `uplinks`, the devices it hangs from
- * through hierarchical links, so the planner joins switches exactly as it did with the first inventory.
+ * through hierarchical links, so the planner joins switches exactly as it did with the first inventory, and
+ * `uplinkPorts`, the ports set on the map for each of them. When two links join the same pair, the first one gives
+ * the ports, as the planner keeps one link per pair.
  */
 export function topologySwitches(raw: unknown): InventorySwitch[] {
   const parsed = TopologySchema.safeParse(raw)
   if (!parsed.success) return []
   const uplinks = new Map<string, string[]>()
+  const ports = new Map<string, Record<string, LinkPorts>>()
   for (const item of parsed.data.enlaces) {
     const link = TopologyLinkSchema.safeParse(item)
     if (!link.success || !HIERARCHICAL_LINK_TYPES.has(link.data.tipo)) continue
-    const from = uplinks.get(link.data.a.equipo) ?? []
-    if (!from.includes(link.data.b.equipo)) uplinks.set(link.data.a.equipo, [...from, link.data.b.equipo])
+    const { a, b } = link.data
+    const from = uplinks.get(a.equipo) ?? []
+    if (from.includes(b.equipo)) continue
+    uplinks.set(a.equipo, [...from, b.equipo])
+    const own = portOf(a)
+    const upstream = portOf(b)
+    ports.set(a.equipo, {
+      ...ports.get(a.equipo),
+      [b.equipo]: { ...(own && { own }), ...(upstream && { upstream }) },
+    })
   }
   const devices = parsed.data.equipos.map((item) => {
     const device = InventoryDeviceSchema.omit({ uplinks: true }).safeParse(item)
     return device.success ? { ...device.data, uplinks: uplinks.get(device.data.id) ?? [] } : item
   })
-  return inventorySwitches(devices)
+  return inventorySwitches(devices).map((device) => ({ ...device, uplinkPorts: portsWithAny(ports.get(device.id)) }))
+}
+
+/** Only the upstream devices with a port on the map, so a link without ports reads as it did before. */
+function portsWithAny(ports: Record<string, LinkPorts> | undefined): Record<string, LinkPorts> {
+  return Object.fromEntries(Object.entries(ports ?? {}).filter(([, value]) => value.own || value.upstream))
 }
 
 /**

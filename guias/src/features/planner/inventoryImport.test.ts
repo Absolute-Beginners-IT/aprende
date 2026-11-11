@@ -97,6 +97,38 @@ describe('topologySwitches', () => {
     ])
   })
 
+  it('gives each switch the ports of the link to what it hangs from, own side and upstream side', () => {
+    const withPorts = {
+      ...topology,
+      enlaces: [
+        { id: '1', a: { equipo: 'core1' }, b: { equipo: 'fw01', puerto: 'port3' }, tipo: 'datos' },
+        {
+          id: '3',
+          a: { equipo: 'p1', puerto: 'gi1/0/48' },
+          b: { equipo: 'core1', puerto: ' 1/1/49 ' },
+          tipo: 'troncal',
+        },
+        { id: '4', a: { equipo: 'p1', puerto: 'gi1/0/47' }, b: { equipo: 'core1', puerto: '1/1/50' }, tipo: 'lag' },
+        { id: '6', a: { equipo: 'core2', puerto: '  ' }, b: { equipo: 'fw01', puerto: 7 }, tipo: 'wan' },
+      ],
+    }
+
+    expect(topologySwitches(withPorts).map((d) => [d.id, d.uplinks, d.uplinkPorts])).toEqual([
+      ['core1', ['fw01'], { fw01: { upstream: 'port3' } }],
+      ['core2', ['fw01'], {}],
+      // Two links to the same switch: the first one, as the planner keeps one link per pair.
+      ['p1', ['core1'], { core1: { own: 'gi1/0/48', upstream: '1/1/49' } }],
+    ])
+  })
+
+  it('gives no ports to the switches of the old inventory', () => {
+    const [device] = inventorySwitches([
+      { id: 'a', nombre: 'A', tipo: 'switch', uplinks: ['b'], uplinkPorts: { b: { own: 'x' } } },
+    ])
+    expect(device?.uplinks).toEqual(['b'])
+    expect(device?.uplinkPorts).toBeUndefined()
+  })
+
   it('returns nothing for another version or a document with an unexpected shape', () => {
     expect(topologySwitches({ ...topology, version: 3 })).toEqual([])
     expect(topologySwitches({ version: 2, equipos: {} })).toEqual([])
