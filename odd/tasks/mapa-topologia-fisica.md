@@ -99,6 +99,17 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 - **S34** (slice 7) A regleta fed by two or more SAIs or regletas is reported (info): «Regleta (PDU) 1 recibe corriente
   de SAI 1 y SAI 2: una regleta normal solo tiene una entrada; para dos SAI hace falta una PDU con conmutador
   automático (ATS), o lo habitual: un SAI por regleta.»
+- **S35** (slice 8) The map has two views of the same inventory, chosen with tabs above it: «Red» and «Energía». The
+  choice is remembered per browser only. Stored data does not change when switching.
+- **S36** (slice 8) «Red» draws no `energia` lines. Each device that has power links shows a small badge listing what
+  feeds it (its regletas or SAIs, e.g. «⚡ Regleta (PDU) 1 · SAI 2»); a device with a single feed shows it in the warning
+  colour. SAIs and regletas themselves show no badge. The legend no longer offers the «Energía» toggle there.
+- **S37** (slice 8) «Energía» draws only power: SAIs on top, each regleta below as a horizontal bar spanning the devices
+  it feeds, and those devices below the bars, each joined to each of its feeding bars (or straight to a SAI) by a short
+  vertical line; no network lines. Its layout is computed, never saved, and never changes the positions of the «Red»
+  view. A device fed by two bars sits between them so both short lines stay readable.
+- **S38** (slice 8) In «Energía», joining two devices offers only the energía link type (Toma / Fuente de alimentación),
+  and clicking a line opens its ficha as in «Red». «Qué te falta» is the same in both views.
 - **S9** Later slices (not in slice 1): drawing by tiers with groups and typed orthogonal lines (slice 2), editing link
   type, ports and groups (slice 3), planner/deployment/analysis using ports and groups (slice 4), link export and route
   content (slice 5).
@@ -114,7 +125,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T5 | S21–S23 (slice 4) | delegated (context backstop) | done (PR #49) | dcf57b6 |
 | T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | done (PR #50) | a9b1489 |
 | T7 | S28–S31 (slice 6, power) | delegated (context backstop) | done (PR #51) | 42ef915 |
-| T8 | S32–S34 (slice 7) | delegated (context backstop) | done (writer), commit pending | |
+| T8 | S32–S34 (slice 7) | delegated (context backstop) | done (PR #52) | 39b0841 |
+| T9 | S35–S38 (slice 8, power view) | delegated (context backstop) | in progress | |
 
 ## Log
 
@@ -238,3 +250,8 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   On the user's map Firewall 1 also has a cable straight to SAI 2, so by S33 no shared-regleta aviso appears there
   (the review expected one); the S34 info appears for both regletas. RED 6 failing, then GREEN. Checks: app vitest
   278/278, app build OK.
+- **L21** (2026-11-12, user, verbatim): «Mas que el probhlema de no haberle dicho yo como hay que conectarse, me preocupa el
+  amalgama de conexiones que se ven, sobre todo las de Energía. El sai sostiene todos los elementos importantes del RACK a
+  través de las Regletas. PEro la cantidad de conexiones que se ven de un lado a otro resulta visualmente caótico. Busca una
+  forma de organizarlo limpiamente sin perder la coherencia». Decision: two views (Red / Energía), power badges in Red,
+  single-line power diagram with regletas as bars in Energía.
