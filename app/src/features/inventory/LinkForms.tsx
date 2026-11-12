@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
-import { LINK_TYPES, type Link } from '../../domain/types';
+import { LINK_TYPES, type Link, type LinkType } from '../../domain/types';
 import { LINK_TYPE_NAMES, isHierarchical, powerEndRoles, powerSourceSide } from '../../domain/topology';
 import { carriesNetworkData, carriesVlans, draftOf, type LinkDraft } from '../../domain/infraMap';
 
@@ -35,8 +35,9 @@ function directionText(tipo: LinkDraft['tipo'], nameA: string, nameB: string, { 
  * The fields of a link shared by the new link form and the ficha of a link; VLANs only for trunks and LAGs. A power
  * link has no network ports or speed: its ports hold the outlet («Toma», on the SAI or regleta) and the power supply.
  */
-function LinkFields({ draft, onChange, nameA, nameB, types, first, notes }: {
+function LinkFields({ draft, onChange, nameA, nameB, types, first, notes, linkTypes = LINK_TYPES }: {
   draft: LinkDraft; onChange: (draft: LinkDraft) => void; nameA: string; nameB: string; types: EndTypes; first: RefObject<HTMLSelectElement | null>; notes?: boolean;
+  linkTypes?: readonly LinkType[];
 }) {
   const text = (key: Exclude<keyof LinkDraft, 'tipo'>, label: string, placeholder?: string) => (
     <label key={key}>{label}<input value={draft[key] ?? ''} placeholder={placeholder} onChange={e => onChange({ ...draft, [key]: e.target.value })} /></label>
@@ -52,7 +53,7 @@ function LinkFields({ draft, onChange, nameA, nameB, types, first, notes }: {
     <>
       <label>Tipo de enlace
         <select ref={first} value={draft.tipo} onChange={e => onChange({ ...draft, tipo: e.target.value as LinkDraft['tipo'] })}>
-          {LINK_TYPES.map(t => <option key={t} value={t}>{LINK_TYPE_NAMES[t]}</option>)}
+          {linkTypes.map(t => <option key={t} value={t}>{LINK_TYPE_NAMES[t]}</option>)}
         </select>
       </label>
       <p className="muted infra-form__hint">{directionText(draft.tipo, nameA, nameB, types)}</p>
@@ -71,12 +72,13 @@ function LinkFields({ draft, onChange, nameA, nameB, types, first, notes }: {
 
 /**
  * The form that opens when two devices are joined on the map: nothing is saved until «Crear enlace».
- * `onCreate` saves the link, or returns why it cannot be made so the form stays open showing it.
+ * `onCreate` saves the link, or returns why it cannot be made so the form stays open showing it. `linkTypes` limits the
+ * types offered (the «Energía» view offers only power); the first one is chosen to start with.
  */
-export function NewLinkForm({ nameA, nameB, types = {}, onCreate, onCancel }: {
-  nameA: string; nameB: string; types?: EndTypes; onCreate: (draft: LinkDraft) => string | null; onCancel: () => void;
+export function NewLinkForm({ nameA, nameB, types = {}, linkTypes, onCreate, onCancel }: {
+  nameA: string; nameB: string; types?: EndTypes; linkTypes?: readonly LinkType[]; onCreate: (draft: LinkDraft) => string | null; onCancel: () => void;
 }) {
-  const [draft, setDraft] = useState<LinkDraft>({ tipo: 'datos' });
+  const [draft, setDraft] = useState<LinkDraft>({ tipo: linkTypes?.[0] ?? 'datos' });
   const [refusal, setRefusal] = useState('');
   const first = useFocusOnOpen<HTMLSelectElement>();
   const submit = (e: FormEvent) => {
@@ -88,7 +90,7 @@ export function NewLinkForm({ nameA, nameB, types = {}, onCreate, onCancel }: {
       <span className="label">Nuevo enlace</span>
       <p>Entre <b>{nameA}</b> y <b>{nameB}</b></p>
       <form className="infra-form" onSubmit={submit} onKeyDown={cancelOnEscape(onCancel)}>
-        <LinkFields draft={draft} onChange={d => { setDraft(d); setRefusal(''); }} nameA={nameA} nameB={nameB} types={types} first={first} />
+        <LinkFields draft={draft} onChange={d => { setDraft(d); setRefusal(''); }} nameA={nameA} nameB={nameB} types={types} first={first} linkTypes={linkTypes} />
         {refusal && <p className="infra-form__error" role="alert">{refusal}</p>}
         <div className="infra-form__actions">
           <button type="submit">Crear enlace</button>

@@ -301,11 +301,12 @@ const edgesOf = (container: HTMLElement) => container.querySelectorAll('.react-f
 describe('InfraMapPage drawing', () => {
   it('names every line «A – B: tipo», two HA lines between the same firewalls included', async () => {
     const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
-    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
     expect(container.querySelectorAll('[aria-label="FW1 – FW2: HA"], [aria-label="FW2 – FW1: HA"]')).toHaveLength(2);
     expect(container.querySelector('[aria-label="ACC1 – CORE1: LAG"]')).toBeTruthy();
-    expect(container.querySelector('[aria-label="SAI – FW1: Energía"]')).toBeTruthy();
     expect(container.querySelector('.react-flow__edge.infra-edge--stack')).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: 'Energía' }));
+    await waitFor(() => expect(container.querySelector('[aria-label="SAI – FW1: Energía"]')).toBeTruthy());
   });
 
   it('shows the speed and «LAG» on the line of a LAG', async () => {
@@ -324,24 +325,22 @@ describe('InfraMapPage drawing', () => {
   it('lists in the legend only the link types on the map', async () => {
     render(<InfraMapPage repository={memoryRepository(drawing())} />);
     const legend = within(await screen.findByRole('region', { name: 'Leyenda del mapa' }));
-    expect(legend.getAllByRole('listitem').map(li => li.textContent)).toEqual(['Datos', 'LAG', 'HA', 'Stack', 'Gestión', 'Energía']);
+    expect(legend.getAllByRole('listitem').map(li => li.textContent)).toEqual(['Datos', 'LAG', 'HA', 'Stack', 'Gestión']);
   });
 
-  it('hides management and power lines with their toggles and remembers it in this browser', async () => {
+  it('hides management lines with their toggle and remembers it in this browser', async () => {
     const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
-    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
-    expect(container.querySelector('.react-flow__edge.infra-edge--gestion')).toBeNull();
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de energía' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(container)).toHaveLength(6));
+    expect(container.querySelector('.react-flow__edge.infra-edge--gestion')).toBeNull();
     cleanup();
 
     const again = render(<InfraMapPage repository={memoryRepository(drawing())} />);
     await screen.findByText('FW1', { selector: '.infra-node__name' });
     await waitFor(() => expect(edgesOf(again.container)).toHaveLength(6));
     expect((screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }) as HTMLInputElement).checked).toBe(false);
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de energía' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(again.container)).toHaveLength(7));
   });
 
@@ -350,7 +349,8 @@ describe('InfraMapPage drawing', () => {
     Storage.prototype.getItem = () => { throw new Error('SecurityError'); };
     try {
       const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
-      await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
+      await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
+      expect(screen.getByRole('tab', { name: 'Red' }).getAttribute('aria-selected')).toBe('true');
     } finally { Storage.prototype.getItem = getItem; }
   });
 
@@ -384,9 +384,9 @@ describe('InfraMapPage drawing', () => {
     const apply = repo.apply;
     repo.apply = change => { writes++; return apply(change); };
     const { container } = render(<InfraMapPage repository={repo} />);
-    await waitFor(() => expect(edgesOf(container)).toHaveLength(8));
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(6));
     expect(writes).toBe(0);
   });
 });
@@ -689,6 +689,7 @@ describe('InfraMapPage power links', () => {
   it('shows the outlet and the power supply in the ficha of a power line and on the line itself', async () => {
     const repo = memoryRepository(powered([{ id: 'p1', a: { equipo: 'fw1', puerto: 'Fuente 1' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]));
     const { container } = render(<InfraMapPage repository={repo} />);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Energía' }));
     expect(await screen.findByText('Toma 3 · Fuente 1')).toBeTruthy();
     fireEvent.click(container.querySelector('[aria-label="FW1 – UPS: Energía"]') as HTMLElement);
     const f = linkFicha();
@@ -699,5 +700,132 @@ describe('InfraMapPage power links', () => {
     fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
     await screen.findByRole('status');
     expect(repo.topology.enlaces).toEqual([{ id: 'p1', a: { equipo: 'fw1', puerto: 'Fuente 2' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]);
+  });
+});
+
+// Slice 8: two views of the same inventory. «Red» draws no power lines and shows what feeds each device; «Energía»
+// draws only power, as a single-line diagram with the regletas as bars.
+const rackRoom = (): Topology => {
+  const d = (id: string, nombre: string, tipo: string): Device => ({ id, nombre, tipo, criticidad: 'Alta', monitorizado: true, posicion: { x: 300, y: 300 } });
+  return {
+    equipos: [d('sai1', 'SAI 1', 'sai'), d('sai2', 'SAI 2', 'sai'), d('pdu1', 'Regleta (PDU) 1', 'regleta'), d('fw1', 'FW1', 'firewall'), d('fw2', 'FW2', 'firewall'), d('core', 'CORE', 'switch')],
+    enlaces: [
+      link('p-s1', 'pdu1', 'sai1', 'energia'), link('fw1-p', 'fw1', 'pdu1', 'energia'), link('fw1-s2', 'fw1', 'sai2', 'energia'),
+      link('fw2-p', 'fw2', 'pdu1', 'energia'), link('c1', 'core', 'fw1', 'datos'), link('c2', 'core', 'fw2', 'datos'),
+    ],
+    grupos: [],
+  };
+};
+const tab = (name: string) => screen.getByRole('tab', { name });
+const badgeOf = (container: HTMLElement, id: string) => container.querySelector(`.react-flow__node[data-id="${id}"] .infra-node__power`);
+const toEnergy = async () => fireEvent.click(await screen.findByRole('tab', { name: 'Energía' }));
+
+describe('InfraMapPage views', () => {
+  it('switches between «Red» and «Energía» with tabs and remembers the choice in this browser', async () => {
+    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    expect(await screen.findByRole('tablist', { name: 'Vista del mapa' })).toBeTruthy();
+    expect(tab('Red').getAttribute('aria-selected')).toBe('true');
+    expect(tab('Energía').getAttribute('aria-selected')).toBe('false');
+    fireEvent.click(tab('Energía'));
+    expect(tab('Energía').getAttribute('aria-selected')).toBe('true');
+    cleanup();
+
+    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    expect((await screen.findByRole('tab', { name: 'Energía' })).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(tab('Energía'), { key: 'ArrowLeft' });
+    expect(tab('Red').getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(tab('Red'));
+  });
+
+  it('changes no stored data when switching views', async () => {
+    const repo = memoryRepository(rackRoom());
+    const before = repo.topology;
+    const writes = counted(repo);
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await screen.findByText('FW1', { selector: '.infra-node__name' });
+    await toEnergy();
+    await waitFor(() => expect(container.querySelector('.react-flow__node-regletaBar')).toBeTruthy());
+    fireEvent.click(tab('Red'));
+    await waitFor(() => expect(container.querySelector('.react-flow__node-regletaBar')).toBeNull());
+    expect(writes.count).toBe(0);
+    expect(repo.topology).toBe(before);
+  });
+
+  it('draws no power lines in «Red»', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(2));
+    expect(container.querySelector('.react-flow__edge.infra-edge--energia')).toBeNull();
+  });
+
+  it('shows in «Red» what feeds each device, in the warning colour when it has a single feed', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    await waitFor(() => expect(badgeOf(container, 'fw1')).toBeTruthy());
+    expect(badgeOf(container, 'fw1')!.textContent).toBe('⚡ Regleta (PDU) 1 · SAI 2');
+    expect(badgeOf(container, 'fw1')!.classList.contains('is-single')).toBe(false);
+    expect(badgeOf(container, 'fw2')!.textContent).toBe('⚡ Regleta (PDU) 1');
+    expect(badgeOf(container, 'fw2')!.classList.contains('is-single')).toBe(true);
+    expect(badgeOf(container, 'core')).toBeNull();
+  });
+
+  it('shows no power badge on SAIs and regletas', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    await waitFor(() => expect(badgeOf(container, 'fw1')).toBeTruthy());
+    for (const id of ['sai1', 'sai2', 'pdu1']) expect(badgeOf(container, id)).toBeNull();
+  });
+
+  it('offers no «Energía» toggle in the legend of «Red», only the management one', async () => {
+    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    await screen.findByRole('region', { name: 'Leyenda del mapa' });
+    expect(screen.queryByRole('checkbox', { name: 'Mostrar las líneas de energía' })).toBeNull();
+    expect(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' })).toBeTruthy();
+  });
+
+  it('draws only power in «Energía»: the regletas as bars, one line per power link and no network lines', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    await toEnergy();
+    await waitFor(() => expect(edgesOf(container)).toHaveLength(4));
+    expect(container.querySelectorAll('.react-flow__edge.infra-edge--energia')).toHaveLength(4);
+    expect(container.querySelector('[aria-label="CORE – FW1: Datos"]')).toBeNull();
+    expect(container.querySelector('.react-flow__node-regletaBar[data-id="pdu1"]')?.textContent).toContain('Regleta (PDU) 1');
+    expect(container.querySelector('.react-flow__node-device[data-id="pdu1"]')).toBeNull();
+    expect(badgeOf(container, 'fw1')).toBeNull();
+    expect(screen.getByText('Sin enlaces de energía: CORE.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Colocar por capas' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Leyenda del mapa' })?.querySelector('input')).toBeFalsy();
+  });
+
+  it('offers only the energía link type when joining two devices in «Energía»', async () => {
+    const repo = memoryRepository(rackRoom());
+    const { container } = render(<InfraMapPage repository={repo} />);
+    await toEnergy();
+    await join(container, 'core', 'sai2');
+    const form = linkForm();
+    const select = form.getByLabelText('Tipo de enlace') as HTMLSelectElement;
+    expect([...select.options].map(o => o.textContent)).toEqual(['Energía']);
+    expect(select.value).toBe('energia');
+    expect(form.getByText('CORE se alimenta de SAI 2.')).toBeTruthy();
+    fireEvent.change(form.getByLabelText('Toma en SAI 2'), { target: { value: '4' } });
+    fireEvent.click(form.getByRole('button', { name: 'Crear enlace' }));
+    await screen.findByRole('status');
+    expect(repo.topology.enlaces.at(-1)).toEqual({ id: 'core--sai2', a: { equipo: 'core' }, b: { equipo: 'sai2', puerto: '4' }, tipo: 'energia' });
+  });
+
+  it('opens the ficha of a power line clicked in «Energía»', async () => {
+    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    await toEnergy();
+    await waitFor(() => expect(container.querySelector('[aria-label="FW2 – Regleta (PDU) 1: Energía"]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[aria-label="FW2 – Regleta (PDU) 1: Energía"]') as HTMLElement);
+    const f = linkFicha();
+    expect(f.getByText('FW2 se alimenta de Regleta (PDU) 1.')).toBeTruthy();
+    expect(f.getByLabelText('Toma en Regleta (PDU) 1')).toBeTruthy();
+  });
+
+  it('shows the same «Qué te falta» in both views', async () => {
+    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const gaps = async () => (await screen.findByRole('complementary', { name: 'Qué te falta' })).textContent;
+    const red = await gaps();
+    expect(red).toMatch(/SAI 1/);
+    await toEnergy();
+    expect(await gaps()).toBe(red);
   });
 });

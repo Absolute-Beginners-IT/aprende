@@ -7,15 +7,17 @@ import '@xyflow/react/dist/style.css';
 import type { Device, DeviceGroup, GroupType, Link, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
-import { LINK_TYPE_NAMES, groupOf, powerEndRoles } from '../../domain/topology';
+import { LINK_TYPE_NAMES, groupOf, isPowerSupplier, powerEndRoles, powerFeedersOf } from '../../domain/topology';
 import {
-  GRID, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, editLink, groupBoxes, groupRefusal, layoutDevices, linkName, linkRefusal,
-  linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, type LinkDraft, type LinkRefusal,
+  BAR_HEIGHT, GRID, POWER_NODE, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, editLink, groupBoxes, groupRefusal, layoutDevices, layoutPower,
+  linkName, linkRefusal, linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, type LinkDraft, type LinkRefusal,
 } from '../../domain/infraMap';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
-import { InfraEdge, type InfraEdgeType } from './InfraEdge';
+import { InfraEdge, PowerLineEdge, type InfraEdgeType, type PowerLineEdgeType } from './InfraEdge';
+import { RegletaBarNode, type RegletaBarNodeType } from './RegletaBarNode';
+import { MapViewTabs, loadMapView, saveMapView, type MapView } from './MapViewTabs';
 import { GroupBoxNode, TierLabelNode, type GroupBoxNodeType, type TierLabelNodeType } from './MapDecorations';
 import { MapLegend, loadHiddenLines, saveHiddenLines } from './MapLegend';
 import { DevicePalette, PALETTE_DRAG_TYPE } from './DevicePalette';
@@ -23,10 +25,15 @@ import { DeviceInspector, InventoryOverview } from './DeviceInspector';
 import { LinkInspector, NewLinkForm } from './LinkForms';
 import { GroupPanel } from './GroupPanel';
 
-type MapNode = DeviceNodeType | GroupBoxNodeType | TierLabelNodeType;
+/** What the learner works with on the map: devices and, in the «Energía» view, regletas drawn as bars. */
+type ItemNode = DeviceNodeType | RegletaBarNodeType;
+type MapNode = ItemNode | GroupBoxNodeType | TierLabelNodeType;
+type MapEdge = InfraEdgeType | PowerLineEdgeType;
 
-const nodeTypes = { device: DeviceNode, groupBox: GroupBoxNode, tierLabel: TierLabelNode };
-const edgeTypes = { infra: InfraEdge };
+const nodeTypes = { device: DeviceNode, regletaBar: RegletaBarNode, groupBox: GroupBoxNode, tierLabel: TierLabelNode };
+const edgeTypes = { infra: InfraEdge, power: PowerLineEdge };
+const LEGEND_POWER: LinkType[] = ['energia'];
+const NO_LINES: LinkType[] = [];
 /** Decorations stay behind the devices and take no gesture, focus or selection. */
 const DECORATION = { draggable: false, selectable: false, focusable: false, connectable: false, deletable: false, zIndex: -1 } as const;
 // A small inventory is shown at its real size instead of blown up to fill the canvas.
@@ -49,8 +56,10 @@ const ARIA_LABELS: Partial<AriaLabelConfig> = {
   'handle.ariaLabel': 'Punto de conexión',
 };
 
-const isSelection = (c: NodeChange<DeviceNodeType>): c is NodeSelectionChange => c.type === 'select';
-const isDrop = (c: NodeChange<DeviceNodeType>): c is NodePositionChange => c.type === 'position' && c.dragging === false && !!c.position;
+const isSelection = (c: NodeChange<ItemNode>): c is NodeSelectionChange => c.type === 'select';
+const isDrop = (c: NodeChange<ItemNode>): c is NodePositionChange => c.type === 'position' && c.dragging === false && !!c.position;
+/** Names as a Spanish list: «A», «A y B», «A, B y C». */
+const listNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}` : names.join(''));
 const changedId = (c: NodeChange<MapNode>) => ('id' in c ? c.id : c.item.id);
 
 /** The first spot around `center`, ring by ring on the map grid, that no device covers. */
@@ -79,9 +88,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const canvas = useRef<HTMLDivElement>(null);
   // The selected devices in the order they were picked: one opens its ficha, several can be grouped.
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [nodes, setNodes] = useState<DeviceNodeType[]>([]);
+  const [nodes, setNodes] = useState<ItemNode[]>([]);
   const [pickedEdges, setPickedEdges] = useState<ReadonlySet<string>>(new Set());
   const [hiddenLines, setHiddenLines] = useState<LinkType[]>(loadHiddenLines);
+  // «Red» or «Energía»: two drawings of the same inventory. Switching only changes what is drawn, never what is stored.
+  const [view, setView] = useState<MapView>(loadMapView);
   const [confirmingArrange, setConfirmingArrange] = useState(false);
   // Two devices just joined on the map: the link is saved only when its form is sent.
   const [pendingLink, setPendingLink] = useState<{ from: string; to: string } | null>(null);
@@ -93,22 +104,54 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const selected = selectedDevices.length === 1 ? selectedDevices[0] : undefined;
   const selectedLink = selectedDevices.length === 0 && pickedEdges.size === 1 ? drawnLinks(topology).find(l => pickedEdges.has(l.id)) : undefined;
   const select = (id: string | null) => { setSelectedIds(id ? [id] : []); setPickedEdges(new Set()); };
+  // The «Energía» view is worked out from the power links each time: it is never saved and never moves the «Red» view.
+  const powerLayout = useMemo(() => (view === 'energia' ? layoutPower(topology) : null), [topology, view]);
 
-  // React Flow keeps the measured size on each node: rebuild them from the inventory without losing it.
+  const switchView = (next: MapView) => {
+    if (next === view) return;
+    setView(next);
+    saveMapView(next);
+    setPendingLink(null);
+    setPickedEdges(new Set());
+    setTimeout(() => void fitView(FIT_VIEW));
+  };
+
+  // React Flow keeps the measured size on each node: rebuild them from the inventory without losing it, as long as
+  // the node is drawn the same way (a device has a fixed width in the «Energía» view).
   useEffect(() => {
-    const positions = layoutDevices(topology);
     setNodes(prev => {
       const old = new Map(prev.map(n => [n.id, n]));
-      return devices.map(d => ({
-        ...old.get(d.id), id: d.id, type: 'device', position: positions.get(d.id)!, data: { device: d },
-        selected: selectedIds.includes(d.id), deletable: false, ariaLabel: d.nombre,
+      const kept = (id: string, type: ItemNode['type']) => {
+        const node = old.get(id);
+        return node && node.type === type && Boolean(node.type === 'device' && node.data.power) === (view === 'energia' && type === 'device') ? node : undefined;
+      };
+      const common = (d: Device) => ({ id: d.id, selected: selectedIds.includes(d.id), deletable: false, ariaLabel: d.nombre });
+      if (powerLayout) {
+        const bars: RegletaBarNodeType[] = powerLayout.bars.flatMap(b => {
+          const d = byId.get(b.id);
+          return d ? [{
+            ...kept(d.id, 'regletaBar'), ...common(d), type: 'regletaBar' as const, position: { x: b.x, y: b.y }, width: b.width, height: BAR_HEIGHT,
+            data: { device: d }, draggable: false,
+          }] : [];
+        });
+        const shown: DeviceNodeType[] = devices.filter(d => powerLayout.positions.has(d.id)).map(d => ({
+          ...(kept(d.id, 'device') as DeviceNodeType | undefined), ...common(d), type: 'device' as const, position: powerLayout.positions.get(d.id)!,
+          width: POWER_NODE.width, data: { device: d, power: true }, draggable: false,
+        }));
+        return [...bars, ...shown];
+      }
+      const positions = layoutDevices(topology);
+      return devices.map((d): DeviceNodeType => ({
+        ...(kept(d.id, 'device') as DeviceNodeType | undefined), ...common(d), type: 'device', position: positions.get(d.id)!,
+        data: { device: d, feeds: isPowerSupplier(d.tipo) ? undefined : powerFeedersOf(topology, d.id).map(nameOf) },
       }));
     });
-  }, [topology]);
+  }, [topology, powerLayout]);
   useEffect(() => setNodes(ns => ns.map(n => (n.selected === selectedIds.includes(n.id) ? n : { ...n, selected: selectedIds.includes(n.id) }))), [selectedIds]);
 
   // Boxes, tier names and lines follow the devices where they are shown right now, so they move along while dragging.
   const decorations = useMemo((): MapNode[] => {
+    if (view === 'energia') return [];
     const shown = new Map(nodes.map(n => [n.id, n]));
     const rectOf = (id: string) => {
       const n = shown.get(id);
@@ -122,26 +165,43 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       ...DECORATION, id: `tier:${tier.id}`, type: 'tierLabel', position: { x: tier.x, y: tier.y }, data: { nombre: tier.nombre },
     }));
     return [...tiers, ...boxes];
-  }, [topology, nodes]);
+  }, [topology, nodes, view]);
   const flowNodes = useMemo(() => [...decorations, ...nodes], [decorations, nodes]);
 
-  const edges = useMemo((): InfraEdgeType[] => {
+  const edges = useMemo((): MapEdge[] => {
+    const powerOf = (l: Link) => powerEndRoles(byId.get(l.a.equipo)?.tipo, byId.get(l.b.equipo)?.tipo);
+    if (powerLayout) {
+      // «Energía»: one short line per power link, where the power layout put it, drawn over the bars it may cross.
+      const links = new Map(drawnLinks(topology).map(l => [l.id, l]));
+      return powerLayout.edges.flatMap((line): PowerLineEdgeType[] => {
+        const l = links.get(line.id);
+        return l ? [{
+          id: l.id, type: 'power', source: line.lower, sourceHandle: 'top', target: line.upper, targetHandle: 'bottom', zIndex: 1,
+          selected: pickedEdges.has(l.id), className: 'infra-edge infra-edge--energia', ariaLabel: linkName(l, nameOf), data: { link: l, line, power: powerOf(l) },
+        }] : [];
+      });
+    }
     // Lines are routed by the centre of each device as shown now, so devices of different widths order their lines right.
     const centres = new Map(nodes.map(n => [n.id, {
       x: n.position.x + (n.measured?.width ?? NODE_SIZE.width) / 2, y: n.position.y + (n.measured?.height ?? NODE_SIZE.height) / 2,
     }]));
-    const visible = drawnLinks(topology).filter(l => !hiddenLines.includes(l.tipo));
+    // «Red» draws no power lines: what feeds each device is on its badge, and the power has a view of its own.
+    const visible = drawnLinks(topology).filter(l => l.tipo !== 'energia' && !hiddenLines.includes(l.tipo));
     const routes = routeEdges(visible, id => centres.get(id));
     return visible.map(l => {
       const route = routes.get(l.id)!;
       return {
         id: l.id, type: 'infra', source: route.source, sourceHandle: route.sourceHandle, target: route.target, targetHandle: route.targetHandle,
         selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}`, ariaLabel: linkName(l, nameOf),
-        data: { link: l, route, ...(l.tipo === 'energia' ? { power: powerEndRoles(byId.get(l.a.equipo)?.tipo, byId.get(l.b.equipo)?.tipo) } : {}) },
+        data: { link: l, route },
       };
     });
-  }, [topology, nodes, hiddenLines, pickedEdges]);
-  const linkTypes = useMemo(() => linkTypesIn(topology), [topology]);
+  }, [topology, nodes, hiddenLines, pickedEdges, powerLayout]);
+  const linkTypes = useMemo(() => {
+    const present = linkTypesIn(topology);
+    if (view === 'energia') return present.includes('energia') ? LEGEND_POWER : NO_LINES;
+    return present.filter(t => t !== 'energia');
+  }, [topology, view]);
 
   const toggleLines = (tipo: LinkType, show: boolean) => {
     const next = show ? hiddenLines.filter(t => t !== tipo) : [...hiddenLines.filter(t => t !== tipo), tipo];
@@ -159,7 +219,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   // The selection is ours (it opens the ficha); nodes are deleted only from the ficha, never with the keyboard.
   const onNodesChange = (all: NodeChange<MapNode>[]) => {
     // Boxes and tier names are worked out from the devices: only changes to devices count.
-    const changes = all.filter(c => byId.has(changedId(c))) as NodeChange<DeviceNodeType>[];
+    const changes = all.filter(c => byId.has(changedId(c))) as NodeChange<ItemNode>[];
     const selection = changes.filter(isSelection);
     if (selection.length) setSelectedIds(prev => {
       const next = prev.filter(id => !selection.some(c => c.id === id && !c.selected));
@@ -167,10 +227,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       return next.length === prev.length && next.every((id, i) => id === prev[i]) ? prev : next;
     });
     // Only real changes touch the nodes: a new array for nothing would redraw the decorations and measure them again, forever.
-    const applied = changes.filter(c => c.type !== 'select' && c.type !== 'remove');
+    // The «Energía» view is worked out, never moved: only the «Red» view takes moves.
+    const applied = changes.filter(c => c.type !== 'select' && c.type !== 'remove' && (view === 'red' || c.type !== 'position'));
     if (applied.length) setNodes(ns => applyNodeChanges(applied, ns));
     // A drag that ends or a move with the arrow keys leaves the device in its new place.
-    const moved = changes.filter(isDrop).filter(c => {
+    const moved = view !== 'red' ? [] : changes.filter(isDrop).filter(c => {
       const stored = byId.get(c.id)?.posicion;
       return Math.round(c.position!.x) !== stored?.x || Math.round(c.position!.y) !== stored?.y;
     });
@@ -188,7 +249,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   };
 
   // Lines are worked out from the links; only which ones are selected is kept here. A removal goes through onEdgesDelete.
-  const onEdgesChange = (changes: EdgeChange<InfraEdgeType>[]) => setPickedEdges(prev => {
+  const onEdgesChange = (changes: EdgeChange<MapEdge>[]) => setPickedEdges(prev => {
     const next = new Set(prev);
     for (const c of changes) if (c.type === 'select') { if (c.selected) next.add(c.id); else next.delete(c.id); }
     return next.size === prev.size && [...next].every(id => prev.has(id)) ? prev : next;
@@ -315,7 +376,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const inspector = () => {
     if (pendingLink) {
       return <NewLinkForm key={`${pendingLink.from}>${pendingLink.to}`} nameA={nameOf(pendingLink.from)} nameB={nameOf(pendingLink.to)}
-        types={{ tipoA: byId.get(pendingLink.from)?.tipo, tipoB: byId.get(pendingLink.to)?.tipo }} onCreate={createLink} onCancel={() => setPendingLink(null)} />;
+        types={{ tipoA: byId.get(pendingLink.from)?.tipo, tipoB: byId.get(pendingLink.to)?.tipo }} linkTypes={view === 'energia' ? LEGEND_POWER : undefined}
+        onCreate={createLink} onCancel={() => setPendingLink(null)} />;
     }
     if (selectedLink) {
       return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf}
@@ -339,8 +401,14 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       <div className="infra-workspace">
         <DevicePalette onAdd={tipo => void add(tipo)} />
         <div className="infra-stage">
+          <MapViewTabs view={view} onChange={switchView} controls="infra-canvas" />
           <div className="infra-toolbar">
-            {confirmingArrange ? (
+            {powerLayout ? (
+              <p className="muted infra-power-note">
+                SAI arriba, regletas como barras y, debajo, los equipos que alimenta cada una. Esta vista se calcula sola: no se guarda ni cambia la vista «Red».
+                {powerLayout.unpowered.length > 0 && <> <span>{`Sin enlaces de energía: ${listNames(powerLayout.unpowered.map(nameOf))}.`}</span></>}
+              </p>
+            ) : confirmingArrange ? (
               <div className="infra-confirm" role="group" aria-label="Confirmar la colocación por capas">
                 <span>Todos los equipos se colocarán por capas y se perderá la posición que hayas dado a cada uno. ¿Quieres seguir?</span>
                 <button type="button" onClick={() => void arrange()}>Sí, colocar por capas</button>
@@ -348,11 +416,11 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
               </div>
             ) : <button type="button" disabled={devices.length === 0} onClick={() => setConfirmingArrange(true)}>Colocar por capas</button>}
           </div>
-          <section className="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
+          <section className="infra-canvas" id="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
             onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
-            <ReactFlow<MapNode, InfraEdgeType> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
-              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
-              onNodeClick={(e, node) => { if (node.type === 'device' && !e.ctrlKey && !e.metaKey) select(node.id); }}
+            <ReactFlow<MapNode, MapEdge> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
+              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} nodesDraggable={view === 'red'}
+              onNodeClick={(e, node) => { if ((node.type === 'device' || node.type === 'regletaBar') && !e.ctrlKey && !e.metaKey) select(node.id); }}
               onEdgesDelete={es => disconnect(es.flatMap(e => (e.data ? [{ id: e.id, between: [e.data.link.a.equipo, e.data.link.b.equipo] as [string, string] }] : [])))}
               selectNodesOnDrag={false} multiSelectionKeyCode={MULTI_SELECTION_KEYS}
               deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
@@ -365,7 +433,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
               </div>
             )}
           </section>
-          <MapLegend types={linkTypes} hidden={hiddenLines} onToggle={toggleLines} />
+          <MapLegend types={linkTypes} hidden={view === 'red' ? hiddenLines : NO_LINES} onToggle={toggleLines} />
         </div>
         {inspector()}
       </div>

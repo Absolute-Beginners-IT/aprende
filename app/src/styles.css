@@ -133,6 +133,19 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-node .react-flow__handle { width: 11px; height: 11px; background: var(--fam); border: 2px solid var(--surface); }
 /* The side anchors only hold HA and stack lines: not a dot to drag from. */
 .infra-node .react-flow__handle.infra-node__anchor { width: 1px; height: 1px; min-width: 0; min-height: 0; opacity: 0; border: 0; pointer-events: none; }
+/* «Red» view: what feeds the device; a single feed in the warning colour. «Energía» view: every device the same width. */
+.infra-node__power { justify-self: start; margin-top: 3px; padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--power) 50%, transparent); border-radius: 6px; color: var(--text); font-size: 11px; font-weight: 600; }
+.infra-node__power.is-single { border-color: #d97706; background: color-mix(in srgb, #d97706 14%, var(--surface)); }
+.infra-node--power { box-sizing: border-box; width: 100%; min-width: 0; max-width: none; }
+/* A regleta in the «Energía» view: a bar the width of the devices it feeds, with its name inside. */
+.infra-bar { box-sizing: border-box; display: flex; align-items: center; width: 100%; height: 100%; padding: 0 8px; background: var(--power); border-radius: 4px; color: var(--surface); font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; }
+.infra-bar.selected { box-shadow: 0 0 0 3px color-mix(in srgb, var(--power) 40%, transparent); }
+.infra-bar .react-flow__handle { width: 9px; height: 9px; background: var(--power); border: 2px solid var(--surface); }
+/* «Red» / «Energía» tabs above the map. */
+.infra-views { display: flex; gap: 4px; justify-self: start; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.infra-views [role="tab"] { padding: 5px 14px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer; }
+.infra-views [role="tab"][aria-selected="true"] { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--text); }
+.infra-power-note { margin: 0; font-size: 13px; }
 /* Canvas column: the «Colocar por capas» bar, the map and its legend. */
 .infra-stage { display: grid; gap: 8px; min-width: 0; }
 .infra-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 32px; }
