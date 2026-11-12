@@ -114,7 +114,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T5 | S21–S23 (slice 4) | delegated (context backstop) | done (PR #49) | dcf57b6 |
 | T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | done (PR #50) | a9b1489 |
 | T7 | S28–S31 (slice 6, power) | delegated (context backstop) | done (PR #51) | 42ef915 |
-| T8 | S32–S34 (slice 7) | delegated (context backstop) | in progress | |
+| T8 | S32–S34 (slice 7) | delegated (context backstop) | done (writer), commit pending | |
 
 ## Log
 
@@ -230,3 +230,11 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   Help «Cómo se usa el mapa» gained a line on power links. RED 17 failing (domain 12, page 5), then GREEN. Checks: app
   vitest 268/268, app build OK, site node tests 69/69, hugo build OK.
 - **L19** (2026-11-12) Review of the user's saved map found three app gaps (regleta «no monitorizado» noise, no warning when both firewalls share one regleta, no warning for a regleta fed by two SAIs). User, verbatim: «Sí, corrígelos».
+- **L20** (2026-11-12, T8 writer, S32–S34) `inventoryAnalysis.ts`: the power walk now returns `{ sais, regletas }` per
+  path (`behind`), plus `sourcesOf` (the SAIs/regletas feeding a device, once each, via `powerSourceOf`); no second
+  walker. S32: no «no está monitorizado» for `regleta`. S33: for each group's members, and for firewalls in no group,
+  a regleta present in every power path of 2+ of them gives the aviso, names joined «A, B y C», `deviceId` the regleta.
+  S34: a regleta with 2+ distinct sources gives the info (a regleta–regleta cable has no source, so it does not count).
+  On the user's map Firewall 1 also has a cable straight to SAI 2, so by S33 no shared-regleta aviso appears there
+  (the review expected one); the S34 info appears for both regletas. RED 6 failing, then GREEN. Checks: app vitest
+  278/278, app build OK.

@@ -1,5 +1,5 @@
 import type { Link, Topology } from './types';
-import { downstreamOf, GROUP_TYPE_NAMES, isHierarchical, isPowerSupplier, powerEndRoles, powerSourceOf, upstreamOf } from './topology';
+import { downstreamOf, GROUP_TYPE_NAMES, groupOf, isHierarchical, isPowerSupplier, powerEndRoles, powerSourceOf, upstreamOf } from './topology';
 
 export interface Finding {
   nivel: 'crit' | 'warn' | 'info';
@@ -9,34 +9,43 @@ export interface Finding {
 
 const RANK = { crit: 0, warn: 1, info: 2 } as const;
 
+/** What a power path leads to from a SAI or regleta: the SAIs it ends in and the regletas it goes through. */
+interface PowerPath { sais: string[]; regletas: string[] }
+
 /**
  * The power paths of a topology: `feedsOf(id)` lists, for each power link that feeds `id` from a SAI or a regleta, the
- * SAIs that link leads to through regletas; `saisBehind(id)` lists the SAIs behind a SAI or regleta. Each device is
- * visited once, so a loop of regletas ends.
+ * path that link leads to; `behind(id)` is the path from a SAI or regleta itself (a regleta goes through itself);
+ * `sourcesOf(id)` lists, once each, the SAIs and regletas that feed `id`. Each device is visited once, so a loop of
+ * regletas ends.
  */
 function powerPaths(topology: Topology) {
   const typeOf = new Map(topology.equipos.map(d => [d.id, d.tipo]));
   const cables = topology.enlaces.filter(l => l.tipo === 'energia' && l.a.equipo !== l.b.equipo);
   const otherEnd = (l: Link, id: string) => (l.a.equipo === id ? l.b.equipo : l.a.equipo);
-  const saisBehind = (start: string): string[] => {
-    const found: string[] = [];
+  const behind = (start: string): PowerPath => {
+    const path: PowerPath = { sais: [], regletas: [] };
     const seen = new Set([start]);
     const queue = [start];
     while (queue.length) {
       const id = queue.shift()!;
-      if (typeOf.get(id) === 'sai') { found.push(id); continue; }
+      if (typeOf.get(id) === 'sai') { path.sais.push(id); continue; }
+      if (typeOf.get(id) === 'regleta') path.regletas.push(id);
       for (const l of cables) {
         if (l.a.equipo !== id && l.b.equipo !== id) continue;
         const next = otherEnd(l, id);
         if (!seen.has(next) && isPowerSupplier(typeOf.get(next))) { seen.add(next); queue.push(next); }
       }
     }
-    return found;
+    return path;
   };
-  const feedsOf = (id: string) => cables.filter(l => (l.a.equipo === id || l.b.equipo === id) && powerSourceOf(topology, l) === otherEnd(l, id))
-    .map(l => saisBehind(otherEnd(l, id)));
-  return { saisBehind, feedsOf };
+  const feeding = (id: string) => cables.filter(l => (l.a.equipo === id || l.b.equipo === id) && powerSourceOf(topology, l) === otherEnd(l, id));
+  const feedsOf = (id: string) => feeding(id).map(l => behind(otherEnd(l, id)));
+  const sourcesOf = (id: string) => [...new Set(feeding(id).map(l => otherEnd(l, id)))];
+  return { behind, feedsOf, sourcesOf };
 }
+
+/** Names as a Spanish list: «A», «A y B», «A, B y C». */
+const joinNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}` : names.join(''));
 const DAY_MS = 864e5;
 
 /** Compares the learner's inventory with what a typical SME should have and lists the gaps. */
@@ -60,7 +69,8 @@ export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology
   // Compare calendar dates, not instants, so the count does not depend on the time of day.
   const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
   for (const d of devices) {
-    if (!d.monitorizado) findings.push({ nivel: 'warn', mensaje: `${d.nombre} no está monitorizado.`, deviceId: d.id });
+    // A basic power strip has nothing to monitor.
+    if (!d.monitorizado && d.tipo !== 'regleta') findings.push({ nivel: 'warn', mensaje: `${d.nombre} no está monitorizado.`, deviceId: d.id });
     if (d.finSoporte) {
       const end = /^\d{4}-\d{2}-\d{2}$/.test(d.finSoporte) ? Date.parse(`${d.finSoporte}T00:00:00Z`) : NaN;
       if (Number.isNaN(end)) {
@@ -77,12 +87,16 @@ export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology
     if (d.tipo === 'switch' && downstreamOf(enlaces, d.id).length > 0 && enlaces.filter(l => isHierarchical(l) && l.a.equipo === d.id).length === 1) {
       findings.push({ nivel: 'info', mensaje: `${d.nombre} tiene equipos que cuelgan de él y un solo enlace hacia arriba: si ese enlace cae, se quedan aislados.`, deviceId: d.id });
     }
-    if (d.tipo === 'regleta' && power.saisBehind(d.id).length === 0) {
+    if (d.tipo === 'regleta' && power.behind(d.id).sais.length === 0) {
       findings.push({ nivel: 'warn', mensaje: `${d.nombre} no tiene ningún SAI detrás: un corte de luz apaga todo lo que está enchufado a ella.`, deviceId: d.id });
     }
+    const sources = d.tipo === 'regleta' ? power.sourcesOf(d.id) : [];
+    if (sources.length > 1) {
+      findings.push({ nivel: 'info', mensaje: `${d.nombre} recibe corriente de ${joinNames(sources.map(nameOf))}: una regleta normal solo tiene una entrada; para dos SAI hace falta una PDU con conmutador automático (ATS), o lo habitual: un SAI por regleta.`, deviceId: d.id });
+    }
     const feeds = isPowerSupplier(d.tipo) ? [] : power.feedsOf(d.id);
-    const sais = new Set(feeds.flat());
-    if (feeds.length && feeds.every(path => path.length > 0) && sais.size === 1) {
+    const sais = new Set(feeds.flatMap(path => path.sais));
+    if (feeds.length && feeds.every(path => path.sais.length > 0) && sais.size === 1) {
       const sai = nameOf([...sais][0]);
       if (d.criticidad === 'Alta') {
         findings.push({ nivel: 'info', mensaje: `${d.nombre} solo recibe corriente del SAI ${sai}: si ese SAI cae, ${d.nombre} se apaga; si tiene dos fuentes, conéctalas a SAIs distintos.`, deviceId: d.id });
@@ -106,6 +120,24 @@ export function analyzeInventory({ equipos: devices, enlaces, grupos }: Topology
     }
     for (const { word, port, uses } of ports.values()) {
       if (uses > 1) findings.push({ nivel: 'warn', mensaje: `${d.nombre} usa ${word} «${port}» en ${uses} enlaces.`, deviceId: d.id });
+    }
+  }
+
+  // Devices that fail together whose every power path goes through the same regleta: the members of each group, and the
+  // firewalls in no group.
+  const onlyThrough = (id: string) => {
+    const feeds = isPowerSupplier(typeOf(id)) ? [] : power.feedsOf(id);
+    return feeds.length ? feeds[0].regletas.filter(r => feeds.every(path => path.regletas.includes(r))) : [];
+  };
+  const together = [
+    ...grupos.map(g => [...new Set(g.miembros)].filter(id => ids.has(id))),
+    devices.filter(d => d.tipo === 'firewall' && !groupOf(grupos, d.id)).map(d => d.id),
+  ];
+  for (const members of together) {
+    const byRegleta = new Map<string, string[]>();
+    for (const id of members) for (const r of onlyThrough(id)) byRegleta.set(r, [...(byRegleta.get(r) ?? []), id]);
+    for (const [r, shared] of byRegleta) {
+      if (shared.length > 1) findings.push({ nivel: 'warn', mensaje: `${joinNames(shared.map(nameOf))} dependen de la misma regleta, ${nameOf(r)}: si falla, caen a la vez.`, deviceId: r });
     }
   }
 
