@@ -1,0 +1,195 @@
+platform: fortinet-fortigate
+task: memory-recovery
+summary: >-
+  Recupera el servicio de un clúster de FortiGate cuyo nodo primario ha entrado en
+  modo de conservación por falta de memoria y no ha cedido el servicio al secundario.
+risk:
+  level: high
+  reason: >-
+    Pasar el servicio al otro nodo o reiniciar un proceso corta parte del tráfico
+    durante unos segundos, y se hace en mitad de una incidencia.
+params:
+  - id: lowPriority
+    label: Prioridad nueva del nodo saturado
+    type: number
+    example: '50'
+    min: 0
+    max: 255
+    required: false
+    help: >-
+      Solo si el clúster tiene override activado. Debe ser menor que la prioridad del
+      otro nodo, que se ve con get system ha status.
+  - id: processId
+    label: Identificador (PID) del proceso que consume la memoria
+    type: number
+    example: '1234'
+    min: 1
+    required: false
+    help: Solo si hay que reiniciar un proceso. Es la primera columna numérica de diagnose sys top-mem.
+preflight:
+  - text: >-
+      Descarta antes lo evidente: que el fallo afecta a todos los usuarios y que no es
+      la línea del operador ni el DNS. El patrón típico de la falta de memoria es que
+      lo que ya estaba abierto funciona y lo nuevo no.
+  - text: >-
+      Activa el registro de la sesión en tu cliente SSH antes de escribir nada. Todo
+      lo que muestre la consola es la evidencia que pedirá el soporte.
+  - text: >-
+      Si la interfaz web no responde, entra por SSH o por el puerto de consola. Con
+      VDOM activados, escribe antes config global.
+  - text: Abre una incidencia con el proveedor o con el soporte de Fortinet y avisa a los usuarios.
+steps:
+  - title: Confirmar el modo de conservación
+    figure:
+      id: fortinet-fortigate/esquema-modo-conservacion
+      alt: >-
+        Esquema del modo de conservación: con la memoria usada por encima del 88 % el FortiGate
+        entra en modo de conservación, por encima del 95 % descarta las sesiones nuevas y sale
+        del modo al bajar del 82 %. El nodo primario saturado sigue respondiendo al secundario,
+        así que el clúster no le pasa el servicio salvo que memory-based-failover esté activado.
+      caption: >-
+        Esquema. 1 Por encima del 88 % de memoria usada el FortiGate entra en modo de
+        conservación. 2 Por encima del 95 % descarta las sesiones nuevas. 3 Sale del modo al
+        bajar del 82 %. 4 El nodo saturado sigue encendido y respondiendo, así que el
+        secundario no toma el servicio. 5 Solo conmuta por memoria si memory-based-failover
+        está activado, y de fábrica no lo está.
+    commands:
+      - diagnose hardware sysinfo conserve
+      - get system performance status
+    explanation: >-
+      El primer comando dice si el modo de conservación está activo y con qué umbrales.
+      El segundo muestra el porcentaje de memoria, la CPU y el número de sesiones.
+    breakdown:
+      - token: diagnose hardware sysinfo conserve
+        meaning: Estado del modo de conservación, memoria usada y umbrales verde, rojo y extremo.
+      - token: get system performance status
+        meaning: Resumen de memoria, CPU y sesiones del equipo.
+  - title: Ver el estado del clúster
+    commands:
+      - get system ha status
+    explanation: >-
+      Anota qué nodo es el primario, la prioridad de cada uno y si la configuración está
+      sincronizada. Después entra en el otro nodo y mira su memoria con get system
+      performance status: si también está alta, pasarle el servicio no arregla nada.
+  - title: Guardar las evidencias
+    commands:
+      - get system status
+      - get system performance status
+      - diagnose sys top-mem 20
+      - diagnose hardware sysinfo memory
+      - diagnose hardware sysinfo slab
+      - diagnose hardware sysinfo shm
+      - diagnose sys session stat
+      - diagnose debug crashlog read
+    explanation: >-
+      Es la lista que pide el soporte de Fortinet. Repite get system performance status
+      tres veces, con un minuto entre una y otra, y diagnose sys top-mem cuatro o cinco
+      veces: es el que señala qué proceso consume la memoria. El registro de fallos
+      guarda el estado de la memoria en el momento de entrar en modo de conservación,
+      así que sirve aunque la incidencia ya haya pasado.
+    warning: >-
+      No reinicies el equipo antes de este paso: el reinicio borra el registro de
+      fallos y el estado de los procesos.
+    breakdown:
+      - token: diagnose sys top-mem 20
+        meaning: Los 20 procesos que más memoria usan. Los habituales son ipsengine, wad y node.
+      - token: diagnose debug crashlog read
+        meaning: Registro de fallos, con las entradas y salidas del modo de conservación.
+  - title: Pasar el servicio al otro nodo, con override desactivado
+    commands:
+      - diagnose sys ha reset-uptime
+    explanation: >-
+      Solo si el otro nodo tiene la memoria baja. Se escribe en el nodo saturado: pone a
+      cero su tiempo en servicio para el clúster, que elige al otro nodo como primario.
+      No reinicia el equipo. Si el clúster tiene override activado, sáltate este paso y
+      usa el siguiente.
+    warning: Corta durante unos segundos parte de las conexiones abiertas.
+  - title: Pasar el servicio al otro nodo, con override activado
+    commands:
+      - config system ha
+      - set priority {{lowPriority}}
+      - end
+    explanation: >-
+      Con override activado manda la prioridad: se baja la del nodo saturado a
+      {{lowPriority}}, por debajo de la del otro nodo, y el clúster cambia de primario.
+      Anota la prioridad anterior para poder devolverla.
+    warning: Corta durante unos segundos parte de las conexiones abiertas.
+    breakdown:
+      - token: set priority {{lowPriority}}
+        meaning: Prioridad del nodo en el clúster. Con override activado, el de mayor prioridad es el primario.
+  - title: Si no se puede pasar el servicio, reiniciar el proceso
+    commands:
+      - diagnose sys top-mem 20
+      - diagnose sys kill 11 {{processId}}
+    explanation: >-
+      Solo si el otro nodo también está saturado o no está disponible. Localiza en la
+      lista el proceso que más memoria usa y reinícialo por su identificador. FortiOS lo
+      vuelve a arrancar solo y deja constancia en el registro de fallos.
+    warning: >-
+      Reiniciar ipsengine o wad interrumpe un momento la inspección del tráfico. Hazlo
+      con el soporte al teléfono si es posible.
+    breakdown:
+      - token: diagnose sys kill 11 {{processId}}
+        meaning: Envía la señal 11 al proceso {{processId}}, que se cierra y vuelve a arrancar.
+  - title: Pedir la causa al soporte
+    manual: true
+    explanation: >-
+      Envía las evidencias y pregunta qué proceso consumía la memoria y si coincide con
+      un defecto conocido de la versión. En FortiOS 7.6.8 hay dos documentados: el motor
+      IPS 7.01200, que se corrige cargando el motor 7.01204 que facilita el soporte, y el
+      proceso node, que consume memoria de forma creciente. Mientras la causa siga
+      abierta, el otro nodo puede acabar igual.
+  - title: Dejar preparado el siguiente aviso
+    manual: true
+    explanation: >-
+      Vigila la memoria de los dos nodos desde la monitorización, con alerta al 75 %, y
+      valora con el soporte activar memory-based-failover en config system ha para que
+      el clúster conmute solo. Esa función necesita override desactivado en los dos
+      nodos y un umbral por debajo del 88 %.
+verification:
+  - command: diagnose hardware sysinfo conserve
+    expect: >-
+      En el nodo que da servicio, el modo de conservación aparece desactivado y la
+      memoria usada está por debajo del 82 %.
+  - command: get system ha status
+    expect: El nodo sano figura como primario y la configuración de los dos está sincronizada.
+  - expect: Los usuarios vuelven a navegar y a abrir conexiones nuevas.
+rollback:
+  summary: >-
+    El servicio se devuelve al nodo original cuando la causa esté corregida y su
+    memoria lleve varios días estable, en una ventana de mantenimiento.
+  steps:
+    - title: Devolver el servicio al nodo original
+      manual: true
+      explanation: >-
+        Con override activado, restaura en config system ha la prioridad que anotaste.
+        Con override desactivado, escribe diagnose sys ha reset-uptime en el nodo que
+        deja de ser primario. En los dos casos hay un corte de unos segundos.
+  lockoutRecovery: >-
+    Si la gestión remota del nodo saturado no responde, entra por el puerto de consola.
+    Cambiar de nodo primario no modifica las direcciones de gestión del clúster.
+sources:
+  - title: FortiOS 7.6 Administration Guide — umbrales de memoria y modo de conservación
+    url: https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/702937
+  - title: Fortinet Community — Actions and information to collect when a FortiGate enters conserve mode
+    url: https://community.fortinet.com/fortigate-3/technical-tip-actions-and-information-that-should-be-collected-when-a-fortigate-device-enters-in-conserve-mode-99932
+  - title: Fortinet Community — Different options to trigger an HA failover (FGCP)
+    url: https://community.fortinet.com/t5/FortiGate/Technical-Tip-Different-options-to-trigger-an-HA-failover-FGCP/ta-p/274081
+  - title: Fortinet Community — FortiGate HA failover due to memory utilization
+    url: https://community.fortinet.com/fortigate-3/technical-tip-fortigate-ha-failover-due-to-memory-utilization-96957
+  - title: Fortinet Community — How conserve mode is triggered
+    url: https://community.fortinet.com/fortigate-3/technical-tip-how-conserve-mode-is-triggered-99971
+  - title: Fortinet Community — Conserve mode after upgrading to FortiOS 7.6.8 (IPSEngine 7.01200)
+    url: https://community.fortinet.com/fortigate-3/fortigate-enters-conserve-mode-after-upgrading-to-fortios-7-6-8-ipsengine-7-01200-230996
+  - title: FortiOS 7.6.8 Release Notes — Known issues
+    url: https://docs.fortinet.com/document/fortigate/7.6.8/fortios-release-notes/236526/known-issues
+status:
+  level: docs-checked
+  reviewed: '2026-11-12'
+  firmware: FortiOS 7.6
+  notes: >-
+    Contrastada con la documentación y los artículos de soporte de Fortinet para
+    FortiOS 7.6; la ficha de la plataforma sigue en 7.4. Los umbrales del 82, 88 y
+    95 % son los de fábrica. No se ha probado en un FortiGate real, y la salida exacta
+    de los comandos no se ha contrastado. El comportamiento de set priority con
+    override activado conviene confirmarlo con el soporte antes de usarlo.

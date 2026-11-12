@@ -104,10 +104,17 @@ describe('content catalog', () => {
     }
   })
 
-  it('starts the FortiGate with the backup, time and log runbooks', () => {
+  it('covers the FortiGate with the backup, time and log runbooks and the memory saturation recovery', () => {
     const tasks = catalog.procedures.filter((item) => item.platform === 'fortinet-fortigate').map((item) => item.task)
 
-    expect(new Set(tasks)).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote']))
+    expect(new Set(tasks)).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote', 'memory-recovery']))
+  })
+
+  it('rates every memory saturation recovery as high risk, since moving the service or restarting a process cuts traffic', () => {
+    const recoveries = catalog.procedures.filter((item) => item.task === 'memory-recovery')
+
+    expect(recoveries.length).toBeGreaterThan(0)
+    expect(recoveries.filter((item) => item.risk.level !== 'high')).toEqual([])
   })
 
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
