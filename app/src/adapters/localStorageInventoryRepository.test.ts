@@ -100,3 +100,26 @@ describe('localStorage inventory repository', () => {
     expect(storage.data.get(V1_KEY)).toBe(old);
   });
 });
+
+describe('a document from a newer version of the app', () => {
+  it('refuses to write over it and leaves it exactly as it was', async () => {
+    const storage = new MemoryStorage();
+    const newer = JSON.stringify({ version: 3, equipos: [device('fw')], enlaces: [], grupos: [], extra: true });
+    storage.data.set(TOPOLOGY_KEY, newer);
+    const repository = createLocalStorageInventoryRepository(storage);
+    await expect(repository.apply({ saveDevices: [device('core')] })).rejects.toThrow(
+      'El mapa guardado en este navegador es de una versión más nueva de la app; no se ha tocado.',
+    );
+    expect(storage.data.get(TOPOLOGY_KEY)).toBe(newer);
+    expect(storage.writes).toEqual([]);
+  });
+
+  it('still writes over corrupted data and over documents with no version, as before', async () => {
+    for (const text of ['[roto', '{"a":1}', '{"version":"3"}']) {
+      const storage = new MemoryStorage();
+      storage.data.set(TOPOLOGY_KEY, text);
+      await createLocalStorageInventoryRepository(storage).apply({ saveDevices: [device('core')] });
+      expect(stored(storage)).toEqual({ version: 2, equipos: [device('core')], enlaces: [], grupos: [] });
+    }
+  });
+});

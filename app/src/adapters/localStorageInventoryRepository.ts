@@ -13,6 +13,10 @@ const parse = (text: string): unknown => {
   try { return JSON.parse(text); } catch { return undefined; }
 };
 
+/** A document written by a later version of the app: this one cannot read it, so it must not write over it. */
+const isNewerDocument = (raw: unknown) => typeof raw === 'object' && raw !== null
+  && typeof (raw as { version?: unknown }).version === 'number' && (raw as { version: number }).version > 2;
+
 export function createLocalStorageInventoryRepository(storage: KeyValueStorage): InventoryRepository {
   const read = (): Topology => {
     const stored = storage.getItem(TOPOLOGY_KEY);
@@ -26,6 +30,9 @@ export function createLocalStorageInventoryRepository(storage: KeyValueStorage):
       return read();
     },
     async apply(change) {
+      if (isNewerDocument(parse(storage.getItem(TOPOLOGY_KEY) ?? 'null'))) {
+        throw new Error('El mapa guardado en este navegador es de una versión más nueva de la app; no se ha tocado.');
+      }
       // One setItem of the whole document: if the browser refuses the write, what is stored stays exactly as it was.
       const next = applyTopologyChange(read(), change);
       storage.setItem(TOPOLOGY_KEY, JSON.stringify(topologyDocument(next)));

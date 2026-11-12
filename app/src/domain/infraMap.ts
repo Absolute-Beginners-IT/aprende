@@ -587,6 +587,8 @@ function linkData(from: string, to: string, { tipo, puertoA, puertoB, velocidad,
  * `from` is its `a` end, so for hierarchical types it hangs from `to`. Null when `linkRefusal` refuses it.
  */
 export function connectDevices(topology: Topology, from: string, to: string, draft: LinkDraft = { tipo: 'datos' }): NewLink | null {
+  const stored = (id: string) => topology.equipos.some(d => d.id === id);
+  if (!stored(from) || !stored(to)) return null;
   return linkRefusal(topology, from, to, draft.tipo) ? null : linkData(from, to, draft);
 }
 
