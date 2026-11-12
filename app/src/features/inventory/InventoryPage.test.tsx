@@ -55,6 +55,30 @@ describe('InventoryPage', () => {
     expect(stored(repo, 'fw01')?.monitorizado).toBe(true);
   });
 
+  it('does not add a device again, nor its link, when another tab stored it after this page loaded', async () => {
+    const repo = memoryRepository([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Media', monitorizado: false }]);
+    render(<InventoryPage repository={repo} />);
+    expect(await screen.findByText('Tus equipos (1)')).toBeTruthy();
+    await repo.apply({ saveDevices: [{ id: 'fw01', nombre: 'FW01', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }], addLinks: [{ a: { equipo: 'fw01' }, b: { equipo: 'core' }, tipo: 'datos' }] });
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'FW01' } });
+    fireEvent.change(screen.getByLabelText('Conectado a'), { target: { value: 'core' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
+    expect((await screen.findByRole('status')).textContent).toBe('Ya existe un equipo llamado FW01.');
+    expect(repo.topology.enlaces).toHaveLength(1);
+    expect(stored(repo, 'fw01')).toMatchObject({ tipo: 'firewall', criticidad: 'Alta', monitorizado: true });
+  });
+
+  it('still adds a new device with its link from the form', async () => {
+    const repo = memoryRepository([{ id: 'core', nombre: 'CORE', tipo: 'switch', criticidad: 'Media', monitorizado: false }]);
+    render(<InventoryPage repository={repo} />);
+    expect(await screen.findByText('Tus equipos (1)')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: 'FW01' } });
+    fireEvent.change(screen.getByLabelText('Conectado a'), { target: { value: 'core' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Añadir' }));
+    expect((await screen.findByRole('status')).textContent).toBe('FW01 añadido.');
+    expect(hangsFrom(repo, 'fw01')).toEqual(['core']);
+  });
+
   it('saves the brand and model from the form and shows the configuration for that brand', async () => {
     const repo = memoryRepository();
     render(<InventoryPage repository={repo} />);

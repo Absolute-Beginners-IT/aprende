@@ -50,8 +50,12 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
     const finSoporte = String(data.get('finSoporte') ?? '');
     const marca = String(data.get('marca') ?? '').trim();
     const modelo = String(data.get('modelo') ?? '').trim();
-    // The device and the link to the one it is connected to go in one write.
-    await persist(() => repository.apply({
+    // The device and the link to the one it is connected to go in one write. The name is checked again against what is
+    // stored, because another tab may have added it since this page loaded: adding it twice would add its link twice.
+    let taken = false;
+    await persist(async () => {
+      if ((await repository.load()).equipos.some(d => d.id === id)) { taken = true; return; }
+      await repository.apply({
       saveDevices: [{
         id, nombre, tipo: String(data.get('tipo')),
         criticidad: String(data.get('criticidad')) as Device['criticidad'],
@@ -61,7 +65,8 @@ export function InventoryPage({ repository }: { repository: InventoryRepository 
         ...(finSoporte ? { finSoporte } : {}),
       }],
       addLinks: uplink ? [{ a: { equipo: id }, b: { equipo: uplink }, tipo: 'datos' }] : [],
-    }), `${nombre} añadido.`);
+      });
+    }, () => (taken ? `Ya existe un equipo llamado ${nombre}.` : `${nombre} añadido.`));
     form.reset();
   };
 

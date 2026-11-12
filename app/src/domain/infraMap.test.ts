@@ -64,6 +64,11 @@ describe('layoutDevices', () => {
 describe('connectDevices', () => {
   const pair = (enlaces: Link[] = []): Topology => ({ equipos: [plain(dev('a')), plain(dev('b'))], enlaces, grupos: [] });
 
+  it('makes no link when one of the devices is no longer stored', () => {
+    expect(connectDevices(pair(), 'a', 'gone')).toBeNull();
+    expect(connectDevices(pair(), 'gone', 'b', { tipo: 'energia' })).toBeNull();
+  });
+
   it('makes a datos link from the dragged device to the one it now hangs from when nothing else is chosen', () => {
     expect(connectDevices(v1([dev('p1'), dev('core')]), 'p1', 'core')).toEqual({ a: { equipo: 'p1' }, b: { equipo: 'core' }, tipo: 'datos' });
   });

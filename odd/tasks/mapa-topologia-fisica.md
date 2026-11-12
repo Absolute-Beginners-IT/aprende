@@ -266,3 +266,13 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   not draggable and position changes are ignored; «Colocar por capas» hidden. New link form offers only Energía; the
   line ficha is the same. Help «Cómo se usa el mapa» explains the views. RED 8 domain + 16 page + 1 help failing (6 of
   the page ones are existing tests updated to S36), then GREEN. Checks: app vitest 296/296, app build OK.
+- **L23** (2026-11-12, user, verbatim): «Sí, mergea» (PR #53) and «Sí, arranca» — close the slice-1 advisories before
+  planning the logical view. R4-unknown-version-overwrite: the repository refuses to write over a stored document whose
+  numeric `version` is above 2 («El mapa guardado en este navegador es de una versión más nueva de la app; no se ha
+  tocado.»); corrupted data and documents with no numeric version are still written over, as before.
+  R3-form-readd-accumulates-links: the form checks the name again against what is stored inside the queued write, so a
+  device another tab added is not added twice with a second link («Ya existe un equipo llamado …»). onConnect: it was
+  already tested since slice 3; `connectDevices` now also returns null when either device is no longer stored when the
+  link is saved. R1-001/R4-rollback-stale-v1: kept by design, as S1 and its test say: the old key is only read while
+  there is no version 2 document, in the app and in the guides, so its stale copy is never shown. RED 3 failing, then
+  GREEN. Checks: app vitest 301/301, app build OK.
