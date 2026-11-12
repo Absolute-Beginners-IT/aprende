@@ -371,6 +371,14 @@
       "plataformas": [
         "veeam-br"
       ]
+    },
+    {
+      "id": "memory-recovery",
+      "titulo": "Recuperar un equipo saturado de memoria",
+      "grupo": "security-resilience",
+      "plataformas": [
+        "fortinet-fortigate"
+      ]
     }
   ]
 }

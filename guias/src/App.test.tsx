@@ -762,8 +762,8 @@ describe('inside the website', () => {
     expect(virtualization).toHaveTextContent('1 marca · 11 tareas')
     expect(within(virtualization).getByRole('link', { name: /^Proxmox VE/ })).toHaveTextContent('11 guías')
     const firewalls = cards.getByRole('heading', { name: 'Firewalls' }).closest('li') as HTMLElement
-    expect(firewalls).toHaveTextContent('1 marca · 3 tareas')
-    expect(within(firewalls).getByRole('link', { name: /^FortiGate/ })).toHaveTextContent('3 guías')
+    expect(firewalls).toHaveTextContent('1 marca · 4 tareas')
+    expect(within(firewalls).getByRole('link', { name: /^FortiGate/ })).toHaveTextContent('4 guías')
     for (const type of upcomingTypes) {
       expect(cards.getByRole('heading', { name: type }).closest('li')).toHaveTextContent('Próximamente')
     }

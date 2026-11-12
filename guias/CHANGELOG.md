@@ -8,6 +8,10 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Primera guía de actuación ante una incidencia: «Recuperar un equipo saturado de memoria», en «Seguridad y
+  resiliencia», con su guía de FortiGate para cuando el nodo primario de un clúster entra en modo de conservación y no
+  cede el servicio al secundario: confirmar, guardar las evidencias que pide el soporte, pasar el servicio al otro nodo
+  o reiniciar el proceso, y dejar preparado el siguiente aviso. Contrastada con la documentación de FortiOS 7.6.
 - Figuras en todas las guías de FortiGate, Proxmox VE y Synology DSM, como las de Veeam: pantallas redibujadas y
   simplificadas para los pasos de la interfaz web (no son capturas) y esquemas que explican qué viaja y dónde se guarda
   en las guías de comandos. Lo que la guía no nombra se dibuja como una barra gris, y la leyenda lo dice. Los

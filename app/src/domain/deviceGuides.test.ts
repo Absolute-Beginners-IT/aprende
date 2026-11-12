@@ -67,7 +67,7 @@ describe('guidesForDevice', () => {
   it('finds the guides of a FortiGate firewall, linked with the device chosen', () => {
     const g = covered(dev('firewall', { id: 'fw01', marca: 'Fortinet', modelo: 'FortiGate 60F' }));
     expect(g.plataforma.id).toBe('fortinet-fortigate');
-    expect(new Set(taskIds(dev('firewall', { marca: 'Fortinet', modelo: 'FortiGate 60F' })))).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote']));
+    expect(new Set(taskIds(dev('firewall', { marca: 'Fortinet', modelo: 'FortiGate 60F' })))).toEqual(new Set(['config-backup', 'ntp-client', 'syslog-remote', 'memory-recovery']));
     expect(g.grupos[0].tareas[0].href).toBe('./guias/#/p/fortinet-fortigate/config-backup?equipo=fw01');
   });
 

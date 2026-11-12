@@ -1,0 +1,25 @@
+id: memory-recovery
+title: Recuperar un equipo saturado de memoria
+group: security-resilience
+order: 10
+summary: >-
+  Devuelve el servicio cuando un equipo se queda sin memoria y empieza a rechazar
+  conexiones, sin perder la información que explica por qué pasó.
+explanation: >-
+  Un equipo de red que agota la memoria se protege recortando funciones: mantiene las
+  conexiones abiertas, pero rechaza las nuevas. Desde fuera parece una caída a medias:
+  lo que estaba abierto funciona y lo nuevo no. Si el equipo forma parte de una pareja
+  en alta disponibilidad, lo habitual es que la pareja no tome el relevo sola, porque
+  el equipo saturado sigue encendido y respondiendo. El orden importa: primero se
+  confirma que es memoria, después se guardan las evidencias y solo entonces se actúa.
+  Reiniciar a ciegas devuelve el servicio, pero borra lo que el fabricante necesita
+  para encontrar la causa, y el problema vuelve.
+risks:
+  - Pasar el servicio al otro equipo de la pareja corta durante unos segundos parte de las conexiones abiertas.
+  - Reiniciar el proceso que consume la memoria interrumpe un momento la función que presta, por ejemplo la inspección del tráfico.
+  - Reiniciar el equipo antes de guardar las evidencias impide saber la causa.
+  - Si la causa es un defecto de la versión, el otro equipo de la pareja acabará saturándose igual.
+prerequisites:
+  - Tener acceso de administrador al equipo, también por consola por si la gestión remota no responde.
+  - Saber qué equipo de la pareja está dando servicio y cómo entrar en el otro.
+  - Tener a mano el contacto del soporte del fabricante o del proveedor.
