@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeInventory } from './inventoryAnalysis';
 import type { DeviceGroup, Link } from './types';
-import { fromInventoryV1, type DeviceV1 } from './topology';
+import { fromInventoryV1, fromStoredTopology, type DeviceV1 } from './topology';
 
 const TODAY = new Date(2026, 9, 29, 12, 0);
 const dev = (id: string, tipo: string, overrides: Partial<DeviceV1> = {}): DeviceV1 => ({
@@ -54,6 +54,12 @@ describe('analyzeInventory', () => {
       { nivel: 'warn', mensaje: 'Core no está monitorizado.', deviceId: 'core' },
       { nivel: 'warn', mensaje: 'Pronto se queda sin soporte en 123 días (2027-03-01): presupuesta la renovación.', deviceId: 'soon' },
     ]);
+  });
+
+  it('does not flag an unmonitored regleta, while an unmonitored switch still is', () => {
+    const found = messages([...complete, dev('pdu', 'regleta', { nombre: 'Regleta 1', monitorizado: false }), dev('sw', 'switch', { nombre: 'Switch 1', monitorizado: false })]);
+    expect(found).not.toContain('Regleta 1 no está monitorizado.');
+    expect(found).toContain('Switch 1 no está monitorizado.');
   });
 
   it('counts support days by calendar date, whatever the time of day', () => {
@@ -151,7 +157,8 @@ describe('analyzeInventory power paths', () => {
   const end = (equipo: string, puerto?: string) => (puerto === undefined ? { equipo } : { equipo, puerto });
   const power = (id: string, a: string, b: string, puertos: [string?, string?] = []): Link => ({ id, a: end(a, puertos[0]), b: end(b, puertos[1]), tipo: 'energia' });
   const behind = [power('r1', 'pdu1', 'sai'), power('r2', 'pdu2', 'sai2')];
-  const run = (enlaces: Link[]) => analyzeInventory({ ...base, enlaces }, TODAY);
+  const run = (enlaces: Link[], grupos: DeviceGroup[] = []) => analyzeInventory({ ...base, enlaces, grupos }, TODAY);
+  const group = (tipo: DeviceGroup['tipo'], nombre: string, miembros: string[]): DeviceGroup => ({ id: `g-${nombre}`, tipo, nombre, miembros });
 
   it('notes a critical device whose every power path ends in the same SAI, through regletas', () => {
     expect(run([...behind, power('1', 'srv', 'pdu1'), power('2', 'sai', 'srv')])).toContainEqual(
@@ -191,5 +198,91 @@ describe('analyzeInventory power paths', () => {
     expect(run([...behind, power('1', 'nas', 'sai', ['', '3']), power('2', 'sai', 'sai2', ['3', '']), power('3', 'nas', 'sai2')])).toContainEqual(
       { nivel: 'warn', mensaje: 'SAI 1 usa la toma «3» en 2 enlaces.', deviceId: 'sai' },
     );
+  });
+
+  it('warns about two firewalls whose every power path goes through the same regleta', () => {
+    expect(run([...behind, power('1', 'fw1', 'pdu1'), power('2', 'fw2', 'pdu1')])).toEqual([
+      { nivel: 'warn', mensaje: 'fw1 y fw2 dependen de la misma regleta, Regleta 1: si falla, caen a la vez.', deviceId: 'pdu1' },
+    ]);
+  });
+
+  it('does not warn about a shared regleta when one firewall has a second path that avoids it', () => {
+    expect(run([...behind, power('1', 'fw1', 'pdu1'), power('2', 'fw2', 'pdu1'), power('3', 'fw1', 'pdu2')])).toEqual([]);
+    expect(run([...behind, power('1', 'fw1', 'pdu1'), power('2', 'fw2', 'pdu1'), power('3', 'fw1', 'sai2')])).toEqual([]);
+  });
+
+  it('warns about the members of a group whose every power path goes through the same regleta', () => {
+    expect(run([...behind, power('1', 'srv', 'pdu1'), power('2', 'nas', 'pdu1')], [group('ha', 'ERP', ['srv', 'nas'])])).toContainEqual(
+      { nivel: 'warn', mensaje: 'ERP y NAS dependen de la misma regleta, Regleta 1: si falla, caen a la vez.', deviceId: 'pdu1' },
+    );
+  });
+
+  it('does not warn about devices of different groups sharing a regleta', () => {
+    const findings = run([...behind, power('1', 'srv', 'pdu1'), power('2', 'nas', 'pdu1')], [group('cluster', 'A', ['srv']), group('cluster', 'B', ['nas'])]);
+    expect(findings.map(f => f.mensaje).filter(m => m.includes('dependen de la misma regleta'))).toEqual([]);
+  });
+
+  it('notes a regleta fed by two SAIs, naming them', () => {
+    expect(run([power('1', 'pdu1', 'sai'), power('2', 'sai2', 'pdu1'), power('3', 'pdu2', 'sai2')])).toEqual([
+      { nivel: 'info', mensaje: 'Regleta 1 recibe corriente de SAI 1 y SAI 2: una regleta normal solo tiene una entrada; para dos SAI hace falta una PDU con conmutador automático (ATS), o lo habitual: un SAI por regleta.', deviceId: 'pdu1' },
+    ]);
+  });
+
+  it('does not note a regleta fed by one SAI, even with two cables to it', () => {
+    expect(run([power('1', 'pdu1', 'sai'), power('2', 'pdu1', 'sai'), power('3', 'pdu2', 'sai2')])).toEqual([]);
+  });
+});
+
+describe('analyzeInventory on the learner saved map (2026-11-11)', () => {
+  // A copy of the map exported from «Mi infraestructura»: two SAIs, two regletas each fed by both SAIs, two firewalls.
+  // Firewall 1 has a second cable straight to SAI 2, so it does not depend only on Regleta (PDU) 1; Firewall 2 does.
+  const USER_MAP = {
+    version: 2,
+    equipos: [
+      { id: 'sai-1', nombre: 'SAI 1', tipo: 'sai', criticidad: 'Media', monitorizado: false, posicion: { x: -106, y: 28 } },
+      { id: 'regleta-pdu-1', nombre: 'Regleta (PDU) 1', tipo: 'regleta', criticidad: 'Media', monitorizado: false, posicion: { x: -42, y: 198 } },
+      { id: 'regleta-pdu-2', nombre: 'Regleta (PDU) 2', tipo: 'regleta', criticidad: 'Media', monitorizado: false, posicion: { x: 174, y: 194 } },
+      { id: 'sai-2', nombre: 'SAI 2', tipo: 'sai', criticidad: 'Media', monitorizado: false, posicion: { x: 158, y: 23 } },
+      { id: 'switch-1', nombre: 'Switch 1', tipo: 'switch', criticidad: 'Media', monitorizado: false, posicion: { x: 66, y: 864 } },
+      { id: 'firewall-1', nombre: 'Firewall 1', tipo: 'firewall', criticidad: 'Media', monitorizado: false, posicion: { x: -164, y: 567 } },
+      { id: 'firewall-2', nombre: 'Firewall 2', tipo: 'firewall', criticidad: 'Media', monitorizado: false, posicion: { x: 180, y: 516 } },
+      { id: 'internet-operadora-1', nombre: 'Internet / operadora 1', tipo: 'internet', criticidad: 'Media', monitorizado: false, posicion: { x: -52, y: 332 } },
+      { id: 'internet-operadora-2', nombre: 'Internet / operadora 2', tipo: 'internet', criticidad: 'Media', monitorizado: false, posicion: { x: 163, y: 330 } },
+    ],
+    enlaces: [
+      { id: 'regleta-pdu-1--sai-1', a: { equipo: 'regleta-pdu-1', puerto: '1' }, b: { equipo: 'sai-1', puerto: '1' }, tipo: 'energia' },
+      { id: 'regleta-pdu-1--sai-2', a: { equipo: 'regleta-pdu-1', puerto: '2' }, b: { equipo: 'sai-2', puerto: '1' }, tipo: 'energia' },
+      { id: 'regleta-pdu-2--sai-1', a: { equipo: 'regleta-pdu-2', puerto: '1' }, b: { equipo: 'sai-1', puerto: '2' }, tipo: 'energia' },
+      { id: 'regleta-pdu-2--sai-2', a: { equipo: 'regleta-pdu-2', puerto: '2' }, b: { equipo: 'sai-2', puerto: '2' }, tipo: 'energia' },
+      { id: 'internet-operadora-1--regleta-pdu-1', a: { equipo: 'internet-operadora-1', puerto: '1' }, b: { equipo: 'regleta-pdu-1', puerto: '1' }, tipo: 'energia' },
+      { id: 'internet-operadora-2--regleta-pdu-2', a: { equipo: 'internet-operadora-2', puerto: '1' }, b: { equipo: 'regleta-pdu-2', puerto: '1' }, tipo: 'energia' },
+      { id: 'firewall-1--internet-operadora-1', a: { equipo: 'firewall-1', puerto: '1/1/1' }, b: { equipo: 'internet-operadora-1', puerto: '1/1/1' }, tipo: 'wan', velocidad: '10' },
+      { id: 'firewall-1--internet-operadora-2', a: { equipo: 'firewall-1', puerto: '1/1/2' }, b: { equipo: 'internet-operadora-2', puerto: '1/1/1' }, tipo: 'wan', velocidad: '10G' },
+      { id: 'firewall-2--internet-operadora-1', a: { equipo: 'firewall-2', puerto: '1/1/2' }, b: { equipo: 'internet-operadora-1', puerto: '1/1/1' }, tipo: 'wan', velocidad: '10G' },
+      { id: 'firewall-2--internet-operadora-2', a: { equipo: 'firewall-2', puerto: '1/1/2' }, b: { equipo: 'internet-operadora-2', puerto: '1/1/2' }, tipo: 'wan', velocidad: '10G' },
+      { id: 'firewall-1--regleta-pdu-1', a: { equipo: 'firewall-1', puerto: '1' }, b: { equipo: 'regleta-pdu-1', puerto: '3' }, tipo: 'energia' },
+      { id: 'firewall-1--sai-2', a: { equipo: 'firewall-1', puerto: '2' }, b: { equipo: 'sai-2', puerto: '3' }, tipo: 'energia' },
+      { id: 'firewall-2--regleta-pdu-1', a: { equipo: 'firewall-2', puerto: '1' }, b: { equipo: 'regleta-pdu-1', puerto: '4' }, tipo: 'energia' },
+    ],
+    grupos: [],
+  };
+  const messages = analyzeInventory(fromStoredTopology(USER_MAP), TODAY).map(f => f.mensaje);
+
+  it('reports each regleta fed by both SAIs', () => {
+    expect(messages).toEqual(expect.arrayContaining([
+      'Regleta (PDU) 1 recibe corriente de SAI 1 y SAI 2: una regleta normal solo tiene una entrada; para dos SAI hace falta una PDU con conmutador automático (ATS), o lo habitual: un SAI por regleta.',
+      'Regleta (PDU) 2 recibe corriente de SAI 1 y SAI 2: una regleta normal solo tiene una entrada; para dos SAI hace falta una PDU con conmutador automático (ATS), o lo habitual: un SAI por regleta.',
+    ]));
+  });
+
+  it('does not report a regleta as unmonitored, while the other unmonitored devices still are', () => {
+    expect(messages).not.toContain('Regleta (PDU) 1 no está monitorizado.');
+    expect(messages).not.toContain('Regleta (PDU) 2 no está monitorizado.');
+    expect(messages).toContain('Switch 1 no está monitorizado.');
+    expect(messages).toContain('SAI 1 no está monitorizado.');
+  });
+
+  it('does not report the firewalls as sharing Regleta (PDU) 1, because Firewall 1 also has a cable to SAI 2', () => {
+    expect(messages.filter(m => m.includes('dependen de la misma regleta'))).toEqual([]);
   });
 });
