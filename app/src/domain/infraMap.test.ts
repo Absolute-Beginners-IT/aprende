@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import type { Device, Link, Topology } from './types';
 import {
   arrangeByTiers, connectDevices, connectionsOf, editLink, edgeEnds, groupRefusal, linkRefusal, groupBoxes, levelFinder, layoutByTiers, layoutDevices, linkName, linkTypesIn, moveDevice, newDevice,
-  edgeGeometry, peerSets, placeUnplaced, routeEdges, tierLabels, tierOf, TIERS, GRID,
+  edgeGeometry, peerSets, placeUnplaced, routeEdges, tierLabels, tierOf, TIERS, GRID, layoutPower, POWER_NODE, BAR_HEIGHT, type PowerLayout,
 } from './infraMap';
-import { fromInventoryV1, type DeviceV1 } from './topology';
+import { fromInventoryV1, fromStoredTopology, powerFeedersOf, type DeviceV1 } from './topology';
 
 const dev = (id: string, extra: Partial<DeviceV1> = {}): DeviceV1 => ({ id, nombre: id.toUpperCase(), tipo: 'switch', criticidad: 'Media', monitorizado: false, ...extra });
 const plain = ({ uplinks: _, ...device }: DeviceV1): Device => device;
@@ -399,3 +399,124 @@ describe('power links', () => {
     expect(connectDevices(topology, 'a', 'b', { tipo: 'gestion', velocidad: '1G' })).toEqual({ a: { equipo: 'a' }, b: { equipo: 'b' }, tipo: 'gestion', velocidad: '1G' });
   });
 });
+
+// Slice 8: the «Energía» view, a single-line power diagram worked out from the links and never saved.
+const rack = (enlaces: Link[], extra: Device[] = []): Topology => {
+  const d = (id: string, tipo: string): Device => ({ id, nombre: id.toUpperCase(), tipo, criticidad: 'Media', monitorizado: false, posicion: { x: 900, y: 900 } });
+  return {
+    equipos: [d('sai1', 'sai'), d('sai2', 'sai'), d('pdua', 'regleta'), d('pdub', 'regleta'), d('fw1', 'firewall'), d('fw2', 'firewall'), d('sw1', 'switch'), d('srv', 'servidor'), d('nas', 'almacenamiento'), ...extra],
+    enlaces, grupos: [],
+  };
+};
+const power = (id: string, a: string, b: string): Link => link(id, a, b, 'energia');
+/** PDU A behind SAI 1 feeds FW1 and SW1; PDU B behind SAI 2 feeds FW2; SRV has one cable to each PDU; the NAS has nothing. */
+const rackLinks = () => [
+  power('a1', 'pdua', 'sai1'), power('b2', 'sai2', 'pdub'),
+  power('f1', 'fw1', 'pdua'), power('s1', 'pdua', 'sw1'), power('f2', 'fw2', 'pdub'),
+  power('ra', 'srv', 'pdua'), power('rb', 'srv', 'pdub'), link('d1', 'sw1', 'fw1', 'datos'),
+];
+const barOf = (layout: PowerLayout, id: string) => layout.bars.find(b => b.id === id)!;
+const centreOf = (layout: PowerLayout, id: string) => layout.positions.get(id)!.x + POWER_NODE.width / 2;
+
+describe('powerFeedersOf', () => {
+  it('lists once each the SAIs and regletas that feed a device straight away, whichever way the link was drawn', () => {
+    const topology = rack([...rackLinks(), power('a1b', 'pdua', 'fw1'), power('x', 'fw1', 'sw1')]);
+    expect(powerFeedersOf(topology, 'fw1')).toEqual(['pdua']);
+    expect(powerFeedersOf(topology, 'srv')).toEqual(['pdua', 'pdub']);
+    expect(powerFeedersOf(topology, 'pdua')).toEqual(['sai1']);
+    expect(powerFeedersOf(topology, 'nas')).toEqual([]);
+  });
+});
+
+describe('layoutPower', () => {
+  it('puts the SAIs on top, the regleta bars below them and the devices they feed below the bars', () => {
+    const layout = layoutPower(rack(rackLinks()));
+    const saiYs = ['sai1', 'sai2'].map(id => layout.positions.get(id)!.y);
+    const barYs = layout.bars.map(b => b.y);
+    const deviceYs = ['fw1', 'fw2', 'sw1', 'srv'].map(id => layout.positions.get(id)!.y);
+    expect(Math.max(...saiYs)).toBeLessThan(Math.min(...barYs));
+    expect(Math.max(...barYs) + BAR_HEIGHT).toBeLessThan(Math.min(...deviceYs));
+    expect(layout.bars.map(b => b.id).sort()).toEqual(['pdua', 'pdub']);
+    expect(layout.positions.has('pdua')).toBe(false);
+  });
+
+  it('makes each bar span the devices it feeds', () => {
+    const layout = layoutPower(rack(rackLinks()));
+    for (const [bar, fed] of [['pdua', ['fw1', 'sw1']], ['pdub', ['fw2']]] as const) {
+      const { x, width } = barOf(layout, bar);
+      for (const id of fed) {
+        const left = layout.positions.get(id)!.x;
+        expect(x).toBeLessThanOrEqual(left);
+        expect(x + width).toBeGreaterThanOrEqual(left + POWER_NODE.width);
+      }
+    }
+  });
+
+  it('places a device fed by two bars between them', () => {
+    const layout = layoutPower(rack(rackLinks()));
+    const [a, b] = [barOf(layout, 'pdua'), barOf(layout, 'pdub')];
+    const [left, right] = a.x < b.x ? [a, b] : [b, a];
+    const centre = centreOf(layout, 'srv');
+    expect(left.x + left.width).toBeLessThan(centre);
+    expect(right.x).toBeGreaterThan(centre);
+    expect(left.y).toBe(right.y);
+  });
+
+  it('draws only short lines from each device to each feeding bar or SAI and from each bar to its SAI', () => {
+    const layout = layoutPower(rack([...rackLinks(), power('direct', 'fw1', 'sai2')]));
+    expect(layout.edges.map(e => [e.id, e.lower, e.upper]).sort()).toEqual([
+      ['a1', 'pdua', 'sai1'], ['b2', 'pdub', 'sai2'], ['direct', 'fw1', 'sai2'], ['f1', 'fw1', 'pdua'], ['f2', 'fw2', 'pdub'],
+      ['ra', 'srv', 'pdua'], ['rb', 'srv', 'pdub'], ['s1', 'sw1', 'pdua'],
+    ]);
+    // A line to a bar goes straight up, inside the bar.
+    for (const e of layout.edges.filter(e => e.upper.startsWith('pdu'))) {
+      expect(e.upperX).toBe(e.lowerX);
+      const bar = barOf(layout, e.upper);
+      expect(e.lowerX).toBeGreaterThan(bar.x);
+      expect(e.lowerX).toBeLessThan(bar.x + bar.width);
+    }
+    // A cable straight to a SAI never runs under a bar.
+    const direct = layout.edges.find(e => e.id === 'direct')!;
+    for (const bar of layout.bars) expect(direct.lowerX < bar.x || direct.lowerX > bar.x + bar.width).toBe(true);
+  });
+
+  it('puts the devices with no power link on a row of their own below the others and names them', () => {
+    const layout = layoutPower(rack(rackLinks()));
+    expect(layout.unpowered).toEqual(['nas']);
+    expect(layout.positions.get('nas')!.y).toBeGreaterThan(layout.positions.get('srv')!.y);
+  });
+
+  it('is worked out without touching the topology or the positions of the «Red» view', () => {
+    const topology = rack(rackLinks());
+    const copy = structuredClone(topology);
+    const layout = layoutPower(topology);
+    expect(topology).toEqual(copy);
+    expect(topology.equipos.every(d => d.posicion?.x === 900 && d.posicion.y === 900)).toBe(true);
+    expect(layout.positions.get('fw1')).not.toEqual({ x: 900, y: 900 });
+  });
+
+  it('draws the saved map of the user with no device on a bar and every power link once', () => {
+    const topology = fromStoredTopology(USER_MAP);
+    const layout = layoutPower(topology);
+    const powerLinks = topology.enlaces.filter(l => l.tipo === 'energia').map(l => l.id).sort();
+    expect(layout.edges.map(e => e.id).sort()).toEqual(powerLinks);
+    expect(new Set(layout.edges.map(e => e.id)).size).toBe(layout.edges.length);
+    expect(layout.unpowered).toEqual(['switch-1']);
+    const NODE_HEIGHT = 70;
+    const rects = [...layout.positions].map(([id, p]) => ({ id, x: p.x, y: p.y, width: POWER_NODE.width, height: NODE_HEIGHT }));
+    const bars = layout.bars.map(b => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: BAR_HEIGHT }));
+    type Box = { id: string; x: number; y: number; width: number; height: number };
+    const overlap = (r: Box, s: Box) => r.x < s.x + s.width && s.x < r.x + r.width && r.y < s.y + s.height && s.y < r.y + r.height;
+    for (const r of rects) for (const b of bars) expect(overlap(r, b), `${r.id} on ${b.id}`).toBe(false);
+    for (const r of rects) for (const s of rects) if (r.id < s.id) expect(overlap(r, s), `${r.id} on ${s.id}`).toBe(false);
+    for (const b of bars) for (const c of bars) if (b.id < c.id) expect(overlap(b, c), `${b.id} on ${c.id}`).toBe(false);
+    // Firewall 1 has one cable to Regleta (PDU) 1 and one straight to SAI 2, which never runs under a bar.
+    const direct = layout.edges.find(e => e.id === 'firewall-1--sai-2')!;
+    expect(direct.upper).toBe('sai-2');
+    for (const b of bars) expect(direct.lowerX < b.x || direct.lowerX > b.x + b.width).toBe(true);
+    for (const e of layout.edges.filter(e => e.upper.startsWith('regleta'))) expect(e.upperX).toBe(e.lowerX);
+  });
+});
+
+// The map the user saved on 2026-11-11 (mi-infraestructura-2026-11-11.json), copied as it was.
+const USER_MAP: unknown = {"version":2,"equipos":[{"id":"sai-1","nombre":"SAI 1","tipo":"sai","criticidad":"Media","monitorizado":false,"posicion":{"x":-106,"y":28}},{"id":"regleta-pdu-1","nombre":"Regleta (PDU) 1","tipo":"regleta","criticidad":"Media","monitorizado":false,"posicion":{"x":-42,"y":198}},{"id":"regleta-pdu-2","nombre":"Regleta (PDU) 2","tipo":"regleta","criticidad":"Media","monitorizado":false,"posicion":{"x":174,"y":194}},{"id":"sai-2","nombre":"SAI 2","tipo":"sai","criticidad":"Media","monitorizado":false,"posicion":{"x":158,"y":23}},{"id":"switch-1","nombre":"Switch 1","tipo":"switch","criticidad":"Media","monitorizado":false,"posicion":{"x":66,"y":864}},{"id":"firewall-1","nombre":"Firewall 1","tipo":"firewall","criticidad":"Media","monitorizado":false,"posicion":{"x":-164,"y":567}},{"id":"firewall-2","nombre":"Firewall 2","tipo":"firewall","criticidad":"Media","monitorizado":false,"posicion":{"x":180,"y":516}},{"id":"internet-operadora-1","nombre":"Internet / operadora 1","tipo":"internet","criticidad":"Media","monitorizado":false,"posicion":{"x":-52,"y":332}},{"id":"internet-operadora-2","nombre":"Internet / operadora 2","tipo":"internet","criticidad":"Media","monitorizado":false,"posicion":{"x":163,"y":330}}],"enlaces":[{"id":"regleta-pdu-1--sai-1","a":{"equipo":"regleta-pdu-1","puerto":"1"},"b":{"equipo":"sai-1","puerto":"1"},"tipo":"energia"},{"id":"regleta-pdu-1--sai-2","a":{"equipo":"regleta-pdu-1","puerto":"2"},"b":{"equipo":"sai-2","puerto":"1"},"tipo":"energia"},{"id":"regleta-pdu-2--sai-1","a":{"equipo":"regleta-pdu-2","puerto":"1"},"b":{"equipo":"sai-1","puerto":"2"},"tipo":"energia"},{"id":"regleta-pdu-2--sai-2","a":{"equipo":"regleta-pdu-2","puerto":"2"},"b":{"equipo":"sai-2","puerto":"2"},"tipo":"energia"},{"id":"internet-operadora-1--regleta-pdu-1","a":{"equipo":"internet-operadora-1","puerto":"1"},"b":{"equipo":"regleta-pdu-1","puerto":"1"},"tipo":"energia"},{"id":"internet-operadora-2--regleta-pdu-2","a":{"equipo":"internet-operadora-2","puerto":"1"},"b":{"equipo":"regleta-pdu-2","puerto":"1"},"tipo":"energia"},{"id":"firewall-1--internet-operadora-1","a":{"equipo":"firewall-1","puerto":"1/1/1"},"b":{"equipo":"internet-operadora-1","puerto":"1/1/1"},"tipo":"wan","velocidad":"10"},{"id":"firewall-1--internet-operadora-2","a":{"equipo":"firewall-1","puerto":"1/1/2"},"b":{"equipo":"internet-operadora-2","puerto":"1/1/1"},"tipo":"wan","velocidad":"10G"},{"id":"firewall-2--internet-operadora-1","a":{"equipo":"firewall-2","puerto":"1/1/2"},"b":{"equipo":"internet-operadora-1","puerto":"1/1/1"},"tipo":"wan","velocidad":"10G"},{"id":"firewall-2--internet-operadora-2","a":{"equipo":"firewall-2","puerto":"1/1/2"},"b":{"equipo":"internet-operadora-2","puerto":"1/1/2"},"tipo":"wan","velocidad":"10G"},{"id":"firewall-1--regleta-pdu-1","a":{"equipo":"firewall-1","puerto":"1"},"b":{"equipo":"regleta-pdu-1","puerto":"3"},"tipo":"energia"},{"id":"firewall-1--sai-2","a":{"equipo":"firewall-1","puerto":"2"},"b":{"equipo":"sai-2","puerto":"3"},"tipo":"energia"},{"id":"firewall-2--regleta-pdu-1","a":{"equipo":"firewall-2","puerto":"1"},"b":{"equipo":"regleta-pdu-1","puerto":"4"},"tipo":"energia"}],"grupos":[]};

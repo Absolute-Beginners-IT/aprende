@@ -126,7 +126,7 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
 | T6 | S24–S27 (slice 5) | delegated, two parallel units (app S24–S26, site S27) | done (PR #50) | a9b1489 |
 | T7 | S28–S31 (slice 6, power) | delegated (context backstop) | done (PR #51) | 42ef915 |
 | T8 | S32–S34 (slice 7) | delegated (context backstop) | done (PR #52) | 39b0841 |
-| T9 | S35–S38 (slice 8, power view) | delegated (context backstop) | in progress | |
+| T9 | S35–S38 (slice 8, power view) | delegated (context backstop) | implemented, browser check pending (parent) | |
 
 ## Log
 
@@ -255,3 +255,14 @@ Branch: feat/mapa-topologia-modelo (slice 1), feat/mapa-topologia-dibujo (slice 
   través de las Regletas. PEro la cantidad de conexiones que se ven de un lado a otro resulta visualmente caótico. Busca una
   forma de organizarlo limpiamente sin perder la coherencia». Decision: two views (Red / Energía), power badges in Red,
   single-line power diagram with regletas as bars in Energía.
+- **L22** (2026-11-12, T9 writer, S35–S38) Tabs «Red» / «Energía» (`MapViewTabs.tsx`, tablist «Vista del mapa», arrows /
+  Home / End, `mapa-infra:vista` in try/catch). «Red»: no `energia` lines, legend without «Energía» (item and toggle;
+  `HIDEABLE_LINES` keeps only gestión), badge «⚡ A · B» from `powerFeedersOf` (new in `topology.ts`, via
+  `powerSourceOf`), class `is-single` with one feed, none on SAI/regleta. «Energía»: `layoutPower` in `infraMap.ts`
+  (pure, never saved, never reads `posicion`): SAIs on top, regletas as `regletaBar` nodes on lanes, bars ordered by
+  shared devices, a device fed by two bars between them, a device with one bar plus a cable straight to a SAI at the
+  free end of its bar, devices with no power link on a row of their own (so they can still be joined) plus the note
+  «Sin enlaces de energía: …»; `PowerLineEdge` draws each power link once, straight up into its bar. Nodes there are
+  not draggable and position changes are ignored; «Colocar por capas» hidden. New link form offers only Energía; the
+  line ficha is the same. Help «Cómo se usa el mapa» explains the views. RED 8 domain + 16 page + 1 help failing (6 of
+  the page ones are existing tests updated to S36), then GREEN. Checks: app vitest 296/296, app build OK.

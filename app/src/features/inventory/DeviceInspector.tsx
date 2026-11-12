@@ -137,7 +137,8 @@ export function InventoryOverview({ empty, findings }: { empty: boolean; finding
         <li>Pulsa en una línea para abrir su ficha: cambia su tipo, sus puertos, su velocidad, sus VLAN y sus notas, o quita el enlace.</li>
         <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayúsculas pulsada, y pulsa «Agrupar» para formar un par HA, un stack o un clúster.</li>
         <li>Pulsa «Colocar por capas» para ordenar todos los equipos por capas, de la operadora a la energía; te pide confirmación porque se pierde la posición que les hayas dado.</li>
-        <li>En la leyenda puedes ocultar las líneas de gestión y de energía; tu elección se recuerda en este navegador.</li>
+        <li>Con las pestañas «Red» y «Energía» cambias de vista. «Red» no dibuja los cables de corriente: cada equipo muestra de qué regletas o SAI se alimenta, en naranja si solo tiene una. «Energía» dibuja solo la corriente: los SAI arriba, las regletas como barras y, debajo, los equipos que alimentan. Cambiar de vista no mueve ni guarda nada.</li>
+        <li>En la leyenda de la vista «Red» puedes ocultar las líneas de gestión; tu elección se recuerda en este navegador.</li>
         <li>En la página «Lista», «Exportar el esquema (JSON)» guarda todo el mapa en un archivo e «Importar el esquema (JSON)» lo recupera.</li>
       </ul>
     </aside>

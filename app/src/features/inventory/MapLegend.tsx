@@ -1,10 +1,9 @@
 import type { LinkType } from '../../domain/types';
 import { LINK_TYPE_NAMES } from '../../domain/topology';
 
-/** Line types the learner can hide from the map, with the text of their toggle. */
+/** Line types the learner can hide from the map, with the text of their toggle. Power lines have a view of their own. */
 export const HIDEABLE_LINES: Partial<Record<LinkType, string>> = {
   gestion: 'Mostrar las líneas de gestión',
-  energia: 'Mostrar las líneas de energía',
 };
 
 const STORAGE_KEY = 'mapa-infra:lineas-ocultas';

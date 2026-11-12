@@ -1,6 +1,8 @@
 import { LINK_TYPES, type Device, type DeviceGroup, type Link, type LinkType, type Position, type Topology } from './types';
 import { slugify } from './inventoryCsv';
-import { LINK_TYPE_NAMES, groupOf, isHierarchical, isPeerLink, upstreamOf, type NewLink, type PowerRole } from './topology';
+import {
+  LINK_TYPE_NAMES, groupOf, isHierarchical, isPeerLink, isPowerSupplier, powerFeedersOf, powerSourceOf, upstreamOf, type NewLink, type PowerRole,
+} from './topology';
 
 // The map of «Mi infraestructura» edits the topology itself: one line per link, the devices by tiers (what kind of
 // device it is) and, inside a tier, by hierarchical links (what each device hangs from). The place on the map is the
@@ -349,6 +351,194 @@ export function powerLabel(link: Pick<Link, 'a' | 'b'>, roles: { a: PowerRole; b
   return (['a', 'b'] as const).filter(side => link[side].puerto?.trim())
     .sort((x, y) => Number(roles[x] !== 'toma') - Number(roles[y] !== 'toma'))
     .map(side => named(roles[side], link[side].puerto!.trim())).join(' · ');
+}
+
+/** Width of every device in the «Energía» view, so its short lines land exactly where the layout puts them. */
+export const POWER_NODE = { width: 170 } as const;
+/** Height of a regleta bar in the «Energía» view. */
+export const BAR_HEIGHT = 14;
+/** «Energía» view: room per device, between the devices of two bars, top of the bars, between lanes and down to the devices. */
+const POWER_COL = 200;
+const POWER_SEGMENT_GAP = 60;
+const POWER_BAR_TOP = 170;
+const POWER_LANE = 40;
+const POWER_DEVICE_GAP = 70;
+/** Room between the devices on power and the row of devices with no power link. */
+const POWER_UNPOWERED_GAP = 130;
+/** Height at which lines that go up to a SAI turn sideways: below the SAIs and above the bars. */
+const POWER_BEND_Y = 125;
+/** How far a bar reaches past the spot where a line meets it, and the spacing of the lines on top of a device or a bar. */
+const POWER_PAD = 12;
+const POWER_ATTACH_STEP = 48;
+const POWER_BAR_ATTACH_STEP = 40;
+
+/** A regleta drawn as a horizontal bar: `x`, `y` is its top-left corner. */
+export interface PowerBar { id: string; x: number; y: number; width: number }
+/**
+ * The line of a power link: from the top of `lower` (the device fed, or a regleta) at `lowerX` up to the bottom of
+ * `upper` (what feeds it) at `upperX`, turning sideways at `bendY` when the two x differ.
+ */
+export interface PowerEdge { id: string; lower: string; upper: string; lowerX: number; upperX: number; bendY: number }
+/**
+ * The «Energía» view: where each SAI and device goes (by id), the regletas as bars, one line per power link, and the
+ * devices with no power link, which go on a row of their own at the bottom so they can still be joined.
+ */
+export interface PowerLayout { positions: Map<string, Position>; bars: PowerBar[]; edges: PowerEdge[]; unpowered: string[] }
+
+/**
+ * The «Energía» view as a single-line power diagram, worked out from the power links alone and never saved: SAIs on
+ * top, each regleta below as a bar spanning the devices it feeds, and those devices below the bars. Each bar sits next
+ * to the bar it shares most devices with; a device fed by two bars sits between them, and a device with a cable
+ * straight to a SAI sits at the end of its bar, so every line goes straight up without running under another bar.
+ * Bars that would overlap (several devices shared by the same two bars) go on separate lanes. Devices with no power
+ * link at all go on a row of their own below and are listed in `unpowered`. The `posicion` of each device is never
+ * read or changed.
+ */
+export function layoutPower(topology: Topology): PowerLayout {
+  const cables = drawnLinks(topology).filter(l => l.tipo === 'energia' && l.a.equipo !== l.b.equipo);
+  const wired = new Set(cables.flatMap(l => [l.a.equipo, l.b.equipo]));
+  const sorted = [...topology.equipos].sort(byName);
+  const sais = sorted.filter(d => d.tipo === 'sai').map(d => d.id);
+  const regletas = sorted.filter(d => d.tipo === 'regleta').map(d => d.id);
+  const loads = sorted.filter(d => !isPowerSupplier(d.tipo) && wired.has(d.id)).map(d => d.id);
+  const unpowered = topology.equipos.filter(d => !isPowerSupplier(d.tipo) && !wired.has(d.id)).map(d => d.id);
+  const sourceOf = new Map(cables.map(l => [l.id, powerSourceOf(topology, l)]));
+  const other = (l: Link, id: string) => (l.a.equipo === id ? l.b.equipo : l.a.equipo);
+  const feeders = new Map(loads.map(id => [id, powerFeedersOf(topology, id)]));
+  const width = POWER_NODE.width;
+
+  // Bars in a row, each next to the one it shares most devices with, so shared devices can sit between them.
+  const sharing = (r1: string, r2: string) => loads.filter(id => feeders.get(id)!.includes(r1) && feeders.get(id)!.includes(r2)).length;
+  const barOrder: string[] = [];
+  const pending = [...regletas];
+  while (pending.length) {
+    const last = barOrder[barOrder.length - 1];
+    let best = 0;
+    if (last) pending.forEach((r, i) => { if (sharing(last, r) > sharing(last, pending[best])) best = i; });
+    barOrder.push(...pending.splice(best, 1));
+  }
+  const barIndex = new Map(barOrder.map((r, i) => [r, i]));
+  const barsOf = (id: string) => feeders.get(id)!.filter(f => barIndex.has(f)).sort((a, b) => barIndex.get(a)! - barIndex.get(b)!);
+  const saisOf = (id: string) => feeders.get(id)!.filter(f => sais.includes(f)).sort((a, b) => sais.indexOf(a) - sais.indexOf(b));
+  // Left to right on top of a device: a device with one bar and a SAI leaves the SAI on its free left side; a device
+  // between bars meets its first bar on the left, then its SAIs, then the next bars.
+  const feederOrder = (id: string) => {
+    const [first, ...rest] = barsOf(id);
+    if (!first) return saisOf(id);
+    return rest.length ? [first, ...saisOf(id), ...rest] : [...saisOf(id), first];
+  };
+
+  // One slot per device: for each bar, the devices with a SAI too, then the ones it alone feeds, then the ones shared
+  // with a later bar; last, the devices fed straight by a SAI or by nobody.
+  const xs = new Map<string, number>();
+  const reserved = new Map<string, number>();
+  let x = 0;
+  const place = (id: string) => { xs.set(id, x); x += POWER_COL; };
+  for (const r of barOrder) {
+    const mine = loads.filter(id => barsOf(id)[0] === r);
+    if (!mine.length) { reserved.set(r, x); x += POWER_COL; }
+    const second = (id: string) => barIndex.get(barsOf(id)[1]) ?? -1;
+    mine.filter(id => barsOf(id).length === 1 && feeders.get(id)!.length > 1).forEach(place);
+    mine.filter(id => feeders.get(id)!.length === 1).forEach(place);
+    mine.filter(id => barsOf(id).length > 1).sort((a, b) => second(a) - second(b)).forEach(place);
+    x += POWER_SEGMENT_GAP;
+  }
+  const firstSai = (id: string) => (saisOf(id).length ? sais.indexOf(saisOf(id)[0]) : sais.length);
+  loads.filter(id => !barsOf(id).length).sort((a, b) => firstSai(a) - firstSai(b)).forEach(place);
+
+  // Where each feeding cable leaves the top of its device, and how far each bar has to reach to meet its cables.
+  const attach = new Map<string, number>();
+  const extents = new Map<string, { from: number; to: number }>();
+  const stretch = (r: string, from: number, to: number) => {
+    const e = extents.get(r);
+    extents.set(r, e ? { from: Math.min(e.from, from), to: Math.max(e.to, to) } : { from, to });
+  };
+  for (const id of loads) {
+    const order = feederOrder(id);
+    const mine = cables.filter(l => (l.a.equipo === id || l.b.equipo === id) && sourceOf.get(l.id) === other(l, id))
+      .sort((a, b) => order.indexOf(other(a, id)) - order.indexOf(other(b, id)));
+    const shifts = spots(mine.length, POWER_ATTACH_STEP, width - 2 * POWER_PAD);
+    const left = xs.get(id)!;
+    mine.forEach((l, i) => {
+      const at = left + width / 2 + shifts[i];
+      attach.set(l.id, at);
+      // The first cable's bar reaches the left edge of the device and the last one's its right edge.
+      if (barIndex.has(other(l, id))) stretch(other(l, id), i === 0 ? left : at - POWER_PAD, i === mine.length - 1 ? left + width : at + POWER_PAD);
+    });
+  }
+  for (const [r, at] of reserved) stretch(r, at, at + width);
+
+  // Lanes: a bar goes on the lowest lane where it overlaps no other bar.
+  const laneOf = new Map<string, number>();
+  const laneEnds: number[] = [];
+  for (const r of [...barOrder].sort((a, b) => extents.get(a)!.from - extents.get(b)!.from)) {
+    const { from, to } = extents.get(r)!;
+    let lane = laneEnds.findIndex(end => end + POWER_PAD <= from);
+    if (lane < 0) lane = laneEnds.push(to) - 1;
+    else laneEnds[lane] = to;
+    laneOf.set(r, lane);
+  }
+  const lanes = Math.max(1, laneEnds.length);
+  const deviceY = POWER_BAR_TOP + (lanes - 1) * POWER_LANE + BAR_HEIGHT + POWER_DEVICE_GAP;
+  const bars: PowerBar[] = barOrder.map(r => {
+    const { from, to } = extents.get(r)!;
+    return { id: r, x: Math.round(from), y: POWER_BAR_TOP + (lanes - 1 - laneOf.get(r)!) * POWER_LANE, width: Math.round(to - from) };
+  });
+  const barById = new Map(bars.map(b => [b.id, b]));
+  const positions = new Map<string, Position>(loads.map(id => [id, { x: xs.get(id)!, y: deviceY }]));
+  const unpoweredY = deviceY + (loads.length ? POWER_UNPOWERED_GAP : 0);
+  sorted.filter(d => unpowered.includes(d.id)).forEach((d, i) => positions.set(d.id, { x: i * POWER_COL, y: unpoweredY }));
+  const centre = (id: string) => {
+    const bar = barById.get(id);
+    if (bar) return bar.x + bar.width / 2;
+    const p = positions.get(id);
+    return p ? p.x + width / 2 : undefined;
+  };
+
+  // SAIs on top, each over the middle of what it feeds, never on top of each other.
+  const wish = sais.map(s => {
+    const targets = cables.filter(l => sourceOf.get(l.id) === s).flatMap(l => attach.get(l.id) ?? centre(other(l, s)) ?? []);
+    return { s, x: targets.length ? targets.reduce((sum, t) => sum + t, 0) / targets.length - width / 2 : Number.POSITIVE_INFINITY };
+  }).sort((a, b) => a.x - b.x);
+  let next = Number.NEGATIVE_INFINITY;
+  for (const { s, x: wanted } of wish) {
+    const at = Math.round(Number.isFinite(wanted) ? Math.max(wanted, next) : Number.isFinite(next) ? next : 0);
+    positions.set(s, { x: at, y: 0 });
+    next = at + POWER_COL;
+  }
+
+  // The lines: a device's cable goes straight up into its bar; cables up to a SAI each get their own spot on the bar
+  // or device below and on the SAI, and their own height to turn sideways.
+  const ends = cables.map(l => {
+    const source = sourceOf.get(l.id);
+    const [lower, upper] = source ? [other(l, source), source] : [l.a.equipo, l.b.equipo];
+    return { id: l.id, lower, upper };
+  });
+  const lowerX = new Map<string, number>();
+  for (const e of ends) {
+    const bar = barById.get(e.lower);
+    if (attach.has(e.id)) lowerX.set(e.id, attach.get(e.id)!);
+    else if (bar) {
+      const up = ends.filter(o => o.lower === e.lower && !attach.has(o.id)).sort((a, b) => (centre(a.upper) ?? 0) - (centre(b.upper) ?? 0));
+      const shifts = spots(up.length, POWER_BAR_ATTACH_STEP, Math.max(0, bar.width - 2 * POWER_PAD));
+      lowerX.set(e.id, bar.x + bar.width / 2 + shifts[up.indexOf(e)]);
+    } else lowerX.set(e.id, centre(e.lower) ?? 0);
+  }
+  const upperX = new Map<string, number>();
+  for (const e of ends) {
+    if (barById.has(e.upper) && attach.has(e.id)) { upperX.set(e.id, lowerX.get(e.id)!); continue; }
+    const arriving = ends.filter(o => o.upper === e.upper && !(barById.has(o.upper) && attach.has(o.id)))
+      .sort((a, b) => lowerX.get(a.id)! - lowerX.get(b.id)!);
+    const shifts = spots(arriving.length, SLOT_STEP, SLOT_SPAN);
+    upperX.set(e.id, (centre(e.upper) ?? 0) + shifts[arriving.indexOf(e)]);
+  }
+  const turning = ends.filter(e => upperX.get(e.id) !== lowerX.get(e.id)).sort((a, b) => upperX.get(a.id)! - upperX.get(b.id)!);
+  const heights = spots(turning.length, BEND_STEP, BEND_SPAN);
+  const edges: PowerEdge[] = ends.map(e => ({
+    ...e, lowerX: lowerX.get(e.id)!, upperX: upperX.get(e.id)!,
+    bendY: turning.includes(e) ? POWER_BEND_Y + heights[turning.indexOf(e)] : deviceY - POWER_DEVICE_GAP / 2,
+  }));
+  return { positions, bars, edges, unpowered };
 }
 
 /** The link types of the lines on the map, once each, in the order of `LINK_TYPES`. */

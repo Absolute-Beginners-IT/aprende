@@ -75,6 +75,14 @@ export function powerSourceOf({ equipos }: Topology, link: Link): string | null 
   return side ? link[side].equipo : null;
 }
 
+/** The SAIs and regletas of the inventory that feed `id` straight away over a power link, once each, in link order. */
+export function powerFeedersOf(topology: Topology, id: string): string[] {
+  const known = new Set(topology.equipos.map(d => d.id));
+  const feeders = topology.enlaces.filter(l => l.a.equipo !== l.b.equipo && (l.a.equipo === id || l.b.equipo === id))
+    .map(l => powerSourceOf(topology, l)).filter((source): source is string => !!source && source !== id && known.has(source));
+  return [...new Set(feeders)];
+}
+
 /** The name of each link type as the learner reads it on the map and its legend. */
 export const LINK_TYPE_NAMES: Record<LinkType, string> = {
   datos: 'Datos', troncal: 'Troncal', lag: 'LAG', ha: 'HA', stack: 'Stack', wan: 'WAN', almacenamiento: 'Almacenamiento', gestion: 'Gestión', energia: 'Energía',
