@@ -123,6 +123,21 @@ describe('content catalog', () => {
     expect(recoveries.map((item) => item.branching)).toEqual(recoveries.map(() => true))
   })
 
+  it('tells a junior how to record the SSH session and how to reach the global commands when VDOMs are on', () => {
+    const runbook = catalog.procedures.find(
+      (item) => item.platform === 'fortinet-fortigate' && item.task === 'memory-recovery',
+    )
+    const checks = runbook?.preflight ?? []
+    const logging = checks.find((check) => check.text.includes('All session output'))
+    const vdom = checks.find((check) => check.text.includes('Virtual domain configuration'))
+
+    expect(logging?.text).toMatch(/Session › Logging/)
+    expect(logging?.text).toMatch(/Browse/)
+    expect(vdom?.command).toBe('get system status')
+    expect(vdom?.text).toMatch(/config global/)
+    expect(checks.indexOf(logging as never)).toBeLessThan(checks.indexOf(vdom as never))
+  })
+
   it('explains the memory saturation recovery in a fundamentals article linked after the runbook', () => {
     const concept = catalog.concepts.find((item) => item.id === 'memory-recovery')
     const article = catalog.fundamentals.find((item) => item.id === 'firewall-high-availability')

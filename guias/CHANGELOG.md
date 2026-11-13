@@ -8,6 +8,8 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- La guía de FortiGate «Recuperar un equipo saturado de memoria» explica paso a paso cómo activar el registro de la
+  sesión en PuTTY antes de conectar y cómo saber si el firewall usa VDOM, con `config global` cuando hace falta.
 - Guía de FortiGate «Recuperar un equipo saturado de memoria» reescrita para quien empieza: primero el camino corto
   para devolver el servicio (confirmar, guardar las pruebas, pasar el servicio al firewall de reserva según override y
   reiniciar el saturado cuando ya no da servicio), con el riesgo de cada paso, y después la teoría en un artículo nuevo
