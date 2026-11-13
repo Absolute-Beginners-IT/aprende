@@ -63,16 +63,27 @@ params:
       diagnose sys top-mem.
 preflight:
   - text: >-
-      Conecta por SSH a la IP de gestión del firewall y activa el registro de la
-      sesión (en PuTTY: Session › Logging › All session output). Todo lo que hagas
-      quedará guardado en un archivo: es la prueba que pedirá el proveedor.
+      Antes de conectar, activa el registro de la sesión para que todo lo que hagas
+      quede guardado en un archivo: es la prueba que pedirá el proveedor. En PuTTY:
+      1) escribe la IP de gestión del firewall en Host Name; 2) en el menú de la
+      izquierda, entra en Session › Logging; 3) marca All session output; 4) en Log
+      file name pulsa Browse, elige una carpeta y llama al archivo
+      firewall-&Y&M&D-&T.log, para que cada conexión tenga su archivo con la fecha y
+      la hora; 5) pulsa Open e inicia sesión. Si usas otro programa, busca su opción
+      de registro (log) antes de conectar.
+  - text: >-
+      Ya conectado, mira si el firewall usa VDOM (dominios virtuales: varios
+      firewalls lógicos dentro del mismo equipo). Busca la línea Virtual domain
+      configuration. Si pone disable, no hay VDOM y no tienes que hacer nada más. Si
+      pone multiple, escribe config global y pulsa Intro antes de seguir: los
+      comandos de esta guía son del equipo entero y solo funcionan ahí. Si se corta
+      la sesión y vuelves a entrar, escríbelo otra vez.
+    command: get system status
   - text: >-
       Apunta la hora a la que empezó el problema y qué notan los usuarios, por
       ejemplo: «no carga ninguna web nueva, pero las videollamadas siguen».
   - text: Avisa a los usuarios de que hay una incidencia y al proveedor de que la estás atendiendo.
-  - text: >-
-      Si SSH no responde, usa el botón CLI de la interfaz web o el cable de consola.
-      Con VDOM activados, escribe antes config global.
+  - text: Si SSH no responde, usa el botón CLI de la interfaz web o el cable de consola.
 steps:
   - title: Confirmar que es la memoria
     figure:
@@ -256,7 +267,8 @@ rollback:
   lockoutRecovery: >-
     Si SSH no responde, usa el botón CLI de la interfaz web o el cable de consola. Al
     cambiar de firewall principal tu sesión SSH se corta: vuelve a conectar a la
-    misma IP.
+    misma IP, con el registro activado como al principio, y con VDOM escribe otra vez
+    config global.
 sources:
   - title: FortiOS 7.6 Administration Guide — umbrales de memoria y modo de conservación
     url: https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/702937
