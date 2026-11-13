@@ -3,23 +3,25 @@ title: Recuperar un equipo saturado de memoria
 group: security-resilience
 order: 10
 summary: >-
-  Devuelve el servicio cuando un equipo se queda sin memoria y empieza a rechazar
-  conexiones, sin perder la información que explica por qué pasó.
+  Devuelve el servicio en pocos minutos cuando el firewall se queda sin memoria y
+  deja de aceptar conexiones nuevas, y deja registrado lo que ha pasado para el
+  proveedor.
 explanation: >-
-  Un equipo de red que agota la memoria se protege recortando funciones: mantiene las
-  conexiones abiertas, pero rechaza las nuevas. Desde fuera parece una caída a medias:
-  lo que estaba abierto funciona y lo nuevo no. Si el equipo forma parte de una pareja
-  en alta disponibilidad, lo habitual es que la pareja no tome el relevo sola, porque
-  el equipo saturado sigue encendido y respondiendo. El orden importa: primero se
-  confirma que es memoria, después se guardan las evidencias y solo entonces se actúa.
-  Reiniciar a ciegas devuelve el servicio, pero borra lo que el fabricante necesita
-  para encontrar la causa, y el problema vuelve.
+  Cuando un firewall se queda sin memoria, se protege: mantiene las conexiones que
+  ya estaban abiertas y rechaza las nuevas. Por eso parece una caída a medias: una
+  videollamada sigue funcionando, pero no carga ninguna web nueva. Si hay dos
+  firewalls en clúster, el de reserva no suele tomar el relevo solo. Esta guía te
+  lleva por el camino corto: confirmar el problema, guardar las pruebas, pasar el
+  servicio al firewall sano y recuperar el saturado. El porqué está explicado al
+  final de la guía, en «Para entenderlo mejor».
 risks:
-  - Pasar el servicio al otro equipo de la pareja corta durante unos segundos parte de las conexiones abiertas.
-  - Reiniciar el proceso que consume la memoria interrumpe un momento la función que presta, por ejemplo la inspección del tráfico.
-  - Reiniciar el equipo antes de guardar las evidencias impide saber la causa.
-  - Si la causa es un defecto de la versión, el otro equipo de la pareja acabará saturándose igual.
+  - Pasar el servicio al otro firewall corta unos segundos el tráfico; alguna descarga o llamada en curso se puede caer.
+  - Reiniciar un proceso del firewall interrumpe un momento la inspección del tráfico.
+  - Reiniciar un firewall antes de guardar las pruebas impide saber qué proceso llenó la memoria.
+  - Si la causa es un fallo de la versión, el otro firewall puede acabar igual; avisa siempre al proveedor.
 prerequisites:
-  - Tener acceso de administrador al equipo, también por consola por si la gestión remota no responde.
-  - Saber qué equipo de la pareja está dando servicio y cómo entrar en el otro.
-  - Tener a mano el contacto del soporte del fabricante o del proveedor.
+  - Acceso de administrador al firewall por SSH.
+  - Un programa de SSH que guarde la sesión en un archivo, como PuTTY.
+  - El contacto del proveedor o del soporte del fabricante.
+background:
+  - firewall-high-availability

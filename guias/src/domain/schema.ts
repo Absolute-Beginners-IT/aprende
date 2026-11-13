@@ -85,6 +85,8 @@ export const ProcedureSchema = z.object({
   }),
   sources: z.array(SourceSchema).min(1),
   status: StatusSchema,
+  // Steps are alternative paths (an incident runbook), not one sequence: copying them all at once would be dangerous.
+  branching: z.boolean().default(false),
 })
 
 export const ConceptSchema = z.object({
@@ -97,6 +99,8 @@ export const ConceptSchema = z.object({
   explanation: text,
   risks: z.array(text).min(1),
   prerequisites: z.array(text).default([]),
+  // Fundamentals articles that explain why the task works as it does, linked after the runbook.
+  background: z.array(id).default([]),
 })
 
 export const PlatformSchema = z

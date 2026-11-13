@@ -114,5 +114,13 @@ export function buildCatalog(files: Record<string, string>): Catalog {
     })
     .sort((a, b) => a.order - b.order)
 
+  const fundamentalIds = new Set(fundamentals.map((article) => article.id))
+  for (const concept of concepts) {
+    const unknown = concept.background.find((article) => !fundamentalIds.has(article))
+    if (unknown) {
+      throw new Error(`Invalid content in concept ${concept.id}: unknown background article "${unknown}"`)
+    }
+  }
+
   return { platforms, concepts, procedures, fundamentals }
 }

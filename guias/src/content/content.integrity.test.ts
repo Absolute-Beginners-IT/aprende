@@ -117,6 +117,20 @@ describe('content catalog', () => {
     expect(recoveries.filter((item) => item.risk.level !== 'high')).toEqual([])
   })
 
+  it('marks the memory saturation recovery as alternative paths, so its steps cannot be copied all at once', () => {
+    const recoveries = catalog.procedures.filter((item) => item.task === 'memory-recovery')
+
+    expect(recoveries.map((item) => item.branching)).toEqual(recoveries.map(() => true))
+  })
+
+  it('explains the memory saturation recovery in a fundamentals article linked after the runbook', () => {
+    const concept = catalog.concepts.find((item) => item.id === 'memory-recovery')
+    const article = catalog.fundamentals.find((item) => item.id === 'firewall-high-availability')
+
+    expect(concept?.background).toEqual(['firewall-high-availability'])
+    expect(article?.related).toContain('memory-recovery')
+  })
+
   it.each(['aruba-aoscx', 'cisco-c1300', 'mikrotik-routeros', 'ruijie-reyee'])(
     'has config backup and restore runbooks for %s, since every rollback relies on them',
     (platform) => {

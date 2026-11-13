@@ -22,6 +22,8 @@ interface RunbookPageProps {
   procedure: Procedure
   /** Runbooks for this same task on the other brands. */
   alternatives?: { name: string; href: string }[]
+  /** Fundamentals articles that explain the task, linked after the runbook. */
+  background?: { title: string; href: string }[]
   /** Inventory device to open the runbook with (`?equipo=<id>`); ignored unless it is a switch of this model. */
   deviceId?: string
 }
@@ -59,7 +61,14 @@ const WORKING_SECTIONS = [
   { key: 'rollback', title: 'Vuelta atrás' },
 ] as const
 
-export function RunbookPage({ platform, concept, procedure, alternatives = [], deviceId }: RunbookPageProps) {
+export function RunbookPage({
+  platform,
+  concept,
+  procedure,
+  alternatives = [],
+  background = [],
+  deviceId,
+}: RunbookPageProps) {
   const baseId = useId()
   const sectionId = (key: (typeof WORKING_SECTIONS)[number]['key']) => `${baseId}-${key}`
   const storageKey = runbookStorageKey(procedure.platform, procedure.task)
@@ -315,7 +324,8 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
         id={sectionId('steps')}
         title="Paso a paso"
         actions={
-          allStepCommands.length > 0 && (
+          allStepCommands.length > 0 &&
+          !procedure.branching && (
             <CopyButton
               text={allStepCommands.map(fill).join('\n')}
               label="Copiar todos los pasos"
@@ -412,6 +422,18 @@ export function RunbookPage({ platform, concept, procedure, alternatives = [], d
           </div>
         )}
       </Section>
+
+      {background.length > 0 && (
+        <Section title="Para entenderlo mejor">
+          <ul>
+            {background.map((item) => (
+              <li key={item.href}>
+                <a href={item.href}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
 
       <ChangeRecordSection record={record} onChange={setRecord} render={renderRecord} />
 

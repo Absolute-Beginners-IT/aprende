@@ -160,10 +160,10 @@ s.save('esquema-syslog')
 
 # 4. memory-recovery: the memory thresholds and why the cluster does not fail over by itself.
 s = Fig(800, 300)
-s.text(20, 30, 'Por qué el nodo saturado no cede el servicio al otro', 'fg-texto fg-negrita')
-ys = settings(s, 20, 60, 330, 150, 'Memoria usada del nodo primario', [
+s.text(20, 30, 'Por qué el firewall saturado no cede el servicio al de reserva', 'fg-texto fg-negrita')
+ys = settings(s, 20, 60, 330, 150, 'Memoria usada del firewall principal', [
     ('88 %: entra en modo de conservación', 'fg-texto'),
-    ('95 %: descarta las sesiones nuevas', 'fg-texto'),
+    ('95 %: rechaza las conexiones nuevas', 'fg-texto'),
     ('82 %: sale del modo de conservación', 'fg-tenue'),
 ])
 s.mark(1, 40, ys[0])
@@ -172,7 +172,7 @@ s.mark(3, 40, ys[2])
 s.arrow(350, 105, 480)
 s.text(415, 94, 'sigue respondiendo', 'fg-tenue fg-peque', 'middle')
 s.mark(4, 415, 128)
-s.card(480, 60, 300, 90, 'Nodo secundario', ['sano y en espera', 'no toma el servicio'], key=True)
+s.card(480, 60, 300, 90, 'Firewall de reserva', ['sano y esperando', 'no toma el servicio'], key=True)
 s.note(238, 'Solo conmuta por memoria con memory-based-failover activado; de fábrica no lo está.', 5)
 s.save('esquema-modo-conservacion')
 

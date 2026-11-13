@@ -182,6 +182,29 @@ describe('RunbookPage', () => {
     expect(await navigator.clipboard.readText()).toBe('config\nvlan 20\nname VOZ')
   })
 
+  it('offers no copy-all button when the steps are alternative paths, not one sequence', () => {
+    const branching = ProcedureSchema.parse({ ...procedure, branching: true })
+    render(<RunbookPage platform={platform} concept={concept} procedure={branching} />)
+
+    expect(screen.queryByRole('button', { name: 'Copiar todos los pasos' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /^Copiar: / }).length).toBeGreaterThan(0)
+  })
+
+  it('links to the background reading after the runbook, and shows no such section without it', () => {
+    const reading = [{ title: 'Qué es un switch', href: '#/f/what-is-a-switch' }]
+    const { unmount } = render(
+      <RunbookPage platform={platform} concept={concept} procedure={procedure} background={reading} />,
+    )
+
+    const links = within(section('Para entenderlo mejor')).getAllByRole('link')
+    expect(links.map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['Qué es un switch', '#/f/what-is-a-switch'],
+    ])
+    unmount()
+    renderPage()
+    expect(screen.queryByRole('region', { name: 'Para entenderlo mejor' })).not.toBeInTheDocument()
+  })
+
   it('shows the warning, the parameter breakdown and the lockout recovery', () => {
     renderPage()
 
