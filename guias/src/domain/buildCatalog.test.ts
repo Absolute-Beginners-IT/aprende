@@ -186,6 +186,29 @@ describe('buildCatalog', () => {
     ).toThrow('order 1 is already used by "vendors" in fundamentals')
   })
 
+  it('rejects a task whose background reading points to an article that does not exist', () => {
+    const broken = concept.replace('order: 1', 'order: 1\nbackground: [ha-basics]')
+
+    expect(() =>
+      buildCatalog({
+        ...files(),
+        '/src/content/concepts/vlan-create.yaml': broken,
+        '/src/content/fundamentals/what-is-a-switch.yaml': fundamental,
+      }),
+    ).toThrow('unknown background article "ha-basics"')
+  })
+
+  it('keeps the background reading a task points to', () => {
+    const withReading = concept.replace('order: 1', 'order: 1\nbackground: [what-is-a-switch]')
+    const catalog = buildCatalog({
+      ...files(),
+      '/src/content/concepts/vlan-create.yaml': withReading,
+      '/src/content/fundamentals/what-is-a-switch.yaml': fundamental,
+    })
+
+    expect(catalog.concepts[0]?.background).toEqual(['what-is-a-switch'])
+  })
+
   it('rejects a fundamentals article that links to a task no brand has a runbook for', () => {
     const lonely = concept.replace('id: vlan-create', 'id: port-access')
     const broken = fundamental.replace('related: [vlan-create]', 'related: [port-access]')

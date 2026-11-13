@@ -1,173 +1,262 @@
 platform: fortinet-fortigate
 task: memory-recovery
 summary: >-
-  Recupera el servicio de un clúster de FortiGate cuyo nodo primario ha entrado en
-  modo de conservación por falta de memoria y no ha cedido el servicio al secundario.
+  Qué hacer cuando el FortiGate principal de un clúster se queda sin memoria y el
+  de reserva no toma el relevo: confirmarlo, guardar las pruebas, pasar el servicio
+  al firewall sano y recuperar el saturado.
 risk:
   level: high
   reason: >-
-    Pasar el servicio al otro nodo o reiniciar un proceso corta parte del tráfico
-    durante unos segundos, y se hace en mitad de una incidencia.
+    Se trabaja con la empresa ya afectada, y pasar el servicio de un firewall a otro
+    o reiniciar un proceso corta el tráfico unos segundos.
+branching: true
 params:
+  - id: adminUser
+    label: Tu usuario de administrador
+    type: text
+    example: admin
+    help: El mismo con el que entras por SSH. Sirve para saltar de un firewall al otro.
+  - id: reserveIndex
+    label: Número del firewall de reserva en el clúster
+    type: number
+    example: '1'
+    min: 0
+    max: 15
+    help: >-
+      Sale en get system ha status: es el HA cluster index de la línea que empieza
+      por Secondary.
+  - id: saturatedIndex
+    label: Número del firewall saturado en el clúster
+    type: number
+    example: '0'
+    min: 0
+    max: 15
+    help: >-
+      Sale en get system ha status: es el HA cluster index de la línea que empieza
+      por Primary, antes de pasar el servicio.
   - id: lowPriority
-    label: Prioridad nueva del nodo saturado
+    label: Prioridad nueva del firewall saturado
     type: number
     example: '50'
     min: 0
     max: 255
     required: false
     help: >-
-      Solo si el clúster tiene override activado. Debe ser menor que la prioridad del
-      otro nodo, que se ve con get system ha status.
+      Solo si override está en enable. Tiene que ser menor que la prioridad del
+      firewall de reserva.
+  - id: originalPriority
+    label: Prioridad que tenía el firewall saturado
+    type: number
+    example: '200'
+    min: 0
+    max: 255
+    required: false
+    help: Solo si override está en enable. Es la que viste en el paso «Ver cómo está montado el clúster».
   - id: processId
-    label: Identificador (PID) del proceso que consume la memoria
+    label: Número (PID) del proceso que llena la memoria
     type: number
     example: '1234'
     min: 1
     required: false
-    help: Solo si hay que reiniciar un proceso. Es la primera columna numérica de diagnose sys top-mem.
+    help: >-
+      Solo si el firewall de reserva no está sano. Es la primera columna numérica de
+      diagnose sys top-mem.
 preflight:
   - text: >-
-      Descarta antes lo evidente: que el fallo afecta a todos los usuarios y que no es
-      la línea del operador ni el DNS. El patrón típico de la falta de memoria es que
-      lo que ya estaba abierto funciona y lo nuevo no.
+      Conecta por SSH a la IP de gestión del firewall y activa el registro de la
+      sesión (en PuTTY: Session › Logging › All session output). Todo lo que hagas
+      quedará guardado en un archivo: es la prueba que pedirá el proveedor.
   - text: >-
-      Activa el registro de la sesión en tu cliente SSH antes de escribir nada. Todo
-      lo que muestre la consola es la evidencia que pedirá el soporte.
+      Apunta la hora a la que empezó el problema y qué notan los usuarios, por
+      ejemplo: «no carga ninguna web nueva, pero las videollamadas siguen».
+  - text: Avisa a los usuarios de que hay una incidencia y al proveedor de que la estás atendiendo.
   - text: >-
-      Si la interfaz web no responde, entra por SSH o por el puerto de consola. Con
-      VDOM activados, escribe antes config global.
-  - text: Abre una incidencia con el proveedor o con el soporte de Fortinet y avisa a los usuarios.
+      Si SSH no responde, usa el botón CLI de la interfaz web o el cable de consola.
+      Con VDOM activados, escribe antes config global.
 steps:
-  - title: Confirmar el modo de conservación
+  - title: Confirmar que es la memoria
     figure:
       id: fortinet-fortigate/esquema-modo-conservacion
       alt: >-
-        Esquema del modo de conservación: con la memoria usada por encima del 88 % el FortiGate
-        entra en modo de conservación, por encima del 95 % descarta las sesiones nuevas y sale
-        del modo al bajar del 82 %. El nodo primario saturado sigue respondiendo al secundario,
-        así que el clúster no le pasa el servicio salvo que memory-based-failover esté activado.
+        Esquema: con la memoria usada por encima del 88 % el firewall principal entra en
+        modo de conservación, por encima del 95 % rechaza las conexiones nuevas y sale del
+        modo al bajar del 82 %. Como sigue respondiendo al firewall de reserva, este no toma
+        el servicio, salvo que se haya configurado memory-based-failover.
       caption: >-
-        Esquema. 1 Por encima del 88 % de memoria usada el FortiGate entra en modo de
-        conservación. 2 Por encima del 95 % descarta las sesiones nuevas. 3 Sale del modo al
-        bajar del 82 %. 4 El nodo saturado sigue encendido y respondiendo, así que el
-        secundario no toma el servicio. 5 Solo conmuta por memoria si memory-based-failover
-        está activado, y de fábrica no lo está.
+        Esquema. 1 Por encima del 88 % de memoria usada, el firewall entra en modo de
+        conservación. 2 Por encima del 95 %, rechaza las conexiones nuevas. 3 Sale del modo
+        al bajar del 82 %. 4 El firewall saturado sigue respondiendo al de reserva, así que
+        este no toma el servicio. 5 Solo cambiaría solo si se hubiera configurado
+        memory-based-failover, que de fábrica está desactivado.
     commands:
-      - diagnose hardware sysinfo conserve
       - get system performance status
     explanation: >-
-      El primer comando dice si el modo de conservación está activo y con qué umbrales.
-      El segundo muestra el porcentaje de memoria, la CPU y el número de sesiones.
+      Busca la línea Memory. Si la memoria usada pasa del 88 %, el firewall se está
+      protegiendo y rechaza conexiones nuevas: es este problema, sigue la guía. Si
+      está por debajo, la causa es otra y esta guía no te sirve.
     breakdown:
-      - token: diagnose hardware sysinfo conserve
-        meaning: Estado del modo de conservación, memoria usada y umbrales verde, rojo y extremo.
       - token: get system performance status
-        meaning: Resumen de memoria, CPU y sesiones del equipo.
-  - title: Ver el estado del clúster
+        meaning: Resumen de CPU, memoria y sesiones. Solo lee, no cambia nada.
+  - title: Guardar las pruebas del fallo
+    commands:
+      - diagnose sys top-mem 10
+      - diagnose debug crashlog read
+      - get system status
+    explanation: >-
+      Tres consultas que solo leen. La primera dice qué proceso se está comiendo la
+      memoria. La segunda, desde cuándo entra y sale el firewall del modo de
+      conservación. La tercera, el modelo y la versión de FortiOS. Todo queda en el
+      registro de tu sesión SSH.
+    warning: >-
+      Hazlo antes de reiniciar nada. La lista de procesos se pierde al reiniciar; el
+      registro de fallos sí se conserva.
+    breakdown:
+      - token: diagnose sys top-mem 10
+        meaning: Los 10 procesos que más memoria usan, de más a menos. Apunta el nombre y el número del primero.
+      - token: diagnose debug crashlog read
+        meaning: Historial de fallos del firewall, con cada entrada y salida del modo de conservación.
+      - token: get system status
+        meaning: Modelo, número de serie y versión de FortiOS.
+  - title: Ver cómo está montado el clúster
     commands:
       - get system ha status
+      - get system ha | grep override
+      - get system ha | grep priority
     explanation: >-
-      Anota qué nodo es el primario, la prioridad de cada uno y si la configuración está
-      sincronizada. Después entra en el otro nodo y mira su memoria con get system
-      performance status: si también está alta, pasarle el servicio no arregla nada.
-  - title: Guardar las evidencias
-    commands:
-      - get system status
-      - get system performance status
-      - diagnose sys top-mem 20
-      - diagnose hardware sysinfo memory
-      - diagnose hardware sysinfo slab
-      - diagnose hardware sysinfo shm
-      - diagnose sys session stat
-      - diagnose debug crashlog read
-    explanation: >-
-      Es la lista que pide el soporte de Fortinet. Repite get system performance status
-      tres veces, con un minuto entre una y otra, y diagnose sys top-mem cuatro o cinco
-      veces: es el que señala qué proceso consume la memoria. El registro de fallos
-      guarda el estado de la memoria en el momento de entrar en modo de conservación,
-      así que sirve aunque la incidencia ya haya pasado.
-    warning: >-
-      No reinicies el equipo antes de este paso: el reinicio borra el registro de
-      fallos y el estado de los procesos.
+      En la primera salida, la línea Primary es el firewall que da servicio, el
+      saturado, y la línea Secondary es el de reserva. Apunta el HA cluster index de
+      cada uno en «Tus datos». Las otras dos líneas dicen si override está en enable
+      o en disable y qué prioridad tiene este firewall. De override depende cómo se
+      pasa el servicio al de reserva.
     breakdown:
-      - token: diagnose sys top-mem 20
-        meaning: Los 20 procesos que más memoria usan. Los habituales son ipsengine, wad y node.
-      - token: diagnose debug crashlog read
-        meaning: Registro de fallos, con las entradas y salidas del modo de conservación.
-  - title: Pasar el servicio al otro nodo, con override desactivado
+      - token: get system ha status
+        meaning: Qué firewall da servicio, cuál espera y si están sincronizados. Solo lee.
+      - token: get system ha | grep override
+        meaning: >-
+          Muestra solo la línea override. En enable, da servicio siempre el firewall
+          con más prioridad. En disable, el que lleva más tiempo encendido.
+      - token: get system ha | grep priority
+        meaning: La prioridad de este firewall, de 0 a 255.
+  - title: Entrar en el firewall de reserva
     commands:
-      - diagnose sys ha reset-uptime
+      - execute ha manage {{reserveIndex}} {{adminUser}}
     explanation: >-
-      Solo si el otro nodo tiene la memoria baja. Se escribe en el nodo saturado: pone a
-      cero su tiempo en servicio para el clúster, que elige al otro nodo como primario.
-      No reinicia el equipo. Si el clúster tiene override activado, sáltate este paso y
-      usa el siguiente.
-    warning: Corta durante unos segundos parte de las conexiones abiertas.
-  - title: Pasar el servicio al otro nodo, con override activado
+      Saltas desde el firewall principal al de reserva sin abrir otra conexión. Te
+      pedirá la contraseña de {{adminUser}}. A partir de aquí, lo que escribas se
+      ejecuta en el de reserva.
+  - title: Comprobar que el de reserva está sano y volver
+    commands:
+      - get system performance status
+      - get system ha | grep priority
+      - exit
+    explanation: >-
+      Mira su línea Memory y apunta su prioridad; exit te devuelve al firewall
+      principal. Si su memoria está por debajo del 80 %, está sano: pasa el servicio
+      con el paso que corresponda a tu override. Si también está alta o no responde,
+      salta a «Si el de reserva no está sano».
+  - title: 'Si override está en enable: pasar el servicio al de reserva'
     commands:
       - config system ha
       - set priority {{lowPriority}}
       - end
     explanation: >-
-      Con override activado manda la prioridad: se baja la del nodo saturado a
-      {{lowPriority}}, por debajo de la del otro nodo, y el clúster cambia de primario.
-      Anota la prioridad anterior para poder devolverla.
-    warning: Corta durante unos segundos parte de las conexiones abiertas.
+      Con override en enable manda la prioridad. Bajas la del firewall saturado a
+      {{lowPriority}}, por debajo de la del de reserva, y el clúster cambia de
+      principal. Apunta la prioridad que tenía en «Tus datos» para poder devolverla.
+    warning: >-
+      Corta el tráfico unos segundos y tu sesión SSH se cerrará: vuelve a conectar a
+      la misma IP. Ahora estarás en el otro firewall.
     breakdown:
       - token: set priority {{lowPriority}}
-        meaning: Prioridad del nodo en el clúster. Con override activado, el de mayor prioridad es el primario.
-  - title: Si no se puede pasar el servicio, reiniciar el proceso
+        meaning: Prioridad del firewall en el clúster. Con override en enable, da servicio el que la tiene más alta.
+  - title: 'Si override está en disable: pasar el servicio al de reserva'
     commands:
-      - diagnose sys top-mem 20
+      - diagnose sys ha reset-uptime
+    explanation: >-
+      Con override en disable da servicio el firewall que lleva más tiempo en el
+      clúster. Este comando pone a cero ese tiempo en el firewall saturado, así que
+      el clúster elige al de reserva. No reinicia nada.
+    warning: >-
+      Corta el tráfico unos segundos y tu sesión SSH se cerrará: vuelve a conectar a
+      la misma IP. Ahora estarás en el otro firewall.
+  - title: Comprobar que el servicio ha vuelto
+    commands:
+      - get system ha status
+      - get system performance status
+    explanation: >-
+      El firewall que era de reserva aparece ahora como Primary y su memoria está
+      baja. Pide a un par de usuarios que abran una web nueva. Si funciona, la
+      empresa ya tiene servicio y puedes recuperar el firewall saturado con calma.
+  - title: Entrar en el firewall saturado
+    commands:
+      - execute ha manage {{saturatedIndex}} {{adminUser}}
+    explanation: >-
+      Ahora el saturado es el de reserva y no da servicio, así que puedes reiniciarlo
+      sin cortar a nadie. Entra en él igual que antes; te pedirá la contraseña.
+  - title: Reiniciar el firewall saturado
+    commands:
+      - execute reboot
+    explanation: >-
+      Responde y para confirmar. Al arrancar tendrá la memoria limpia y volverá al
+      clúster como reserva, porque tiene menos prioridad o menos tiempo encendido.
+      Tarda unos minutos; compruébalo después con get system ha status.
+    warning: >-
+      Mientras reinicia no hay firewall de reserva: si el principal fallara ahora, la
+      empresa se quedaría sin red. No devuelvas la prioridad anterior hasta que el
+      proveedor haya corregido la causa.
+  - title: 'Si el de reserva no está sano: reiniciar el proceso que llena la memoria'
+    commands:
       - diagnose sys kill 11 {{processId}}
     explanation: >-
-      Solo si el otro nodo también está saturado o no está disponible. Localiza en la
-      lista el proceso que más memoria usa y reinícialo por su identificador. FortiOS lo
-      vuelve a arrancar solo y deja constancia en el registro de fallos.
+      Solo si no has podido pasar el servicio. Usa el número del primer proceso de
+      diagnose sys top-mem. FortiOS lo vuelve a arrancar solo y la memoria debería
+      bajar en un par de minutos; compruébalo con get system performance status.
     warning: >-
-      Reiniciar ipsengine o wad interrumpe un momento la inspección del tráfico. Hazlo
-      con el soporte al teléfono si es posible.
+      Solo si el proceso es ipsengine, wad o node; si es otro, no lo toques y llama
+      al proveedor. Reiniciarlo corta un momento la inspección del tráfico. Si la
+      memoria no baja, el último recurso es reiniciar el firewall con execute reboot,
+      que deja a la empresa sin red unos minutos: pide permiso antes.
     breakdown:
       - token: diagnose sys kill 11 {{processId}}
-        meaning: Envía la señal 11 al proceso {{processId}}, que se cierra y vuelve a arrancar.
-  - title: Pedir la causa al soporte
+        meaning: Cierra el proceso {{processId}} y deja constancia en el registro de fallos. FortiOS lo vuelve a arrancar.
+  - title: Registrar lo ocurrido y avisar al proveedor
     manual: true
     explanation: >-
-      Envía las evidencias y pregunta qué proceso consumía la memoria y si coincide con
-      un defecto conocido de la versión. En FortiOS 7.6.8 hay dos documentados: el motor
-      IPS 7.01200, que se corrige cargando el motor 7.01204 que facilita el soporte, y el
-      proceso node, que consume memoria de forma creciente. Mientras la causa siga
-      abierta, el otro nodo puede acabar igual.
-  - title: Dejar preparado el siguiente aviso
-    manual: true
-    explanation: >-
-      Vigila la memoria de los dos nodos desde la monitorización, con alerta al 75 %, y
-      valora con el soporte activar memory-based-failover en config system ha para que
-      el clúster conmute solo. Esa función necesita override desactivado en los dos
-      nodos y un umbral por debajo del 88 %.
+      Cierra el registro de la sesión SSH y envía el archivo al proveedor con un
+      resumen: hora de inicio, qué notaban los usuarios, el proceso que más memoria
+      usaba, qué has hecho y a qué hora, y cuándo volvió el servicio. Pídele la causa
+      y si es un fallo conocido de la versión: mientras no se corrija, puede
+      repetirse.
 verification:
-  - command: diagnose hardware sysinfo conserve
-    expect: >-
-      En el nodo que da servicio, el modo de conservación aparece desactivado y la
-      memoria usada está por debajo del 82 %.
   - command: get system ha status
-    expect: El nodo sano figura como primario y la configuración de los dos está sincronizada.
-  - expect: Los usuarios vuelven a navegar y a abrir conexiones nuevas.
+    expect: >-
+      El firewall sano aparece como Primary, el otro como Secondary y los dos están
+      sincronizados.
+  - command: get system performance status
+    expect: La memoria usada del firewall que da servicio está por debajo del 82 %.
+  - expect: Los usuarios vuelven a abrir webs y conexiones nuevas.
 rollback:
   summary: >-
-    El servicio se devuelve al nodo original cuando la causa esté corregida y su
-    memoria lleve varios días estable, en una ventana de mantenimiento.
+    El servicio vuelve al firewall original cuando el proveedor haya corregido la
+    causa, en una ventana de mantenimiento y avisando, porque hay un corte de unos
+    segundos.
   steps:
-    - title: Devolver el servicio al nodo original
-      manual: true
+    - title: 'Con override en enable: devolver la prioridad'
+      commands:
+        - config system ha
+        - set priority {{originalPriority}}
+        - end
       explanation: >-
-        Con override activado, restaura en config system ha la prioridad que anotaste.
-        Con override desactivado, escribe diagnose sys ha reset-uptime en el nodo que
-        deja de ser primario. En los dos casos hay un corte de unos segundos.
+        Se escribe en el firewall original, entrando en él con execute ha manage. Al
+        recuperar su prioridad vuelve a dar servicio.
+    - title: 'Con override en disable: reiniciar el tiempo del principal actual'
+      commands:
+        - diagnose sys ha reset-uptime
+      explanation: Se escribe en el firewall que da servicio ahora, para que el clúster elija al otro.
   lockoutRecovery: >-
-    Si la gestión remota del nodo saturado no responde, entra por el puerto de consola.
-    Cambiar de nodo primario no modifica las direcciones de gestión del clúster.
+    Si SSH no responde, usa el botón CLI de la interfaz web o el cable de consola. Al
+    cambiar de firewall principal tu sesión SSH se corta: vuelve a conectar a la
+    misma IP.
 sources:
   - title: FortiOS 7.6 Administration Guide — umbrales de memoria y modo de conservación
     url: https://docs.fortinet.com/document/fortigate/7.6.6/administration-guide/702937
@@ -175,21 +264,22 @@ sources:
     url: https://community.fortinet.com/fortigate-3/technical-tip-actions-and-information-that-should-be-collected-when-a-fortigate-device-enters-in-conserve-mode-99932
   - title: Fortinet Community — Different options to trigger an HA failover (FGCP)
     url: https://community.fortinet.com/t5/FortiGate/Technical-Tip-Different-options-to-trigger-an-HA-failover-FGCP/ta-p/274081
-  - title: Fortinet Community — FortiGate HA failover due to memory utilization
-    url: https://community.fortinet.com/fortigate-3/technical-tip-fortigate-ha-failover-due-to-memory-utilization-96957
+  - title: Fortinet Community — How to access the secondary unit with execute ha manage
+    url: https://community.fortinet.com/fortigate-3/technical-tip-how-to-access-the-secondary-unit-from-the-primary-with-the-execute-ha-manage-command-97867
+  - title: Fortinet Community — Identifying the FortiGate reboot reasons
+    url: https://community.fortinet.com/fortigate-3/technical-guide-identifying-the-fortigate-reboot-reasons-and-what-to-do-next-209310
   - title: Fortinet Community — How conserve mode is triggered
     url: https://community.fortinet.com/fortigate-3/technical-tip-how-conserve-mode-is-triggered-99971
-  - title: Fortinet Community — Conserve mode after upgrading to FortiOS 7.6.8 (IPSEngine 7.01200)
-    url: https://community.fortinet.com/fortigate-3/fortigate-enters-conserve-mode-after-upgrading-to-fortios-7-6-8-ipsengine-7-01200-230996
-  - title: FortiOS 7.6.8 Release Notes — Known issues
-    url: https://docs.fortinet.com/document/fortigate/7.6.8/fortios-release-notes/236526/known-issues
+  - title: Fortinet Community — FortiGate HA failover due to memory utilization
+    url: https://community.fortinet.com/fortigate-3/technical-tip-fortigate-ha-failover-due-to-memory-utilization-96957
 status:
   level: docs-checked
-  reviewed: '2026-11-12'
+  reviewed: '2026-11-13'
   firmware: FortiOS 7.6
   notes: >-
     Contrastada con la documentación y los artículos de soporte de Fortinet para
     FortiOS 7.6; la ficha de la plataforma sigue en 7.4. Los umbrales del 82, 88 y
-    95 % son los de fábrica. No se ha probado en un FortiGate real, y la salida exacta
-    de los comandos no se ha contrastado. El comportamiento de set priority con
-    override activado conviene confirmarlo con el soporte antes de usarlo.
+    95 % son los de fábrica. No se ha probado en un FortiGate real: la salida exacta
+    de los comandos, el regreso con exit tras execute ha manage y el cambio de
+    principal con set priority conviene confirmarlos con el soporte antes de
+    necesitarlos.

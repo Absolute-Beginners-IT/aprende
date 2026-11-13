@@ -12,7 +12,7 @@ import { useRecents } from './features/navigation/useRecents'
 import { PlannerPage } from './features/planner/PlannerPage'
 import { RunbookPage } from './features/procedure/RunbookPage'
 import { StatusPage } from './features/status/StatusPage'
-import { type Route, runbookHref, useHashRoute } from './lib/useHashRoute'
+import { fundamentalsHref, type Route, runbookHref, useHashRoute } from './lib/useHashRoute'
 import { useStoredState } from './lib/useStoredState'
 
 const findPlatform = (id: string | undefined) => catalog.platforms.find((item) => item.id === id)
@@ -68,6 +68,11 @@ function Page({ route, recents, activePlatform }: PageProps) {
         : []
     })
 
+  const background = concept.background.flatMap((id) => {
+    const article = catalog.fundamentals.find((item) => item.id === id)
+    return article ? [{ title: article.title, href: fundamentalsHref(article.id) }] : []
+  })
+
   // The key resets per-runbook state when the user moves between runbooks, or opens one from another device.
   return (
     <RunbookPage
@@ -76,6 +81,7 @@ function Page({ route, recents, activePlatform }: PageProps) {
       concept={concept}
       procedure={procedure}
       alternatives={alternatives}
+      background={background}
       deviceId={route.deviceId}
     />
   )

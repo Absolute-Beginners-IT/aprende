@@ -1,0 +1,85 @@
+id: firewall-high-availability
+title: Dos firewalls en alta disponibilidad, y por qué uno puede caer sin que salte el otro
+order: 8
+summary: >-
+  Cómo se reparten el trabajo dos firewalls en clúster, qué hace uno cuando se queda
+  sin memoria y por qué el de reserva no siempre toma el relevo.
+sections:
+  - heading: Dos firewalls, uno trabajando
+    paragraphs:
+      - >-
+        En alta disponibilidad hay dos firewalls iguales conectados entre sí. Uno es
+        el principal y da servicio; el otro es el de reserva y espera con la misma
+        configuración. Se vigilan por un cable propio, el enlace de latido: si el
+        principal deja de responder, el de reserva toma el servicio en segundos.
+    points:
+      - El de reserva toma el relevo si el principal se apaga, se reinicia o pierde un cable que se ha marcado como vigilado.
+      - La configuración se copia sola del principal al de reserva; algunas conexiones abiertas también.
+      - En FortiGate a esto se le llama clúster FGCP, y a los equipos, Primary y Secondary.
+  - heading: Qué hace un firewall cuando se queda sin memoria
+    paragraphs:
+      - >-
+        Un firewall guarda en memoria cada conexión que deja pasar, y la inspección del
+        tráfico (antivirus, IPS, inspección de HTTPS) gasta mucha más. Si la memoria se
+        acaba, el equipo podría colgarse del todo, así que antes se protege: recorta
+        funciones y deja de aceptar conexiones nuevas. En FortiGate se llama modo de
+        conservación y tiene tres umbrales de fábrica, en porcentaje de memoria usada.
+    points:
+      - 88 %, umbral rojo, entra en modo de conservación.
+      - 95 %, umbral extremo, rechaza las conexiones nuevas.
+      - 82 %, umbral verde, sale del modo de conservación.
+      - Por eso la caída parece a medias, porque lo que ya estaba abierto sigue funcionando y lo nuevo no.
+  - heading: Por qué el de reserva no toma el relevo
+    paragraphs:
+      - >-
+        Un firewall sin memoria sigue encendido, con los cables conectados y
+        respondiendo al latido. Para el clúster está sano, así que no cambia de
+        principal. La falta de memoria solo provoca el cambio si se ha configurado
+        expresamente; en FortiGate, con memory-based-failover, que de fábrica está
+        desactivado.
+  - heading: Cómo decide el clúster quién da servicio
+    paragraphs:
+      - >-
+        Cuando el clúster tiene que elegir principal, sigue un orden de criterios. En
+        FortiGate, el ajuste override cambia ese orden, y por eso la guía tiene dos
+        caminos para pasar el servicio al de reserva.
+    points:
+      - Con override en disable, gana el firewall que lleva más tiempo en el clúster, y la prioridad solo desempata. Diferencias de menos de 5 minutos no cuentan.
+      - Con override en enable, gana siempre el de más prioridad, un número de 0 a 255.
+      - Bajar la prioridad del principal, con override en enable, o poner a cero su tiempo, con override en disable, es pedirle al clúster que elija al otro.
+      - Por la misma razón, con override en enable, un firewall con más prioridad recupera el servicio en cuanto vuelve tras un reinicio. Por eso la guía baja su prioridad antes de reiniciarlo.
+  - heading: Qué se corta al cambiar de firewall
+    paragraphs:
+      - >-
+        El cambio de principal tarda unos segundos, pero no todo sobrevive. Tu sesión
+        SSH se corta porque estaba abierta en el equipo que deja de dar servicio:
+        vuelves a conectar a la misma IP y entras en el otro.
+    points:
+      - Las conexiones TCP se mantienen si el clúster las copia (session pickup); las UDP, solo si se ha activado aparte.
+      - Las conexiones que pasan por inspección de seguridad no se copian, así que algún usuario tendrá que recargar la página.
+  - heading: Por qué se llena la memoria
+    paragraphs:
+      - >-
+        Las causas habituales son la carga y los fallos. La carga es mucha inspección,
+        muchos usuarios a la vez o un modelo justo para lo que tiene que hacer. Los
+        fallos son errores de una versión concreta que hacen que un proceso no
+        devuelva la memoria. En FortiOS 7.6.8, por ejemplo, Fortinet documenta dos: el
+        motor IPS 7.01200 y el proceso node. Si es un fallo, reiniciar alivia, pero
+        vuelve a pasar hasta que se actualiza.
+    points:
+      - ipsengine es el motor que inspecciona el tráfico en busca de ataques (IPS).
+      - wad es el proxy que inspecciona el tráfico web y HTTPS.
+      - node da servicio a la interfaz web del firewall.
+  - heading: Cómo evitar que se repita
+    paragraphs:
+      - >-
+        Lo que convierte un susto en una incidencia larga es enterarse por los usuarios.
+        Con vigilancia y un cambio automático, la próxima vez el clúster se defiende
+        solo.
+    points:
+      - Vigila la memoria de los dos firewalls con alerta al 75 %, para verlo venir.
+      - Activa el cambio automático por memoria con un umbral por debajo del 88 %, después de saber cuánta memoria usáis en un día normal.
+      - Mantén al día la versión del sistema y, en FortiGate, el motor IPS.
+      - Prueba el cambio de principal una vez al año, en una ventana de mantenimiento.
+related:
+  - memory-recovery

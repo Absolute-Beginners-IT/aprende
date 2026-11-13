@@ -8,6 +8,19 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Guía de FortiGate «Recuperar un equipo saturado de memoria» reescrita para quien empieza: primero el camino corto
+  para devolver el servicio (confirmar, guardar las pruebas, pasar el servicio al firewall de reserva según override y
+  reiniciar el saturado cuando ya no da servicio), con el riesgo de cada paso, y después la teoría en un artículo nuevo
+  de Fundamentos, «Dos firewalls en alta disponibilidad, y por qué uno puede caer sin que salte el otro».
+- Las guías pueden enlazar al final, en «Para entenderlo mejor», los artículos de Fundamentos que explican la tarea.
+- Las guías de incidencias, con pasos alternativos en lugar de una secuencia, ya no ofrecen «Copiar todo», para no
+  pegar a la vez comandos de caminos distintos.
+
+### Corregido
+
+- La guía decía que reiniciar el FortiGate borra el registro de fallos (crashlog); se conserva. Lo que se pierde es la
+  lista de procesos en memoria.
+
 - Primera guía de actuación ante una incidencia: «Recuperar un equipo saturado de memoria», en «Seguridad y
   resiliencia», con su guía de FortiGate para cuando el nodo primario de un clúster entra en modo de conservación y no
   cede el servicio al secundario: confirmar, guardar las evidencias que pide el soporte, pasar el servicio al otro nodo

@@ -372,6 +372,14 @@ describe('quick search', () => {
     )
   })
 
+  it('links the FortiGate memory recovery runbook to the article that explains it', () => {
+    openAt('#/p/fortinet-fortigate/memory-recovery')
+
+    const reading = within(screen.getByRole('region', { name: 'Para entenderlo mejor' })).getByRole('link')
+    expect(reading).toHaveAttribute('href', '#/f/firewall-high-availability')
+    expect(screen.queryByRole('button', { name: 'Copiar todos los pasos' })).not.toBeInTheDocument()
+  })
+
   it('opens the fundamentals from the header, with every article in reading order', async () => {
     const user = userEvent.setup()
     openAt('#/p/aruba-aoscx')
@@ -395,6 +403,7 @@ describe('quick search', () => {
       '#/f/vendors',
       '#/f/safe-changes',
       '#/f/vlan-design',
+      '#/f/firewall-high-availability',
     ])
   })
 
