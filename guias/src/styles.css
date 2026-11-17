@@ -1927,21 +1927,23 @@ thead th {
 :root {
   --img-nieve: url("./assets/nieve-lobo.webp");
   --img-noche: url("./assets/noche-lobo.webp");
-  --glass-window: color-mix(in srgb, var(--bg) 80%, transparent);
+  --glass-alpha: 66%;
+  --glass-window: color-mix(in srgb, var(--bg) var(--glass-alpha), transparent);
   --backdrop-image: var(--img-nieve);
   --backdrop-desk: #f1f4f8;
   --backdrop-opacity: 0.9;
   --backdrop-filter: blur(6px) saturate(0.85) brightness(1.15);
   --glass-edge: rgba(255, 255, 255, 0.7);
-  --glass-drop: 0 18px 48px rgba(15, 23, 42, 0.16);
+  --glass-drop: 0 18px 48px rgba(15, 23, 42, 0.32);
   --pill-edge: rgba(255, 255, 255, 0.7);
-  --pill-drop: 0 6px 16px rgba(15, 23, 42, 0.14);
+  --pill-drop: 0 6px 16px rgba(15, 23, 42, 0.24);
 }
 :root[data-theme="dark"] {
   --backdrop-image: var(--img-noche);
   --backdrop-desk: #0b0c0f;
   --backdrop-opacity: 0.85;
   --backdrop-filter: brightness(0.55) saturate(0.9);
+  --glass-alpha: 80%;
   --glass-edge: rgba(255, 255, 255, 0.04);
   --glass-drop: 0 18px 48px rgba(0, 0, 0, 0.45);
   --pill-edge: rgba(255, 255, 255, 0.08);
@@ -1953,6 +1955,7 @@ thead th {
     --backdrop-desk: #0b0c0f;
     --backdrop-opacity: 0.85;
     --backdrop-filter: brightness(0.55) saturate(0.9);
+    --glass-alpha: 80%;
     --glass-edge: rgba(255, 255, 255, 0.04);
     --glass-drop: 0 18px 48px rgba(0, 0, 0, 0.45);
     --pill-edge: rgba(255, 255, 255, 0.08);
