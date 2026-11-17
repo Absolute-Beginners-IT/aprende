@@ -2040,3 +2040,56 @@ thead th {
       0 6px 16px rgba(0, 0, 0, 0.35);
   }
 }
+
+/* Dark mode: the active menu pill reads as a small raised glass window instead of a flat accent fill. */
+:root[data-theme="dark"] .site-bar__nav a {
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+
+:root[data-theme="dark"] .site-bar__nav a:hover {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+:root[data-theme="dark"] .site-bar__nav a[aria-current="page"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 24%, transparent),
+    color-mix(in srgb, var(--accent) 12%, transparent)
+  );
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+    0 6px 16px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .site-bar__nav a {
+    transition:
+      background 0.18s,
+      box-shadow 0.18s,
+      transform 0.18s;
+  }
+
+  :root:not([data-theme="light"]) .site-bar__nav a:hover {
+    background: color-mix(in srgb, var(--text) 7%, transparent);
+  }
+
+  :root:not([data-theme="light"]) .site-bar__nav a[aria-current="page"] {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 24%, transparent),
+      color-mix(in srgb, var(--accent) 12%, transparent)
+    );
+    color: var(--text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+      0 6px 16px rgba(0, 0, 0, 0.35);
+    transform: translateY(-1px);
+  }
+}

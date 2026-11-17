@@ -367,3 +367,13 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
   :root:not([data-theme="light"]) .page { width: calc(100% - 32px); margin: 32px auto 40px; padding: 40px clamp(20px, 4vw, 48px) 64px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
   :root:not([data-theme="light"]) .foot { background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 }
+
+/* Dark mode: the active menu pill reads as a small raised glass window instead of a flat accent fill. */
+:root[data-theme="dark"] .nav a { transition: background .18s, box-shadow .18s, transform .18s; }
+:root[data-theme="dark"] .nav a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+:root[data-theme="dark"] .nav a[aria-current="page"] { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-1px); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .nav a { transition: background .18s, box-shadow .18s, transform .18s; }
+  :root:not([data-theme="light"]) .nav a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+  :root:not([data-theme="light"]) .nav a[aria-current="page"] { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-1px); }
+}
