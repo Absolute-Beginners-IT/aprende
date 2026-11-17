@@ -1,5 +1,5 @@
 :root {
-  --bg: #f6f7f9; --surface: #ffffff; --text: #16202e; --muted: #5b6676; --line: #d9dee6; --accent: #c2410c; --on-accent: #ffffff;
+  --bg: #f6f7f9; --surface: #ffffff; --text: #16202e; --muted: #5b6676; --line: #d9dee6; --accent: #1d6fa8; --on-accent: #ffffff;
   --perim: #c2410c; --net: #1d4ed8; --comp: #047857; --data: #7c3aed; --power: #b45309; --other: #64748b;
   --notice-bg: #fdf1d3; --notice-text: #6b4600;
   --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
@@ -250,36 +250,24 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .file-chip input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .file-chip:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Dark mode: dimmed night wolf backdrop under translucent windows so text never sits on the photo. */
-/* Declared once so single-file builds inline the image a single time. */
-:root { --backdrop-image: url("./assets/noche-lobo.webp"); }
-:root[data-theme="dark"] body { background: #0b0c0f; }
-:root[data-theme="dark"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .7; filter: brightness(.5) saturate(.9); }
-:root[data-theme="dark"] .head, :root[data-theme="dark"] .tabs { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
-:root[data-theme="dark"] .head { padding: 16px 20px; }
-:root[data-theme="dark"] .head > :last-child { margin-bottom: 0; }
-:root[data-theme="dark"] .tabs { padding: 4px 8px 0; }
-:root[data-theme="dark"] .head .tabs { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
-:root[data-theme="dark"] .card, :root[data-theme="dark"] .detail { background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
-:root[data-theme="dark"] .canvas { box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
+/* Backdrop and glass windows for both themes: the rules below read these tokens, each theme sets its own photo and depth.
+   Each image URL is declared once so the single-file guides build inlines it a single time. */
+:root { --img-nieve: url("./assets/nieve-lobo.webp"); --img-noche: url("./assets/noche-lobo.webp"); --glass-window: color-mix(in srgb, var(--bg) 80%, transparent); --backdrop-image: var(--img-nieve); --backdrop-desk: #f1f4f8; --backdrop-opacity: .9; --backdrop-filter: blur(6px) saturate(.85) brightness(1.15); --glass-edge: rgba(255, 255, 255, .7); --glass-drop: 0 18px 48px rgba(15, 23, 42, .16); --pill-edge: rgba(255, 255, 255, .7); --pill-drop: 0 6px 16px rgba(15, 23, 42, .14); }
+:root[data-theme="dark"] { --backdrop-image: var(--img-noche); --backdrop-desk: #0b0c0f; --backdrop-opacity: .85; --backdrop-filter: brightness(.55) saturate(.9); --glass-edge: rgba(255, 255, 255, .04); --glass-drop: 0 18px 48px rgba(0, 0, 0, .45); --pill-edge: rgba(255, 255, 255, .08); --pill-drop: 0 6px 16px rgba(0, 0, 0, .35); }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body { background: #0b0c0f; }
-  :root:not([data-theme="light"]) body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .7; filter: brightness(.5) saturate(.9); }
-  :root:not([data-theme="light"]) .head, :root:not([data-theme="light"]) .tabs { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
-  :root:not([data-theme="light"]) .head { padding: 16px 20px; }
-  :root:not([data-theme="light"]) .head > :last-child { margin-bottom: 0; }
-  :root:not([data-theme="light"]) .tabs { padding: 4px 8px 0; }
-  :root:not([data-theme="light"]) .head .tabs { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  :root:not([data-theme="light"]) .card, :root:not([data-theme="light"]) .detail { background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
-  :root:not([data-theme="light"]) .canvas { box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
+  :root:not([data-theme="light"]) { --backdrop-image: var(--img-noche); --backdrop-desk: #0b0c0f; --backdrop-opacity: .85; --backdrop-filter: brightness(.55) saturate(.9); --glass-edge: rgba(255, 255, 255, .04); --glass-drop: 0 18px 48px rgba(0, 0, 0, .45); --pill-edge: rgba(255, 255, 255, .08); --pill-drop: 0 6px 16px rgba(0, 0, 0, .35); }
 }
-
-/* Dark mode: the active menu pill reads as a small raised glass window instead of a flat accent fill. */
-:root[data-theme="dark"] .nav a { transition: background .18s, box-shadow .18s, transform .18s; }
-:root[data-theme="dark"] .nav a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
-:root[data-theme="dark"] .nav a[aria-current="page"] { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-1px); }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .nav a { transition: background .18s, box-shadow .18s, transform .18s; }
-  :root:not([data-theme="light"]) .nav a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
-  :root:not([data-theme="light"]) .nav a[aria-current="page"] { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 6px 16px rgba(0, 0, 0, .35); transform: translateY(-1px); }
-}
+body { background: var(--backdrop-desk); }
+/* The photo is mirrored so the wolf sits on the right; the negative inset hides the blurred edges. */
+body::before { content: ""; position: fixed; inset: -24px; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: var(--backdrop-opacity); filter: var(--backdrop-filter); }
+.head, .tabs { background: var(--glass-window); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 0 var(--glass-edge) inset, var(--glass-drop); }
+.head { padding: 16px 20px; }
+.head > :last-child { margin-bottom: 0; }
+.tabs { padding: 4px 8px 0; }
+.head .tabs { background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; box-shadow: none; padding: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* The whole view is a window too, so loose text between cards (hints, captions) never sits on the photo. */
+.wrap > main { margin-top: 16px; padding: 16px; background: var(--glass-window); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 1px 0 var(--glass-edge) inset, var(--glass-drop); }
+/* The active menu pill reads as a small raised glass window instead of a flat accent fill. */
+.nav a { transition: background .18s, box-shadow .18s, transform .18s; }
+.nav a:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.nav a[aria-current="page"] { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 24%, transparent), color-mix(in srgb, var(--accent) 12%, transparent)); color: var(--text); box-shadow: inset 0 1px 0 var(--pill-edge), inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), var(--pill-drop); transform: translateY(-1px); }

@@ -1,12 +1,12 @@
 :root {
   color-scheme: light dark;
-  /* Same palette as the website the manual is published in; the orange is darkened to keep 4.5:1 contrast as text. */
+  /* Same palette as the website the manual is published in; the accent is darkened to keep 4.5:1 contrast as text. */
   --bg: #f6f7f9;
   --surface: #ffffff;
   --text: #16202e;
   --muted: #5b6676;
   --border: #d9dee6;
-  --accent: #c2410c;
+  --accent: #1d6fa8;
   --code-bg: #0f172a;
   --code-text: #e6edf7;
   --ok: #1b7a43;
@@ -184,6 +184,10 @@ p {
   font-size: 15px;
   text-decoration: none;
   white-space: nowrap;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
 .site-bar__nav a:hover {
@@ -304,6 +308,10 @@ p {
   color: var(--muted);
   text-decoration: none;
   white-space: nowrap;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
 .brand-tabs a:hover {
@@ -476,6 +484,10 @@ kbd {
   font-size: 0.93rem;
   line-height: 1.35;
   text-decoration: none;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
 .task-nav a:hover {
@@ -1700,6 +1712,10 @@ thead th {
   font-weight: 600;
   line-height: 1.35;
   text-decoration: none;
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
 }
 
 .library-nav__brand:hover {
@@ -1906,154 +1922,83 @@ thead th {
   stroke-width: 3;
 }
 
-/* Dark mode: dimmed night wolf backdrop under translucent windows so text never sits on the photo. */
-/* Declared once so single-file builds inline the image a single time. */
+/* Backdrop and glass windows for both themes: the rules below read these tokens, each theme sets its own photo and depth.
+   Each image URL is declared once so the single-file guides build inlines it a single time. */
 :root {
-  --backdrop-image: url("./assets/noche-lobo.webp");
+  --img-nieve: url("./assets/nieve-lobo.webp");
+  --img-noche: url("./assets/noche-lobo.webp");
+  --glass-window: color-mix(in srgb, var(--bg) 80%, transparent);
+  --backdrop-image: var(--img-nieve);
+  --backdrop-desk: #f1f4f8;
+  --backdrop-opacity: 0.9;
+  --backdrop-filter: blur(6px) saturate(0.85) brightness(1.15);
+  --glass-edge: rgba(255, 255, 255, 0.7);
+  --glass-drop: 0 18px 48px rgba(15, 23, 42, 0.16);
+  --pill-edge: rgba(255, 255, 255, 0.7);
+  --pill-drop: 0 6px 16px rgba(15, 23, 42, 0.14);
 }
-:root[data-theme="dark"] body {
-  background: #0b0c0f;
+:root[data-theme="dark"] {
+  --backdrop-image: var(--img-noche);
+  --backdrop-desk: #0b0c0f;
+  --backdrop-opacity: 0.85;
+  --backdrop-filter: brightness(0.55) saturate(0.9);
+  --glass-edge: rgba(255, 255, 255, 0.04);
+  --glass-drop: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --pill-edge: rgba(255, 255, 255, 0.08);
+  --pill-drop: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
-:root[data-theme="dark"] body::before {
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --backdrop-image: var(--img-noche);
+    --backdrop-desk: #0b0c0f;
+    --backdrop-opacity: 0.85;
+    --backdrop-filter: brightness(0.55) saturate(0.9);
+    --glass-edge: rgba(255, 255, 255, 0.04);
+    --glass-drop: 0 18px 48px rgba(0, 0, 0, 0.45);
+    --pill-edge: rgba(255, 255, 255, 0.08);
+    --pill-drop: 0 6px 16px rgba(0, 0, 0, 0.35);
+  }
+}
+body {
+  background: var(--backdrop-desk);
+}
+/* The photo is mirrored so the wolf sits on the right; the negative inset hides the blurred edges. */
+body::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -24px;
   z-index: -1;
   pointer-events: none;
   background: var(--backdrop-image) no-repeat 50% 100% / cover;
   transform: scaleX(-1);
-  opacity: 0.8;
-  filter: brightness(0.5) saturate(0.9);
+  opacity: var(--backdrop-opacity);
+  filter: var(--backdrop-filter);
 }
-:root[data-theme="dark"] .shell__header,
-:root[data-theme="dark"] .shell__sidebar {
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
+.shell__header,
+.shell__sidebar {
+  background: var(--glass-window);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
-:root[data-theme="dark"] .shell__main {
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
+.shell__main {
+  background: var(--glass-window);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body {
-    background: #0b0c0f;
-  }
-  :root:not([data-theme="light"]) body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: var(--backdrop-image) no-repeat 50% 100% / cover;
-    transform: scaleX(-1);
-    opacity: 0.8;
-    filter: brightness(0.5) saturate(0.9);
-  }
-  :root:not([data-theme="light"]) .shell__header,
-  :root:not([data-theme="light"]) .shell__sidebar {
-    background: color-mix(in srgb, var(--surface) 90%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-  :root:not([data-theme="light"]) .shell__main {
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-}
 
-/* Dark mode: the selected task or brand reads as a small raised glass window instead of a flat accent fill. */
-:root[data-theme="dark"] .task-nav a,
-:root[data-theme="dark"] .library-nav__brand {
-  transition:
-    background 0.18s,
-    box-shadow 0.18s,
-    transform 0.18s;
+/* The footer sits outside the reading area, so it gets its own glass too. */
+.shell__footer {
+  background: var(--glass-window);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
-
-:root[data-theme="dark"] .task-nav a:hover,
-:root[data-theme="dark"] .library-nav__brand:hover {
+/* The selected task, brand or brand tab reads as a small raised glass window; the vertical lists add a side bar. */
+.task-nav a:hover,
+.library-nav__brand:hover {
   background: color-mix(in srgb, var(--text) 7%, transparent);
 }
-
-:root[data-theme="dark"] .task-nav a[aria-current="page"],
-:root[data-theme="dark"] .library-nav__brand[aria-current="page"],
-:root[data-theme="dark"] .brand-tabs a[aria-current="page"] {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 22%, transparent),
-    color-mix(in srgb, var(--accent) 10%, transparent)
-  );
-  color: var(--text);
-  box-shadow:
-    inset 3px 0 0 var(--accent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
-    0 6px 16px rgba(0, 0, 0, 0.35);
-  transform: translateY(-1px);
-}
-
-:root[data-theme="dark"] .brand-tabs a[aria-current="page"] {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
-    0 6px 16px rgba(0, 0, 0, 0.35);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .task-nav a,
-  :root:not([data-theme="light"]) .library-nav__brand {
-    transition:
-      background 0.18s,
-      box-shadow 0.18s,
-      transform 0.18s;
-  }
-
-  :root:not([data-theme="light"]) .task-nav a:hover,
-  :root:not([data-theme="light"]) .library-nav__brand:hover {
-    background: color-mix(in srgb, var(--text) 7%, transparent);
-  }
-
-  :root:not([data-theme="light"]) .task-nav a[aria-current="page"],
-  :root:not([data-theme="light"]) .library-nav__brand[aria-current="page"],
-  :root:not([data-theme="light"]) .brand-tabs a[aria-current="page"] {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 22%, transparent),
-      color-mix(in srgb, var(--accent) 10%, transparent)
-    );
-    color: var(--text);
-    box-shadow:
-      inset 3px 0 0 var(--accent),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
-      0 6px 16px rgba(0, 0, 0, 0.35);
-    transform: translateY(-1px);
-  }
-
-  :root:not([data-theme="light"]) .brand-tabs a[aria-current="page"] {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent),
-      0 6px 16px rgba(0, 0, 0, 0.35);
-  }
-}
-
-/* Dark mode: the active menu pill reads as a small raised glass window instead of a flat accent fill. */
-:root[data-theme="dark"] .site-bar__nav a {
-  transition:
-    background 0.18s,
-    box-shadow 0.18s,
-    transform 0.18s;
-}
-
-:root[data-theme="dark"] .site-bar__nav a:hover {
-  background: color-mix(in srgb, var(--text) 7%, transparent);
-}
-
-:root[data-theme="dark"] .site-bar__nav a[aria-current="page"] {
+.task-nav a[aria-current="page"],
+.library-nav__brand[aria-current="page"] {
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--accent) 24%, transparent),
@@ -2061,35 +2006,42 @@ thead th {
   );
   color: var(--text);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 3px 0 0 var(--accent),
+    inset 0 1px 0 var(--pill-edge),
     inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
-    0 6px 16px rgba(0, 0, 0, 0.35);
+    var(--pill-drop);
   transform: translateY(-1px);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .site-bar__nav a {
-    transition:
-      background 0.18s,
-      box-shadow 0.18s,
-      transform 0.18s;
-  }
-
-  :root:not([data-theme="light"]) .site-bar__nav a:hover {
-    background: color-mix(in srgb, var(--text) 7%, transparent);
-  }
-
-  :root:not([data-theme="light"]) .site-bar__nav a[aria-current="page"] {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 24%, transparent),
-      color-mix(in srgb, var(--accent) 12%, transparent)
-    );
-    color: var(--text);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
-      0 6px 16px rgba(0, 0, 0, 0.35);
-    transform: translateY(-1px);
-  }
+.brand-tabs a:hover {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.brand-tabs a[aria-current="page"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 24%, transparent),
+    color-mix(in srgb, var(--accent) 12%, transparent)
+  );
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 var(--pill-edge),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+    var(--pill-drop);
+  transform: translateY(-1px);
+}
+/* The active menu pill reads as a small raised glass window instead of a flat accent fill. */
+.site-bar__nav a:hover {
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+.site-bar__nav a[aria-current="page"] {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 24%, transparent),
+    color-mix(in srgb, var(--accent) 12%, transparent)
+  );
+  color: var(--text);
+  box-shadow:
+    inset 0 1px 0 var(--pill-edge),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent),
+    var(--pill-drop);
+  transform: translateY(-1px);
 }
