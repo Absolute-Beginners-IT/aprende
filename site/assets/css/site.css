@@ -10,20 +10,20 @@
   color-scheme: light;
 }
 :root[data-theme="dark"] {
-  --bg: #0f141b; --surface: #171e28; --text: #e6ebf2; --muted: #9aa6b6; --line: #2b3542;
-  --accent: #fb923c; --on-accent: #0f141b; --glow: rgba(251, 146, 60, .14);
-  --navy: #0b1220; --callout: #2a1d16; --notice-bg: #3a2c08; --notice-text: #f2c35b;
+  --bg: #1b1e25; --surface: #252a34; --text: #e4e7ec; --muted: #9ba3b0; --line: #343a46;
+  --accent: #5aaee8; --on-accent: #16171a; --glow: rgba(90, 174, 232, .14);
+  --navy: #232731; --callout: #243244; --notice-bg: #3a2c08; --notice-text: #f2c35b;
   --l-proteccion: #fbbf24; --l-servicios: #34d399; --l-logica: #a78bfa; --l-fisica: #60a5fa;
-  --ok: #4ade80; --panel: #1f2833;
+  --ok: #4ade80; --panel: #2c323d;
   color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f141b; --surface: #171e28; --text: #e6ebf2; --muted: #9aa6b6; --line: #2b3542;
-    --accent: #fb923c; --on-accent: #0f141b; --glow: rgba(251, 146, 60, .14);
-    --navy: #0b1220; --callout: #2a1d16; --notice-bg: #3a2c08; --notice-text: #f2c35b;
+    --bg: #1b1e25; --surface: #252a34; --text: #e4e7ec; --muted: #9ba3b0; --line: #343a46;
+    --accent: #5aaee8; --on-accent: #16171a; --glow: rgba(90, 174, 232, .14);
+    --navy: #232731; --callout: #243244; --notice-bg: #3a2c08; --notice-text: #f2c35b;
     --l-proteccion: #fbbf24; --l-servicios: #34d399; --l-logica: #a78bfa; --l-fisica: #60a5fa;
-    --ok: #4ade80; --panel: #1f2833;
+    --ok: #4ade80; --panel: #2c323d;
     color-scheme: dark;
   }
 }
@@ -352,4 +352,18 @@ button.enlace { border: 0; background: none; padding: 0; color: var(--muted); te
 @media (prefers-reduced-motion: reduce) {
   .viz__cable.is-activo, .viz__destello { animation: none; }
   .viz [data-elemento], .viz [data-hasta], .viz__halo { transition: none; }
+}
+
+/* Dark mode: dimmed night wolf backdrop under translucent windows so text never sits on the photo. */
+/* Declared once so single-file builds inline the image a single time. */
+:root { --backdrop-image: url("../img/noche-lobo.webp"); }
+:root[data-theme="dark"] body { background: #0b0c0f; }
+:root[data-theme="dark"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .85; filter: brightness(.55) saturate(.9); }
+:root[data-theme="dark"] .page { width: calc(100% - 32px); margin: 32px auto 40px; padding: 40px clamp(20px, 4vw, 48px) 64px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
+:root[data-theme="dark"] .foot { background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body { background: #0b0c0f; }
+  :root:not([data-theme="light"]) body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .85; filter: brightness(.55) saturate(.9); }
+  :root:not([data-theme="light"]) .page { width: calc(100% - 32px); margin: 32px auto 40px; padding: 40px clamp(20px, 4vw, 48px) 64px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 1px 0 rgba(255, 255, 255, .04) inset, 0 18px 48px rgba(0, 0, 0, .45); }
+  :root:not([data-theme="light"]) .foot { background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 }
