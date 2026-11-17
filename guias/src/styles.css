@@ -27,39 +27,39 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f141b;
-  --surface: #171e28;
-  --text: #e6ebf2;
-  --muted: #9aa6b6;
-  --border: #2b3542;
-  --accent: #fb923c;
-  --code-bg: #070b14;
+  --bg: #1b1e25;
+  --surface: #252a34;
+  --text: #e4e7ec;
+  --muted: #9ba3b0;
+  --border: #343a46;
+  --accent: #5aaee8;
+  --code-bg: #12151b;
   --ok: #6fd69a;
   --ok-bg: #143523;
   --warn: #f2c35b;
   --warn-bg: #3a2c08;
   --danger: #ff9a9f;
   --danger-bg: #3f1719;
-  --card-border: rgba(148, 163, 184, 0.14);
+  --card-border: rgba(148, 163, 184, 0.16);
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f141b;
-    --surface: #171e28;
-    --text: #e6ebf2;
-    --muted: #9aa6b6;
-    --border: #2b3542;
-    --accent: #fb923c;
-    --code-bg: #070b14;
+    --bg: #1b1e25;
+    --surface: #252a34;
+    --text: #e4e7ec;
+    --muted: #9ba3b0;
+    --border: #343a46;
+    --accent: #5aaee8;
+    --code-bg: #12151b;
     --ok: #6fd69a;
     --ok-bg: #143523;
     --warn: #f2c35b;
     --warn-bg: #3a2c08;
     --danger: #ff9a9f;
     --danger-bg: #3f1719;
-    --card-border: rgba(148, 163, 184, 0.14);
+    --card-border: rgba(148, 163, 184, 0.16);
     --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
   }
 }
@@ -1904,4 +1904,18 @@ thead th {
 .fg-flecha--datos {
   stroke: var(--ok);
   stroke-width: 3;
+}
+
+/* Dark mode: dimmed night wolf backdrop under translucent windows so text never sits on the photo. */
+/* Declared once so single-file builds inline the image a single time. */
+:root { --backdrop-image: url("./assets/noche-lobo.webp"); }
+:root[data-theme="dark"] body { background: #0b0c0f; }
+:root[data-theme="dark"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .8; filter: brightness(.5) saturate(.9); }
+:root[data-theme="dark"] .shell__header, :root[data-theme="dark"] .shell__sidebar { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+:root[data-theme="dark"] .shell__main { background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body { background: #0b0c0f; }
+  :root:not([data-theme="light"]) body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--backdrop-image) no-repeat 50% 100% / cover; transform: scaleX(-1); opacity: .8; filter: brightness(.5) saturate(.9); }
+  :root:not([data-theme="light"]) .shell__header, :root:not([data-theme="light"]) .shell__sidebar { background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  :root:not([data-theme="light"]) .shell__main { background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
 }
