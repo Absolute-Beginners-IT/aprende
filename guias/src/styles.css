@@ -2028,6 +2028,11 @@ body::after {
     top: calc(var(--header-height) + 16px);
     height: calc(100vh - var(--header-height) - 32px);
   }
+
+  /* The window stops where its content stops (76rem cap plus its side padding and border), so both margins match. */
+  .shell__main {
+    max-width: calc(76rem + 5rem + 2px);
+  }
 }
 
 /* The footer sits outside the reading area, so it gets its own glass too. */
