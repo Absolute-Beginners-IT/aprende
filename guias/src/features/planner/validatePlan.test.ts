@@ -187,4 +187,18 @@ describe('validatePlan', () => {
 
     expect(messages(plan)).toContain('Elige el modelo de planta1 entre los del manual.')
   })
+
+  it('explains a VLAN list on the map that cannot be read, and accepts a valid or empty one', () => {
+    const issues = validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '10, 5000']]))
+
+    expect(issues).toEqual([
+      {
+        section: 'links',
+        message:
+          'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no es válido: La VLAN 5000 no existe: los números de VLAN van del 1 al 4094. Corrígelo en el mapa.',
+      },
+    ])
+    expect(validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '10-20']]))).toEqual([])
+    expect(validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '']]))).toEqual([])
+  })
 })

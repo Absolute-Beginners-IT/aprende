@@ -3,6 +3,11 @@ import { viteSingleFile } from 'vite-plugin-singlefile'
 import { configDefaults, defineConfig } from 'vitest/config'
 import packageJson from './package.json'
 
+// The planner document's module is shared with «Mi infraestructura» (../shared); `zod` resolves from these guides'
+// node_modules. These guides have no Node types, so the folder comes from the URL by hand: decoded, and without the
+// slash URLs put before a Windows drive letter.
+const sharedDir = decodeURIComponent(new URL('../shared', import.meta.url).pathname).replace(/^\/([A-Za-z]:)/, '$1')
+
 export default defineConfig({
   // Relative base so the built index.html works when opened from disk (file://).
   base: './',
@@ -10,6 +15,8 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(packageJson.version),
   },
   plugins: [react(), viteSingleFile()],
+  resolve: { alias: { '@shared': sharedDir }, dedupe: ['zod'] },
+  server: { fs: { allow: ['.', sharedDir] } },
   test: {
     globals: true,
     environment: 'jsdom',

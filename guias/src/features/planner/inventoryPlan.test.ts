@@ -208,6 +208,19 @@ describe('ports from the map of Mi infraestructura', () => {
     ])
   })
 
+  it('tells the VLAN list written on the map for each link, without storing it in the plan', () => {
+    const withVlans = coreAndFloor.map((item) =>
+      item.id === 'inv-planta' ? { ...item, uplinkVlans: { 'inv-core': '10, 20' } } : item,
+    )
+    const stored = twoSwitchPlan()
+
+    const { plan, mapVlans } = combineWithInventory(stored, withVlans, catalog)
+
+    expect([...mapVlans]).toEqual([['ln-1', '10, 20']])
+    expect(plan.links).toEqual(stored.links)
+    expect(combineWithInventory(stored, coreAndFloor, catalog).mapVlans.size).toBe(0)
+  })
+
   it('builds the runbooks with the port set on the map', () => {
     const { plan } = combineWithInventory(twoSwitchPlan(), withMapPorts({ own: 'gi1/0/24' }), catalog)
 
@@ -347,5 +360,35 @@ describe('advisories of the first delivery', () => {
     expect(kept.switches.map((item) => item.name)).toContain('planta1')
     expect(kept.switches.map((item) => item.name)).not.toContain('nucleo')
     expect(kept.ports).toEqual(stored.ports)
+  })
+})
+
+describe('fields the planner does not know', () => {
+  it('keeps them when the planner reads, combines and stores the plan', () => {
+    const raw = {
+      ...twoSwitchPlan(),
+      notes: 'red de la oficina',
+      vlans: twoSwitchPlan().vlans.map((vlan) => ({ ...vlan, color: '#f00' })),
+      switches: twoSwitchPlan().switches.map((item) => ({ ...item, rack: 'R1' })),
+      links: twoSwitchPlan().links.map((link) => ({ ...link, a: { ...link.a, lacp: true }, label: 'troncal' })),
+      ports: twoSwitchPlan().ports.map((port) => ({ ...port, description: 'mesa 5' })),
+    }
+    const stored = NetworkPlanSchema.parse(raw)
+    expect(stored).toEqual(raw)
+    const linked = stored.switches.map((item, index) => ({ ...item, deviceId: ['inv-core', 'inv-planta'][index] }))
+    const synced = { ...stored, switches: linked }
+    const { plan, mapPorts } = combineWithInventory(synced, coreAndFloor, catalog)
+
+    const saved = storeCombined(
+      synced,
+      { ...plan, links: plan.links.map((link) => ({ ...link, nativeVlan: 99 })) },
+      mapPorts,
+    )
+
+    expect(saved.notes).toBe('red de la oficina')
+    expect(saved.vlans).toEqual(raw.vlans)
+    expect(saved.switches.map((item) => item.rack)).toEqual(['R1', 'R1'])
+    expect(saved.links).toEqual([{ ...raw.links[0], nativeVlan: 99 }])
+    expect(saved.ports).toEqual(raw.ports)
   })
 })
