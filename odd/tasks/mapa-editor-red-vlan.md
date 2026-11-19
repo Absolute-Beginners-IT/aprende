@@ -21,8 +21,8 @@ Branch: `feat/mapa-editor-red-vlan` (from main 2459431) · Delivery: stacked-to-
 | ID | Specs | Route | Status | Commit |
 | --- | --- | --- | --- | --- |
 | T1 | S1 | inline | done (verified at 1440px: window x=100 w=1240) | f588c7b |
-| T2 | S4–S6 (slice 1: shared plan module, plan repository in the app, link VLAN list in the guide) | delegated (context backstop: long parent session) | pending | |
-| T3 | verification of T2 (high-risk items 1 and 3: stored plan with two writers, shared contract) | independent verifier | pending | |
+| T2 | S4–S6 (slice 1: shared plan module, plan repository in the app, link VLAN list in the guide) | delegated (context backstop: long parent session) | done: app 309/309, guias 384/384, typecheck and builds OK | 992e529 |
+| T3 | verification of T2 (high-risk items 1 and 3: stored plan with two writers, shared contract) | independent verifier | running | |
 | T4 | S2–S3 (slice 2: editor shell, network panel with VLAN catalogue) | delegated (context backstop) | pending | |
 | T5 | S3, S6 (slice 3: switch «Puertos y VLAN», link panel) | delegated (context backstop) | pending | |
 | T6 | S7–S8 (slice 4: VLAN layers and gap warnings) | delegated (context backstop) | pending | |
@@ -39,3 +39,4 @@ Forecast: about 2000 authored changed lines over five slices (over the 400 heuri
 - **L4** (2026-11-19, user, verbatim): «Si la solución actual evita que haya que "mover las VLAN del planificador al mapa" como indicas, descártalo. Si la solución propuesta no sustituye una cosa por otra habrá que hacerlo con cuidado de no perder nada»
 - Mapping (explorer): `app/` and `guias/` share no code (only URLs, storage keys and `content/guias-indice.json`); app has no zod; the plan link stores only ends and `nativeVlan`; `buildPlanGuide.ts:136` allows every VLAN on every trunk, so a gap cannot exist without a per-link list; the map's `Link.vlans` is free text nobody reads; the planner's «Guía» tab is local state with no deep link; no per-model port counts exist.
 - **L5** (2026-11-19, user, verbatim, to «¿el campo VLAN de cada troncal del mapa pasa a decidir qué VLAN se permiten en los comandos?»): «Sí, adelante con eso»
+- **L6** (2026-11-19, T2 writer, S4–S6) `shared/plan/` (schema with `z.looseObject` at every level so unknown keys survive both writers, inventory reading, combine/store-back, `parseVlanList`/`trunkVlans`, single `HIERARCHICAL_LINK_TYPES`), `@shared` alias in both Vite/tsconfig with `resolve.dedupe: ['zod']`; app gets zod 4.6.7 and `localStoragePlanRepository` (re-read before write, refuses unreadable or `version > 1` with es-ES message, `PlanChange` is an updater). `buildPlanGuide`/`validatePlan` take the map's link VLAN lists: valid non-empty list → list + native (MikroTik `trunkPorts` follow it too); none/empty/invalid → all VLANs as before; an invalid list is a «Enlaces» issue (blocks «Guía» like every issue). RED: guias 6 tests + 1 suite, app 1 suite; GREEN app 309/309, guias 384/384, typecheck, builds. Not changed (out of scope): the guides' planner still falls back to `EMPTY_PLAN` on an unreadable plan and may write over it; Biome does not lint `shared/` in CI.
