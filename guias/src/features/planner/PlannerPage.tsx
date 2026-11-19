@@ -88,7 +88,8 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
   }, [syncedText, storedText, setStored])
 
   const [tab, setTab] = useState<TabKey>('vlans')
-  const issues = validatePlan(plan, catalog)
+  const mapVlans = combined?.mapVlans
+  const issues = validatePlan(plan, catalog, mapVlans)
   // A plan not started yet is not wrong: the editors stay quiet and only the guide says what is missing.
   const started = plan.vlans.length + plan.switches.length + plan.links.length + plan.ports.length > 0
   const editorIssues = started ? issues : []
@@ -112,7 +113,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           <IssueList issues={issues} label="Puntos por corregir" onGo={setTab} />
         </>
       ) : (
-        <PlanGuideView guides={buildPlanGuide(plan, catalog)} />
+        <PlanGuideView guides={buildPlanGuide(plan, catalog, mapVlans)} />
       )
     }
     const Editor = EDITORS[tab]

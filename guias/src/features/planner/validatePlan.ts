@@ -1,3 +1,4 @@
+import { parseVlanList } from '@shared/plan/vlanList'
 import type { Catalog } from '../../domain/buildCatalog'
 import { inSubnet, type NetworkPlan, orderFromCore } from '../../domain/networkPlan'
 import type { Param } from '../../domain/schema'
@@ -28,8 +29,15 @@ function findRepeated<T>(items: T[]): Set<T> {
   return repeated
 }
 
-/** Everything that would make the generated guide wrong, in words the user can act on. */
-export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
+/**
+ * Everything that would make the generated guide wrong, in words the user can act on. `linkVlans` holds the «VLAN»
+ * field written on the map of «Mi infraestructura» for each link, by link id (see CombinedPlan.mapVlans).
+ */
+export function validatePlan(
+  plan: NetworkPlan,
+  catalog: Catalog,
+  linkVlans: ReadonlyMap<string, string> = new Map(),
+): PlanIssue[] {
   const issues: PlanIssue[] = []
   const add = (section: PlanSection, message: string) => issues.push({ section, message })
   const switchName = new Map(plan.switches.map((item) => [item.id, item.name.trim() || 'un switch sin nombre']))
@@ -129,6 +137,13 @@ export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
       add(
         'links',
         `La VLAN nativa ${link.nativeVlan} del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} no está en el plan: usa la 1 o una VLAN del plan.`,
+      )
+    }
+    const list = parseVlanList(linkVlans.get(link.id) ?? '')
+    if (!list.ok) {
+      add(
+        'links',
+        `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura no es válido: ${list.error} Corrígelo en el mapa.`,
       )
     }
   }

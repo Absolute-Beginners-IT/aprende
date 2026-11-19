@@ -1,3 +1,4 @@
+import { trunkVlans } from '@shared/plan/vlanList'
 import type { Catalog } from '../../domain/buildCatalog'
 import { type NetworkPlan, orderFromCore, type PlanSwitch } from '../../domain/networkPlan'
 import type { Concept, Param, Platform, Procedure } from '../../domain/schema'
@@ -59,6 +60,7 @@ function guideForSwitch(
   catalog: Catalog,
   plannedSwitch: PlanSwitch,
   parentId: string | undefined,
+  linkVlans: ReadonlyMap<string, string>,
 ): SwitchGuide {
   const platform = catalog.platforms.find((item) => item.id === plannedSwitch.platform)
   if (!platform) {
@@ -88,8 +90,23 @@ function guideForSwitch(
       return []
     })
     .sort((first, second) => Number(second.peer === parentId) - Number(first.peer === parentId))
-  const trunkPorts = trunks.map((trunk) => trunk.local.interface.trim()).join(',')
   const vlans = [...plan.vlans].sort((a, b) => a.id - b.id)
+  // Each trunk carries the VLANs of its list on the map, or every plan VLAN when it has none.
+  const carried = new Map(
+    trunks.map(({ link }) => [
+      link.id,
+      trunkVlans(
+        linkVlans.get(link.id),
+        vlans.map((vlan) => vlan.id),
+      ),
+    ]),
+  )
+  const trunkPortsFor = (vlanId: number) =>
+    trunks
+      // The native VLAN travels on every trunk, as `allowedVlans` says on the other brands.
+      .filter(({ link }) => link.nativeVlan === vlanId || carried.get(link.id)?.includes(vlanId))
+      .map((trunk) => trunk.local.interface.trim())
+      .join(',')
 
   const vlanRunbook = runbook('vlan-create')
   const tagsOnCreate = vlanRunbook?.procedure.params.some((param) => param.id === 'trunkPorts') ?? false
@@ -106,7 +123,7 @@ function guideForSwitch(
             change: `vlan-${vlan.id}`,
             vlanId: String(vlan.id),
             vlanName: vlan.name,
-            trunkPorts: trunkPorts || undefined,
+            trunkPorts: trunkPortsFor(vlan.id) || undefined,
           },
         ),
       )
@@ -133,7 +150,7 @@ function guideForSwitch(
               change: `trunk-${iface}`,
               interface: iface,
               nativeVlanId: String(link.nativeVlan),
-              allowedVlans: compressVlanList([link.nativeVlan, ...vlans.map((vlan) => vlan.id)]),
+              allowedVlans: compressVlanList([link.nativeVlan, ...(carried.get(link.id) ?? [])]),
             },
           ),
         )
@@ -181,11 +198,18 @@ function guideForSwitch(
   return { plannedSwitch, platform, steps, notes }
 }
 
-/** One guide per switch, from the core outwards, composed from the runbooks of each switch's brand. */
-export function buildPlanGuide(plan: NetworkPlan, catalog: Catalog): SwitchGuide[] {
+/**
+ * One guide per switch, from the core outwards, composed from the runbooks of each switch's brand. `linkVlans` holds
+ * the «VLAN» field written on the map of «Mi infraestructura» for each link, by link id (see CombinedPlan.mapVlans).
+ */
+export function buildPlanGuide(
+  plan: NetworkPlan,
+  catalog: Catalog,
+  linkVlans: ReadonlyMap<string, string> = new Map(),
+): SwitchGuide[] {
   const { order, parent } = orderFromCore(plan)
   return order.flatMap((id) => {
     const plannedSwitch = plan.switches.find((item) => item.id === id)
-    return plannedSwitch ? [guideForSwitch(plan, catalog, plannedSwitch, parent.get(id))] : []
+    return plannedSwitch ? [guideForSwitch(plan, catalog, plannedSwitch, parent.get(id), linkVlans)] : []
   })
 }

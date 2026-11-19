@@ -2033,6 +2033,15 @@ body::after {
   .shell__main {
     max-width: calc(76rem + 5rem + 2px);
   }
+
+  /* Inside the website with no sidebar (the planner) the window is centred like the app's windows, so moving between
+     the tabs of «Mi infraestructura» does not shift the page. */
+  .shell__body--full .shell__main {
+    justify-self: center;
+    width: 100%;
+    max-width: 1240px;
+    padding-inline: 20px;
+  }
 }
 
 /* The footer sits outside the reading area, so it gets its own glass too. */
