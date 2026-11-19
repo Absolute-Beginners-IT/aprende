@@ -89,7 +89,8 @@ export function topologySwitches(raw: unknown): InventorySwitch[] {
       ...ports.get(a.equipo),
       [b.equipo]: { ...(own && { own }), ...(upstream && { upstream }) },
     })
-    const list = textOf(link.data.vlans)
+    // Only trunks and LAGs carry a VLAN list on the map (`carriesVlans` in the app); any other link's text is ignored.
+    const list = link.data.tipo === 'troncal' || link.data.tipo === 'lag' ? textOf(link.data.vlans) : undefined
     if (list) vlans.set(a.equipo, { ...vlans.get(a.equipo), [b.equipo]: list })
   }
   const devices = parsed.data.equipos.map((item) => {

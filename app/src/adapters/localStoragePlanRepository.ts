@@ -38,7 +38,10 @@ export function createLocalStoragePlanRepository(storage: KeyValueStorage): Plan
       const saved = combined
         ? storeCombined(read.plan, change(combined.plan), combined.mapPorts)
         : change(read.plan);
-      storage.setItem(PLAN_KEY, JSON.stringify(saved));
+      // A change that would leave a plan nobody can read (the planner would fall back to an empty one) is refused.
+      const text = JSON.stringify(saved);
+      if (!readStoredPlan(text).ok) throw new Error('El cambio no se ha guardado: el plan de red quedaría ilegible.');
+      storage.setItem(PLAN_KEY, text);
     },
   };
 }

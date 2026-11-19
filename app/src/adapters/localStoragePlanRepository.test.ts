@@ -145,6 +145,17 @@ describe('localStorage plan repository', () => {
     expect(wrongShape.writes).toEqual([]);
   });
 
+  it('refuses a change that would leave a plan nobody could read, and writes nothing', async () => {
+    const storage = withStored();
+    const before = storage.data.get(PLAN_KEY);
+    const repo = createLocalStoragePlanRepository(storage);
+
+    await expect(repo.apply(plan => ({ ...plan, vlans: 'roto' } as unknown as NetworkPlan)))
+      .rejects.toThrow('El cambio no se ha guardado: el plan de red quedaría ilegible.');
+    expect(storage.data.get(PLAN_KEY)).toBe(before);
+    expect(storage.writes).toEqual([]);
+  });
+
   it('never writes over a plan of a newer version, and says so', async () => {
     const text = JSON.stringify({ ...realPlan(), version: 2 });
     const storage = withStored(undefined, text);

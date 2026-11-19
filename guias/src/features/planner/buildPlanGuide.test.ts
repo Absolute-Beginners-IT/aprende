@@ -172,6 +172,14 @@ describe('buildPlanGuide', () => {
       expect(trunkPortsOf('10')).toBe('sfp-sfpplus1')
       expect(trunkPortsOf('20')).toBeUndefined()
       expect(trunkPortsOf('99')).toBe('sfp-sfpplus1')
+
+      // The native VLAN travels on the trunk even when the list on the map leaves it out, as on the other brands.
+      link.nativeVlan = 99
+      const [, withoutNative] = buildPlanGuide(plan, catalog, new Map([['ln-1', '10']]))
+      expect(
+        withoutNative?.steps.find((step) => step.values.vlanId === '99' && step.procedure.task === 'vlan-create')
+          ?.values.trunkPorts,
+      ).toBe('sfp-sfpplus1')
     })
   })
 

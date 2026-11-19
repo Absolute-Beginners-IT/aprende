@@ -103,7 +103,8 @@ function guideForSwitch(
   )
   const trunkPortsFor = (vlanId: number) =>
     trunks
-      .filter(({ link }) => carried.get(link.id)?.includes(vlanId))
+      // The native VLAN travels on every trunk, as `allowedVlans` says on the other brands.
+      .filter(({ link }) => link.nativeVlan === vlanId || carried.get(link.id)?.includes(vlanId))
       .map((trunk) => trunk.local.interface.trim())
       .join(',')
 
