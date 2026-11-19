@@ -16,6 +16,8 @@ Los cambios en las guías se hacen en su repo y se traen aquí con:
 git subtree pull --prefix=guias https://github.com/Absolute-Beginners-IT/guias.git main --squash
 ```
 
+> Nota (2026-11-19): el repo `guias` se ha borrado de GitHub, igual que `Manual-Switches` y `Mapa-Infraestructura`, porque todo su contenido ya está en este repo. No ejecutes este comando: las guías se editan directamente en `guias/`.
+
 ## Por qué no otras opciones
 
 - Submódulo de git: obliga a clonar con `--recursive` y a fijar commits a mano; es fácil acabar con una carpeta vacía.
