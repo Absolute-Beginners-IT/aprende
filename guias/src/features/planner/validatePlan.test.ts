@@ -1,7 +1,7 @@
 import { catalog } from '../../content/catalog'
 import type { NetworkPlan } from '../../domain/networkPlan'
 import { twoSwitchPlan } from './planFixtures'
-import { validatePlan } from './validatePlan'
+import { planWarnings, validatePlan } from './validatePlan'
 
 const messages = (plan: NetworkPlan) => validatePlan(plan, catalog).map((issue) => issue.message)
 
@@ -188,17 +188,18 @@ describe('validatePlan', () => {
     expect(messages(plan)).toContain('Elige el modelo de planta1 entre los del manual.')
   })
 
-  it('explains a VLAN list on the map that cannot be read, and accepts a valid or empty one', () => {
-    const issues = validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '10, 5000']]))
+  it('warns about a VLAN list on the map that cannot be read, and accepts a valid or empty one', () => {
+    const lists = new Map([['ln-1', '10, 5000']])
 
-    expect(issues).toEqual([
+    expect(planWarnings(twoSwitchPlan(), lists)).toEqual([
       {
         section: 'links',
         message:
           'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no es válido: La VLAN 5000 no existe: los números de VLAN van del 1 al 4094. Corrígelo en el mapa.',
       },
     ])
-    expect(validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '10-20']]))).toEqual([])
-    expect(validatePlan(twoSwitchPlan(), catalog, new Map([['ln-1', '']]))).toEqual([])
+    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '10-20']]))).toEqual([])
+    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '']]))).toEqual([])
+    expect(planWarnings(twoSwitchPlan())).toEqual([])
   })
 })

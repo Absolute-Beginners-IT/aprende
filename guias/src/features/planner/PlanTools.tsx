@@ -1,3 +1,4 @@
+import type { StoredPlanRefusal } from '@shared/plan/networkPlan'
 import { type ChangeEvent, useState } from 'react'
 import { EMPTY_PLAN, type NetworkPlan } from '../../domain/networkPlan'
 import { parsePlan } from './usePlan'
@@ -25,10 +26,28 @@ async function readJson(file: File): Promise<unknown> {
   }
 }
 
-/** Save the plan next to the company's documentation, bring it back, or start again. */
-export function PlanTools({ plan, onChange }: { plan: NetworkPlan; onChange: (plan: NetworkPlan) => void }) {
+// Said before replacing a stored plan the planner cannot show: what it holds is lost for good.
+const REFUSED_PLAN: Record<StoredPlanRefusal, string> = {
+  unreadable: 'El plan guardado en este navegador no se puede leer.',
+  newer: 'El plan guardado en este navegador es de una versión más nueva.',
+}
+
+/**
+ * Save the plan next to the company's documentation, bring it back, or start again. While the stored plan cannot be
+ * shown (`refusal`), there is nothing to export, and importing or emptying asks first, saying that it will be lost.
+ */
+export function PlanTools({
+  plan,
+  refusal,
+  onChange,
+}: {
+  plan: NetworkPlan
+  refusal?: StoredPlanRefusal
+  onChange: (plan: NetworkPlan) => void
+}) {
   const [importError, setImportError] = useState(false)
-  const replaceAllowed = (message: string) => isEmpty(plan) || window.confirm(message)
+  const replaceAllowed = (message: string, lost: string) =>
+    refusal ? window.confirm(`${REFUSED_PLAN[refusal]} ${lost} ¿Continuar?`) : isEmpty(plan) || window.confirm(message)
 
   const onImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget
@@ -38,13 +57,14 @@ export function PlanTools({ plan, onChange }: { plan: NetworkPlan; onChange: (pl
     // Cleared so choosing the same file again fires another change.
     input.value = ''
     setImportError(imported === null)
-    if (imported && replaceAllowed('Se va a sustituir el plan actual por el del archivo. ¿Continuar?'))
+    const lost = 'Se va a sustituir por el del archivo y lo que tenía se perderá.'
+    if (imported && replaceAllowed('Se va a sustituir el plan actual por el del archivo. ¿Continuar?', lost))
       onChange(imported)
   }
 
   return (
     <div className="plan-tools">
-      <button type="button" className="plan-add" onClick={() => download(plan)}>
+      <button type="button" className="plan-add" disabled={refusal !== undefined} onClick={() => download(plan)}>
         Exportar plan
       </button>
       <label className="plan-add plan-tools__import">
@@ -54,8 +74,11 @@ export function PlanTools({ plan, onChange }: { plan: NetworkPlan; onChange: (pl
       <button
         type="button"
         className="link-button"
-        disabled={isEmpty(plan)}
-        onClick={() => replaceAllowed('Se va a borrar el plan actual. ¿Continuar?') && onChange(EMPTY_PLAN)}
+        disabled={!refusal && isEmpty(plan)}
+        onClick={() =>
+          replaceAllowed('Se va a borrar el plan actual. ¿Continuar?', 'Se va a borrar y lo que tenía se perderá.') &&
+          onChange(EMPTY_PLAN)
+        }
       >
         Vaciar plan
       </button>

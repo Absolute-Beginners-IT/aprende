@@ -12,6 +12,18 @@ export const PLAN_KEY = PLAN_STORAGE_KEY;
 // The map has no catalog of platforms: the model a switch has in the plan stays, and the guides deduce it as before.
 const keepStoredPlatform = () => '';
 
+/** What the map says when the browser does not let it read or write storage (private mode, blocked site data). */
+export const BLOCKED_STORAGE_PROBLEM = 'Este navegador no deja guardar datos: el plan de red no se puede leer ni guardar.';
+
+/** The stored plan text; a browser that blocks storage throws, and the map says so instead of failing. */
+function readPlanText(storage: KeyValueStorage): string | null {
+  try {
+    return storage.getItem(PLAN_KEY);
+  } catch {
+    throw new Error(BLOCKED_STORAGE_PROBLEM);
+  }
+}
+
 const asCombined = (plan: NetworkPlan): CombinedPlan =>
   ({ plan, hidden: [], deducedModels: new Set(), duplicates: [], mapPorts: new Set(), mapVlans: new Map() });
 
@@ -24,13 +36,19 @@ export function createLocalStoragePlanRepository(storage: KeyValueStorage): Plan
 
   return {
     async load() {
-      const read = readStoredPlan(storage.getItem(PLAN_KEY));
+      let text: string | null;
+      try {
+        text = readPlanText(storage);
+      } catch {
+        return { ...asCombined(EMPTY_PLAN), problem: BLOCKED_STORAGE_PROBLEM };
+      }
+      const read = readStoredPlan(text);
       if (!read.ok) return { ...(combine(EMPTY_PLAN) ?? asCombined(EMPTY_PLAN)), problem: STORED_PLAN_REFUSALS[read.reason] };
       return combine(read.plan) ?? asCombined(read.plan);
     },
     async apply(change) {
       // What is stored now, not what was loaded: a change saved meanwhile by the planner or another tab survives.
-      const read = readStoredPlan(storage.getItem(PLAN_KEY));
+      const read = readStoredPlan(readPlanText(storage));
       if (!read.ok) throw new Error(STORED_PLAN_REFUSALS[read.reason]);
       const combined = combine(read.plan);
       // Same store-back as the planner's edits: hidden switches, their links and ports, the switch order and the

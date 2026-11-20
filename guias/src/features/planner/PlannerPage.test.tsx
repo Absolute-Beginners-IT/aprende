@@ -1,6 +1,7 @@
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { catalog } from '../../content/catalog'
+import type { NetworkPlan } from '../../domain/networkPlan'
 import { INVENTORY_STORAGE_KEY, TOPOLOGY_STORAGE_KEY } from './inventoryImport'
 import { PlannerPage } from './PlannerPage'
 import { twoSwitchPlan } from './planFixtures'
@@ -605,6 +606,154 @@ describe('PlannerPage', () => {
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
       expect(screen.queryByText(/salen de Mi infraestructura/)).not.toBeInTheDocument()
       expect(storedPlan()).toEqual(twoSwitchPlan())
+    })
+  })
+
+  describe('with another writer of the plan (the map of «Mi infraestructura», maybe in another tab)', () => {
+    const device = (id: string, nombre: string, ip: string) => ({
+      id,
+      nombre,
+      tipo: 'switch',
+      ip,
+      criticidad: 'Media',
+      monitorizado: false,
+    })
+    const seedTopology = ({ vlans, withSecondFloor = false }: { vlans?: string; withSecondFloor?: boolean } = {}) =>
+      localStorage.setItem(
+        TOPOLOGY_STORAGE_KEY,
+        JSON.stringify({
+          version: 2,
+          equipos: [
+            device('core', 'nucleo', '192.168.99.2/24'),
+            device('p1', 'planta1', '192.168.99.3/24'),
+            ...(withSecondFloor ? [device('p2', 'planta2', '192.168.99.4/24')] : []),
+          ],
+          enlaces: [
+            { id: 'p1--core', a: { equipo: 'p1' }, b: { equipo: 'core' }, tipo: 'troncal', ...(vlans && { vlans }) },
+            ...(withSecondFloor
+              ? [{ id: 'p2--core', a: { equipo: 'p2' }, b: { equipo: 'core' }, tipo: 'troncal' }]
+              : []),
+          ],
+          grupos: [],
+        }),
+      )
+    const storedPlan = (): NetworkPlan => JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY) ?? '{}')
+    const addCameras = (plan: NetworkPlan): NetworkPlan => ({
+      ...plan,
+      vlans: [...plan.vlans, { id: 30, name: 'CAMARAS', purpose: 'cameras', subnet: '' }],
+    })
+    /** Another writer stores its change; another tab is told through a storage event, the same tab is not. */
+    const writeAsOtherWriter = (change: (plan: NetworkPlan) => NetworkPlan, { notify }: { notify: boolean }) => {
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(change(storedPlan())))
+      if (notify) {
+        act(() => {
+          window.dispatchEvent(new StorageEvent('storage', { key: PLAN_STORAGE_KEY }))
+        })
+      }
+    }
+
+    it('shows a change another tab stores and keeps it when the planner edits the plan', async () => {
+      seed()
+      seedTopology()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      writeAsOtherWriter(addCameras, { notify: true })
+      expect(screen.getByRole('textbox', { name: 'Nombre de la VLAN 4' })).toHaveValue('CAMARAS')
+      await user.type(screen.getByRole('textbox', { name: 'Nombre de la VLAN 1' }), 'X')
+
+      expect(storedPlan().vlans.map((vlan) => [vlan.id, vlan.name])).toEqual([
+        [10, 'USUARIOSX'],
+        [20, 'VOZ'],
+        [99, 'GESTION'],
+        [30, 'CAMARAS'],
+      ])
+      expect(storedPlan().switches.map((item) => item.deviceId)).toEqual(['core', 'p1'])
+    })
+
+    it('applies its edit to what is stored right now, even before it hears of the other change', async () => {
+      seed()
+      seedTopology()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      writeAsOtherWriter(addCameras, { notify: false })
+      await user.type(screen.getByRole('textbox', { name: 'Nombre de la VLAN 1' }), 'X')
+
+      expect(storedPlan().vlans.map((vlan) => vlan.name)).toEqual(['USUARIOSX', 'VOZ', 'GESTION', 'CAMARAS'])
+      expect(screen.getByRole('textbox', { name: 'Nombre de la VLAN 4' })).toHaveValue('CAMARAS')
+    })
+
+    it('keeps the change of the other writer when it follows a new inventory switch', async () => {
+      seed()
+      seedTopology()
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      writeAsOtherWriter(addCameras, { notify: false })
+      seedTopology({ withSecondFloor: true })
+      await openTab(user, /^Switches/)
+
+      expect(storedPlan().vlans.map((vlan) => vlan.id)).toEqual([10, 20, 99, 30])
+      expect(storedPlan().switches.map((item) => item.name)).toEqual(['nucleo', 'planta1', 'planta2'])
+    })
+
+    it.each([
+      [
+        'cannot be read',
+        '{"version":1,"vlans":"roto"',
+        'El plan de red guardado en este navegador no se puede leer; no se ha tocado.',
+      ],
+      [
+        'is of a newer version',
+        JSON.stringify({ ...twoSwitchPlan(), version: 2 }),
+        'El plan de red guardado en este navegador es de una versión más nueva; no se ha tocado.',
+      ],
+    ])(
+      'never writes over a stored plan that %s, and replaces it only when the user confirms',
+      async (_, text, message) => {
+        localStorage.setItem(PLAN_STORAGE_KEY, text)
+        seedTopology()
+        const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+        const user = userEvent.setup()
+        render(<PlannerPage catalog={catalog} />)
+
+        expect(screen.getByRole('alert')).toHaveTextContent(message)
+        expect(screen.queryByRole('button', { name: 'Añadir VLAN' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Exportar plan' })).toBeDisabled()
+        expect(localStorage.getItem(PLAN_STORAGE_KEY)).toBe(text)
+
+        await user.click(screen.getByRole('button', { name: 'Vaciar plan' }))
+        await user.upload(
+          screen.getByLabelText('Importar plan'),
+          new File([JSON.stringify(twoSwitchPlan())], 'plan.json', { type: 'application/json' }),
+        )
+        expect(confirm).toHaveBeenCalledTimes(2)
+        expect(confirm.mock.calls[0]?.[0]).toMatch(/Se va a borrar y lo que tenía se perderá/)
+        expect(confirm.mock.calls[1]?.[0]).toMatch(/Se va a sustituir por el del archivo y lo que tenía se perderá/)
+        expect(localStorage.getItem(PLAN_STORAGE_KEY)).toBe(text)
+
+        confirm.mockReturnValue(true)
+        await user.click(screen.getByRole('button', { name: 'Vaciar plan' }))
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+        expect(storedPlan().vlans).toEqual([])
+        confirm.mockRestore()
+      },
+    )
+
+    it('still shows the guide when a VLAN list on the map cannot be read, and warns about it', async () => {
+      seed()
+      seedTopology({ vlans: '10, 5000' })
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      await openTab(user, /^Guía/)
+
+      expect(screen.getByRole('region', { name: '1. nucleo · Aruba CX 6100' })).toBeInTheDocument()
+      expect(within(screen.getByRole('list', { name: 'Avisos' })).getByRole('listitem')).toHaveTextContent(
+        'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no es válido: La VLAN 5000 no existe: los números de VLAN van del 1 al 4094. Corrígelo en el mapa.',
+      )
     })
   })
 })

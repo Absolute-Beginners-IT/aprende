@@ -166,4 +166,20 @@ describe('localStorage plan repository', () => {
     expect(storage.writes).toEqual([]);
     expect((await repo.load()).problem).toBe('El plan de red guardado en este navegador es de una versión más nueva; no se ha tocado.');
   });
+
+  it('loads the empty plan with a message and writes nothing when the browser blocks storage', async () => {
+    const writes: string[] = [];
+    const blocked = {
+      getItem(): string | null { throw new DOMException('Access denied', 'SecurityError'); },
+      setItem(key: string) { writes.push(key); },
+    };
+    const repo = createLocalStoragePlanRepository(blocked);
+    const message = 'Este navegador no deja guardar datos: el plan de red no se puede leer ni guardar.';
+
+    const loaded = await repo.load();
+    expect(loaded.problem).toBe(message);
+    expect(loaded.plan).toEqual({ version: 1, vlans: [], switches: [], links: [], ports: [] });
+    await expect(repo.apply(renameVlan(10, 'X'))).rejects.toThrow(message);
+    expect(writes).toEqual([]);
+  });
 });
