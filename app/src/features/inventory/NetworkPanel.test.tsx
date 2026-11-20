@@ -280,3 +280,24 @@ describe('addressing', () => {
     expect(await alertText()).toContain('No se ha podido leer el plan de red: SecurityError');
   });
 });
+
+describe('VLAN catalogue and other tabs', () => {
+  it('editing one field of a VLAN keeps what another tab changed in the others', async () => {
+    const { storage } = setup();
+    fireEvent.click((await vlanTable()).getByRole('button', { name: 'Editar la VLAN 10' }));
+    const p = planIn(storage);
+    storage.data.set(PLAN_KEY, JSON.stringify({ ...p, vlans: p.vlans.map((v: { id: number }) => (v.id === 10 ? { ...v, name: 'OFICINA' } : v)) }));
+    fill({ 'Red (opcional)': '10.10.0.0/24' });
+    save();
+    await waitFor(() => expect(planIn(storage).vlans[0]).toMatchObject({ id: 10, name: 'OFICINA', subnet: '10.10.0.0/24', color: '#2b7' }));
+  });
+
+  it('shows a VLAN another tab added as soon as that tab saves it', async () => {
+    const { storage } = setup();
+    await vlanTable();
+    const p = planIn(storage);
+    storage.data.set(PLAN_KEY, JSON.stringify({ ...p, vlans: [...p.vlans, { id: 50, name: 'CAMARAS', purpose: 'cameras', subnet: '' }] }));
+    window.dispatchEvent(new StorageEvent('storage', { key: PLAN_KEY }));
+    expect(await (await vlanTable()).findByText('CAMARAS')).toBeTruthy();
+  });
+});

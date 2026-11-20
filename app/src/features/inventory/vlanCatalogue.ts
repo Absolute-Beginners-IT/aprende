@@ -77,11 +77,21 @@ export const addVlan = (draft: VlanDraft) => (plan: NetworkPlan): NetworkPlan =>
   return { ...plan, vlans: [...plan.vlans, fields(draft)] };
 };
 
-export const editVlan = (id: number, draft: VlanDraft) => (plan: NetworkPlan): NetworkPlan => {
-  if (!plan.vlans.some(v => v.id === id)) throw new Error(`La VLAN ${id} ya no está en el plan: puede que la hayas quitado en otra pestaña.`);
-  ensureValid(draft, plan.vlans, id);
+/**
+ * `opened` is the VLAN as the form showed it: only the fields the learner changed from it are written, so a change
+ * another tab made meanwhile to the other fields stays. Without it every field of the form is written.
+ */
+export const editVlan = (id: number, draft: VlanDraft, opened?: PlanVlan) => (plan: NetworkPlan): NetworkPlan => {
+  const stored = plan.vlans.find(v => v.id === id);
+  if (!stored) throw new Error(`La VLAN ${id} ya no está en el plan: puede que la hayas quitado en otra pestaña.`);
+  const wanted = fields(draft);
+  const changed = opened
+    ? Object.fromEntries(Object.entries(wanted).filter(([key, value]) => opened[key as keyof typeof wanted] !== value))
+    : wanted;
   // Fields the map does not show (written by the planner, a later version or by hand) are kept.
-  return { ...plan, vlans: plan.vlans.map(v => (v.id === id ? { ...v, ...fields(draft) } : v)) };
+  const merged = { ...stored, ...changed };
+  ensureValid({ id: String(merged.id), name: merged.name, purpose: merged.purpose, subnet: merged.subnet }, plan.vlans, id);
+  return { ...plan, vlans: plan.vlans.map(v => (v.id === id ? merged : v)) };
 };
 
 export const removeVlan = (id: number) => (plan: NetworkPlan): NetworkPlan => ({ ...plan, vlans: plan.vlans.filter(v => v.id !== id) });

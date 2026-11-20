@@ -44,6 +44,12 @@ export function NetworkPanel({ planRepository, revision, hasSwitches, empty, fin
     }
   };
   useEffect(() => { void read(); }, [planRepository, revision]);
+  // Another tab (the guides' planner, or the map open twice) saved: show what is stored now.
+  useEffect(() => {
+    const onStorage = () => { void read(); };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [planRepository]);
 
   /** Applies one change to what is stored right now; a refusal is shown, never thrown. */
   const change = async (update: PlanChange, success: string) => {
@@ -171,9 +177,9 @@ function VlanCatalogue({ vlans, problem, locked, onChange }: { vlans: PlanVlan[]
       {editing ? (
         <VlanForm key={editing.kind === 'edit' ? editing.id : 'new'} vlans={vlans} editing={editing.kind === 'edit' ? vlans.find(v => v.id === editing.id) : undefined}
           onCancel={() => setEditing(null)}
-          onSave={async (draft) => {
+          onSave={async (draft, opened) => {
             const saved = editing.kind === 'edit'
-              ? await onChange(editVlan(editing.id, draft), `VLAN ${draft.id.trim()} actualizada.`)
+              ? await onChange(editVlan(editing.id, draft, opened), `VLAN ${draft.id.trim()} actualizada.`)
               : await onChange(addVlan(draft), `VLAN ${draft.id.trim()} añadida.`);
             if (saved) setEditing(null);
           }} />
@@ -186,8 +192,10 @@ function VlanCatalogue({ vlans, problem, locked, onChange }: { vlans: PlanVlan[]
 
 /** The form of one VLAN; it says what is wrong before anything is saved. */
 function VlanForm({ vlans, editing, onSave, onCancel }: {
-  vlans: PlanVlan[]; editing?: PlanVlan; onSave: (draft: VlanDraft) => void; onCancel: () => void;
+  vlans: PlanVlan[]; editing?: PlanVlan; onSave: (draft: VlanDraft, opened?: PlanVlan) => void; onCancel: () => void;
 }) {
+  // The VLAN as the form first showed it, even if the panel reloads meanwhile: only what changed from it is saved.
+  const [opened] = useState(editing);
   const [draft, setDraft] = useState<VlanDraft>(() => (editing
     ? { id: String(editing.id), name: editing.name, purpose: editing.purpose, subnet: editing.subnet }
     : { id: String(freeVlanId(vlans)), name: '', purpose: 'users', subnet: '' }));
@@ -197,7 +205,7 @@ function VlanForm({ vlans, editing, onSave, onCancel }: {
     e.preventDefault();
     const found = vlanProblems(draft, vlans, editing?.id);
     setProblems(found);
-    if (found.length === 0) onSave(draft);
+    if (found.length === 0) onSave(draft, opened);
   };
   return (
     <form className="infra-form vlan-form" aria-label={editing ? `Editar la VLAN ${editing.id}` : 'Nueva VLAN'} noValidate onSubmit={submit}
