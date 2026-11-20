@@ -5,6 +5,7 @@ import { InventoryPage } from './features/inventory/InventoryPage';
 import { InfraMapPage } from './features/inventory/InfraMapPage';
 import { DeploymentPlanPage } from './features/deployment/DeploymentPlanPage';
 import { createLocalStorageInventoryRepository } from './adapters/localStorageInventoryRepository';
+import { createLocalStoragePlanRepository } from './adapters/localStoragePlanRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
 import { GUIDE_URL, PLANNER_URL } from './config';
@@ -44,6 +45,8 @@ export function App() {
   const { view } = route;
   const storage = useMemo(browserStorage, []);
   const repository = useMemo(() => createLocalStorageInventoryRepository(storage), [storage]);
+  // The planner document of the guides, in the same storage: the map's «Red y VLAN» panel edits it in place.
+  const planRepository = useMemo(() => createLocalStoragePlanRepository(storage), [storage]);
   useEffect(() => {
     const onHash = () => setRoute(routeFromHash());
     window.addEventListener('hashchange', onHash);
@@ -60,7 +63,8 @@ export function App() {
       </p>
       {/* The reference map and its scenarios teach, so they belong to Aprender; «Mi infraestructura» is the learner's own network. */}
       <SiteNav current={inventory ? 'infra' : 'aprender'} />
-      <div className="wrap">
+      {/* The map editor takes the whole window width; the header stays where the other views have it. */}
+      <div className={inventory && !route.infraView ? 'wrap wrap--wide' : 'wrap'}>
         {inventory ? (
           <header className="head">
             <span className="label">Mi infraestructura</span>
@@ -90,7 +94,7 @@ export function App() {
         <main>
           {view === 'mapa' && <MapPage />}
           {view === 'escenarios' && <ScenariosPage scenarioId={route.scenarioId} onChoose={id => { location.hash = scenarioHash(id); }} />}
-          {inventory && !route.infraView && <InfraMapPage repository={repository} />}
+          {inventory && !route.infraView && <InfraMapPage repository={repository} planRepository={planRepository} />}
           {inventory && route.infraView === 'lista' && <InventoryPage repository={repository} />}
           {inventory && route.infraView === 'plan' && <DeploymentPlanPage repository={repository} storage={storage} />}
         </main>

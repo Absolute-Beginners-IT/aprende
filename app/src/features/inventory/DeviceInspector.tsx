@@ -119,17 +119,25 @@ export function DeviceInspector({ device, connections, group, findings, onChange
   );
 }
 
-/** What the inspector shows with nothing selected: the gaps of the whole inventory and how to use the map. */
-export function InventoryOverview({ empty, findings }: { empty: boolean; findings: Finding[] }) {
+/** The gaps of the whole inventory compared with a typical small business, in the «Avisos» tab of «Red y VLAN». */
+export function InventoryFindings({ empty, findings }: { empty: boolean; findings: Finding[] }) {
   return (
-    <aside className="detail infra-inspector" aria-label="Qué te falta">
-      <h2>Qué te falta</h2>
+    <section className="infra-findings" aria-labelledby="infra-findings-title">
+      <h3 id="infra-findings-title">Qué te falta</h3>
       {empty && <p className="muted">Añade tus equipos y aquí verás qué falta comparado con una pyme típica: copias, alta disponibilidad, SAI, monitorización y soporte.</p>}
       {!empty && findings.length === 0 && <p>No se detecta ninguna carencia. ¡Buen trabajo!</p>}
       <FindingList findings={findings} />
-      <h3 id="infra-hints-title">Cómo se usa el mapa</h3>
+    </section>
+  );
+}
+
+/** Every gesture of the map editor, at the foot of the «Red y VLAN» panel. */
+export function MapHelp() {
+  return (
+    <details className="infra-help">
+      <summary id="infra-hints-title">Cómo se usa el mapa</summary>
       <ul className="infra-hints" aria-labelledby="infra-hints-title">
-        <li>Pulsa un tipo de la paleta (o arrástralo al mapa) para añadir un equipo.</li>
+        <li>Pulsa un tipo de la biblioteca de la izquierda (o arrástralo al mapa) para añadir un equipo. Escribe en «Buscar equipos y formas» para encontrarlo antes.</li>
         <li>Arrastra un equipo para colocarlo donde quieras.</li>
         <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga. Antes de guardar, elige el tipo de enlace (datos, troncal, LAG, HA, stack, WAN, almacenamiento, gestión o energía), los puertos de cada lado, la velocidad y, en troncales y LAG, las VLAN.</li>
         <li>Un enlace de energía es un cable de corriente, no de datos: no lleva puertos de red ni velocidad. Indica, si quieres, la toma del SAI o de la regleta y la fuente de alimentación del equipo («Fuente 1», «Fuente 2»). Quién alimenta a quién sale del tipo de equipo: el SAI o la regleta.</li>
@@ -140,7 +148,9 @@ export function InventoryOverview({ empty, findings }: { empty: boolean; finding
         <li>Con las pestañas «Red» y «Energía» cambias de vista. «Red» no dibuja los cables de corriente: cada equipo muestra de qué regletas o SAI se alimenta, en naranja si solo tiene una. «Energía» dibuja solo la corriente: los SAI arriba, las regletas como barras y, debajo, los equipos que alimentan. Cambiar de vista no mueve ni guarda nada.</li>
         <li>En la leyenda de la vista «Red» puedes ocultar las líneas de gestión; tu elección se recuerda en este navegador.</li>
         <li>En la página «Lista», «Exportar el esquema (JSON)» guarda todo el mapa en un archivo e «Importar el esquema (JSON)» lo recupera.</li>
+        <li>Con nada seleccionado, el panel de la derecha muestra «Red y VLAN»: las VLAN de tu red, el switch núcleo y sus redes, y los avisos. «Comprobar red» abre los avisos.</li>
+        <li>Acerca, aleja o encaja todo el mapa con los botones de la barra de herramientas; el minimapa de la esquina te dice qué parte estás viendo.</li>
       </ul>
-    </aside>
+    </details>
   );
 }
