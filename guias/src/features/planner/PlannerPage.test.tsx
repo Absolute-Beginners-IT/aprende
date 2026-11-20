@@ -757,3 +757,20 @@ describe('PlannerPage', () => {
     })
   })
 })
+
+describe('PlannerPage VLAN ids', () => {
+  it('keeps a VLAN in its row while its ID is edited', async () => {
+    seed()
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+    const id2 = screen.getByRole('spinbutton', { name: 'ID de la VLAN 2' })
+    await user.clear(id2)
+    await user.type(id2, '25')
+    const stored = JSON.parse(localStorage.getItem(PLAN_STORAGE_KEY) ?? 'null') as NetworkPlan
+    expect(stored.vlans.map((v) => [v.id, v.name])).toEqual([
+      [10, 'USUARIOS'],
+      [25, 'VOZ'],
+      [99, 'GESTION'],
+    ])
+  })
+})

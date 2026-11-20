@@ -131,8 +131,28 @@ function rebaseList<T extends { id: string | number }>(base: T[], next: T[], cur
   const sharedOrder = (items: T[]) =>
     items.filter((item) => baseById.has(item.id) && nextById.has(item.id)).map((item) => item.id)
   const fresh = added.filter((item) => !currentIds.has(item.id))
+  // The id each item of `next` ends up with (a new one may have been given a free id).
+  const finalIds = next.map((item) => (baseById.has(item.id) ? item.id : added[next.filter((n) => !baseById.has(n.id)).indexOf(item)]?.id))
+  // Each new item goes right before the item that follows it in the edit, so a row whose id is being typed stays in
+  // place; one added at the end of the edit goes last, after anything another writer added.
+  const placeFresh = (items: T[]): T[] => {
+    const out = [...items]
+    for (const item of [...fresh].reverse()) {
+      const at = finalIds.indexOf(item.id)
+      let insertAt = out.length
+      for (let i = at + 1; i < finalIds.length; i += 1) {
+        const found = out.findIndex((own) => own.id === finalIds[i])
+        if (found >= 0) {
+          insertAt = found
+          break
+        }
+      }
+      out.splice(insertAt, 0, item)
+    }
+    return out
+  }
 
-  if (same(sharedOrder(base), sharedOrder(next))) return [...current.flatMap(fromCurrent), ...fresh]
+  if (same(sharedOrder(base), sharedOrder(next))) return placeFresh(current.flatMap(fromCurrent))
   const currentById = new Map(current.map((item) => [item.id, item]))
   const inEditOrder = next.flatMap((item): T[] => {
     if (!baseById.has(item.id)) return []
@@ -141,7 +161,7 @@ function rebaseList<T extends { id: string | number }>(base: T[], next: T[], cur
     return own ? [own] : []
   })
   const theirs = current.filter((item) => !baseById.has(item.id)).map((item) => addedById.get(item.id) ?? item)
-  return [...inEditOrder, ...theirs, ...fresh]
+  return placeFresh([...inEditOrder, ...theirs])
 }
 
 /**

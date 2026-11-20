@@ -148,3 +148,18 @@ describe('rebasePlan', () => {
     expect(rebasePlan(base, { ...base }, current)).toEqual(current)
   })
 })
+
+describe('rebasePlan keeps rows in place', () => {
+  it('rebases an id change in place', () => {
+    const base = twoSwitchPlan()
+    const next = { ...base, vlans: base.vlans.map((v) => (v.id === 20 ? { ...v, id: 25 } : v)) }
+    expect(rebasePlan(base, next, base)).toEqual(next)
+  })
+
+  it('puts a VLAN added at the top of the list at the top', () => {
+    const base = twoSwitchPlan()
+    const first = { id: 5, name: 'PRIMERA', purpose: 'other' as const, subnet: '' }
+    const next = { ...base, vlans: [first, ...base.vlans] }
+    expect(rebasePlan(base, next, base).vlans.map((v) => v.id)).toEqual([5, ...base.vlans.map((v) => v.id)])
+  })
+})
