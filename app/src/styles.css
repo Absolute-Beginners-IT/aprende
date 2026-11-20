@@ -150,6 +150,20 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .vlan-table__net { font-family: var(--mono); font-size: 13px; }
 .vlan-table__actions { white-space: nowrap; text-align: right; }
 .vlan-table__actions .chip { padding: 3px 9px; font-size: 13px; }
+/* In the narrow panel each VLAN is one compact row: id on the left, name and purpose over its network, actions on the right. */
+.vlan-table--catalogue thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.vlan-table--catalogue tbody { display: grid; gap: 6px; }
+.vlan-table--catalogue tr { display: grid; grid-template-columns: 56px auto minmax(0, 1fr) auto; grid-template-areas: "id name purpose actions" "id net net actions"; align-items: center; column-gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.vlan-table--catalogue td { padding: 0; border: 0; overflow-wrap: normal; }
+.vlan-table--catalogue td:nth-child(1) { grid-area: id; }
+.vlan-table--catalogue td:nth-child(2) { grid-area: name; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vlan-table--catalogue td:nth-child(3) { grid-area: purpose; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vlan-table--catalogue td:nth-child(4) { grid-area: net; color: var(--muted); white-space: nowrap; }
+.vlan-table--catalogue td:nth-child(5) { grid-area: actions; display: grid; gap: 4px; }
+/* The panel's single column never grows past the panel, so nothing in it pushes a horizontal scroll bar. */
+.infra-network { grid-template-columns: minmax(0, 1fr); }
+.infra-network__tabs { justify-self: stretch; }
+.infra-network .infra-network__tabs [role="tab"] { flex: 1 1 auto; min-width: 0; padding: 5px 8px; font-size: 13px; white-space: nowrap; }
 .vlan-swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent); }
 .infra-form__error ul { margin: 0; padding-left: 18px; }
 .infra-addressing__core { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }

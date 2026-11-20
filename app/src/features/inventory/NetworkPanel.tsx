@@ -147,7 +147,7 @@ function VlanCatalogue({ vlans, problem, locked, onChange }: { vlans: PlanVlan[]
       </div>
       {vlans.length === 0 && !problem && <p className="muted">Aún no hay VLAN. Añade la primera o empieza con una plantilla; marca una como Gestión: es la red por la que vas a administrar los switches.</p>}
       {vlans.length > 0 && (
-        <table className="vlan-table" aria-label="VLAN del plan">
+        <table className="vlan-table vlan-table--catalogue" aria-label="VLAN del plan">
           <thead>
             <tr><th scope="col">ID</th><th scope="col">Nombre</th><th scope="col">Propósito</th><th scope="col">Red</th><th scope="col"><span className="visually-hidden">Acciones</span></th></tr>
           </thead>
