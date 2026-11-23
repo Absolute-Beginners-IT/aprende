@@ -198,8 +198,25 @@ describe('validatePlan', () => {
           'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no es válido: La VLAN 5000 no existe: los números de VLAN van del 1 al 4094. Corrígelo en el mapa.',
       },
     ])
-    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '10-20']]))).toEqual([])
+    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '10, 20']]))).toEqual([])
     expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '']]))).toEqual([])
     expect(planWarnings(twoSwitchPlan())).toEqual([])
+  })
+
+  it('warns about VLANs a list on the map names that the plan does not have, leaving VLAN 1 aside', () => {
+    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '1, 10, 40-41']]))).toEqual([
+      {
+        section: 'links',
+        message:
+          'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura deja pasar las VLAN 40 y 41, que no están en el plan: créalas o quítalas de la troncal en el mapa.',
+      },
+    ])
+    expect(planWarnings(twoSwitchPlan(), new Map([['ln-1', '10, 50']]))).toEqual([
+      {
+        section: 'links',
+        message:
+          'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura deja pasar la VLAN 50, que no está en el plan: créala o quítala de la troncal en el mapa.',
+      },
+    ])
   })
 })

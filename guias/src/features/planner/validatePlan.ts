@@ -1,3 +1,4 @@
+import { unknownListedVlans } from '@shared/plan/vlanGaps'
 import { parseVlanList } from '@shared/plan/vlanList'
 import type { Catalog } from '../../domain/buildCatalog'
 import { inSubnet, type NetworkPlan, orderFromCore } from '../../domain/networkPlan'
@@ -35,17 +36,25 @@ const switchNames = (plan: NetworkPlan) => {
 }
 
 /**
- * What the user should know but does not stop the guide: today, a «VLAN» field on the map of «Mi infraestructura»
- * that cannot be read (the guide then allows every plan VLAN on that trunk, as with no field). `linkVlans` holds that
- * field for each link, by link id (see CombinedPlan.mapVlans).
+ * What the user should know but does not stop the guide: a «VLAN» field on the map of «Mi infraestructura» that
+ * cannot be read (the guide then allows every plan VLAN on that trunk, as with no field), or that names VLANs the
+ * plan does not have. `linkVlans` holds that field for each link, by link id (see CombinedPlan.mapVlans).
  */
 export function planWarnings(plan: NetworkPlan, linkVlans: ReadonlyMap<string, string> = new Map()): PlanIssue[] {
   const { nameOf } = switchNames(plan)
+  const unknown = new Map(unknownListedVlans(plan, linkVlans).map((item) => [item.link, item.vlans]))
   return plan.links.flatMap((link) => {
+    const field = `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura`
     const list = parseVlanList(linkVlans.get(link.id) ?? '')
-    if (list.ok) return []
-    const message = `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura no es válido: ${list.error} Corrígelo en el mapa.`
-    return [{ section: 'links' as const, message }]
+    if (!list.ok)
+      return [{ section: 'links' as const, message: `${field} no es válido: ${list.error} Corrígelo en el mapa.` }]
+    const vlans = unknown.get(link.id)
+    if (!vlans) return []
+    const named =
+      vlans.length > 1
+        ? `las VLAN ${vlans.slice(0, -1).join(', ')} y ${vlans[vlans.length - 1]}, que no están en el plan: créalas o quítalas`
+        : `la VLAN ${vlans[0]}, que no está en el plan: créala o quítala`
+    return [{ section: 'links' as const, message: `${field} deja pasar ${named} de la troncal en el mapa.` }]
   })
 }
 
