@@ -10,7 +10,7 @@ La guía tiene una **ruta de aprendizaje**: 10 módulos en orden (de redes y sis
 | --- | --- | --- |
 | `site/` | Guía y ruta de aprendizaje (Hugo, contenido estático) | `example.com` |
 | `app/` | Mapa interactivo (React + Vite + TypeScript, SPA estática) | `app.example.com` |
-| `guias/` | Guías por equipo y marca (switches y firewalls) y planificador de red. Se desarrollan aquí (ver [ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)) | `app.example.com/guias/` |
+| `guias/` | Guías por equipo y marca (switches y firewalls) y planificador de red, que genera los comandos del plan que se edita en el mapa de «Mi infraestructura». Se desarrollan aquí (ver [ADR 0005](docs/adr/0005-guias-fuente-unica-en-aprende.md)) | `app.example.com/guias/` |
 | `api/` | Backend futuro. **Todavía no existe**: ver `api/README.md` | `api.example.com` |
 | `content/` | Base de conocimiento compartida (JSON) que leen `site/` y `app/` | — |
 | `toolkit/` | Scripts PowerShell y plantillas para aplicar lo aprendido en una red real | — |

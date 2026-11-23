@@ -53,8 +53,8 @@ Las guías se ven de dos formas:
   y el botón **Tema**), y encima de cada página, una barra fina con **Buscar** (`Ctrl+K`) y, en pantallas estrechas, el botón **Guías** que abre el lateral. El lateral es la biblioteca por tipo de equipo:
   **Switches** con sus marcas (la marca en uso se despliega con sus tareas), los tipos que aún no tienen guías
   (Firewalls, Virtualización y Almacenamiento) como «Próximamente», y los enlaces a **Fundamentos** y **Estado del
-  contenido**. La portada muestra una tarjeta por tipo de equipo. **Red y VLAN** (el planificador) pertenece a «Mi
-  infraestructura» y se ve sin la biblioteca.
+  contenido**. La portada muestra una tarjeta por tipo de equipo. El planificador pertenece a «Mi infraestructura» y se ve
+  sin la biblioteca, con las pestañas de esa sección.
 
 Las direcciones, la búsqueda, el tema, los recientes y el rellenado con un equipo del inventario funcionan igual en
 las dos.
@@ -62,7 +62,8 @@ las dos.
 ### Planificador de red
 
 El **Planificador de red** (`#/plan`) sirve para diseñar o documentar la red de una empresa y sacar los
-pasos de cada switch:
+pasos de cada switch. `#/plan/guia` lo abre directamente en **Guía** y `#/plan/guia?equipo=<id>`, en la parte del
+switch del plan que corresponde a ese equipo de «Mi infraestructura» (si no está en el plan, se ve la guía completa):
 
 1. En **VLAN**, empieza con una plantilla o añade las VLAN una a una, con su propósito. Marca una como Gestión.
 2. En **Switches**, elige el modelo de cada uno y su IP de gestión. El primero es el núcleo.
@@ -71,7 +72,7 @@ pasos de cada switch:
 5. En **Guía**, si todo encaja, tienes los pasos de cada switch, del núcleo hacia fuera, con los comandos de su marca ya
    rellenos. «Abrir la guía con estos datos» lleva a la guía completa con los valores puestos.
 
-En la web del proyecto, el planificador no está en la cabecera del manual: es la pestaña **Red y VLAN** de «Mi infraestructura», junto al mapa y la lista de equipos. Si en el inventario de ese navegador hay switches, son los switches del plan: su nombre, su IP, su modelo (cuando es uno de los del manual) y sus conexiones salen de «Mi infraestructura» y se cambian allí. En el planificador indicas lo que solo sabe el plan: las VLAN, el puerto de cada extremo de un enlace, la VLAN nativa, los puertos de acceso, la puerta de enlace, el bridge y cuál es el núcleo. Un plan hecho antes se asocia por nombre; los switches que el inventario no tiene se ocultan, sin borrarse, hasta que los añadas allí con el mismo nombre. Sin switches en el inventario, el planificador funciona como en el archivo independiente. En el archivo independiente, el planificador sigue en la cabecera.
+En la web del proyecto, el planificador no está en la cabecera del manual ni es una pestaña propia: las VLAN, los puertos y los enlaces se editan en el panel **Red y VLAN** del mapa de «Mi infraestructura», que lee y escribe este mismo plan, y su botón **Obtener comandos** (o la pestaña **Comandos** de un switch) abre el planificador en `#/plan/guia`. El planificador se sigue viendo dentro de «Mi infraestructura», con sus pestañas Mapa, Lista y Plan de despliegue, y `#/plan` sigue funcionando. Si en el inventario de ese navegador hay switches, son los switches del plan: su nombre, su IP, su modelo (cuando es uno de los del manual) y sus conexiones salen de «Mi infraestructura» y se cambian allí. En el planificador indicas lo que solo sabe el plan: las VLAN, el puerto de cada extremo de un enlace, la VLAN nativa, los puertos de acceso, la puerta de enlace, el bridge y cuál es el núcleo. Un plan hecho antes se asocia por nombre; los switches que el inventario no tiene se ocultan, sin borrarse, hasta que los añadas allí con el mismo nombre. Sin switches en el inventario, el planificador funciona como en el archivo independiente. En el archivo independiente, el planificador sigue en la cabecera.
 
 El mapa de la red se dibuja solo a partir del plan. El plan se guarda en el navegador y se puede exportar e importar como
 JSON. No cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos.
@@ -129,7 +130,7 @@ Si el manual se publica dentro de otra web, compílalo con `VITE_SITE_NAV`, una 
 (`[{"label": "Inicio", "href": "../../"}, {"label": "Guías", "href": "./", "current": true}, …]`): aparece entonces
 una barra con esos enlaces y las guías cambian al marco de la biblioteca (ver «Dentro de la web y sin conexión»). El
 primer enlace tiene que ser la portada de esa web: el nombre de la barra apunta a él. Si un enlace lleva
-`"id": "infra"`, el planificador pasa a ser la pestaña «Red y VLAN» de esa sección. Sin la variable, o si no es una
+`"id": "infra"`, el planificador pasa a formar parte de esa sección, con sus pestañas Mapa, Lista y Plan de despliegue. Sin la variable, o si no es una
 lista válida, se compila el archivo independiente, sin barra y con su cabecera.
 
 Cada pull request pasa por el CI del repositorio (`.github/workflows/ci.yml` en la raíz de `aprende`): `check`, `test` y
