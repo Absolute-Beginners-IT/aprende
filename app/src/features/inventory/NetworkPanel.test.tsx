@@ -535,6 +535,18 @@ describe('link selected', () => {
     expect(storage.data.get(TOPOLOGY_KEY)).toBe(topology);
   });
 
+  it('saves a link turned into one without VLANs after an invalid native VLAN was typed', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const plan = storage.data.get(PLAN_KEY);
+    fireEvent.change(await f.findByLabelText('VLAN nativa'), { target: { value: '5000' } });
+    fireEvent.change(f.getByLabelText('Tipo de enlace'), { target: { value: 'datos' } });
+    expect(f.queryByLabelText('VLAN nativa')).toBeNull();
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await waitFor(() => expect(topologyIn(storage).enlaces[1].tipo).toBe('datos'));
+    expect(storage.data.get(PLAN_KEY)).toBe(plan);
+  });
+
   it('offers no VLAN fields on a link that does not carry VLANs', async () => {
     const { container } = setup();
     await waitFor(() => expect(container.querySelector('[aria-label="CORE – FW01: Datos"]')).toBeTruthy());

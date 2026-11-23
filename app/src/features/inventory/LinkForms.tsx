@@ -150,7 +150,9 @@ export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onCl
   const first = useFocusOnOpen<HTMLSelectElement>();
   const { loaded, problem, locked, errors, change } = usePlanDocument(plan.repository, plan.revision, plan.onMessage);
   const planLink = loaded && !problem ? planLinkBetween(loaded.plan, link.a.equipo, link.b.equipo) : undefined;
-  const nativeError = native === null ? '' : nativeVlanProblem(native);
+  // Only a native VLAN the form shows can stop the save: a link turned into one without VLANs drops what was typed.
+  const nativeShown = carriesVlans(draft.tipo) && Boolean(planLink);
+  const nativeError = native === null || !nativeShown ? '' : nativeVlanProblem(native);
   const nameA = nameOf(link.a.equipo);
   const nameB = nameOf(link.b.equipo);
   const submit = (e: FormEvent) => {
@@ -159,7 +161,7 @@ export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onCl
     if (vlanListProblem(draft) || nativeError) return;
     const refused = onSave(draft);
     setRefusal(refused ?? '');
-    if (refused || !planLink || !carriesVlans(draft.tipo) || native === null || Number(native) === planLink.nativeVlan) return;
+    if (refused || locked || !planLink || !nativeShown || native === null || Number(native) === planLink.nativeVlan) return;
     const vlan = Number(native);
     void change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
       .then(saved => { if (saved) setNative(null); });
