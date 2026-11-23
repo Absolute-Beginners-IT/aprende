@@ -7,11 +7,14 @@ import type { Device, Link, Topology } from '../../domain/types';
 import { fromInventoryV1, upstreamOf, type DeviceV1 } from '../../domain/topology';
 import { createMemoryInventoryRepository } from '../../adapters/memoryInventoryRepository';
 import { arrangeByTiers, layoutDevices } from '../../domain/infraMap';
+import { createLocalStoragePlanRepository } from '../../adapters/localStoragePlanRepository';
 
 mockReactFlow();
 afterEach(() => { cleanup(); localStorage.clear(); });
 
 type Repo = ReturnType<typeof createMemoryInventoryRepository>;
+// The «Red y VLAN» panel reads an empty plan of its own: these tests are about the drawing and the fichas.
+const plans = () => { const data = new Map<string, string>(); return createLocalStoragePlanRepository({ getItem: k => data.get(k) ?? null, setItem: (k, v) => void data.set(k, v) }); };
 const memoryRepository = (initial: DeviceV1[] | Topology = []) => createMemoryInventoryRepository(Array.isArray(initial) ? fromInventoryV1(initial) : initial);
 const stored = (repo: Repo, id: string) => repo.topology.equipos.find(d => d.id === id);
 const hangsFrom = (repo: Repo, id: string) => upstreamOf(repo.topology.enlaces, id);
@@ -23,6 +26,12 @@ const network = (): DeviceV1[] => [
 ];
 
 const ficha = () => within(screen.getByRole('complementary', { name: 'Ficha del equipo' }));
+// With nothing selected the panel is «Red y VLAN»; the gaps of the inventory are in its «Avisos» tab.
+const gapsPanel = async () => {
+  const network = within(await screen.findByRole('complementary', { name: 'Red y VLAN' }));
+  fireEvent.click(network.getByRole('tab', { name: /^Avisos/ }));
+  return within(network.getByRole('region', { name: 'Qué te falta' }));
+};
 const openFicha = async (name: string) => {
   fireEvent.click(await screen.findByText(name, { selector: '.infra-node__name' }));
   return ficha();
@@ -30,7 +39,7 @@ const openFicha = async (name: string) => {
 
 describe('InfraMapPage', () => {
   it('draws every device as a node with its name, type and brand, joined by its uplinks', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(network())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     expect(await screen.findByText('CORE', { selector: '.infra-node__name' })).toBeTruthy();
     expect(screen.getByText('FW01', { selector: '.infra-node__name' })).toBeTruthy();
     expect(screen.getByText('Fortinet FortiGate 60F')).toBeTruthy();
@@ -39,25 +48,25 @@ describe('InfraMapPage', () => {
   });
 
   it('tells the learner the map is stored only in this browser', () => {
-    render(<InfraMapPage repository={memoryRepository()} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository()} />);
     expect(screen.getByText(/solo en este navegador/)).toBeTruthy();
   });
 
   it('invites to add a device when the inventory is empty', async () => {
-    render(<InfraMapPage repository={memoryRepository()} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository()} />);
     expect(await screen.findByText(/Tu mapa está vacío/)).toBeTruthy();
   });
 
   it('shows the gaps and how to use the map while nothing is selected', async () => {
-    render(<InfraMapPage repository={memoryRepository(network())} />);
-    const aside = within(screen.getByRole('complementary', { name: 'Qué te falta' }));
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
+    const aside = await gapsPanel();
     expect(await aside.findByText(/No hay ningún sistema de copias de seguridad/)).toBeTruthy();
     expect(aside.getAllByText('Urgente').length).toBeGreaterThan(0);
-    expect(aside.getByText(/Arrastra un equipo/)).toBeTruthy();
+    expect(within(screen.getByRole('complementary', { name: 'Red y VLAN' })).getByText(/Arrastra un equipo/)).toBeTruthy();
   });
 
   it('opens the ficha of the clicked device with its connections, gaps and planner link', async () => {
-    render(<InfraMapPage repository={memoryRepository(network())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     const f = await openFicha('CORE');
     expect((f.getByLabelText('Nombre') as HTMLInputElement).value).toBe('CORE');
     expect((f.getByLabelText('Tipo') as HTMLSelectElement).value).toBe('switch');
@@ -67,7 +76,7 @@ describe('InfraMapPage', () => {
   });
 
   it('shows the monitoring configuration for the brand of the selected device', async () => {
-    render(<InfraMapPage repository={memoryRepository(network())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     const f = await openFicha('FW01');
     expect(f.getByText('FortiGate (FortiOS 7.4, 7.6 y 8.0) · SNMPv3')).toBeTruthy();
     expect(f.queryByRole('link', { name: 'Planificar VLAN y puertos' })).toBeNull();
@@ -75,7 +84,7 @@ describe('InfraMapPage', () => {
 
   it('lists the guides of a covered switch, grouped, opening each one with the device filled in', async () => {
     const access: DeviceV1 = { id: 'sw acceso/1', nombre: 'ACCESO', tipo: 'switch', criticidad: 'Media', monitorizado: false, marca: 'HPE Aruba', modelo: '6100 24G' };
-    render(<InfraMapPage repository={memoryRepository([...network(), access])} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository([...network(), access])} />);
     const f = await openFicha('ACCESO');
     const section = within(f.getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByRole('heading', { level: 3, name: 'Guías para este equipo' })).toBeTruthy();
@@ -91,21 +100,21 @@ describe('InfraMapPage', () => {
   });
 
   it('tells which models the guides cover when the switch has no known brand and model', async () => {
-    render(<InfraMapPage repository={memoryRepository(network())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     const section = within((await openFicha('CORE')).getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByText('Indica la marca y el modelo para ver sus guías. Las guías cubren: Aruba CX 6100, Cisco Catalyst 1300, MikroTik CRS317 y Ruijie NBS3200.')).toBeTruthy();
     expect(section.queryAllByRole('link')).toHaveLength(0);
   });
 
   it('links the guides of a FortiGate firewall from its ficha', async () => {
-    render(<InfraMapPage repository={memoryRepository(network())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     const section = within((await openFicha('FW01')).getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByRole('link', { name: 'Sincronizar la hora con NTP' }).getAttribute('href')).toBe('./guias/#/p/fortinet-fortigate/ntp-client?equipo=fw01');
   });
 
   it('says the guides for other device types come later', async () => {
     const devices: DeviceV1[] = [...network(), { id: 'srv01', nombre: 'SRV01', tipo: 'servidor', criticidad: 'Media', monitorizado: false, uplinks: ['core'] }];
-    render(<InfraMapPage repository={memoryRepository(devices)} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(devices)} />);
     const section = within((await openFicha('SRV01')).getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByText('Las guías de este tipo de equipo llegarán más adelante.')).toBeTruthy();
     expect(section.queryAllByRole('link')).toHaveLength(0);
@@ -113,7 +122,7 @@ describe('InfraMapPage', () => {
 
   it('renames a device from its ficha and keeps its id, so its connections stay', async () => {
     const repo = memoryRepository(network());
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('FW01');
     const name = f.getByLabelText('Nombre');
     fireEvent.change(name, { target: { value: 'FW-Sede' } });
@@ -126,7 +135,7 @@ describe('InfraMapPage', () => {
 
   it('saves the other fields of the ficha', async () => {
     const repo = memoryRepository(network());
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('CORE');
     fireEvent.change(f.getByLabelText('Marca'), { target: { value: 'HPE Aruba' } });
     fireEvent.blur(f.getByLabelText('Marca'));
@@ -143,7 +152,7 @@ describe('InfraMapPage', () => {
 
   it('adds a device of the type chosen in the palette and opens its ficha', async () => {
     const repo = memoryRepository(network());
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await screen.findByText('CORE', { selector: '.infra-node__name' });
     fireEvent.click(screen.getByRole('button', { name: 'Añadir Switch' }));
     expect(await screen.findByText('Switch 1', { selector: '.infra-node__name' })).toBeTruthy();
@@ -154,7 +163,7 @@ describe('InfraMapPage', () => {
 
   it('removes a connection from the ficha', async () => {
     const repo = memoryRepository(network());
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('FW01');
     fireEvent.click(f.getByRole('button', { name: 'Quitar la conexión con CORE' }));
     expect((await screen.findByRole('status')).textContent).toBe('Conexión entre FW01 y CORE quitada.');
@@ -163,20 +172,20 @@ describe('InfraMapPage', () => {
 
   it('deletes a device and the uplinks that pointed to it', async () => {
     const repo = memoryRepository(network());
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('FW01');
     fireEvent.click(f.getByRole('button', { name: 'Borrar equipo' }));
     expect((await screen.findByRole('status')).textContent).toBe('FW01 borrado.');
     expect(stored(repo, 'fw01')).toBeUndefined();
     expect(repo.topology.enlaces).toEqual([]);
     await waitFor(() => expect(screen.queryByText('FW01', { selector: '.infra-node__name' })).toBeNull());
-    expect(screen.getByRole('complementary', { name: 'Qué te falta' })).toBeTruthy();
+    expect(screen.getByRole('complementary', { name: 'Red y VLAN' })).toBeTruthy();
   });
 
   it('reports a storage failure instead of failing silently', async () => {
     const repo = memoryRepository(network());
     repo.apply = async () => { throw new Error('QuotaExceededError'); };
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('CORE');
     fireEvent.change(f.getByLabelText('Nombre'), { target: { value: 'CORE-01' } });
     fireEvent.blur(f.getByLabelText('Nombre'));
@@ -192,7 +201,7 @@ describe('InfraMapPage', () => {
       { id: 'esx01', nombre: 'ESX01', tipo: 'hipervisor', criticidad: 'Alta', monitorizado: true, uplinks: ['core'] },
     ]);
     const shown = layoutDevices(repo.topology);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
     fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
 
@@ -213,7 +222,7 @@ describe('InfraMapPage', () => {
     const before = repo.topology;
     // The browser storage is full: a move must not be left half saved.
     repo.apply = async () => { throw new Error('QuotaExceededError'); };
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click(await screen.findByText('ACC1', { selector: '.infra-node__name' }));
     fireEvent.keyDown(container.querySelector('.react-flow__node[data-id="acc1"]') as HTMLElement, { key: 'ArrowRight' });
 
@@ -230,7 +239,7 @@ describe('InfraMapPage', () => {
     const repo = memoryRepository(original);
     const before = repo.topology;
     repo.apply = async () => { throw new Error('QuotaExceededError'); };
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click((await openFicha('CORE')).getByRole('button', { name: 'Borrar equipo' }));
 
     expect((await screen.findByRole('status')).textContent).toBe('No se ha podido guardar en este navegador: QuotaExceededError');
@@ -242,7 +251,7 @@ describe('InfraMapPage', () => {
     let writes = 0;
     const apply = repo.apply;
     repo.apply = change => { writes++; return apply(change); };
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click((await openFicha('CORE')).getByRole('button', { name: /Quitar/ }));
 
     await waitFor(() => expect(hangsFrom(repo, 'core')).toEqual([]));
@@ -251,7 +260,7 @@ describe('InfraMapPage', () => {
 
   it('draws one line per link, two links between the same pair of firewalls included', async () => {
     const [fw1, fw2] = fromInventoryV1([{ id: 'fw1', nombre: 'FW1', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }, { id: 'fw2', nombre: 'FW2', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }]).equipos;
-    const { container } = render(<InfraMapPage repository={memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha')], grupos: [] })} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha')], grupos: [] })} />);
     await screen.findByText('FW1', { selector: '.infra-node__name' });
     await waitFor(() => expect(container.querySelectorAll('.react-flow__edge')).toHaveLength(2));
   });
@@ -259,7 +268,7 @@ describe('InfraMapPage', () => {
   it('lists every link of the device in its ficha and removes only the one chosen', async () => {
     const [fw1, fw2] = fromInventoryV1([{ id: 'fw1', nombre: 'FW1', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }, { id: 'fw2', nombre: 'FW2', tipo: 'firewall', criticidad: 'Alta', monitorizado: true }]).equipos;
     const repo = memoryRepository({ equipos: [fw1, fw2], enlaces: [link('h1', 'fw1', 'fw2', 'ha'), link('h2', 'fw2', 'fw1', 'ha')], grupos: [] });
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('FW1');
     const buttons = f.getAllByRole('button', { name: 'Quitar la conexión con FW2' });
     expect(buttons).toHaveLength(2);
@@ -274,7 +283,7 @@ describe('InfraMapPage', () => {
     let writes = 0;
     const apply = repo.apply;
     repo.apply = change => { writes++; return apply(change); };
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click((await openFicha('FW1')).getByRole('button', { name: 'Borrar equipo' }));
     expect((await screen.findByRole('status')).textContent).toBe('FW1 borrado.');
     expect(repo.topology).toEqual({ equipos: [fw2], enlaces: [], grupos: [{ id: 'par', tipo: 'ha', nombre: 'Par', miembros: ['fw2'] }] });
@@ -300,7 +309,7 @@ const edgesOf = (container: HTMLElement) => container.querySelectorAll('.react-f
 
 describe('InfraMapPage drawing', () => {
   it('names every line «A – B: tipo», two HA lines between the same firewalls included', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
     expect(container.querySelectorAll('[aria-label="FW1 – FW2: HA"], [aria-label="FW2 – FW1: HA"]')).toHaveLength(2);
     expect(container.querySelector('[aria-label="ACC1 – CORE1: LAG"]')).toBeTruthy();
@@ -310,12 +319,12 @@ describe('InfraMapPage drawing', () => {
   });
 
   it('shows the speed and «LAG» on the line of a LAG', async () => {
-    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     expect(await screen.findByText('LAG · 10G')).toBeTruthy();
   });
 
   it('draws a labelled box around each group and each HA or stack pair, and names the tiers', async () => {
-    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     expect(await screen.findByRole('group', { name: 'HA: FW1, FW2' })).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Stack: CORE1, CORE2' })).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Clúster: ESX1' })).toBeTruthy();
@@ -323,20 +332,20 @@ describe('InfraMapPage drawing', () => {
   });
 
   it('lists in the legend only the link types on the map', async () => {
-    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     const legend = within(await screen.findByRole('region', { name: 'Leyenda del mapa' }));
     expect(legend.getAllByRole('listitem').map(li => li.textContent)).toEqual(['Datos', 'LAG', 'HA', 'Stack', 'Gestión']);
   });
 
   it('hides management lines with their toggle and remembers it in this browser', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(container)).toHaveLength(6));
     expect(container.querySelector('.react-flow__edge.infra-edge--gestion')).toBeNull();
     cleanup();
 
-    const again = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    const again = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     await screen.findByText('FW1', { selector: '.infra-node__name' });
     await waitFor(() => expect(edgesOf(again.container)).toHaveLength(6));
     expect((screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }) as HTMLInputElement).checked).toBe(false);
@@ -348,7 +357,7 @@ describe('InfraMapPage drawing', () => {
     const getItem = Storage.prototype.getItem;
     Storage.prototype.getItem = () => { throw new Error('SecurityError'); };
     try {
-      const { container } = render(<InfraMapPage repository={memoryRepository(drawing())} />);
+      const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
       await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
       expect(screen.getByRole('tab', { name: 'Red' }).getAttribute('aria-selected')).toBe('true');
     } finally { Storage.prototype.getItem = getItem; }
@@ -360,7 +369,7 @@ describe('InfraMapPage drawing', () => {
     let writes = 0;
     const apply = repo.apply;
     repo.apply = change => { writes++; return apply(change); };
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await screen.findByText('FW1', { selector: '.infra-node__name' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Colocar por capas' }));
@@ -383,7 +392,7 @@ describe('InfraMapPage drawing', () => {
     let writes = 0;
     const apply = repo.apply;
     repo.apply = change => { writes++; return apply(change); };
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await waitFor(() => expect(edgesOf(container)).toHaveLength(7));
     fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' }));
     await waitFor(() => expect(edgesOf(container)).toHaveLength(6));
@@ -420,7 +429,7 @@ describe('InfraMapPage link editing', () => {
   it('asks for the link before saving it and saves the chosen type, ports, speed and VLANs in one write', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'acc', 'core');
 
     const form = linkForm();
@@ -444,7 +453,7 @@ describe('InfraMapPage link editing', () => {
     const repo = memoryRepository(editing());
     const before = repo.topology;
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'acc', 'core');
     fireEvent.click(linkForm().getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('complementary', { name: 'Nuevo enlace' })).toBeNull();
@@ -457,7 +466,7 @@ describe('InfraMapPage link editing', () => {
   });
 
   it('moves the focus into the new link form and labels every field', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(editing())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(editing())} />);
     await join(container, 'acc', 'core');
     const form = linkForm();
     await waitFor(() => expect(document.activeElement).toBe(form.getByLabelText('Tipo de enlace')));
@@ -466,7 +475,7 @@ describe('InfraMapPage link editing', () => {
 
   it('makes the dragged device hang from the target for a hierarchical type', async () => {
     const repo = memoryRepository(editing());
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'acc', 'core');
     expect(linkForm().getByText('ACC cuelga de CORE.')).toBeTruthy();
     fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'lag' } });
@@ -478,7 +487,7 @@ describe('InfraMapPage link editing', () => {
   it('refuses a hierarchical link opposite to one the pair already has, with a message, and saves nothing', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'fw1', 'core');
     fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
     expect(linkForm().getByRole('alert').textContent).toBe('CORE ya cuelga de FW1: FW1 no puede colgar también de CORE.');
@@ -487,7 +496,7 @@ describe('InfraMapPage link editing', () => {
 
   it('allows extra links of other types, or in the same direction, between the same pair', async () => {
     const repo = memoryRepository(editing());
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'fw1', 'core');
     fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'gestion' } });
     fireEvent.click(linkForm().getByRole('button', { name: 'Crear enlace' }));
@@ -502,7 +511,7 @@ describe('InfraMapPage link editing', () => {
   it('opens the ficha of a selected line and saves its changes in one write', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await waitFor(() => expect(coreLine(container)).toBeTruthy());
     fireEvent.click(coreLine(container));
 
@@ -524,7 +533,7 @@ describe('InfraMapPage link editing', () => {
   it('removes the link from its ficha with «Quitar enlace»', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await waitFor(() => expect(coreLine(container)).toBeTruthy());
     fireEvent.click(coreLine(container));
     fireEvent.click(linkFicha().getByRole('button', { name: 'Quitar enlace' }));
@@ -537,7 +546,7 @@ describe('InfraMapPage link editing', () => {
   it('closes the ficha of the line with Escape and saves nothing', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await waitFor(() => expect(coreLine(container)).toBeTruthy());
     fireEvent.click(coreLine(container));
     fireEvent.change(linkFicha().getByLabelText('Velocidad'), { target: { value: '1G' } });
@@ -560,7 +569,7 @@ describe('InfraMapPage groups', () => {
   it('groups the selected devices with a type and a name in one write', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await pick(container, ['fw1', 'fw2']);
     fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
     await waitFor(() => expect(document.activeElement).toBe(selection().getByLabelText('Tipo de grupo')));
@@ -577,7 +586,7 @@ describe('InfraMapPage groups', () => {
   it('refuses to group a device that is already in a group, naming it', async () => {
     const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'stack', nombre: 'Núcleo', miembros: ['core'] }] });
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await pick(container, ['acc', 'core']);
     fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
     fireEvent.change(selection().getByLabelText('Nombre del grupo'), { target: { value: 'Acceso' } });
@@ -587,7 +596,7 @@ describe('InfraMapPage groups', () => {
   });
 
   it('still opens the ficha of one device clicked without Ctrl after selecting several', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(editing())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(editing())} />);
     await pick(container, ['fw1', 'fw2']);
     expect(selection().getAllByRole('listitem').map(li => li.textContent)).toEqual(['FW1', 'FW2']);
     fireEvent.click(container.querySelector('.react-flow__node[data-id="core"]') as HTMLElement);
@@ -597,7 +606,7 @@ describe('InfraMapPage groups', () => {
   it('cancels the group form with Escape and saves nothing', async () => {
     const repo = memoryRepository(editing());
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await pick(container, ['fw1', 'fw2']);
     fireEvent.click(selection().getByRole('button', { name: 'Agrupar' }));
     fireEvent.keyDown(selection().getByLabelText('Nombre del grupo'), { key: 'Escape' });
@@ -609,7 +618,7 @@ describe('InfraMapPage groups', () => {
   it('shows the group in the device ficha and takes the device out of it in one write', async () => {
     const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'cluster', nombre: 'Granja', miembros: ['fw1', 'fw2', 'core'] }] });
     const writes = counted(repo);
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     const f = await openFicha('FW2');
     expect(f.getByText('Granja (Clúster)')).toBeTruthy();
     fireEvent.click(f.getByRole('button', { name: 'Sacar del grupo' }));
@@ -621,7 +630,7 @@ describe('InfraMapPage groups', () => {
   it('undoes the whole group from the device ficha in one write', async () => {
     const repo = memoryRepository({ ...editing(), grupos: [{ id: 'g', tipo: 'ha', nombre: 'Par', miembros: ['fw1', 'fw2'] }] });
     const writes = counted(repo);
-    render(<InfraMapPage repository={repo} />);
+    render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click((await openFicha('FW1')).getByRole('button', { name: 'Deshacer el grupo' }));
     expect((await screen.findByRole('status')).textContent).toBe('Grupo Par deshecho.');
     expect(repo.topology.grupos).toEqual([]);
@@ -638,13 +647,13 @@ const powered = (enlaces: Link[] = []): Topology => {
 
 describe('InfraMapPage power links', () => {
   it('offers the regleta in the palette', async () => {
-    render(<InfraMapPage repository={memoryRepository(powered())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(powered())} />);
     expect(await screen.findByRole('button', { name: 'Añadir Regleta (PDU)' })).toBeTruthy();
   });
 
   it('asks for the outlet and the power supply instead of ports, speed and VLANs, and stores them in the right ends', async () => {
     const repo = memoryRepository(powered());
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'fw1', 'ups');
     const form = linkForm();
     fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
@@ -659,7 +668,7 @@ describe('InfraMapPage power links', () => {
 
   it('stores the outlet on the SAI end when the SAI was dragged onto the device', async () => {
     const repo = memoryRepository(powered());
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await join(container, 'ups', 'fw1');
     const form = linkForm();
     fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
@@ -672,7 +681,7 @@ describe('InfraMapPage power links', () => {
   });
 
   it('says the device is fed by the regleta, by the SAI between a SAI and a regleta, and by nobody between two other devices', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(powered())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(powered())} />);
     await join(container, 'pdu', 'core');
     fireEvent.change(linkForm().getByLabelText('Tipo de enlace'), { target: { value: 'energia' } });
     expect(linkForm().getByText('CORE se alimenta de PDU.')).toBeTruthy();
@@ -688,7 +697,7 @@ describe('InfraMapPage power links', () => {
 
   it('shows the outlet and the power supply in the ficha of a power line and on the line itself', async () => {
     const repo = memoryRepository(powered([{ id: 'p1', a: { equipo: 'fw1', puerto: 'Fuente 1' }, b: { equipo: 'ups', puerto: '3' }, tipo: 'energia' }]));
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     fireEvent.click(await screen.findByRole('tab', { name: 'Energía' }));
     expect(await screen.findByText('Toma 3 · Fuente 1')).toBeTruthy();
     fireEvent.click(container.querySelector('[aria-label="FW1 – UPS: Energía"]') as HTMLElement);
@@ -722,7 +731,7 @@ const toEnergy = async () => fireEvent.click(await screen.findByRole('tab', { na
 
 describe('InfraMapPage views', () => {
   it('switches between «Red» and «Energía» with tabs and remembers the choice in this browser', async () => {
-    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     expect(await screen.findByRole('tablist', { name: 'Vista del mapa' })).toBeTruthy();
     expect(tab('Red').getAttribute('aria-selected')).toBe('true');
     expect(tab('Energía').getAttribute('aria-selected')).toBe('false');
@@ -730,7 +739,7 @@ describe('InfraMapPage views', () => {
     expect(tab('Energía').getAttribute('aria-selected')).toBe('true');
     cleanup();
 
-    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     expect((await screen.findByRole('tab', { name: 'Energía' })).getAttribute('aria-selected')).toBe('true');
     fireEvent.keyDown(tab('Energía'), { key: 'ArrowLeft' });
     expect(tab('Red').getAttribute('aria-selected')).toBe('true');
@@ -741,7 +750,7 @@ describe('InfraMapPage views', () => {
     const repo = memoryRepository(rackRoom());
     const before = repo.topology;
     const writes = counted(repo);
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await screen.findByText('FW1', { selector: '.infra-node__name' });
     await toEnergy();
     await waitFor(() => expect(container.querySelector('.react-flow__node-regletaBar')).toBeTruthy());
@@ -752,13 +761,13 @@ describe('InfraMapPage views', () => {
   });
 
   it('draws no power lines in «Red»', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     await waitFor(() => expect(edgesOf(container)).toHaveLength(2));
     expect(container.querySelector('.react-flow__edge.infra-edge--energia')).toBeNull();
   });
 
   it('shows in «Red» what feeds each device, in the warning colour when it has a single feed', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     await waitFor(() => expect(badgeOf(container, 'fw1')).toBeTruthy());
     expect(badgeOf(container, 'fw1')!.textContent).toBe('⚡ Regleta (PDU) 1 · SAI 2');
     expect(badgeOf(container, 'fw1')!.classList.contains('is-single')).toBe(false);
@@ -768,20 +777,20 @@ describe('InfraMapPage views', () => {
   });
 
   it('shows no power badge on SAIs and regletas', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     await waitFor(() => expect(badgeOf(container, 'fw1')).toBeTruthy());
     for (const id of ['sai1', 'sai2', 'pdu1']) expect(badgeOf(container, id)).toBeNull();
   });
 
   it('offers no «Energía» toggle in the legend of «Red», only the management one', async () => {
-    render(<InfraMapPage repository={memoryRepository(drawing())} />);
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(drawing())} />);
     await screen.findByRole('region', { name: 'Leyenda del mapa' });
     expect(screen.queryByRole('checkbox', { name: 'Mostrar las líneas de energía' })).toBeNull();
     expect(screen.getByRole('checkbox', { name: 'Mostrar las líneas de gestión' })).toBeTruthy();
   });
 
   it('draws only power in «Energía»: the regletas as bars, one line per power link and no network lines', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     await toEnergy();
     await waitFor(() => expect(edgesOf(container)).toHaveLength(4));
     expect(container.querySelectorAll('.react-flow__edge.infra-edge--energia')).toHaveLength(4);
@@ -796,7 +805,7 @@ describe('InfraMapPage views', () => {
 
   it('offers only the energía link type when joining two devices in «Energía»', async () => {
     const repo = memoryRepository(rackRoom());
-    const { container } = render(<InfraMapPage repository={repo} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={repo} />);
     await toEnergy();
     await join(container, 'core', 'sai2');
     const form = linkForm();
@@ -811,7 +820,7 @@ describe('InfraMapPage views', () => {
   });
 
   it('opens the ficha of a power line clicked in «Energía»', async () => {
-    const { container } = render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
+    const { container } = render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
     await toEnergy();
     await waitFor(() => expect(container.querySelector('[aria-label="FW2 – Regleta (PDU) 1: Energía"]')).toBeTruthy());
     fireEvent.click(container.querySelector('[aria-label="FW2 – Regleta (PDU) 1: Energía"]') as HTMLElement);
@@ -821,8 +830,8 @@ describe('InfraMapPage views', () => {
   });
 
   it('shows the same «Qué te falta» in both views', async () => {
-    render(<InfraMapPage repository={memoryRepository(rackRoom())} />);
-    const gaps = async () => (await screen.findByRole('complementary', { name: 'Qué te falta' })).textContent;
+    render(<InfraMapPage planRepository={plans()} repository={memoryRepository(rackRoom())} />);
+    const gaps = async () => (await gapsPanel()).getByRole('list').textContent;
     const red = await gaps();
     expect(red).toMatch(/SAI 1/);
     await toEnergy();

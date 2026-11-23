@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import {
-  ReactFlow, ReactFlowProvider, Background, BackgroundVariant, Controls, applyNodeChanges, useReactFlow,
+  ReactFlow, ReactFlowProvider, Background, BackgroundVariant, MiniMap, applyNodeChanges, useReactFlow, useViewport,
   type AriaLabelConfig, type Connection as FlowConnection, type EdgeChange, type NodeChange, type NodePositionChange, type NodeSelectionChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import type { Device, DeviceGroup, GroupType, Link, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
+import type { PlanRepository } from '../../ports/PlanRepository';
+import { PLANNER_URL } from '../../config';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { LINK_TYPE_NAMES, groupOf, isPowerSupplier, powerEndRoles, powerFeedersOf } from '../../domain/topology';
 import {
@@ -21,7 +23,8 @@ import { MapViewTabs, loadMapView, saveMapView, type MapView } from './MapViewTa
 import { GroupBoxNode, TierLabelNode, type GroupBoxNodeType, type TierLabelNodeType } from './MapDecorations';
 import { MapLegend, loadHiddenLines, saveHiddenLines } from './MapLegend';
 import { DevicePalette, PALETTE_DRAG_TYPE } from './DevicePalette';
-import { DeviceInspector, InventoryOverview } from './DeviceInspector';
+import { DeviceInspector } from './DeviceInspector';
+import { NetworkPanel, type NetworkTab } from './NetworkPanel';
 import { LinkInspector, NewLinkForm } from './LinkForms';
 import { GroupPanel } from './GroupPanel';
 
@@ -54,6 +57,7 @@ const ARIA_LABELS: Partial<AriaLabelConfig> = {
   'controls.zoomOut.ariaLabel': 'Alejar',
   'controls.fitView.ariaLabel': 'Ver todo el mapa',
   'handle.ariaLabel': 'Punto de conexión',
+  'minimap.ariaLabel': 'Minimapa: la parte del mapa que estás viendo',
 };
 
 const isSelection = (c: NodeChange<ItemNode>): c is NodeSelectionChange => c.type === 'select';
@@ -77,12 +81,35 @@ function freeSpot(center: Position, taken: Position[]): Position {
   return center;
 }
 
-/** «Mi infraestructura» as a map: the inventory drawn as devices joined by their links, edited with the mouse. */
-export function InfraMapPage({ repository }: { repository: InventoryRepository }) {
-  return <ReactFlowProvider><InfraMap repository={repository} /></ReactFlowProvider>;
+interface InfraMapProps {
+  repository: InventoryRepository;
+  /** The planner document the «Red y VLAN» panel reads and writes, the same one the guides' planner keeps. */
+  planRepository: PlanRepository;
 }
 
-function InfraMap({ repository }: { repository: InventoryRepository }) {
+/**
+ * «Mi infraestructura» as a map editor: a toolbar, the library of device types, the inventory drawn as devices joined by
+ * their links, and one panel on the right that follows the selection («Red y VLAN» when nothing is selected).
+ */
+export function InfraMapPage(props: InfraMapProps) {
+  return <ReactFlowProvider><InfraMap {...props} /></ReactFlowProvider>;
+}
+
+/** The zoom buttons of the toolbar and the zoom level, in place of React Flow's floating controls. */
+function ZoomControls() {
+  const { zoomIn, zoomOut, fitView } = useReactFlow();
+  const { zoom } = useViewport();
+  return (
+    <div className="infra-tools__group" role="group" aria-label="Zoom">
+      <button type="button" className="infra-tool" aria-label="Alejar" title="Alejar" onClick={() => void zoomOut()}>−</button>
+      <span className="infra-zoom">{Math.round(zoom * 100)} %</span>
+      <button type="button" className="infra-tool" aria-label="Acercar" title="Acercar" onClick={() => void zoomIn()}>+</button>
+      <button type="button" className="infra-tool" aria-label="Ver todo el mapa" title="Ver todo el mapa" onClick={() => void fitView(FIT_VIEW)}>⤢</button>
+    </div>
+  );
+}
+
+function InfraMap({ repository, planRepository }: InfraMapProps) {
   const { topology, devices, loaded, message, setMessage, persist } = useInventory(repository);
   const { screenToFlowPosition, fitView } = useReactFlow();
   const canvas = useRef<HTMLDivElement>(null);
@@ -96,6 +123,7 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const [confirmingArrange, setConfirmingArrange] = useState(false);
   // Two devices just joined on the map: the link is saved only when its form is sent.
   const [pendingLink, setPendingLink] = useState<{ from: string; to: string } | null>(null);
+  const [networkTab, setNetworkTab] = useState<NetworkTab>('vlan');
 
   const byId = useMemo(() => new Map(devices.map(d => [d.id, d])), [devices]);
   const nameOf = (id: string) => byId.get(id)?.nombre ?? id;
@@ -104,6 +132,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
   const selected = selectedDevices.length === 1 ? selectedDevices[0] : undefined;
   const selectedLink = selectedDevices.length === 0 && pickedEdges.size === 1 ? drawnLinks(topology).find(l => pickedEdges.has(l.id)) : undefined;
   const select = (id: string | null) => { setSelectedIds(id ? [id] : []); setPickedEdges(new Set()); };
+  // «Comprobar red» empties the selection so the panel shows the whole network, open at its warnings.
+  const checkNetwork = () => { select(null); setPendingLink(null); setNetworkTab('avisos'); };
   // The «Energía» view is worked out from the power links each time: it is never saved and never moves the «Red» view.
   const powerLayout = useMemo(() => (view === 'energia' ? layoutPower(topology) : null), [topology, view]);
 
@@ -371,8 +401,8 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
       .map(c => ({ id: c.id, other: c.from === selected.id ? c.to : c.from })).map(c => ({ ...c, nombre: nameOf(c.other) }))
     : [];
 
-  // The inspector column shows, first to last: the form of a link being drawn, the ficha of the selected line, the
-  // devices selected together, the ficha of the selected device, or the gaps of the whole inventory.
+  // The panel shows, first to last: the form of a link being drawn, the ficha of the selected line, the devices
+  // selected together, the ficha of the selected device, or «Red y VLAN» for the whole network.
   const inspector = () => {
     if (pendingLink) {
       return <NewLinkForm key={`${pendingLink.from}>${pendingLink.to}`} nameA={nameOf(pendingLink.from)} nameB={nameOf(pendingLink.to)}
@@ -385,7 +415,10 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
         onRemove={() => disconnect([{ id: selectedLink.id, between: [selectedLink.a.equipo, selectedLink.b.equipo] }])} onClose={() => setPickedEdges(new Set())} />;
     }
     if (selectedDevices.length > 1) return <GroupPanel key={selectedIds.join(' ')} devices={selectedDevices} onGroup={group} />;
-    if (!selected) return <InventoryOverview empty={devices.length === 0} findings={findings} />;
+    if (!selected) {
+      return <NetworkPanel planRepository={planRepository} revision={topology} hasSwitches={devices.some(d => d.tipo === 'switch')}
+        empty={devices.length === 0} findings={findings} tab={networkTab} onTab={setNetworkTab} onMessage={setMessage} />;
+    }
     const grupo = groupOf(topology.grupos, selected.id);
     return (
       <DeviceInspector key={selected.id} device={selected} connections={connections} group={grupo} findings={findings.filter(f => f.deviceId === selected.id)}
@@ -394,48 +427,63 @@ function InfraMap({ repository }: { repository: InventoryRepository }) {
     );
   };
 
+  const toolbarNote = powerLayout ? (
+    <p className="muted infra-power-note">
+      SAI arriba, regletas como barras y, debajo, los equipos que alimenta cada una. Esta vista se calcula sola: no se guarda ni cambia la vista «Red».
+      {powerLayout.unpowered.length > 0 && <> <span>{`Sin enlaces de energía: ${listNames(powerLayout.unpowered.map(nameOf))}.`}</span></>}
+    </p>
+  ) : confirmingArrange ? (
+    <div className="infra-confirm" role="group" aria-label="Confirmar la colocación por capas">
+      <span>Todos los equipos se colocarán por capas y se perderá la posición que hayas dado a cada uno. ¿Quieres seguir?</span>
+      <button type="button" onClick={() => void arrange()}>Sí, colocar por capas</button>
+      <button type="button" onClick={() => setConfirmingArrange(false)}>Cancelar</button>
+    </div>
+  ) : null;
+
   return (
     <section className="infra-map">
       <p className="notice">Tu inventario se guarda <b>solo en este navegador</b>: no se envía a ningún servidor. Si borras los datos del navegador, se pierde, así que expórtalo de vez en cuando desde <a href="#mi-infraestructura/lista">Lista</a>.</p>
       {message && <p className="muted" role="status">{message}</p>}
-      <div className="infra-workspace">
-        <DevicePalette onAdd={tipo => void add(tipo)} />
-        <div className="infra-stage">
+      <div className="infra-editor">
+        <div className="infra-tools" role="group" aria-label="Herramientas del mapa">
+          <ZoomControls />
+          {view === 'red' && !confirmingArrange && (
+            <button type="button" className="infra-tool" disabled={devices.length === 0} onClick={() => setConfirmingArrange(true)}>Colocar por capas</button>
+          )}
           <MapViewTabs view={view} onChange={switchView} controls="infra-canvas" />
-          <div className="infra-toolbar">
-            {powerLayout ? (
-              <p className="muted infra-power-note">
-                SAI arriba, regletas como barras y, debajo, los equipos que alimenta cada una. Esta vista se calcula sola: no se guarda ni cambia la vista «Red».
-                {powerLayout.unpowered.length > 0 && <> <span>{`Sin enlaces de energía: ${listNames(powerLayout.unpowered.map(nameOf))}.`}</span></>}
-              </p>
-            ) : confirmingArrange ? (
-              <div className="infra-confirm" role="group" aria-label="Confirmar la colocación por capas">
-                <span>Todos los equipos se colocarán por capas y se perderá la posición que hayas dado a cada uno. ¿Quieres seguir?</span>
-                <button type="button" onClick={() => void arrange()}>Sí, colocar por capas</button>
-                <button type="button" onClick={() => setConfirmingArrange(false)}>Cancelar</button>
-              </div>
-            ) : <button type="button" disabled={devices.length === 0} onClick={() => setConfirmingArrange(true)}>Colocar por capas</button>}
-          </div>
-          <section className="infra-canvas" id="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
-            onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
-            <ReactFlow<MapNode, MapEdge> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
-              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} nodesDraggable={view === 'red'}
-              onNodeClick={(e, node) => { if ((node.type === 'device' || node.type === 'regletaBar') && !e.ctrlKey && !e.metaKey) select(node.id); }}
-              onEdgesDelete={es => disconnect(es.flatMap(e => (e.data ? [{ id: e.id, between: [e.data.link.a.equipo, e.data.link.b.equipo] as [string, string] }] : [])))}
-              selectNodesOnDrag={false} multiSelectionKeyCode={MULTI_SELECTION_KEYS}
-              deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
-              <Background variant={BackgroundVariant.Dots} gap={20} />
-              <Controls showInteractive={false} fitViewOptions={FIT_VIEW} />
-            </ReactFlow>
-            {loaded && devices.length === 0 && (
-              <div className="infra-empty">
-                <p><b>Tu mapa está vacío.</b> Pulsa un tipo de equipo en la paleta para añadir el primero, o importa tu inventario en CSV desde <a href="#mi-infraestructura/lista">Lista</a>.</p>
-              </div>
-            )}
-          </section>
-          <MapLegend types={linkTypes} hidden={view === 'red' ? hiddenLines : NO_LINES} onToggle={toggleLines} />
+          <span className="infra-tools__spacer" />
+          <button type="button" className="infra-tool" aria-label={`Comprobar red (${findings.length} avisos)`} onClick={checkNetwork}>
+            Comprobar red <span className="infra-count" aria-hidden="true">{findings.length}</span>
+          </button>
+          <a className="infra-tool" href="#mi-infraestructura/lista">Exportar o importar</a>
+          <a className="infra-tool infra-tool--primary" href={PLANNER_URL}>Obtener comandos</a>
         </div>
-        {inspector()}
+        {toolbarNote && <div className="infra-tools__note">{toolbarNote}</div>}
+        <div className="infra-workspace">
+          <DevicePalette onAdd={tipo => void add(tipo)} />
+          <div className="infra-stage">
+            <section className="infra-canvas" id="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
+              onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
+              <ReactFlow<MapNode, MapEdge> nodes={flowNodes} edges={edges} nodeTypes={nodeTypes} edgeTypes={edgeTypes}
+                onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} nodesDraggable={view === 'red'}
+                onNodeClick={(e, node) => { if ((node.type === 'device' || node.type === 'regletaBar') && !e.ctrlKey && !e.metaKey) select(node.id); }}
+                onPaneClick={() => select(null)}
+                onEdgesDelete={es => disconnect(es.flatMap(e => (e.data ? [{ id: e.id, between: [e.data.link.a.equipo, e.data.link.b.equipo] as [string, string] }] : [])))}
+                selectNodesOnDrag={false} multiSelectionKeyCode={MULTI_SELECTION_KEYS}
+                deleteKeyCode={['Backspace', 'Delete']} fitView fitViewOptions={FIT_VIEW} minZoom={0.2} ariaLabelConfig={ARIA_LABELS}>
+                <Background variant={BackgroundVariant.Dots} gap={20} />
+                <MiniMap pannable zoomable className="infra-minimap" style={{ width: 160, height: 110 }} />
+              </ReactFlow>
+              {loaded && devices.length === 0 && (
+                <div className="infra-empty">
+                  <p><b>Tu mapa está vacío.</b> Pulsa un tipo de equipo en la biblioteca para añadir el primero, o importa tu inventario en CSV desde <a href="#mi-infraestructura/lista">Lista</a>.</p>
+                </div>
+              )}
+            </section>
+            <MapLegend types={linkTypes} hidden={view === 'red' ? hiddenLines : NO_LINES} onToggle={toggleLines} />
+          </div>
+          <div className="infra-panel">{inspector()}</div>
+        </div>
       </div>
     </section>
   );

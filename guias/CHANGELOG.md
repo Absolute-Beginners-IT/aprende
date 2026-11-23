@@ -11,7 +11,7 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - El campo «VLAN» de un enlace troncal o LAG del mapa de Mi infraestructura decide las VLAN permitidas en la guía del
   planificador: con VLAN escritas, el enlace permite solo esas y su VLAN nativa; sin ninguna, todas las del plan, como
   hasta ahora. Si la lista no se entiende (por ejemplo, una VLAN fuera de 1-4094 o un rango al revés), el planificador
-  lo avisa en «Enlaces» y no cambia los comandos.
+  lo avisa en «Enlaces» y en «Guía», pero muestra la guía con todas las VLAN del plan en ese enlace.
 - El plan de red guarda los campos que el planificador no conoce (escritos por el mapa, por una versión posterior o a
   mano) en lugar de descartarlos al guardar.
 - La guía de FortiGate «Recuperar un equipo saturado de memoria» explica paso a paso cómo activar el registro de la
@@ -25,6 +25,11 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
   pegar a la vez comandos de caminos distintos.
 
 ### Corregido
+
+- El planificador ya no pierde lo que el mapa de Mi infraestructura guarda en el plan desde otra pestaña: ve el cambio
+  en cuanto se guarda y cada edición se aplica sobre el plan guardado en ese momento, sin sobrescribir lo demás.
+- Si el plan guardado en este navegador no se puede leer o es de una versión más nueva, el planificador lo dice y no lo
+  toca; solo se sustituye si importas un plan o lo vacías y confirmas que lo guardado se perderá.
 
 - La guía decía que reiniciar el FortiGate borra el registro de fallos (crashlog); se conserva. Lo que se pierde es la
   lista de procesos en memoria.

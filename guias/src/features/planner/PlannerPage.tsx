@@ -1,3 +1,4 @@
+import { STORED_PLAN_REFUSALS } from '@shared/plan/networkPlan'
 import { type KeyboardEvent, useEffect, useId, useState } from 'react'
 import type { Catalog } from '../../domain/buildCatalog'
 import type { NetworkPlan } from '../../domain/networkPlan'
@@ -8,8 +9,8 @@ import { LinkEditor, PortEditor, SwitchEditor, VlanEditor } from './PlanEditors'
 import { PlanGuideView } from './PlanGuideView'
 import { PlanTools } from './PlanTools'
 import { TopologyDiagram } from './TopologyDiagram'
-import { usePlan } from './usePlan'
-import { type PlanIssue, type PlanSection, validatePlan } from './validatePlan'
+import { rebasePlan, usePlan } from './usePlan'
+import { type PlanIssue, type PlanSection, planWarnings, validatePlan } from './validatePlan'
 
 const TABS = [
   { key: 'vlans', title: 'VLAN' },
@@ -66,15 +67,34 @@ function duplicatesNotice(names: string[]): string {
     : `En Mi infraestructura hay switches con el mismo nombre (${listNames(names)}). Cambia el nombre de uno de cada pareja allí: el plan no puede saber cuál es cuál.`
 }
 
+/** The plan seen through «Mi infraestructura» as both are stored right now; none without inventory switches. */
+function combineNow(stored: NetworkPlan, catalog: Catalog) {
+  const devices = readInventorySwitches()
+  return devices.length > 0 ? combineWithInventory(stored, devices, catalog) : undefined
+}
+
+/** The stored plan in step with the inventory, without the new switches of shared names (see withoutNewSharedNames). */
+function syncedWithInventory(stored: NetworkPlan, catalog: Catalog): NetworkPlan {
+  const combined = combineNow(stored, catalog)
+  return combined ? storeCombined(stored, withoutNewSharedNames(stored, combined), combined.mapPorts) : stored
+}
+
 /** Describe the network once and get the steps for each switch, in its brand's runbooks. */
 export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const baseId = useId()
-  const [stored, setStored] = usePlan()
-  // With switches in «Mi infraestructura» (same browser), they and their connections come from there.
-  const devices = readInventorySwitches()
-  const combined = devices.length > 0 ? combineWithInventory(stored, devices, catalog) : undefined
+  const { plan: stored, refusal, update, replace } = usePlan()
+  // With switches in «Mi infraestructura» (same browser), they and their connections come from there. A stored plan
+  // that must be left alone is not shown, so nothing is combined nor kept in step with it.
+  const combined = refusal ? undefined : combineNow(stored, catalog)
   const plan = combined?.plan ?? stored
-  const setPlan = (next: NetworkPlan) => setStored(combined ? storeCombined(stored, next, combined.mapPorts) : next)
+  // The map may have stored a change meanwhile (in another tab): the edit is applied to the plan stored now, seen
+  // through the inventory as it is now, so only what the user changed here is written.
+  const setPlan = (next: NetworkPlan) =>
+    update((current) => {
+      const now = combineNow(current, catalog)
+      const edited = rebasePlan(plan, next, now?.plan ?? current)
+      return now ? storeCombined(current, edited, now.mapPorts) : edited
+    })
   const inventory = combined && { deducedModels: combined.deducedModels, mapPorts: combined.mapPorts }
 
   // Keeps the stored plan in step with the inventory, so a switch matched by name is then followed by its id. The new
@@ -84,12 +104,14 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
     ? JSON.stringify(storeCombined(stored, withoutNewSharedNames(stored, combined), combined.mapPorts))
     : storedText
   useEffect(() => {
-    if (syncedText !== storedText) setStored(JSON.parse(syncedText))
-  }, [syncedText, storedText, setStored])
+    if (syncedText !== storedText) update((current) => syncedWithInventory(current, catalog))
+  }, [syncedText, storedText, update, catalog])
 
   const [tab, setTab] = useState<TabKey>('vlans')
   const mapVlans = combined?.mapVlans
-  const issues = validatePlan(plan, catalog, mapVlans)
+  const issues = validatePlan(plan, catalog)
+  // A warning never hides the guide: an unreadable VLAN list on the map allows every plan VLAN, as no list does.
+  const warnings = planWarnings(plan, mapVlans)
   // A plan not started yet is not wrong: the editors stay quiet and only the guide says what is missing.
   const started = plan.vlans.length + plan.switches.length + plan.links.length + plan.ports.length > 0
   const editorIssues = started ? issues : []
@@ -107,20 +129,27 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
 
   const renderPanel = () => {
     if (tab === 'guide') {
-      return issues.length > 0 ? (
+      return (
         <>
-          <p>Corrige estos puntos para ver la guía:</p>
-          <IssueList issues={issues} label="Puntos por corregir" onGo={setTab} />
+          {warnings.length > 0 && <IssueList issues={warnings} label="Avisos" onGo={setTab} />}
+          {issues.length > 0 ? (
+            <>
+              <p>Corrige estos puntos para ver la guía:</p>
+              <IssueList issues={issues} label="Puntos por corregir" onGo={setTab} />
+            </>
+          ) : (
+            <PlanGuideView guides={buildPlanGuide(plan, catalog, mapVlans)} />
+          )}
         </>
-      ) : (
-        <PlanGuideView guides={buildPlanGuide(plan, catalog, mapVlans)} />
       )
     }
     const Editor = EDITORS[tab]
     const own = editorIssues.filter((issue) => issue.section === tab)
+    const ownWarnings = warnings.filter((warning) => warning.section === tab)
     return (
       <>
         {own.length > 0 && <IssueList issues={own} label="Puntos por corregir en esta sección" />}
+        {ownWarnings.length > 0 && <IssueList issues={ownWarnings} label="Avisos" />}
         <Editor plan={plan} catalog={catalog} onChange={setPlan} inventory={inventory} />
       </>
     )
@@ -137,7 +166,17 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
         <p className="muted">
           El plan se guarda en este navegador. Expórtalo para guardarlo con la documentación de la red.
         </p>
-        <PlanTools plan={stored} onChange={setStored} />
+        <PlanTools
+          plan={stored}
+          refusal={refusal}
+          onChange={(next) => (refusal ? replace(next) : update(() => next))}
+        />
+        {refusal && (
+          <p role="alert" className="plan-inventory__status">
+            {STORED_PLAN_REFUSALS[refusal]} El planificador no lo cambia mientras sea así. Si quieres empezar de nuevo,
+            importa un plan o vacía este: lo que tenía guardado se perderá.
+          </p>
+        )}
         {/* A switch named like two inventory switches is not listed here, nor discarded: it is not missing. */}
         {combined && combined.hidden.length > 0 && (
           <div role="status" className="plan-inventory__status">
@@ -148,7 +187,10 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
               onClick={() => {
                 const names = listNames(combined.hidden)
                 if (window.confirm(`¿Quitar ${names} del plan? Se borran también sus enlaces y sus puertos.`)) {
-                  setStored(discardHidden(stored, combined.plan, combined.duplicates, combined.mapPorts))
+                  update((current) => {
+                    const now = combineNow(current, catalog)
+                    return now ? discardHidden(current, now.plan, now.duplicates, now.mapPorts) : current
+                  })
                 }
               }}
             >
@@ -163,37 +205,41 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
         )}
       </header>
 
-      {plan.switches.length > 0 && (
+      {!refusal && plan.switches.length > 0 && (
         <section className="plan-map" aria-label="Mapa">
           <TopologyDiagram plan={plan} catalog={catalog} />
         </section>
       )}
 
-      <div className="plan-tabs" role="tablist" aria-label="Partes del plan">
-        {TABS.map((item) => {
-          const count = item.key === 'guide' ? 0 : countFor(item.key)
-          return (
-            <button
-              key={item.key}
-              id={`${baseId}-tab-${item.key}`}
-              type="button"
-              role="tab"
-              aria-selected={tab === item.key}
-              aria-controls={`${baseId}-panel`}
-              aria-label={count > 0 ? `${item.title} (${count} por corregir)` : undefined}
-              tabIndex={tab === item.key ? 0 : -1}
-              onClick={() => setTab(item.key)}
-              onKeyDown={onTabKeyDown}
-            >
-              {item.title}
-              {count > 0 && <span className="plan-tabs__count">{count}</span>}
-            </button>
-          )
-        })}
-      </div>
-      <div id={`${baseId}-panel`} role="tabpanel" aria-labelledby={`${baseId}-tab-${tab}`} className="plan-panel">
-        {renderPanel()}
-      </div>
+      {!refusal && (
+        <>
+          <div className="plan-tabs" role="tablist" aria-label="Partes del plan">
+            {TABS.map((item) => {
+              const count = item.key === 'guide' ? 0 : countFor(item.key)
+              return (
+                <button
+                  key={item.key}
+                  id={`${baseId}-tab-${item.key}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === item.key}
+                  aria-controls={`${baseId}-panel`}
+                  aria-label={count > 0 ? `${item.title} (${count} por corregir)` : undefined}
+                  tabIndex={tab === item.key ? 0 : -1}
+                  onClick={() => setTab(item.key)}
+                  onKeyDown={onTabKeyDown}
+                >
+                  {item.title}
+                  {count > 0 && <span className="plan-tabs__count">{count}</span>}
+                </button>
+              )
+            })}
+          </div>
+          <div id={`${baseId}-panel`} role="tabpanel" aria-labelledby={`${baseId}-tab-${tab}`} className="plan-panel">
+            {renderPanel()}
+          </div>
+        </>
+      )}
     </div>
   )
 }

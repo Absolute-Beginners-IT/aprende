@@ -29,19 +29,34 @@ function findRepeated<T>(items: T[]): Set<T> {
   return repeated
 }
 
+const switchNames = (plan: NetworkPlan) => {
+  const switchName = new Map(plan.switches.map((item) => [item.id, item.name.trim() || 'un switch sin nombre']))
+  return { switchName, nameOf: (id: string) => switchName.get(id) ?? 'un switch que ya no existe' }
+}
+
 /**
- * Everything that would make the generated guide wrong, in words the user can act on. `linkVlans` holds the «VLAN»
- * field written on the map of «Mi infraestructura» for each link, by link id (see CombinedPlan.mapVlans).
+ * What the user should know but does not stop the guide: today, a «VLAN» field on the map of «Mi infraestructura»
+ * that cannot be read (the guide then allows every plan VLAN on that trunk, as with no field). `linkVlans` holds that
+ * field for each link, by link id (see CombinedPlan.mapVlans).
  */
-export function validatePlan(
-  plan: NetworkPlan,
-  catalog: Catalog,
-  linkVlans: ReadonlyMap<string, string> = new Map(),
-): PlanIssue[] {
+export function planWarnings(plan: NetworkPlan, linkVlans: ReadonlyMap<string, string> = new Map()): PlanIssue[] {
+  const { nameOf } = switchNames(plan)
+  return plan.links.flatMap((link) => {
+    const list = parseVlanList(linkVlans.get(link.id) ?? '')
+    if (list.ok) return []
+    const message = `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura no es válido: ${list.error} Corrígelo en el mapa.`
+    return [{ section: 'links' as const, message }]
+  })
+}
+
+/**
+ * Everything that would make the generated guide wrong, in words the user can act on. What only deserves a warning
+ * is in planWarnings.
+ */
+export function validatePlan(plan: NetworkPlan, catalog: Catalog): PlanIssue[] {
   const issues: PlanIssue[] = []
   const add = (section: PlanSection, message: string) => issues.push({ section, message })
-  const switchName = new Map(plan.switches.map((item) => [item.id, item.name.trim() || 'un switch sin nombre']))
-  const nameOf = (id: string) => switchName.get(id) ?? 'un switch que ya no existe'
+  const { switchName, nameOf } = switchNames(plan)
 
   // Only a hand-edited file can repeat an id, but a repeated switch id silently drops a switch from the guide.
   const idChecks: [PlanSection, string, { id: string }[]][] = [
@@ -137,13 +152,6 @@ export function validatePlan(
       add(
         'links',
         `La VLAN nativa ${link.nativeVlan} del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} no está en el plan: usa la 1 o una VLAN del plan.`,
-      )
-    }
-    const list = parseVlanList(linkVlans.get(link.id) ?? '')
-    if (!list.ok) {
-      add(
-        'links',
-        `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura no es válido: ${list.error} Corrígelo en el mapa.`,
       )
     }
   }

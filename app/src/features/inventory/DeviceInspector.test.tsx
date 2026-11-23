@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
-import { InventoryOverview } from './DeviceInspector';
+import { MapHelp } from './DeviceInspector';
 
 afterEach(cleanup);
 
-describe('InventoryOverview', () => {
+describe('MapHelp', () => {
   it('explains every gesture of the map in «Cómo se usa el mapa»', () => {
-    render(<InventoryOverview empty findings={[]} />);
+    render(<MapHelp />);
     const hints = within(screen.getByRole('list', { name: 'Cómo se usa el mapa' })).getAllByRole('listitem').map(li => li.textContent).join('\n');
     expect(hints).toMatch(/tipo de enlace .*puertos de cada lado/);
     expect(hints).toMatch(/Pulsa en una línea para abrir su ficha/);
