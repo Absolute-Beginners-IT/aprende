@@ -5,7 +5,7 @@ import type { Finding } from '../../domain/inventoryAnalysis';
 import { snippetsForDevice } from '../../domain/vendorSnippets';
 import { guidesForDevice } from '../../domain/deviceGuides';
 import { content } from '../../content';
-import { GUIDES_URL, PLANNER_URL } from '../../config';
+import { GUIDES_URL, plannerGuideUrl } from '../../config';
 import type { PlanRepository } from '../../ports/PlanRepository';
 import { FindingList } from './FindingList';
 import { GuideNote } from './GuideNote';
@@ -20,12 +20,12 @@ const SWITCH_TABS: PanelTab<SwitchTab>[] = [
   { id: 'ficha', nombre: 'Ficha' }, { id: 'puertos', nombre: 'Puertos y VLAN' }, { id: 'guias', nombre: 'Guías' }, { id: 'comandos', nombre: 'Comandos' },
 ];
 
-/** Where the commands of a switch come from, until the map opens the planner's guide at that switch. */
-function SwitchCommands() {
+/** Where the commands of a switch come from: the planner's guide, opened at this switch. */
+function SwitchCommands({ device }: { device: Device }) {
   return (
     <section className="switch-commands">
-      <p>Los comandos de cada switch salen del plan de red: sus VLAN, sus enlaces y sus puertos. El planificador de las guías los genera paso a paso, empezando por el switch núcleo.</p>
-      <p><a className="plan-link" href={PLANNER_URL}>Planificar VLAN y puertos</a></p>
+      <p>Los comandos de cada switch salen del plan de red: sus VLAN, sus enlaces y sus puertos. La guía del planificador los genera paso a paso, empezando por el switch núcleo; este enlace la abre en la parte de este switch.</p>
+      <p><a className="plan-link" href={plannerGuideUrl(device.id)}>Ver los comandos de {device.nombre}</a></p>
     </section>
   );
 }
@@ -149,7 +149,7 @@ export function DeviceInspector({ device, connections, group, findings, onChange
         </>}
         {shown === 'puertos' && <SwitchPorts device={device} planRepository={plan.repository} revision={plan.revision} onMessage={plan.onMessage} />}
         {shown === 'guias' && <DeviceGuidesSection device={device} />}
-        {shown === 'comandos' && <SwitchCommands />}
+        {shown === 'comandos' && <SwitchCommands device={device} />}
       </div>
     </aside>
   );
@@ -177,7 +177,7 @@ export function MapHelp() {
         <li>Arrastra un equipo para colocarlo donde quieras.</li>
         <li>Para unir dos equipos, arrastra desde el punto superior de uno hasta el punto inferior del equipo del que cuelga. Antes de guardar, elige el tipo de enlace (datos, troncal, LAG, HA, stack, WAN, almacenamiento, gestión o energía), los puertos de cada lado, la velocidad y, en troncales y LAG, las VLAN.</li>
         <li>Un enlace de energía es un cable de corriente, no de datos: no lleva puertos de red ni velocidad. Indica, si quieres, la toma del SAI o de la regleta y la fuente de alimentación del equipo («Fuente 1», «Fuente 2»). Quién alimenta a quién sale del tipo de equipo: el SAI o la regleta.</li>
-        <li>Pulsa en un equipo para abrir su ficha y cambiar su nombre, su tipo y sus datos. Un switch tiene además las pestañas «Puertos y VLAN» (sus puertos de acceso y la VLAN de cada uno, guardados en el plan de red), «Guías» y «Comandos».</li>
+        <li>Pulsa en un equipo para abrir su ficha y cambiar su nombre, su tipo y sus datos. Un switch tiene además las pestañas «Puertos y VLAN» (sus puertos de acceso y la VLAN de cada uno, guardados en el plan de red), «Guías» y «Comandos», que abre la guía del planificador en la parte de ese switch.</li>
         <li>Pulsa en una línea para abrir su ficha: cambia su tipo, sus puertos, su velocidad, sus VLAN y sus notas, o quita el enlace. En una troncal o un LAG, «VLAN permitidas» admite números y rangos (10, 20, 30-32); si lo dejas vacío pasan todas las VLAN del plan. Entre dos switches también eliges su VLAN nativa.</li>
         <li>Selecciona varios equipos con Ctrl + clic (Cmd + clic en Mac), o arrastrando con Mayúsculas pulsada, y pulsa «Agrupar» para formar un par HA, un stack o un clúster.</li>
         <li>Pulsa «Colocar por capas» para ordenar todos los equipos por capas, de la operadora a la energía; te pide confirmación porque se pierde la posición que les hayas dado.</li>
@@ -186,7 +186,8 @@ export function MapHelp() {
         <li>En la pestaña «Capas» de la columna izquierda, pulsa una VLAN para resaltar las troncales que la llevan y los equipos que la usan (con su puerta de enlace y sus puertos de acceso); el resto se atenúa. El ojo oculta del mapa los avisos de esa VLAN, y también puedes mostrar u ocultar las insignias de energía y las etiquetas de IP y de puertos. Todo esto se recuerda en este navegador y no cambia nada guardado.</li>
         <li>Si una VLAN tiene puertos de acceso en un switch pero una troncal de su camino hasta el switch núcleo no la deja pasar, el mapa marca esa troncal y ese switch, y «Avisos» te ofrece «Añadir N a la troncal», que la añade al campo VLAN de esa troncal.</li>
         <li>En la página «Lista», «Exportar el esquema (JSON)» guarda todo el mapa en un archivo e «Importar el esquema (JSON)» lo recupera.</li>
-        <li>Con nada seleccionado, el panel de la derecha muestra «Red y VLAN»: las VLAN de tu red, el switch núcleo y sus redes, y los avisos. «Comprobar red» abre los avisos.</li>
+        <li>Con nada seleccionado, el panel de la derecha muestra «Red y VLAN»: las VLAN de tu red, el switch núcleo y sus redes, y los avisos. «Comprobar red» abre los avisos. Aquí se edita lo que antes estaba en la pestaña «Red y VLAN» de «Mi infraestructura»: es el mismo plan de red que usan las guías.</li>
+        <li>«Obtener comandos» abre la guía del planificador con los comandos de cada switch, del núcleo hacia fuera; con un switch seleccionado, la abre en la parte de ese switch.</li>
         <li>Acerca, aleja o encaja todo el mapa con los botones de la barra de herramientas; el minimapa de la esquina te dice qué parte estás viendo.</li>
       </ul>
     </details>

@@ -8,7 +8,7 @@ import { createLocalStoragePlanRepository, PLAN_KEY } from '../../adapters/local
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import type { Device, Link, Topology } from '../../domain/types';
 import { topologyDocument } from '../../domain/topology';
-import { PLANNER_URL } from '../../config';
+import { plannerGuideUrl } from '../../config';
 
 mockReactFlow();
 afterEach(() => { cleanup(); localStorage.clear(); });
@@ -101,7 +101,18 @@ describe('map editor shell', () => {
     expect(screen.getByText(/^\d+ %$/)).toBeTruthy();
     expect(container.querySelector('.react-flow__background')).toBeTruthy();
     expect(container.querySelector('.react-flow__minimap')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Obtener comandos' }).getAttribute('href')).toBe(PLANNER_URL);
+  });
+
+  it('«Obtener comandos» opens the whole guide of the planner, or the part of the selected switch', async () => {
+    setup();
+    await screen.findByText('CORE', { selector: '.infra-node__name' });
+    const commands = () => screen.getByRole('link', { name: 'Obtener comandos' }).getAttribute('href');
+    expect(commands()).toBe('./guias/#/plan/guia');
+    await openSwitch('PLANTA1');
+    expect(commands()).toBe('./guias/#/plan/guia?equipo=planta1');
+    // Any other device has no part of its own in the guide.
+    fireEvent.click(screen.getByText('FW01', { selector: '.infra-node__name' }));
+    expect(commands()).toBe('./guias/#/plan/guia');
   });
 
   it('«Comprobar red» counts the gaps and opens «Avisos», with the same content as «Qué te falta»', async () => {
@@ -397,7 +408,8 @@ describe('switch selected', () => {
     expect(p.getByRole('region', { name: 'Guías para este equipo' })).toBeTruthy();
     fireEvent.click(p.getByRole('tab', { name: 'Comandos' }));
     expect(p.getByText(/Los comandos de cada switch salen del plan de red/)).toBeTruthy();
-    expect(p.getByRole('link', { name: 'Planificar VLAN y puertos' }).getAttribute('href')).toBe(PLANNER_URL);
+    expect(p.getByRole('link', { name: 'Ver los comandos de CORE' }).getAttribute('href')).toBe('./guias/#/plan/guia?equipo=core');
+    expect(plannerGuideUrl('sw planta/1')).toBe('./guias/#/plan/guia?equipo=sw%20planta%2F1');
   });
 
   it('lists the access ports of the switch with their VLAN and its links to other switches', async () => {

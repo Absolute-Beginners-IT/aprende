@@ -8,7 +8,7 @@ import { createLocalStorageInventoryRepository } from './adapters/localStorageIn
 import { createLocalStoragePlanRepository } from './adapters/localStoragePlanRepository';
 import { content } from './content';
 import { SiteNav } from './features/nav/SiteNav';
-import { GUIDE_URL, PLANNER_URL } from './config';
+import { GUIDE_URL } from './config';
 import { parseHash, scenarioHash, type Route } from './routing';
 
 // The reference map and its scenarios are one view of Aprender; "Mi infraestructura" is its own section.
@@ -18,12 +18,12 @@ const MAP_VIEWS = [
   ['escenarios', 'Escenarios'],
 ] as const;
 
-// «Mi infraestructura» is one workspace: the editable map, the device list, the network planner of the guides
-// and the deployment plan. The guides' planner shows the same tabs (guias/src/features/navigation/AppShell.tsx).
+// «Mi infraestructura» is one workspace: the editable map (whose «Red y VLAN» panel edits the network plan), the
+// device list and the deployment plan. The guides' planner, opened from the map to get the commands, shows the same
+// tabs (guias/src/features/navigation/AppShell.tsx).
 const INFRA_VIEWS = [
   ['#mi-infraestructura', 'Mapa'],
   ['#mi-infraestructura/lista', 'Lista'],
-  [PLANNER_URL, 'Red y VLAN'],
   ['#mi-infraestructura/plan', 'Plan de despliegue'],
 ] as const;
 
@@ -69,7 +69,7 @@ export function App() {
           <header className="head">
             <span className="label">Mi infraestructura</span>
             <h1>Dibuja el mapa de tu red</h1>
-            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Después, en <b>Red y VLAN</b>, diseña las VLAN y los enlaces de tus switches y obtén sus comandos. El <b>Plan de despliegue</b> te dice en qué orden montar tus equipos y qué configurar, vigilar y mantener en cada uno.</p>
+            <p className="muted">Coloca tus equipos en el <b>Mapa</b>, arrástralos, únelos según cómo están conectados y pulsa en cualquiera para editar su ficha; verás qué te falta comparado con una pyme típica. En <b>Lista</b> tienes todos tus equipos y puedes importar o exportar el inventario en CSV. Con nada seleccionado, el panel <b>Red y VLAN</b> del mapa te deja diseñar las VLAN de tu red, y al pulsar un switch o un enlace asignas sus puertos y las VLAN que pasan; <b>Obtener comandos</b> abre la guía con los comandos de cada switch. El <b>Plan de despliegue</b> te dice en qué orden montar tus equipos y qué configurar, vigilar y mantener en cada uno.</p>
             <nav className="tabs" aria-label="Mi infraestructura">
               {INFRA_VIEWS.map(([href, label]) => (
                 <a key={href} href={href} className="tab" aria-current={href === infraHash ? 'page' : undefined}>{label}</a>
