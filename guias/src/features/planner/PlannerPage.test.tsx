@@ -812,6 +812,21 @@ describe('PlannerPage', () => {
         'El campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no es válido: La VLAN 5000 no existe: los números de VLAN van del 1 al 4094. Corrígelo en el mapa.',
       )
     })
+
+    it('still shows the guide when a trunk on the map leaves out a VLAN with access ports, and warns about it', async () => {
+      seed()
+      seedTopology({ vlans: '20' })
+      const user = userEvent.setup()
+      render(<PlannerPage catalog={catalog} />)
+
+      await openTab(user, /^Guía/)
+
+      expect(screen.getByRole('region', { name: '1. nucleo · Aruba CX 6100' })).toBeInTheDocument()
+      expect(within(screen.getByRole('list', { name: 'Avisos' })).getByRole('listitem')).toHaveTextContent(
+        'La VLAN 10 no llega a planta1 (1 puerto de acceso): el campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no la deja pasar. Añádela a la troncal en el mapa.',
+      )
+      expect(screen.queryByRole('button', { name: /a la troncal/ })).not.toBeInTheDocument()
+    })
   })
 })
 
