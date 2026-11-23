@@ -581,7 +581,7 @@ describe('link selected', () => {
     expect(screen.queryByText(/actualizado\./)).toBeNull();
   });
 
-  it('saves the link and then the native VLAN of the plan when both changed', async () => {
+  it('saves the native VLAN of the plan and then the link when both changed', async () => {
     const { storage, container } = setup();
     const f = await trunkFicha(container);
     const native = await f.findByLabelText('VLAN nativa') as HTMLInputElement;

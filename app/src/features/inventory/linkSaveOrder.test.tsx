@@ -90,43 +90,29 @@ describe('link save order: Guardar enlace write order', () => {
     expect(calls).toEqual(['plan']);
   });
 
-  it('P3 plan link removed in another tab: nothing saved, says why', async () => {
+  it('P3 plan link removed in another tab: the plan link is rebuilt from the map trunk and both are saved', async () => {
     const { storage, calls, container } = setup();
     const f = await ficha(container); await nativeLoaded(f);
-    const plan = JSON.stringify({ ...storedPlan(), links: [] });
-    storage.data.set(PLAN_KEY, plan);
-    const topo = storage.data.get(TOPOLOGY_KEY);
+    storage.data.set(PLAN_KEY, JSON.stringify({ ...storedPlan(), links: [] }));
     edit(f, '10', '99');
-    // Observed: the shared combine step rebuilds the plan link from the inventory trunk, so the plan accepts it.
+    // The shared combine step rebuilds a plan link for every map trunk, so this is not a refusal (S4).
     await waitFor(() => expect(topoLink(storage).vlans).toBe('10'));
     expect(calls).toEqual(['plan', 'topology']);
     expect(planNative(storage)).toBe(99);
-    void plan; void topo;
   });
 
-  it('P4 topology link changed meanwhile: draft applied on stored link, plan saved', async () => {
-    const { storage, container } = setup();
-    const f = await ficha(container); await nativeLoaded(f);
-    const doc = JSON.parse(storage.data.get(TOPOLOGY_KEY)!);
-    doc.enlaces[1].notas = 'otra';
-    storage.data.set(TOPOLOGY_KEY, JSON.stringify(doc));
-    edit(f, '10', '99');
-    await waitFor(() => expect(topoLink(storage).vlans).toBe('10'));
-    expect(planNative(storage)).toBe(99);
-    console.log('P4 stored link after save:', JSON.stringify(topoLink(storage)));
-  });
-
-  it('P5 topology save fails after accepted plan: what is stored and shown', async () => {
+  it('P5 topology save fails after the plan took the native VLAN: says the native VLAN was saved and the rest was not', async () => {
     const { storage, calls, container } = setup({ failTopology: true });
     const f = await ficha(container); await nativeLoaded(f);
     const topo = storage.data.get(TOPOLOGY_KEY);
     edit(f, '10', '99');
-    expect(await screen.findByText(/No se ha podido guardar en este navegador: QuotaExceededError/)).toBeTruthy();
+    expect(await screen.findByText(
+      'La VLAN nativa 99 se ha guardado en el plan de red, pero el resto del enlace no: QuotaExceededError. Vuelve a pulsar «Guardar enlace».',
+    )).toBeTruthy();
     expect(calls).toEqual(['plan', 'topology']);
     expect(planNative(storage)).toBe(99);
     expect(storage.data.get(TOPOLOGY_KEY)).toBe(topo);
-    const n = f.getByLabelText('VLAN nativa') as HTMLInputElement;
-    console.log('P5 native field:', n.value, '| permitidas:', (f.getByLabelText('VLAN permitidas') as HTMLInputElement).value, '| plan msg visible:', Boolean(screen.queryByText(/VLAN nativa 99 guardada/)));
+    expect((f.getByLabelText('VLAN permitidas') as HTMLInputElement).value).toBe('10');
   });
 
   it('P6 unchanged native: only topology written, plan untouched', async () => {

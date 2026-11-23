@@ -54,8 +54,11 @@ describe('planWarnings VLAN gaps', () => {
     ])
   })
 
-  it('gap warnings are warnings, not validatePlan errors', () => {
+  it('a plan with a gap warning still has no validatePlan errors, so the guide is not blocked', () => {
     const plan = twoSwitchPlan()
+    expect(planWarnings(plan, new Map([['ln-1', '20']])).map((w) => w.message)).toEqual([
+      'La VLAN 10 no llega a planta1 (1 puerto de acceso): el campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no la deja pasar. Añádela a la troncal en el mapa.',
+    ])
     expect(validatePlan(plan, catalog)).toEqual([])
   })
 })

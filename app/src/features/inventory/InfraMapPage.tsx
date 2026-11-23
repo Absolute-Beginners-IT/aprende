@@ -16,7 +16,7 @@ import {
 } from '../../domain/infraMap';
 import { addToVlanList } from '@shared/plan';
 import { typeOf } from '../../content';
-import { useInventory } from './useInventory';
+import { errorText, useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
 import { InfraEdge, PowerLineEdge, type InfraEdgeType, type PowerLineEdgeType } from './InfraEdge';
 import { RegletaBarNode, type RegletaBarNodeType } from './RegletaBarNode';
@@ -380,17 +380,24 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
    * Saves the ficha of a link in one write, or says why its new type cannot go that way. `planFirst` (a new native
    * VLAN) is written before and the link only if the plan took it: a refused plan write leaves both as they were.
    */
-  const saveLink = (link: Link, draft: LinkDraft, planFirst?: () => Promise<boolean>): string | null => {
+  const saveLink = (link: Link, draft: LinkDraft, planFirst?: { vlan: number; write: () => Promise<boolean> }): string | null => {
     const refusal = linkRefusal(topology, link.a.equipo, link.b.equipo, draft.tipo, link.id);
     if (refusal) return refusalText(refusal, link.a.equipo, link.b.equipo);
     const between = `${nameOf(link.a.equipo)} y ${nameOf(link.b.equipo)}`;
     void (async () => {
-      if (planFirst && !(await planFirst())) return;
-      await persist(async () => {
-        const stored = (await repository.load()).enlaces.find(l => l.id === link.id);
-        if (stored) await repository.apply({ updateLinks: [editLink(stored, draft)] });
+      if (planFirst && !(await planFirst.write())) return;
+      let failure: unknown;
+      const saved = await persist(async () => {
+        try {
+          const stored = (await repository.load()).enlaces.find(l => l.id === link.id);
+          if (stored) await repository.apply({ updateLinks: [editLink(stored, draft)] });
+        } catch (e) { failure = e; throw e; }
       }, planFirst ? `Enlace entre ${between} actualizado, con su VLAN nativa en el plan de red.` : `Enlace entre ${between} actualizado.`);
-    })();
+      // The plan already holds the new native VLAN: say so, so the learner knows only the link is left to save.
+      if (!saved && planFirst) {
+        setMessage(`La VLAN nativa ${planFirst.vlan} se ha guardado en el plan de red, pero el resto del enlace no: ${errorText(failure)}. Vuelve a pulsar «Guardar enlace».`);
+      }
+    })().catch(e => setMessage(`No se ha podido guardar: ${errorText(e)}`));
     return null;
   };
 

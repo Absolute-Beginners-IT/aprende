@@ -141,7 +141,7 @@ export function NewLinkForm({ nameA, nameB, types = {}, linkTypes, onCreate, onC
  */
 export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onClose, plan }: {
   link: Link; nameOf: (id: string) => string; types?: EndTypes; onRemove: () => void; onClose: () => void;
-  onSave: (draft: LinkDraft, planFirst?: () => Promise<boolean>) => string | null;
+  onSave: (draft: LinkDraft, planFirst?: { vlan: number; write: () => Promise<boolean> }) => string | null;
   plan: { repository: PlanRepository; revision: unknown; onMessage: (message: string) => void };
 }) {
   const [draft, setDraft] = useState<LinkDraft>(() => draftOf(link));
@@ -165,8 +165,11 @@ export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onCl
     const vlan = Number(native);
     // A refusal of the plan is shown by usePlanDocument; the link is then not saved either.
     const planFirst = nativeChanged
-      ? () => change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
-        .then(saved => { if (saved) setNative(null); return saved; })
+      ? {
+        vlan,
+        write: () => change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
+          .then(saved => { if (saved) setNative(null); return saved; }),
+      }
       : undefined;
     setRefusal(onSave(draft, planFirst) ?? '');
   };
