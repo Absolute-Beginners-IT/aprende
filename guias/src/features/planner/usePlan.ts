@@ -132,7 +132,9 @@ function rebaseList<T extends { id: string | number }>(base: T[], next: T[], cur
     items.filter((item) => baseById.has(item.id) && nextById.has(item.id)).map((item) => item.id)
   const fresh = added.filter((item) => !currentIds.has(item.id))
   // The id each item of `next` ends up with (a new one may have been given a free id).
-  const finalIds = next.map((item) => (baseById.has(item.id) ? item.id : added[next.filter((n) => !baseById.has(n.id)).indexOf(item)]?.id))
+  const finalIds = next.map((item) =>
+    baseById.has(item.id) ? item.id : added[next.filter((n) => !baseById.has(n.id)).indexOf(item)]?.id,
+  )
   // Each new item goes right before the item that follows it in the edit, so a row whose id is being typed stays in
   // place; one added at the end of the edit goes last, after anything another writer added.
   const placeFresh = (items: T[]): T[] => {
