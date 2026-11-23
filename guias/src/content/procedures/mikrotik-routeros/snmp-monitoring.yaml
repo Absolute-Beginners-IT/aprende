@@ -109,6 +109,24 @@ steps:
       nivel authPriv, autenticación SHA1 y cifrado AES, con las mismas claves, y
       comprueba que el equipo responde. En NinjaOne, si el descubrimiento de red no lo
       encuentra, agrégalo a mano con su IP.
+  - title: Cambiar las claves de un usuario existente
+    commands:
+      - /snmp community set [find name="{{snmpUser}}"] authentication-password="{{authKey}}" encryption-password="{{privKey}}"
+    explanation: >-
+      Solo hace falta para cambiar las claves más adelante, por ejemplo al rotarlas o si
+      se han filtrado. Rellena las claves de autenticación y de cifrado con las nuevas y
+      el usuario con el que ya existe. El resto de la configuración del usuario no cambia.
+    warning: >-
+      En cuanto lo ejecutes, la herramienta de monitorización deja de recibir datos
+      hasta que pongas en ella las mismas claves nuevas. Igual que al crear el usuario,
+      no dejes el comando con las claves en notas, chats ni capturas.
+    breakdown:
+      - token: '[find name="{{snmpUser}}"]'
+        meaning: Selecciona el usuario SNMPv3 existente por su nombre.
+      - token: authentication-password="{{authKey}}"
+        meaning: Nueva clave de autenticación.
+      - token: encryption-password="{{privKey}}"
+        meaning: Nueva clave de cifrado, distinta de la de autenticación.
 verification:
   - command: /snmp print
     expect: SNMP aparece activo, con la ubicación y el contacto configurados.
@@ -140,5 +158,6 @@ status:
     La referencia de la CLI de RouterOS 7 confirma addresses, security
     (none/authorized/private), SHA1 a SHA512, DES y AES, y las propiedades de
     lectura y escritura. La guía interna de la empresa, probada en un switch real,
-    usa el mismo comando de creación con SHA1 y AES. Lo que falta probar en un
+    usa el mismo comando de creación con SHA1 y AES. El cambio de claves de un
+    usuario existente con [find name=...] está probado en un MikroTik real. Lo que falta probar en un
     equipo real es el filtro [find default=yes] sobre la comunidad de fábrica.
