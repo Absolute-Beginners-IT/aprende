@@ -70,3 +70,6 @@ export function usePlanDocument(planRepository: PlanRepository, revision: unknow
     change,
   };
 }
+
+/** What usePlanDocument gives a panel. */
+export type PlanDocument = ReturnType<typeof usePlanDocument>;

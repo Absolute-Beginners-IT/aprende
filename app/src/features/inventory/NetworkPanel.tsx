@@ -1,9 +1,10 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { PLAN_TEMPLATES, VLAN_PURPOSES, type PlanVlan, type VlanPurpose } from '@shared/plan';
-import type { LoadedPlan, PlanChange, PlanRepository } from '../../ports/PlanRepository';
+import type { LoadedPlan, PlanChange } from '../../ports/PlanRepository';
 import type { Finding } from '../../domain/inventoryAnalysis';
 import { PanelTabs, type PanelTab } from './PanelTabs';
-import { usePlanDocument } from './usePlanDocument';
+import type { VlanWarning } from './vlanLayers';
+import type { PlanDocument } from './usePlanDocument';
 import { InventoryFindings, MapHelp } from './DeviceInspector';
 import {
   PURPOSE_LABELS, addVlan, applyTemplate, editVlan, freeVlanId, gatewayHint, makeCore, removeVlan, vlanColor, vlanProblems, type VlanDraft,
@@ -15,23 +16,24 @@ export type NetworkTab = 'vlan' | 'direccionamiento' | 'avisos';
 const READ_ONLY = 'Mientras tanto, las VLAN no se pueden cambiar desde el mapa, para no escribir encima del plan guardado.';
 
 interface NetworkPanelProps {
-  planRepository: PlanRepository;
-  /** Changes whenever the inventory does: the switches of the plan come from it, so the plan is read again. */
-  revision: unknown;
+  /** The stored plan as the map reads it (usePlanDocument), shared with the layers of the left column. */
+  document: PlanDocument;
   /** Whether «Mi infraestructura» has any switch: without one there is no core to pick. */
   hasSwitches: boolean;
   empty: boolean;
   findings: Finding[];
+  /** What is wrong with the VLANs of the trunks (gaps, VLANs the plan lacks, two lines of a pair that disagree). */
+  vlanWarnings: VlanWarning[];
+  /** Adds the VLAN of a gap to the «VLAN» field of its trunk on the map. */
+  onFix: (fix: NonNullable<VlanWarning['fix']>) => void;
   tab: NetworkTab;
   onTab: (tab: NetworkTab) => void;
-  /** Tells what a change did, in the map's own status line. */
-  onMessage: (message: string) => void;
 }
 
 /** The right-hand panel of the map editor with nothing selected: the VLANs, the addressing and the warnings. */
-export function NetworkPanel({ planRepository, revision, hasSwitches, empty, findings, tab, onTab, onMessage }: NetworkPanelProps) {
-  const { loaded, problem, locked, errors, change } = usePlanDocument(planRepository, revision, onMessage);
-  const warnings = findings.length + (problem ? 1 : 0);
+export function NetworkPanel({ document, hasSwitches, empty, findings, vlanWarnings, onFix, tab, onTab }: NetworkPanelProps) {
+  const { loaded, problem, locked, errors, change } = document;
+  const warnings = findings.length + vlanWarnings.length + (problem ? 1 : 0);
 
   return (
     <aside className="detail infra-inspector infra-network" aria-label="Red y VLAN">
@@ -49,11 +51,29 @@ export function NetworkPanel({ planRepository, revision, hasSwitches, empty, fin
         )}
         {tab === 'avisos' && <>
           {problem && <p className="infra-form__error">{problem} {READ_ONLY}</p>}
+          {vlanWarnings.length > 0 && <VlanWarnings warnings={vlanWarnings} onFix={onFix} />}
           <InventoryFindings empty={empty} findings={findings} />
         </>}
       </div>
       <MapHelp />
     </aside>
+  );
+}
+
+/** The warnings about the VLANs of the trunks; a gap offers to add its VLAN to the trunk that leaves it out. */
+function VlanWarnings({ warnings, onFix }: { warnings: VlanWarning[]; onFix: NetworkPanelProps['onFix'] }) {
+  return (
+    <section className="infra-vlan-warnings" aria-labelledby="infra-vlan-warnings-title">
+      <h3 id="infra-vlan-warnings-title">VLAN en las troncales</h3>
+      <ul>
+        {warnings.map(w => (
+          <li key={w.key}>
+            <span>{w.message}</span>
+            {w.fix && <button type="button" className="chip" onClick={() => onFix(w.fix!)}>Añadir {w.fix.vlan} a la troncal</button>}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

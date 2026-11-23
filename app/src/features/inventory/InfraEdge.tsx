@@ -1,10 +1,17 @@
+import type { CSSProperties } from 'react';
 import { BaseEdge, EdgeLabelRenderer, getSmoothStepPath, type Edge, type EdgeProps } from '@xyflow/react';
 import type { Link } from '../../domain/types';
 import type { PowerRole } from '../../domain/topology';
 import { edgeGeometry, powerLabel, type PowerEdge, type Route } from '../../domain/infraMap';
 
-/** `power` says which end of a power link is the outlet and which the power supply (see `powerEndRoles`). */
-export type InfraEdgeType = Edge<{ link: Link; route: Route; power?: { a: PowerRole; b: PowerRole } }, 'infra'>;
+/**
+ * `power` says which end of a power link is the outlet and which the power supply (see `powerEndRoles`). From «Capas»:
+ * `color` of the picked VLAN when the line carries it, `flag` when a VLAN does not get through it, `ports` to label.
+ */
+export type InfraEdgeType = Edge<{ link: Link; route: Route; power?: { a: PowerRole; b: PowerRole }; color?: string; flag?: string; ports?: boolean }, 'infra'>;
+
+/** The ports of a link as a label, such as «gi1/0/1 – 1/1/1»; '' when it has none. */
+const portsLabel = (link: Link) => (link.a.puerto || link.b.puerto ? `${link.a.puerto ?? '?'} – ${link.b.puerto ?? '?'}` : '');
 
 /** The text on a line: the outlet and power supply of a power link; otherwise «LAG» for a LAG and the speed when known. */
 export const edgeLabel = (link: Link, power?: { a: PowerRole; b: PowerRole }) => (link.tipo === 'energia' && power
@@ -19,13 +26,16 @@ export const edgeLabel = (link: Link, power?: { a: PowerRole; b: PowerRole }) =>
 export function InfraEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, interactionWidth }: EdgeProps<InfraEdgeType>) {
   const geometry = data ? edgeGeometry({ sourceX, sourceY, targetX, targetY }, data.route) : { sourceX, sourceY, targetX, targetY, label: { x: 0, y: 0 } };
   const [path] = getSmoothStepPath({ ...geometry, sourcePosition, targetPosition, borderRadius: 6 });
-  const text = data ? edgeLabel(data.link, data.power) : '';
+  const text = data ? [edgeLabel(data.link, data.power), data.ports ? portsLabel(data.link) : ''].filter(Boolean).join(' · ') : '';
+  const flag = data?.flag;
   return (
     <>
-      <BaseEdge id={id} path={path} interactionWidth={interactionWidth} />
-      {text && (
+      <BaseEdge id={id} path={path} interactionWidth={interactionWidth} style={data?.color ? { '--vlan-color': data.color } as CSSProperties : undefined} />
+      {(text || flag) && (
         <EdgeLabelRenderer>
-          <div className="infra-edge__label nodrag nopan" style={{ transform: `translate(-50%, -50%) translate(${geometry.label.x}px, ${geometry.label.y}px)` }}>{text}</div>
+          <div className={`infra-edge__label nodrag nopan${flag ? ' has-gap' : ''}`} style={{ transform: `translate(-50%, -50%) translate(${geometry.label.x}px, ${geometry.label.y}px)` }}>
+            {flag && <span className="infra-edge__flag">⚠ {flag}</span>}{flag && text ? ' · ' : ''}{text}
+          </div>
         </EdgeLabelRenderer>
       )}
     </>

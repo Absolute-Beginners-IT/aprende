@@ -12,8 +12,9 @@ import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { LINK_TYPE_NAMES, groupOf, isPowerSupplier, powerEndRoles, powerFeedersOf } from '../../domain/topology';
 import {
   BAR_HEIGHT, GRID, POWER_NODE, arrangeByTiers, connectDevices, connectionsOf, drawnLinks, editLink, groupBoxes, groupRefusal, layoutDevices, layoutPower,
-  linkName, linkRefusal, linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, type LinkDraft, type LinkRefusal,
+  linkName, linkRefusal, linkTypesIn, moveDevice, newDevice, placeUnplaced, routeEdges, tierLabels, carriesVlans, type LinkDraft, type LinkRefusal,
 } from '../../domain/infraMap';
+import { addToVlanList } from '@shared/plan';
 import { typeOf } from '../../content';
 import { useInventory } from './useInventory';
 import { DeviceNode, type DeviceNodeType } from './DeviceNode';
@@ -27,6 +28,9 @@ import { DeviceInspector } from './DeviceInspector';
 import { NetworkPanel, type NetworkTab } from './NetworkPanel';
 import { LinkInspector, NewLinkForm } from './LinkForms';
 import { GroupPanel } from './GroupPanel';
+import { usePlanDocument } from './usePlanDocument';
+import { LayersPanel, loadLayerChoices, saveLayerChoices, type LayerChoices } from './LayersPanel';
+import { vlanLayers, vlanWarnings } from './vlanLayers';
 
 /** What the learner works with on the map: devices and, in the «Energía» view, regletas drawn as bars. */
 type ItemNode = DeviceNodeType | RegletaBarNodeType;
@@ -64,6 +68,11 @@ const isSelection = (c: NodeChange<ItemNode>): c is NodeSelectionChange => c.typ
 const isDrop = (c: NodeChange<ItemNode>): c is NodePositionChange => c.type === 'position' && c.dragging === false && !!c.position;
 /** Names as a Spanish list: «A», «A y B», «A, B y C». */
 const listNames = (names: string[]) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}` : names.join(''));
+/** The VLANs that do not get through a line, as its flag on the map. */
+const missingText = (vlans: number[]) => (vlans.length > 1 ? `Faltan las VLAN ${listNames(vlans.map(String))}` : `Falta la VLAN ${vlans[0]}`);
+/** The VLANs that do not reach a switch's access ports, as its flag on the map. */
+const unreachedText = (vlans: number[]) => (vlans.length > 1 ? `Las VLAN ${listNames(vlans.map(String))} no llegan` : `La VLAN ${vlans[0]} no llega`);
+const portCount = (n: number) => (n === 1 ? '1 puerto de acceso' : `${n} puertos de acceso`);
 const changedId = (c: NodeChange<MapNode>) => ('id' in c ? c.id : c.item.id);
 
 /** The first spot around `center`, ring by ring on the map grid, that no device covers. */
@@ -124,10 +133,34 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
   // Two devices just joined on the map: the link is saved only when its form is sent.
   const [pendingLink, setPendingLink] = useState<{ from: string; to: string } | null>(null);
   const [networkTab, setNetworkTab] = useState<NetworkTab>('vlan');
+  // «Capas»: how the learner looks at the map, remembered in this browser like the view; never stored in the plan.
+  const [layerChoices, setLayerChoices] = useState<LayerChoices>(loadLayerChoices);
+  const changeLayers = (next: LayerChoices) => { setLayerChoices(next); saveLayerChoices(next); };
 
   const byId = useMemo(() => new Map(devices.map(d => [d.id, d])), [devices]);
   const nameOf = (id: string) => byId.get(id)?.nombre ?? id;
   const findings = useMemo(() => analyzeInventory(topology, new Date()), [topology]);
+  // The plan, read only, for the VLAN layers and their warnings; read again when the inventory or another tab changes.
+  // «Red y VLAN» works on this same reading, so a change another tab saves is read once for both.
+  const planDocument = usePlanDocument(planRepository, topology, setMessage);
+  const { loaded: planLoaded, problem: planProblem } = planDocument;
+  const layers = useMemo(() => (planLoaded ? vlanLayers(topology, planLoaded) : []), [topology, planLoaded]);
+  const vlanWarns = useMemo(() => (planLoaded ? vlanWarnings(topology, planLoaded, id => byId.get(id)?.nombre ?? id) : []), [topology, planLoaded, byId]);
+  const pickedLayer = layers.find(l => l.id === layerChoices.picked && !layerChoices.hidden.includes(l.id));
+  const overlays = layerChoices.overlays;
+  // The gaps of the VLANs not hidden in «Capas» (only the picked one's while a VLAN is picked), on the lines that leave
+  // them out and on the switches they do not reach.
+  const flags = useMemo(() => {
+    const links = new Map<string, number[]>();
+    const devices = new Map<string, number[]>();
+    const add = (map: Map<string, number[]>, id: string, vlan: number) => { if (!map.get(id)?.includes(vlan)) map.set(id, [...(map.get(id) ?? []), vlan]); };
+    for (const w of vlanWarns) {
+      if (w.vlan === undefined || layerChoices.hidden.includes(w.vlan) || (pickedLayer && w.vlan !== pickedLayer.id)) continue;
+      if (w.linkId) add(links, w.linkId, w.vlan);
+      for (const id of w.deviceIds) add(devices, id, w.vlan);
+    }
+    return { links, devices };
+  }, [vlanWarns, layerChoices.hidden, pickedLayer]);
   const selectedDevices = selectedIds.flatMap(id => byId.get(id) ?? []);
   const selected = selectedDevices.length === 1 ? selectedDevices[0] : undefined;
   const selectedLink = selectedDevices.length === 0 && pickedEdges.size === 1 ? drawnLinks(topology).find(l => pickedEdges.has(l.id)) : undefined;
@@ -196,7 +229,25 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     }));
     return [...tiers, ...boxes];
   }, [topology, nodes, view]);
-  const flowNodes = useMemo(() => [...decorations, ...nodes], [decorations, nodes]);
+  // «Capas» only dresses the «Red» view: the picked VLAN lights or fades each device, flags and overlays are added.
+  const dressed = useMemo((): ItemNode[] => (view !== 'red' ? nodes : nodes.map(n => {
+    if (n.type !== 'device') return n;
+    const id = n.id;
+    const ports = pickedLayer?.accessPorts.get(id) ?? 0;
+    const tags = pickedLayer ? [...(pickedLayer.gateways.has(id) ? ['Puerta de enlace'] : []), ...(ports ? [portCount(ports)] : [])] : [];
+    const vlans = flags.devices.get(id);
+    return {
+      ...n,
+      data: {
+        ...n.data,
+        feeds: overlays.power ? n.data.feeds : undefined,
+        ip: overlays.ip ? n.data.device.ip : undefined,
+        layer: pickedLayer && { lit: pickedLayer.devices.has(id), color: pickedLayer.color, tags },
+        flags: vlans && [unreachedText(vlans)],
+      },
+    };
+  })), [nodes, view, pickedLayer, flags, overlays]);
+  const flowNodes = useMemo(() => [...decorations, ...dressed], [decorations, dressed]);
 
   const edges = useMemo((): MapEdge[] => {
     const powerOf = (l: Link) => powerEndRoles(byId.get(l.a.equipo)?.tipo, byId.get(l.b.equipo)?.tipo);
@@ -220,13 +271,16 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     const routes = routeEdges(visible, id => centres.get(id));
     return visible.map(l => {
       const route = routes.get(l.id)!;
+      const lit = pickedLayer?.links.has(l.id);
+      const missing = flags.links.get(l.id);
+      const shade = pickedLayer ? (lit ? ' is-lit' : ' is-dim') : '';
       return {
         id: l.id, type: 'infra', source: route.source, sourceHandle: route.sourceHandle, target: route.target, targetHandle: route.targetHandle,
-        selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}`, ariaLabel: linkName(l, nameOf),
-        data: { link: l, route },
+        selected: pickedEdges.has(l.id), className: `infra-edge infra-edge--${l.tipo}${shade}${missing ? ' has-gap' : ''}`, ariaLabel: linkName(l, nameOf),
+        data: { link: l, route, color: lit ? pickedLayer?.color : undefined, flag: missing && missingText(missing), ports: overlays.ports },
       };
     });
-  }, [topology, nodes, hiddenLines, pickedEdges, powerLayout]);
+  }, [topology, nodes, hiddenLines, pickedEdges, powerLayout, pickedLayer, flags, overlays.ports]);
   const linkTypes = useMemo(() => {
     const present = linkTypesIn(topology);
     if (view === 'energia') return present.includes('energia') ? LEGEND_POWER : NO_LINES;
@@ -329,6 +383,21 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     return null;
   };
 
+  /** Adds the VLAN of a gap to the «VLAN» field of its trunk, read again from what is stored; the plan is not touched. */
+  const addToTrunk = ({ linkId, vlan }: { linkId: string; vlan: number }) => {
+    const shown = topology.enlaces.find(l => l.id === linkId);
+    const between = shown ? `${nameOf(shown.a.equipo)} y ${nameOf(shown.b.equipo)}` : '';
+    let added = false;
+    void persist(async () => {
+      const stored = (await repository.load()).enlaces.find(l => l.id === linkId);
+      if (!stored || !carriesVlans(stored.tipo)) throw new Error('esa troncal ya no está en el mapa.');
+      const vlans = addToVlanList(stored.vlans ?? '', vlan);
+      if (vlans === (stored.vlans ?? '')) return;
+      await repository.apply({ updateLinks: [{ ...stored, vlans }] });
+      added = true;
+    }, () => (added ? `VLAN ${vlan} añadida a la troncal entre ${between}.` : `La troncal entre ${between} ya deja pasar la VLAN ${vlan}.`));
+  };
+
   /** Removes the given links in one write; `between` names the two devices of each one for the message. */
   const disconnect = (links: { id: string; between: [string, string] }[]) => {
     const success = links.length === 1 ? `Conexión entre ${nameOf(links[0].between[0])} y ${nameOf(links[0].between[1])} quitada.` : `${links.length} conexiones quitadas.`;
@@ -419,8 +488,8 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     }
     if (selectedDevices.length > 1) return <GroupPanel key={selectedIds.join(' ')} devices={selectedDevices} onGroup={group} />;
     if (!selected) {
-      return <NetworkPanel planRepository={planRepository} revision={topology} hasSwitches={devices.some(d => d.tipo === 'switch')}
-        empty={devices.length === 0} findings={findings} tab={networkTab} onTab={setNetworkTab} onMessage={setMessage} />;
+      return <NetworkPanel document={planDocument} hasSwitches={devices.some(d => d.tipo === 'switch')}
+        empty={devices.length === 0} findings={findings} vlanWarnings={vlanWarns} onFix={addToTrunk} tab={networkTab} onTab={setNetworkTab} />;
     }
     const grupo = groupOf(topology.grupos, selected.id);
     return (
@@ -456,15 +525,16 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
           )}
           <MapViewTabs view={view} onChange={switchView} controls="infra-canvas" />
           <span className="infra-tools__spacer" />
-          <button type="button" className="infra-tool" aria-label={`Comprobar red (${findings.length} avisos)`} onClick={checkNetwork}>
-            Comprobar red <span className="infra-count" aria-hidden="true">{findings.length}</span>
+          <button type="button" className="infra-tool" aria-label={`Comprobar red (${findings.length + vlanWarns.length} avisos)`} onClick={checkNetwork}>
+            Comprobar red <span className="infra-count" aria-hidden="true">{findings.length + vlanWarns.length}</span>
           </button>
           <a className="infra-tool" href="#mi-infraestructura/lista">Exportar o importar</a>
           <a className="infra-tool infra-tool--primary" href={PLANNER_URL}>Obtener comandos</a>
         </div>
         {toolbarNote && <div className="infra-tools__note">{toolbarNote}</div>}
         <div className="infra-workspace">
-          <DevicePalette onAdd={tipo => void add(tipo)} />
+          <DevicePalette onAdd={tipo => void add(tipo)} tab={layerChoices.tab} onTab={tab => changeLayers({ ...layerChoices, tab })}
+            layers={<LayersPanel layers={layers} choices={layerChoices} onChange={changeLayers} problem={planProblem} />} />
           <div className="infra-stage">
             <section className="infra-canvas" id="infra-canvas" aria-label="Mapa de tu infraestructura" ref={canvas}
               onDragOver={e => { if (e.dataTransfer.types.includes(PALETTE_DRAG_TYPE)) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } }} onDrop={onDrop}>
