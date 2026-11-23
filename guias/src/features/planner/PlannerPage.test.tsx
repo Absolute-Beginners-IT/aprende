@@ -758,6 +758,27 @@ describe('PlannerPage', () => {
   })
 })
 
+describe('PlannerPage concurrent writers', () => {
+  it('says so when another tab added the same VLAN meanwhile', async () => {
+    seed()
+    const user = userEvent.setup()
+    render(<PlannerPage catalog={catalog} />)
+    const plan = twoSwitchPlan()
+    const theirs = JSON.stringify({
+      ...plan,
+      vlans: [...plan.vlans, { id: 30, name: 'CAMARAS', purpose: 'users', subnet: '' }],
+    })
+    localStorage.setItem(PLAN_STORAGE_KEY, theirs)
+
+    await user.click(screen.getByRole('button', { name: 'Añadir VLAN' }))
+
+    expect(localStorage.getItem(PLAN_STORAGE_KEY)).toBe(theirs)
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'En otra pestaña se ha añadido la VLAN 30 (CAMARAS) mientras escribías aquí: se queda esa y tu cambio no se ha guardado.',
+    )
+  })
+})
+
 describe('PlannerPage VLAN ids', () => {
   it('keeps a VLAN in its row while its ID is edited', async () => {
     seed()

@@ -82,7 +82,7 @@ function syncedWithInventory(stored: NetworkPlan, catalog: Catalog): NetworkPlan
 /** Describe the network once and get the steps for each switch, in its brand's runbooks. */
 export function PlannerPage({ catalog }: { catalog: Catalog }) {
   const baseId = useId()
-  const { plan: stored, refusal, update, replace } = usePlan()
+  const { plan: stored, refusal, update, replace, conflict } = usePlan()
   // With switches in «Mi infraestructura» (same browser), they and their connections come from there. A stored plan
   // that must be left alone is not shown, so nothing is combined nor kept in step with it.
   const combined = refusal ? undefined : combineNow(stored, catalog)
@@ -175,6 +175,11 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
           <p role="alert" className="plan-inventory__status">
             {STORED_PLAN_REFUSALS[refusal]} El planificador no lo cambia mientras sea así. Si quieres empezar de nuevo,
             importa un plan o vacía este: lo que tenía guardado se perderá.
+          </p>
+        )}
+        {conflict && (
+          <p role="alert" className="plan-inventory__status">
+            {conflict}
           </p>
         )}
         {/* A switch named like two inventory switches is not listed here, nor discarded: it is not missing. */}

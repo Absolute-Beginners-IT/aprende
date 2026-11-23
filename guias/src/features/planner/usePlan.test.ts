@@ -163,3 +163,56 @@ describe('rebasePlan keeps rows in place', () => {
     expect(rebasePlan(base, next, base).vlans.map((v) => v.id)).toEqual([5, ...base.vlans.map((v) => v.id)])
   })
 })
+
+describe('rebasePlan with an item another writer added with the same id', () => {
+  const video = { id: 30, name: 'VIDEO', purpose: 'cameras' as const, subnet: '' }
+
+  it('keeps the VLAN another writer added and refuses the edit that adds another one with its id', () => {
+    const base = twoSwitchPlan()
+    const current = addCameras(base)
+    const next = { ...base, vlans: [...base.vlans, video] }
+
+    expect(() => rebasePlan(base, next, current)).toThrow(
+      'En otra pestaña se ha añadido la VLAN 30 (CAMARAS) mientras escribías aquí: se queda esa y tu cambio no se ha guardado.',
+    )
+  })
+
+  it('keeps the switch another writer added and refuses the edit that adds another one with its id', () => {
+    const base = twoSwitchPlan()
+    const theirs = { id: 'sw-3', name: 'ALMACEN', platform: 'cisco-c1300', mgmtIp: '', gateway: '', bridge: '' }
+    const mine = { ...theirs, name: 'PLANTA2' }
+    const current = { ...base, switches: [...base.switches, theirs] }
+    const next = { ...base, switches: [...base.switches, mine] }
+
+    expect(() => rebasePlan(base, next, current)).toThrow(
+      'En otra pestaña se ha añadido el switch ALMACEN mientras escribías aquí: se queda ese y tu cambio no se ha guardado.',
+    )
+  })
+
+  it('still keeps one copy when both writers added the very same VLAN', () => {
+    const base = twoSwitchPlan()
+    const current = addCameras(base)
+
+    expect(rebasePlan(base, addCameras(base), current)).toEqual(current)
+  })
+
+  it('leaves the stored plan as it is and says why in usePlan', () => {
+    const base = twoSwitchPlan()
+    localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(base))
+    const { result } = renderHook(() => usePlan())
+    const theirs = JSON.stringify(addCameras(base))
+    localStorage.setItem(PLAN_STORAGE_KEY, theirs)
+
+    act(() => result.current.update((current) => rebasePlan(base, { ...base, vlans: [...base.vlans, video] }, current)))
+
+    expect(localStorage.getItem(PLAN_STORAGE_KEY)).toBe(theirs)
+    expect(result.current.plan).toEqual(addCameras(base))
+    expect(result.current.conflict).toBe(
+      'En otra pestaña se ha añadido la VLAN 30 (CAMARAS) mientras escribías aquí: se queda esa y tu cambio no se ha guardado.',
+    )
+
+    act(() => result.current.update(rename(10, 'OFICINA')))
+    expect(result.current.conflict).toBeUndefined()
+    expect(stored().vlans[0]?.name).toBe('OFICINA')
+  })
+})

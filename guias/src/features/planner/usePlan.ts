@@ -28,7 +28,15 @@ export interface StoredPlan {
   update: (change: (current: NetworkPlan) => NetworkPlan) => void
   /** Stores `plan` in place of whatever is stored, even a plan that cannot be read: only after the user confirms. */
   replace: (plan: NetworkPlan) => void
+  /** Why the last change was not stored (see PlanConflictError); cleared by the next change applied. */
+  conflict?: string
 }
+
+/**
+ * A change that cannot be applied to what is stored now without dropping what another writer stored meanwhile, such
+ * as a VLAN the map added in another tab with the id the planner is adding. `update` stores nothing and says why.
+ */
+export class PlanConflictError extends Error {}
 
 /**
  * The plan being edited, kept in this browser and shared with the map of «Mi infraestructura», which may write it
@@ -37,6 +45,7 @@ export interface StoredPlan {
  */
 export function usePlan(): StoredPlan {
   const [text, setText] = useState<string | null>(() => readText() ?? null)
+  const [conflict, setConflict] = useState<string>()
   // With storage blocked, the plan lives only here: changes apply to this copy.
   const latest = useRef(text)
   latest.current = text
@@ -72,12 +81,22 @@ export function usePlan(): StoredPlan {
         setText(current)
         return
       }
-      const next = change(read.plan)
-      // Nothing changed: the stored text stays byte for byte as it is.
+      let next: NetworkPlan
+      try {
+        next = change(read.plan)
+      } catch (error) {
+        if (!(error instanceof PlanConflictError)) throw error
+        // What the other writer stored stays, and the planner shows it.
+        setConflict(error.message)
+        setText(current)
+        return
+      }
+      // Nothing changed: the stored text stays byte for byte as it is, and a conflict being shown stays shown.
       if (JSON.stringify(next) === JSON.stringify(read.plan)) {
         setText(current)
         return
       }
+      setConflict(undefined)
       write(next)
     },
     [write],
@@ -85,15 +104,29 @@ export function usePlan(): StoredPlan {
 
   const read = useMemo(() => readStoredPlan(text), [text])
   return read.ok
-    ? { plan: read.plan, update, replace: write }
-    : { plan: EMPTY_PLAN, refusal: read.reason, update, replace: write }
+    ? { plan: read.plan, update, replace: write, conflict }
+    : { plan: EMPTY_PLAN, refusal: read.reason, update, replace: write, conflict }
 }
 
 const COLLECTIONS = ['vlans', 'switches', 'links', 'ports'] as const
-// Nothing points at a link or a port, so one that clashes with another writer's can take a free id.
+// Nothing points at a link or a port, so one that clashes with another writer's can take a free id; a VLAN or a
+// switch that clashes refuses the edit (see sameIdConflict).
 const FREE_ID_PREFIX: Partial<Record<(typeof COLLECTIONS)[number], string>> = { links: 'ln', ports: 'pt' }
 
 const same = (x: unknown, y: unknown) => JSON.stringify(x) === JSON.stringify(y)
+
+/**
+ * Why an item the edit adds cannot take the id another writer gave to its own item meanwhile. A VLAN id is the VLAN
+ * itself and links and ports point at a switch id, so neither can take a free id: the edit is refused instead.
+ */
+function sameIdConflict(item: { id: string | number; name?: unknown }): PlanConflictError {
+  const name = typeof item.name === 'string' && item.name.trim() ? item.name.trim() : String(item.id)
+  const what = typeof item.id === 'number' ? `la VLAN ${item.id} (${name})` : `el switch ${name}`
+  const kept = typeof item.id === 'number' ? 'esa' : 'ese'
+  return new PlanConflictError(
+    `En otra pestaña se ha añadido ${what} mientras escribías aquí: se queda ${kept} y tu cambio no se ha guardado.`,
+  )
+}
 
 /**
  * The items of `current` with only what the edit from `base` to `next` changed: items it removed go, items it
@@ -114,7 +147,8 @@ function rebaseList<T extends { id: string | number }>(base: T[], next: T[], cur
     .filter((item) => !baseById.has(item.id))
     .map((item) => {
       const theirs = currentIds.has(item.id) ? current.find((own) => own.id === item.id) : undefined
-      if (!prefix || theirs === undefined || same(theirs, item)) return item
+      if (theirs === undefined || same(theirs, item)) return item
+      if (!prefix) throw sameIdConflict(theirs)
       const id = nextId(prefix, taken)
       taken.push({ id })
       return { ...item, id }
