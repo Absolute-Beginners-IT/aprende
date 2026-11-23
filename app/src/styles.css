@@ -129,12 +129,37 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-palette__family-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 2px 0; border: 0; background: none; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .infra-palette__family-toggle::after { content: "▾"; }
 .infra-palette__family-toggle[aria-expanded="false"]::after { content: "▸"; }
+.infra-palette__shapes { display: grid; gap: 10px; align-content: start; min-width: 0; }
+/* «Capas» in the left column: the cabling and each VLAN (pick to light it, eye to hide its warnings), then the overlays. */
+.infra-layers { display: grid; gap: 8px; min-width: 0; }
+.infra-layers h3 { color: var(--muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.infra-layers__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.infra-layer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px; align-items: start; }
+.infra-layer__pick { display: grid; gap: 2px; min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.infra-layer__pick[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 4px 0 0 var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.infra-layer__pick:disabled { color: var(--muted); cursor: default; }
+.infra-layer__name { display: flex; gap: 6px; align-items: center; font-weight: 700; overflow-wrap: anywhere; }
+.infra-layer__swatch { flex: none; width: 12px; height: 12px; border-radius: 3px; }
+.infra-layer.is-hidden .infra-layer__swatch { opacity: .4; }
+.infra-layer__summary { color: var(--muted); font-size: 12px; }
+.infra-layer__gaps { justify-self: start; padding: 0 6px; border: 1px solid #dc2626; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.infra-layer__eye { padding: 5px 7px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; line-height: 1; cursor: pointer; }
+.infra-layer__eye[aria-pressed="true"] { background: var(--bg); }
+.infra-layers__overlays { display: grid; gap: 4px; margin: 0; padding: 6px 8px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+.infra-layers__overlays legend { padding: 0 4px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.infra-layers__overlays .check { display: flex; gap: 6px; align-items: center; }
 .infra-panel { min-height: 0; min-width: 0; overflow: auto; border-left: 1px solid var(--line); }
 .infra-panel > .detail { border: 0; border-radius: 0; background: transparent; }
 .infra-network__tabs { margin: 8px 0; }
 .infra-network__panel { display: grid; gap: 8px; min-width: 0; overflow-x: auto; }
 .infra-network__panel > p { margin: 0; }
 .infra-network__add { justify-self: start; }
+/* «Avisos»: the VLANs of the trunks, each warning with its one-click fix when there is one. */
+.infra-vlan-warnings { display: grid; gap: 6px; min-width: 0; }
+.infra-vlan-warnings h3 { margin: 0; }
+.infra-vlan-warnings ul { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.infra-vlan-warnings li { display: grid; gap: 6px; padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid #d97706; border-radius: 8px; font-size: 14px; overflow-wrap: anywhere; }
+.infra-vlan-warnings button { justify-self: start; }
 .vlan-catalogue, .infra-addressing { display: grid; gap: 8px; min-width: 0; }
 .vlan-catalogue__head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .vlan-templates { position: relative; font-size: 14px; }
@@ -214,6 +239,12 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-node__power { justify-self: start; margin-top: 3px; padding: 1px 6px; border: 1px solid color-mix(in srgb, var(--power) 50%, transparent); border-radius: 6px; color: var(--text); font-size: 11px; font-weight: 600; }
 .infra-node__power.is-single { border-color: #d97706; background: color-mix(in srgb, #d97706 14%, var(--surface)); }
 .infra-node--power { box-sizing: border-box; width: 100%; min-width: 0; max-width: none; }
+/* «Capas»: a device that uses the picked VLAN is outlined in its colour and tagged; the others are faded but stay readable. */
+.infra-node.is-lit { outline: 3px solid var(--vlan-color, var(--accent)); outline-offset: 2px; }
+.infra-node.is-dim { opacity: .7; border-style: dashed; }
+.infra-node__ip { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+.infra-node__tag, .infra-node__flag { justify-self: start; margin-top: 3px; padding: 1px 6px; border: 1px solid var(--vlan-color, var(--line)); border-radius: 6px; background: color-mix(in srgb, var(--vlan-color, var(--muted)) 14%, var(--surface)); color: var(--text); font-size: 11px; font-weight: 600; }
+.infra-node__flag { border-color: #dc2626; background: color-mix(in srgb, #dc2626 12%, var(--surface)); }
 /* A regleta in the «Energía» view: a bar the width of the devices it feeds, with its name inside. */
 .infra-bar { box-sizing: border-box; display: flex; align-items: center; width: 100%; height: 100%; padding: 0 8px; background: var(--power); border-radius: 4px; color: var(--surface); font-size: 10px; font-weight: 700; line-height: 1; white-space: nowrap; overflow: hidden; }
 .infra-bar.selected { box-shadow: 0 0 0 3px color-mix(in srgb, var(--power) 40%, transparent); }
@@ -241,8 +272,13 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .infra-canvas .infra-edge .react-flow__edge-path, .infra-legend__swatch line {
   fill: none; stroke: var(--line-color, var(--muted)); stroke-width: var(--line-width, 1.8); stroke-dasharray: var(--line-dash, none); stroke-linecap: round;
 }
+/* «Capas»: the lines that carry the picked VLAN, thicker in its colour; the others faded; a gap dashed in red (and named on its label). */
+.infra-canvas .infra-edge.is-lit .react-flow__edge-path { stroke: var(--vlan-color, var(--accent)); stroke-width: 5; stroke-dasharray: none; }
+.infra-canvas .infra-edge.is-dim { opacity: .3; }
+.infra-canvas .infra-edge.has-gap .react-flow__edge-path { stroke: #dc2626; stroke-dasharray: 8 4; }
 .infra-canvas .infra-edge.selected .react-flow__edge-path, .infra-canvas .infra-edge:focus-visible .react-flow__edge-path { stroke: var(--accent); }
 .infra-edge__label { position: absolute; padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 11px; font-weight: 600; pointer-events: none; white-space: nowrap; }
+.infra-edge__label.has-gap { border: 1.5px solid #dc2626; }
 /* Behind the devices: boxes around groups of peers and the names of the tiers. They take no click, so the map pans through them. */
 .infra-canvas .react-flow__node-groupBox, .infra-canvas .react-flow__node-tierLabel { pointer-events: none !important; cursor: default; }
 .infra-group { box-sizing: border-box; width: 100%; height: 100%; border: 1.5px dashed color-mix(in srgb, var(--muted) 70%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--muted) 6%, transparent); }
