@@ -301,3 +301,247 @@ describe('VLAN catalogue and other tabs', () => {
     expect(await (await vlanTable()).findByText('CAMARAS')).toBeTruthy();
   });
 });
+
+describe('reading the plan', () => {
+  const deferred = <T,>() => {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>(ok => { resolve = ok; });
+    return { promise, resolve };
+  };
+  const planOf = (vlans: { id: number; name: string }[]) => ({
+    plan: { version: 1 as const, vlans: vlans.map(v => ({ ...v, purpose: 'users' as const, subnet: '' })), switches: [], links: [], ports: [] },
+    hidden: [], deducedModels: new Set<string>(), duplicates: [], mapPorts: new Set<string>(), mapVlans: new Map<string, string>(),
+  });
+
+  it('clears the read error once a later read succeeds', async () => {
+    const storage = new MemoryStorage();
+    const real = createLocalStoragePlanRepository(storage);
+    storage.data.set(PLAN_KEY, JSON.stringify(storedPlan()));
+    let calls = 0;
+    const flaky = { load: () => (++calls === 1 ? Promise.reject(new Error('SecurityError')) : real.load()), apply: real.apply };
+    render(<InfraMapPage repository={createLocalStorageInventoryRepository(storage)} planRepository={flaky} />);
+    expect(await alertText()).toContain('No se ha podido leer el plan de red: SecurityError');
+    window.dispatchEvent(new StorageEvent('storage', { key: PLAN_KEY }));
+    expect(await (await vlanTable()).findByText('USUARIOS')).toBeTruthy();
+    expect(panel().queryByText(/No se ha podido leer el plan de red/)).toBeNull();
+    expect((panel().getByRole('button', { name: 'Añadir VLAN' }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('ignores a read that finishes after a newer one', async () => {
+    const storage = new MemoryStorage();
+    const loads: ReturnType<typeof deferred<ReturnType<typeof planOf>>>[] = [];
+    const slow = { load: () => { const d = deferred<ReturnType<typeof planOf>>(); loads.push(d); return d.promise; }, apply: () => Promise.resolve() };
+    render(<InfraMapPage repository={createLocalStorageInventoryRepository(storage)} planRepository={slow} />);
+    await screen.findByRole('complementary', { name: 'Red y VLAN' });
+    await new Promise(r => setTimeout(r, 0));
+    const before = loads.length;
+    window.dispatchEvent(new StorageEvent('storage', { key: PLAN_KEY }));
+    await waitFor(() => expect(loads.length).toBe(before + 1));
+    // The newest read finishes first; every older one finishes later with an older plan.
+    loads[loads.length - 1].resolve(planOf([{ id: 20, name: 'NUEVA' }]));
+    expect(await (await vlanTable()).findByText('NUEVA')).toBeTruthy();
+    for (const old of loads.slice(0, -1)) old.resolve(planOf([{ id: 10, name: 'VIEJA' }]));
+    await new Promise(r => setTimeout(r, 0));
+    expect((await vlanTable()).queryByText('VIEJA')).toBeNull();
+    expect((await vlanTable()).getByText('NUEVA')).toBeTruthy();
+  });
+});
+
+describe('library search', () => {
+  it('leaves the folded families as they were while a search shows every match', async () => {
+    setup();
+    const search = screen.getByRole('searchbox', { name: 'Buscar equipos y formas' });
+    fireEvent.change(search, { target: { value: 'regle' } });
+    const family = screen.getByRole('button', { name: 'Energía', expanded: true });
+    expect((family as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(family);
+    expect(screen.getByRole('button', { name: 'Añadir Regleta (PDU)' })).toBeTruthy();
+    fireEvent.change(search, { target: { value: '' } });
+    expect(screen.getByRole('button', { name: 'Energía', expanded: true })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Añadir Regleta (PDU)' })).toBeTruthy();
+  });
+});
+
+const switchPanel = () => within(screen.getByRole('complementary', { name: 'Ficha del equipo' }));
+const openSwitch = async (name: string, tab?: string) => {
+  fireEvent.click(await screen.findByText(name, { selector: '.infra-node__name' }));
+  if (tab) fireEvent.click(switchPanel().getByRole('tab', { name: tab }));
+  return switchPanel();
+};
+const portsTable = async () => within(await switchPanel().findByRole('table', { name: /^Puertos de acceso de / }));
+const portForm = () => within(switchPanel().getByRole('form', { name: 'Nuevo puerto de acceso' }));
+
+describe('switch selected', () => {
+  it('has the tabs «Ficha», «Puertos y VLAN», «Guías» and «Comandos», moved with the arrow keys', async () => {
+    setup();
+    const p = await openSwitch('CORE');
+    const tabs = within(p.getByRole('tablist', { name: 'Configuración del switch' })).getAllByRole('tab');
+    expect(tabs.map(t => t.textContent)).toEqual(['Ficha', 'Puertos y VLAN', 'Guías', 'Comandos']);
+    expect(tabs[0].getAttribute('aria-selected')).toBe('true');
+    // «Ficha» keeps every field of the device.
+    expect((p.getByLabelText('Nombre') as HTMLInputElement).value).toBe('CORE');
+    expect(p.getByRole('heading', { name: 'Conexiones' })).toBeTruthy();
+    expect(p.getByRole('button', { name: 'Borrar equipo' })).toBeTruthy();
+    fireEvent.keyDown(tabs[0], { key: 'ArrowRight' });
+    expect(p.getByRole('tab', { name: 'Puertos y VLAN' }).getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(p.getByRole('tab', { name: 'Puertos y VLAN' }));
+    fireEvent.keyDown(p.getByRole('tab', { name: 'Puertos y VLAN' }), { key: 'End' });
+    expect(p.getByRole('tab', { name: 'Comandos' }).getAttribute('aria-selected')).toBe('true');
+    fireEvent.keyDown(p.getByRole('tab', { name: 'Comandos' }), { key: 'Home' });
+    expect(p.getByRole('tab', { name: 'Ficha' }).getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('shows the guides in «Guías» and the way to the commands in «Comandos»', async () => {
+    setup();
+    const p = await openSwitch('CORE', 'Guías');
+    expect(p.getByRole('region', { name: 'Guías para este equipo' })).toBeTruthy();
+    fireEvent.click(p.getByRole('tab', { name: 'Comandos' }));
+    expect(p.getByText(/Los comandos de cada switch salen del plan de red/)).toBeTruthy();
+    expect(p.getByRole('link', { name: 'Planificar VLAN y puertos' }).getAttribute('href')).toBe(PLANNER_URL);
+  });
+
+  it('lists the access ports of the switch with their VLAN and its links to other switches', async () => {
+    setup(office(), { ...storedPlan(), ports: [...storedPlan().ports, { id: 'pt-2', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10 }] });
+    await openSwitch('PLANTA1', 'Puertos y VLAN');
+    const rows = (await portsTable()).getAllByRole('row').slice(1);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].textContent).toContain('gi1/0/5');
+    expect((within(rows[0]).getByLabelText('VLAN del puerto gi1/0/5') as HTMLSelectElement).value).toBe('10');
+    expect(switchPanel().getByText(/gi1\/0\/1 → CORE/)).toBeTruthy();
+  });
+
+  it('adds an access port through the repository, keeping everything else exactly', async () => {
+    const { storage } = setup();
+    await openSwitch('PLANTA1', 'Puertos y VLAN');
+    await switchPanel().findByRole('form', { name: 'Nuevo puerto de acceso' });
+    fireEvent.change(portForm().getByLabelText('Puerto'), { target: { value: ' gi1/0/7 ' } });
+    fireEvent.change(portForm().getByLabelText('VLAN'), { target: { value: '99' } });
+    fireEvent.click(portForm().getByRole('button', { name: 'Añadir puerto' }));
+    await waitFor(() => expect(planIn(storage).ports).toHaveLength(2));
+    const { ports, ...rest } = planIn(storage);
+    const { ports: before, ...restBefore } = storedPlan();
+    expect(ports).toEqual([...before, { id: 'pt-3', switch: 'sw-2', interface: 'gi1/0/7', vlan: 99 }]);
+    expect(rest).toEqual(restBefore);
+    expect(await (await portsTable()).findByText('gi1/0/7')).toBeTruthy();
+  });
+
+  it('refuses a port without a name or already in the list, and saves nothing', async () => {
+    const { storage } = setup(office(), { ...storedPlan(), ports: [...storedPlan().ports, { id: 'pt-2', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10 }] });
+    await openSwitch('PLANTA1', 'Puertos y VLAN');
+    await portsTable();
+    const before = storage.data.get(PLAN_KEY);
+    fireEvent.click(portForm().getByRole('button', { name: 'Añadir puerto' }));
+    expect(portForm().getByRole('alert').textContent).toBe('Escribe el puerto, por ejemplo gi1/0/5.');
+    fireEvent.change(portForm().getByLabelText('Puerto'), { target: { value: 'GI1/0/5' } });
+    fireEvent.click(portForm().getByRole('button', { name: 'Añadir puerto' }));
+    expect(portForm().getByRole('alert').textContent).toBe('El puerto GI1/0/5 ya está en la lista: cambia su VLAN en la tabla.');
+    await new Promise(r => setTimeout(r, 0));
+    expect(storage.data.get(PLAN_KEY)).toBe(before);
+  });
+
+  it('changes the VLAN of a port and removes a port, touching only that port', async () => {
+    const extra = { id: 'pt-2', switch: 'sw-2', interface: 'gi1/0/5', vlan: 10, description: 'impresora' };
+    const { storage } = setup(office(), { ...storedPlan(), ports: [...storedPlan().ports, extra] });
+    await openSwitch('PLANTA1', 'Puertos y VLAN');
+    fireEvent.change((await portsTable()).getByLabelText('VLAN del puerto gi1/0/5'), { target: { value: '99' } });
+    await waitFor(() => expect(planIn(storage).ports[1]).toEqual({ ...extra, vlan: 99 }));
+    expect(planIn(storage).ports[0]).toEqual(storedPlan().ports[0]);
+    fireEvent.click((await portsTable()).getByRole('button', { name: 'Quitar el puerto gi1/0/5' }));
+    await waitFor(() => expect(planIn(storage).ports).toEqual(storedPlan().ports));
+    const { ports: _p, ...rest } = planIn(storage);
+    const { ports: _q, ...restBefore } = storedPlan();
+    expect(rest).toEqual(restBefore);
+  });
+
+  it('stores a switch the plan does not have yet the way the planner does when it gets its first port', async () => {
+    const topology = office();
+    topology.equipos.push(device('planta2', 'PLANTA2', 'switch'));
+    topology.enlaces.push(link('l3', 'planta2', 'core', 'troncal'));
+    const { storage } = setup(topology);
+    await openSwitch('PLANTA2', 'Puertos y VLAN');
+    await switchPanel().findByRole('form', { name: 'Nuevo puerto de acceso' });
+    fireEvent.change(portForm().getByLabelText('Puerto'), { target: { value: '5' } });
+    fireEvent.click(portForm().getByRole('button', { name: 'Añadir puerto' }));
+    await waitFor(() => expect(planIn(storage).ports).toHaveLength(2));
+    const plan = planIn(storage);
+    expect(plan.switches.map((s: { id: string }) => s.id)).toEqual(['sw-1', 'sw-2', 'sw-4', 'sw-9']);
+    expect(plan.switches[2]).toEqual({ id: 'sw-4', deviceId: 'planta2', name: 'PLANTA2', platform: '', mgmtIp: '', gateway: '', bridge: '' });
+    expect(plan.ports[1]).toEqual({ id: 'pt-3', switch: 'sw-4', interface: '5', vlan: 10 });
+    expect(plan.switches[1].rack).toBe('R2');
+  });
+
+  it('never writes over a stored plan it cannot read', async () => {
+    const { storage } = setup(office(), '{ esto no es un plan');
+    await openSwitch('PLANTA1', 'Puertos y VLAN');
+    expect(await switchPanel().findByText(/no se puede leer; no se ha tocado/)).toBeTruthy();
+    expect(switchPanel().queryByRole('form', { name: 'Nuevo puerto de acceso' })).toBeNull();
+    expect(storage.data.get(PLAN_KEY)).toBe('{ esto no es un plan');
+    expect(storage.writes).toBe(0);
+  });
+});
+
+const trunkFicha = async (container: HTMLElement) => {
+  await waitFor(() => expect(container.querySelector('[aria-label="PLANTA1 – CORE: Troncal"]')).toBeTruthy());
+  fireEvent.click(container.querySelector('[aria-label="PLANTA1 – CORE: Troncal"]') as HTMLElement);
+  return within(screen.getByRole('complementary', { name: 'Ficha del enlace' }));
+};
+const topologyIn = (storage: MemoryStorage) => JSON.parse(storage.data.get(TOPOLOGY_KEY) ?? 'null');
+
+describe('link selected', () => {
+  it('validates the allowed VLANs as they are typed and saves no invalid list', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    expect(f.getByText('Vacío: pasan todas las VLAN del plan.')).toBeTruthy();
+    const before = storage.data.get(TOPOLOGY_KEY);
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '10-5' } });
+    expect(f.getByText('El rango 10-5 está al revés: escribe primero el número menor (5-10).')).toBeTruthy();
+    expect(f.getByLabelText('VLAN permitidas').getAttribute('aria-invalid')).toBe('true');
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await new Promise(r => setTimeout(r, 0));
+    expect(storage.data.get(TOPOLOGY_KEY)).toBe(before);
+
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '10, 99' } });
+    expect(f.queryByText(/está al revés/)).toBeNull();
+    expect(f.getByText('Solo pasan estas VLAN y la VLAN nativa.')).toBeTruthy();
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await waitFor(() => expect(topologyIn(storage).enlaces[1].vlans).toBe('10, 99'));
+  });
+
+  it('shows the native VLAN of the trunk from the plan and saves a new one there, keeping the rest', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const native = await f.findByLabelText('VLAN nativa') as HTMLInputElement;
+    await waitFor(() => expect(native.value).toBe('1'));
+    fireEvent.change(native, { target: { value: '99' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await waitFor(() => expect(planIn(storage).links[0].nativeVlan).toBe(99));
+    const { links, ...rest } = planIn(storage);
+    const { links: before, ...restBefore } = storedPlan();
+    expect(links).toEqual([{ ...before[0], nativeVlan: 99 }]);
+    expect(rest).toEqual(restBefore);
+  });
+
+  it('refuses a native VLAN out of range and saves nothing', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const native = await f.findByLabelText('VLAN nativa');
+    const plan = storage.data.get(PLAN_KEY);
+    const topology = storage.data.get(TOPOLOGY_KEY);
+    fireEvent.change(native, { target: { value: '5000' } });
+    expect(f.getByText('La VLAN nativa va del 1 al 4094.')).toBeTruthy();
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await new Promise(r => setTimeout(r, 0));
+    expect(storage.data.get(PLAN_KEY)).toBe(plan);
+    expect(storage.data.get(TOPOLOGY_KEY)).toBe(topology);
+  });
+
+  it('offers no VLAN fields on a link that does not carry VLANs', async () => {
+    const { container } = setup();
+    await waitFor(() => expect(container.querySelector('[aria-label="CORE – FW01: Datos"]')).toBeTruthy());
+    fireEvent.click(container.querySelector('[aria-label="CORE – FW01: Datos"]') as HTMLElement);
+    const f = within(screen.getByRole('complementary', { name: 'Ficha del enlace' }));
+    expect(f.queryByLabelText('VLAN permitidas')).toBeNull();
+    expect(f.queryByLabelText('VLAN nativa')).toBeNull();
+    expect(f.getByLabelText('Velocidad')).toBeTruthy();
+  });
+});

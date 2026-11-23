@@ -36,6 +36,8 @@ const openFicha = async (name: string) => {
   fireEvent.click(await screen.findByText(name, { selector: '.infra-node__name' }));
   return ficha();
 };
+// A switch splits its ficha into tabs: «Ficha», «Puertos y VLAN», «Guías» and «Comandos».
+const switchTab = (name: string) => { fireEvent.click(ficha().getByRole('tab', { name })); return ficha(); };
 
 describe('InfraMapPage', () => {
   it('draws every device as a node with its name, type and brand, joined by its uplinks', async () => {
@@ -72,7 +74,7 @@ describe('InfraMapPage', () => {
     expect((f.getByLabelText('Tipo') as HTMLSelectElement).value).toBe('switch');
     expect(f.getByText('FW01')).toBeTruthy();
     expect(f.getByText(/CORE no está monitorizado/)).toBeTruthy();
-    expect(f.getByRole('link', { name: 'Planificar VLAN y puertos' }).getAttribute('href')).toBe('./guias/#/plan');
+    expect(switchTab('Comandos').getByRole('link', { name: 'Planificar VLAN y puertos' }).getAttribute('href')).toBe('./guias/#/plan');
   });
 
   it('shows the monitoring configuration for the brand of the selected device', async () => {
@@ -85,8 +87,8 @@ describe('InfraMapPage', () => {
   it('lists the guides of a covered switch, grouped, opening each one with the device filled in', async () => {
     const access: DeviceV1 = { id: 'sw acceso/1', nombre: 'ACCESO', tipo: 'switch', criticidad: 'Media', monitorizado: false, marca: 'HPE Aruba', modelo: '6100 24G' };
     render(<InfraMapPage planRepository={plans()} repository={memoryRepository([...network(), access])} />);
-    const f = await openFicha('ACCESO');
-    const section = within(f.getByRole('region', { name: 'Guías para este equipo' }));
+    await openFicha('ACCESO');
+    const section = within(switchTab('Guías').getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByRole('heading', { level: 3, name: 'Guías para este equipo' })).toBeTruthy();
     expect(section.getByText('Para tu Aruba CX 6100, con sus datos ya puestos:')).toBeTruthy();
     expect(section.getByText('Puesta en marcha y acceso')).toBeTruthy();
@@ -96,12 +98,13 @@ describe('InfraMapPage', () => {
     const links = section.getAllByRole('link');
     expect(links).toHaveLength(19);
     for (const link of links) expect(link.getAttribute('href')).toMatch(/\?equipo=sw%20acceso%2F1$/);
-    expect(f.getByRole('link', { name: 'Planificar VLAN y puertos' })).toBeTruthy();
+    expect(switchTab('Comandos').getByRole('link', { name: 'Planificar VLAN y puertos' })).toBeTruthy();
   });
 
   it('tells which models the guides cover when the switch has no known brand and model', async () => {
     render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
-    const section = within((await openFicha('CORE')).getByRole('region', { name: 'Guías para este equipo' }));
+    await openFicha('CORE');
+    const section = within(switchTab('Guías').getByRole('region', { name: 'Guías para este equipo' }));
     expect(section.getByText('Indica la marca y el modelo para ver sus guías. Las guías cubren: Aruba CX 6100, Cisco Catalyst 1300, MikroTik CRS317 y Ruijie NBS3200.')).toBeTruthy();
     expect(section.queryAllByRole('link')).toHaveLength(0);
   });
@@ -435,12 +438,12 @@ describe('InfraMapPage link editing', () => {
     const form = linkForm();
     expect(writes.count).toBe(0);
     expect((form.getByLabelText('Tipo de enlace') as HTMLSelectElement).value).toBe('datos');
-    expect(form.queryByLabelText('VLAN')).toBeNull();
+    expect(form.queryByLabelText('VLAN permitidas')).toBeNull();
     fireEvent.change(form.getByLabelText('Tipo de enlace'), { target: { value: 'troncal' } });
     fireEvent.change(form.getByLabelText('Puerto en ACC'), { target: { value: '49' } });
     fireEvent.change(form.getByLabelText('Puerto en CORE'), { target: { value: '1/1/48' } });
     fireEvent.change(form.getByLabelText('Velocidad'), { target: { value: '10G' } });
-    fireEvent.change(form.getByLabelText('VLAN'), { target: { value: '10,20' } });
+    fireEvent.change(form.getByLabelText('VLAN permitidas'), { target: { value: '10,20' } });
     fireEvent.click(form.getByRole('button', { name: 'Crear enlace' }));
 
     expect((await screen.findByRole('status')).textContent).toBe('Enlace Troncal creado entre ACC y CORE.');
@@ -521,7 +524,7 @@ describe('InfraMapPage link editing', () => {
     fireEvent.change(f.getByLabelText('Tipo de enlace'), { target: { value: 'lag' } });
     fireEvent.change(f.getByLabelText('Puerto en CORE'), { target: { value: '1/1/49-50' } });
     fireEvent.change(f.getByLabelText('Velocidad'), { target: { value: '20G' } });
-    fireEvent.change(f.getByLabelText('VLAN'), { target: { value: '1-100' } });
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '1-100' } });
     fireEvent.change(f.getByLabelText('Notas'), { target: { value: 'Dos cables' } });
     fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
 
