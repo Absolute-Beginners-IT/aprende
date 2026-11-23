@@ -163,7 +163,20 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 /* The panel's single column never grows past the panel, so nothing in it pushes a horizontal scroll bar. */
 .infra-network { grid-template-columns: minmax(0, 1fr); }
 .infra-network__tabs { justify-self: stretch; }
-.infra-network .infra-network__tabs [role="tab"] { flex: 1 1 auto; min-width: 0; padding: 5px 8px; font-size: 13px; white-space: nowrap; }
+.infra-network__tabs { flex-wrap: wrap; }
+.infra-network__tabs.infra-views [role="tab"] { flex: 1 1 auto; min-width: 0; padding: 5px 8px; font-size: 13px; white-space: nowrap; }
+/* A selected switch: its ficha in tabs, and its access ports in a table that fits the panel. */
+.infra-inspector:has(.infra-network__tabs) { grid-template-columns: minmax(0, 1fr); }
+.switch-ports { display: grid; gap: 8px; min-width: 0; }
+.switch-ports h3 { margin: 4px 0 0; }
+.switch-ports > p { margin: 0; }
+.switch-ports__links { margin: 0; padding-left: 18px; font-size: 13px; }
+.switch-ports__table { table-layout: fixed; }
+.switch-ports__table th:first-child { width: 38%; }
+.switch-ports__table th:last-child { width: 72px; }
+.switch-ports__table td:first-child { white-space: normal; overflow-wrap: anywhere; }
+.switch-ports__table select { width: 100%; min-width: 0; }
+.switch-commands p { margin: 0 0 8px; }
 .vlan-swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent); }
 .infra-form__error ul { margin: 0; padding-left: 18px; }
 .infra-addressing__core { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }

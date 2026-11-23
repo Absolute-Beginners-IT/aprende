@@ -401,6 +401,9 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
       .map(c => ({ id: c.id, other: c.from === selected.id ? c.to : c.from })).map(c => ({ ...c, nombre: nameOf(c.other) }))
     : [];
 
+  // The planner document, read again whenever the inventory changes: its switches and links come from it.
+  const planContext = { repository: planRepository, revision: topology, onMessage: setMessage };
+
   // The panel shows, first to last: the form of a link being drawn, the ficha of the selected line, the devices
   // selected together, the ficha of the selected device, or «Red y VLAN» for the whole network.
   const inspector = () => {
@@ -410,7 +413,7 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
         onCreate={createLink} onCancel={() => setPendingLink(null)} />;
     }
     if (selectedLink) {
-      return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf}
+      return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf} plan={planContext}
         types={{ tipoA: byId.get(selectedLink.a.equipo)?.tipo, tipoB: byId.get(selectedLink.b.equipo)?.tipo }} onSave={draft => saveLink(selectedLink, draft)}
         onRemove={() => disconnect([{ id: selectedLink.id, between: [selectedLink.a.equipo, selectedLink.b.equipo] }])} onClose={() => setPickedEdges(new Set())} />;
     }
@@ -423,7 +426,8 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     return (
       <DeviceInspector key={selected.id} device={selected} connections={connections} group={grupo} findings={findings.filter(f => f.deviceId === selected.id)}
         onChange={change => update(selected, change)} onRename={nombre => rename(selected, nombre)} onDisconnect={id => disconnect(connections.filter(c => c.id === id).map(c => ({ id, between: [selected.id, c.other] })))}
-        onLeaveGroup={() => grupo && leaveGroup(selected, grupo)} onUngroup={() => grupo && ungroup(grupo)} onDelete={() => void remove(selected)} />
+        onLeaveGroup={() => grupo && leaveGroup(selected, grupo)} onUngroup={() => grupo && ungroup(grupo)} onDelete={() => void remove(selected)}
+        plan={planContext} />
     );
   };
 

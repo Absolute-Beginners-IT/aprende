@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
+import { parseVlanList } from '@shared/plan';
 import { LINK_TYPES, type Link, type LinkType } from '../../domain/types';
+import type { PlanRepository } from '../../ports/PlanRepository';
 import { LINK_TYPE_NAMES, isHierarchical, powerEndRoles, powerSourceSide } from '../../domain/topology';
 import { carriesNetworkData, carriesVlans, draftOf, type LinkDraft } from '../../domain/infraMap';
+import { PLAN_READ_ONLY, usePlanDocument } from './usePlanDocument';
+import { nativeVlanProblem, planLinkBetween, setNativeVlan } from './portAssignment';
 
 /** Puts the focus on `ref` once, when the form opens, so the keyboard starts inside it. */
 export function useFocusOnOpen<T extends HTMLElement>(): RefObject<T | null> {
@@ -31,13 +35,37 @@ function directionText(tipo: LinkDraft['tipo'], nameA: string, nameB: string, { 
   return isHierarchical({ tipo }) ? `${nameA} cuelga de ${nameB}.` : `${nameA} y ${nameB} quedan unidos sin que uno cuelgue del otro.`;
 }
 
+/** Why the allowed VLANs of `draft` cannot be saved; empty when they can, or when its type carries no VLANs. */
+export function vlanListProblem(draft: LinkDraft): string {
+  if (!carriesVlans(draft.tipo)) return '';
+  const parsed = parseVlanList(draft.vlans ?? '');
+  return parsed.ok ? '' : parsed.error;
+}
+
+/**
+ * The VLANs a trunk or a LAG lets through, checked as they are typed. The guides allow exactly these plus the native
+ * VLAN; an empty list lets every VLAN of the plan through, as before the map had lists.
+ */
+function AllowedVlans({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const hintId = useId();
+  const parsed = parseVlanList(value);
+  const hint = !parsed.ok ? parsed.error : parsed.ids.length === 0 ? 'Vacío: pasan todas las VLAN del plan.' : 'Solo pasan estas VLAN y la VLAN nativa.';
+  return <>
+    <label>VLAN permitidas<input value={value} placeholder="10, 20, 30-32" spellCheck={false} aria-invalid={!parsed.ok || undefined} aria-describedby={hintId}
+      onChange={e => onChange(e.target.value)} /></label>
+    <p id={hintId} className={parsed.ok ? 'muted infra-form__hint' : 'infra-form__error'} aria-live="polite">{hint}</p>
+  </>;
+}
+
 /**
  * The fields of a link shared by the new link form and the ficha of a link; VLANs only for trunks and LAGs. A power
  * link has no network ports or speed: its ports hold the outlet («Toma», on the SAI or regleta) and the power supply.
  */
-function LinkFields({ draft, onChange, nameA, nameB, types, first, notes, linkTypes = LINK_TYPES }: {
+function LinkFields({ draft, onChange, nameA, nameB, types, first, notes, linkTypes = LINK_TYPES, children }: {
   draft: LinkDraft; onChange: (draft: LinkDraft) => void; nameA: string; nameB: string; types: EndTypes; first: RefObject<HTMLSelectElement | null>; notes?: boolean;
   linkTypes?: readonly LinkType[];
+  /** Fields that go after the VLANs, such as the native VLAN in the ficha. */
+  children?: ReactNode;
 }) {
   const text = (key: Exclude<keyof LinkDraft, 'tipo'>, label: string, placeholder?: string) => (
     <label key={key}>{label}<input value={draft[key] ?? ''} placeholder={placeholder} onChange={e => onChange({ ...draft, [key]: e.target.value })} /></label>
@@ -64,7 +92,8 @@ function LinkFields({ draft, onChange, nameA, nameB, types, first, notes, linkTy
           {text('velocidad', 'Velocidad', '1G, 10G…')}
         </>
       ) : powerSides.map(powerField)}
-      {carriesVlans(draft.tipo) && text('vlans', 'VLAN', '10, 20, 30')}
+      {carriesVlans(draft.tipo) && <AllowedVlans value={draft.vlans ?? ''} onChange={vlans => onChange({ ...draft, vlans })} />}
+      {children}
       {notes && <label>Notas<textarea value={draft.notas ?? ''} rows={2} onChange={e => onChange({ ...draft, notas: e.target.value })} /></label>}
     </>
   );
@@ -83,6 +112,8 @@ export function NewLinkForm({ nameA, nameB, types = {}, linkTypes, onCreate, onC
   const first = useFocusOnOpen<HTMLSelectElement>();
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    // A VLAN list that cannot be read is already explained under its field.
+    if (vlanListProblem(draft)) return;
     setRefusal(onCreate(draft) ?? '');
   };
   return (
@@ -103,26 +134,58 @@ export function NewLinkForm({ nameA, nameB, types = {}, linkTypes, onCreate, onC
 
 /**
  * The ficha of the selected line: its two ends and everything else editable, saved in one write with «Guardar enlace».
- * `onSave` returns why the change cannot be saved, if it cannot; Escape and «Cancelar» close it without saving.
+ * A trunk or LAG between two switches also shows its native VLAN, kept in the planner document (`plan`); a change to it
+ * is saved there by the same button. `onSave` returns why the change cannot be saved, if it cannot; Escape and
+ * «Cancelar» close it without saving.
  */
-export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onClose }: {
+export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onClose, plan }: {
   link: Link; nameOf: (id: string) => string; types?: EndTypes; onSave: (draft: LinkDraft) => string | null; onRemove: () => void; onClose: () => void;
+  plan: { repository: PlanRepository; revision: unknown; onMessage: (message: string) => void };
 }) {
   const [draft, setDraft] = useState<LinkDraft>(() => draftOf(link));
   const [refusal, setRefusal] = useState('');
+  // The native VLAN as typed; null while untouched, so the stored one is shown and nothing is written.
+  const [native, setNative] = useState<string | null>(null);
+  const nativeHint = useId();
   const first = useFocusOnOpen<HTMLSelectElement>();
+  const { loaded, problem, locked, errors, change } = usePlanDocument(plan.repository, plan.revision, plan.onMessage);
+  const planLink = loaded && !problem ? planLinkBetween(loaded.plan, link.a.equipo, link.b.equipo) : undefined;
+  // Only a native VLAN the form shows can stop the save: a link turned into one without VLANs drops what was typed.
+  const nativeShown = carriesVlans(draft.tipo) && Boolean(planLink);
+  const nativeError = native === null || !nativeShown ? '' : nativeVlanProblem(native);
   const nameA = nameOf(link.a.equipo);
   const nameB = nameOf(link.b.equipo);
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    setRefusal(onSave(draft) ?? '');
+    // A VLAN list or a native VLAN that cannot be read is already explained under its field.
+    if (vlanListProblem(draft) || nativeError) return;
+    const refused = onSave(draft);
+    setRefusal(refused ?? '');
+    if (refused || locked || !planLink || !nativeShown || native === null || Number(native) === planLink.nativeVlan) return;
+    const vlan = Number(native);
+    void change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
+      .then(saved => { if (saved) setNative(null); });
   };
+  const nativeField = !carriesVlans(draft.tipo) || !loaded ? null : planLink ? (
+    <>
+      <label>VLAN nativa<input type="number" min={1} max={4094} value={native ?? String(planLink.nativeVlan)} disabled={locked}
+        aria-invalid={Boolean(nativeError) || undefined} aria-describedby={nativeHint} onChange={e => { setNative(e.target.value); setRefusal(''); }} /></label>
+      <p id={nativeHint} className={nativeError ? 'infra-form__error' : 'muted infra-form__hint'} aria-live="polite">
+        {nativeError || 'La que pasa sin etiqueta. Es la misma en los dos extremos y se guarda en el plan de red.'}
+      </p>
+    </>
+  ) : (
+    <p className="muted infra-form__hint">{problem ? `${problem} ${PLAN_READ_ONLY}` : 'La VLAN nativa se guarda en el plan de red, que solo tiene los enlaces entre dos switches.'}</p>
+  );
   return (
     <aside className="detail infra-inspector nokey" aria-label="Ficha del enlace">
       <span className="label">Ficha del enlace</span>
       <p className="infra-link-ends">{nameA} – {nameB}</p>
+      {errors.map(e => <p key={e} className="infra-form__error" role="alert">{e}</p>)}
       <form className="infra-form" onSubmit={submit} onKeyDown={cancelOnEscape(onClose)}>
-        <LinkFields draft={draft} onChange={d => { setDraft(d); setRefusal(''); }} nameA={nameA} nameB={nameB} types={types} first={first} notes />
+        <LinkFields draft={draft} onChange={d => { setDraft(d); setRefusal(''); }} nameA={nameA} nameB={nameB} types={types} first={first} notes>
+          {nativeField}
+        </LinkFields>
         {refusal && <p className="infra-form__error" role="alert">{refusal}</p>}
         <div className="infra-form__actions">
           <button type="submit">Guardar enlace</button>

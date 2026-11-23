@@ -35,12 +35,15 @@ export function DevicePalette({ onAdd }: { onAdd: (tipo: string) => void }) {
           value={query} onChange={e => setQuery(e.target.value)} />
         {families.length === 0 && <p className="muted">Ningún equipo coincide con «{query.trim()}».</p>}
         {families.map(f => {
-          // While searching every family with a match is shown open, so a match is never hidden in a folded group.
-          const expanded = wanted !== '' || !folded.has(f.id);
+          // While searching every family with a match is shown open, so a match is never hidden in a folded group; its
+          // toggle is off meanwhile, so the folds the learner chose come back as they were when the search is cleared.
+          const searching = wanted !== '';
+          const expanded = searching || !folded.has(f.id);
           return (
             <div key={f.id} className="infra-palette__family">
               <h3>
                 <button type="button" className="infra-palette__family-toggle" aria-expanded={expanded} aria-controls={`infra-palette-${f.id}`}
+                  disabled={searching} title={searching ? 'Mientras buscas se muestran abiertas todas las familias con resultados.' : undefined}
                   onClick={() => toggle(f.id)}>{f.nombre}</button>
               </h3>
               {expanded && (

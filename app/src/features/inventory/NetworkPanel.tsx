@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { PLAN_TEMPLATES, VLAN_PURPOSES, type PlanVlan, type VlanPurpose } from '@shared/plan';
 import type { LoadedPlan, PlanChange, PlanRepository } from '../../ports/PlanRepository';
 import type { Finding } from '../../domain/inventoryAnalysis';
-import { errorText } from './useInventory';
+import { PanelTabs, type PanelTab } from './PanelTabs';
+import { usePlanDocument } from './usePlanDocument';
 import { InventoryFindings, MapHelp } from './DeviceInspector';
 import {
   PURPOSE_LABELS, addVlan, applyTemplate, editVlan, freeVlanId, gatewayHint, makeCore, removeVlan, vlanColor, vlanProblems, type VlanDraft,
@@ -29,45 +30,7 @@ interface NetworkPanelProps {
 
 /** The right-hand panel of the map editor with nothing selected: the VLANs, the addressing and the warnings. */
 export function NetworkPanel({ planRepository, revision, hasSwitches, empty, findings, tab, onTab, onMessage }: NetworkPanelProps) {
-  const [loaded, setLoaded] = useState<LoadedPlan | null>(null);
-  const [error, setError] = useState('');
-  const [readFailed, setReadFailed] = useState(false);
-
-  const read = async () => {
-    try {
-      setLoaded(await planRepository.load());
-      setReadFailed(false);
-    } catch (e) {
-      // Blocked storage, for instance: say so and change nothing.
-      setReadFailed(true);
-      setError(`No se ha podido leer el plan de red: ${errorText(e)}`);
-    }
-  };
-  useEffect(() => { void read(); }, [planRepository, revision]);
-  // Another tab (the guides' planner, or the map open twice) saved: show what is stored now.
-  useEffect(() => {
-    const onStorage = () => { void read(); };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [planRepository]);
-
-  /** Applies one change to what is stored right now; a refusal is shown, never thrown. */
-  const change = async (update: PlanChange, success: string) => {
-    setError('');
-    try {
-      await planRepository.apply(update);
-      onMessage(success);
-      await read();
-      return true;
-    } catch (e) {
-      setError(`No se ha guardado: ${errorText(e)}`);
-      await read();
-      return false;
-    }
-  };
-
-  const problem = loaded?.problem;
-  const locked = readFailed || !loaded || Boolean(problem);
+  const { loaded, problem, locked, errors, change } = usePlanDocument(planRepository, revision, onMessage);
   const warnings = findings.length + (problem ? 1 : 0);
 
   return (
@@ -75,8 +38,9 @@ export function NetworkPanel({ planRepository, revision, hasSwitches, empty, fin
       <span className="label">Nada seleccionado · Toda la red</span>
       <h2>Red y VLAN</h2>
       <p className="muted">Lo que vale para todos los switches. Pulsa un equipo o un enlace para configurarlo.</p>
-      {error && <p className="infra-form__error" role="alert">{error}</p>}
-      <PanelTabs tab={tab} onTab={onTab} warnings={warnings} />
+      {errors.map(e => <p key={e} className="infra-form__error" role="alert">{e}</p>)}
+      <PanelTabs tabs={TABS.map(t => (t.id === 'avisos' && warnings > 0 ? { ...t, nombre: `${t.nombre} (${warnings})` } : t))}
+        tab={tab} onTab={onTab} idPrefix="infra-network" label="Configuración de la red" />
       <div role="tabpanel" id={`infra-network-${tab}`} aria-labelledby={`infra-network-tab-${tab}`} className="infra-network__panel">
         {tab === 'vlan' && <VlanCatalogue vlans={loaded?.plan.vlans ?? []} problem={problem} locked={locked} onChange={change} />}
         {tab === 'direccionamiento' && (
@@ -93,33 +57,9 @@ export function NetworkPanel({ planRepository, revision, hasSwitches, empty, fin
   );
 }
 
-const TABS: { id: NetworkTab; nombre: string }[] = [
+const TABS: PanelTab<NetworkTab>[] = [
   { id: 'vlan', nombre: 'VLAN' }, { id: 'direccionamiento', nombre: 'Direccionamiento' }, { id: 'avisos', nombre: 'Avisos' },
 ];
-
-/** The tabs of the panel. Arrow keys, Home and End move between them, as in the views of the map. */
-function PanelTabs({ tab, onTab, warnings }: { tab: NetworkTab; onTab: (tab: NetworkTab) => void; warnings: number }) {
-  const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const move = (e: KeyboardEvent, index: number) => {
-    const last = TABS.length - 1;
-    const keys: Record<string, number> = { ArrowLeft: index ? index - 1 : last, ArrowRight: index === last ? 0 : index + 1, Home: 0, End: last };
-    const next = keys[e.key];
-    if (next === undefined) return;
-    e.preventDefault();
-    onTab(TABS[next].id);
-    buttons.current[next]?.focus();
-  };
-  return (
-    <div className="infra-views infra-network__tabs" role="tablist" aria-label="Configuración de la red">
-      {TABS.map((t, i) => (
-        <button key={t.id} ref={el => { buttons.current[i] = el; }} type="button" role="tab" id={`infra-network-tab-${t.id}`} aria-selected={tab === t.id}
-          aria-controls={`infra-network-${t.id}`} tabIndex={tab === t.id ? 0 : -1} onClick={() => onTab(t.id)} onKeyDown={e => move(e, i)}>
-          {t.id === 'avisos' && warnings > 0 ? `${t.nombre} (${warnings})` : t.nombre}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 type Change = (update: PlanChange, success: string) => Promise<boolean>;
 /** The VLAN being written: a new one, or the id of the one being changed. */
