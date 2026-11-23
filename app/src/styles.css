@@ -196,10 +196,15 @@ textarea { width: 100%; font-family: ui-monospace, monospace; margin: 8px 0; }
 .switch-ports h3 { margin: 4px 0 0; }
 .switch-ports > p { margin: 0; }
 .switch-ports__links { margin: 0; padding-left: 18px; font-size: 13px; }
-.switch-ports__table { table-layout: fixed; }
-.switch-ports__table th:first-child { width: 38%; }
-.switch-ports__table th:last-child { width: 72px; }
-.switch-ports__table td:first-child { white-space: normal; overflow-wrap: anywhere; }
+/* Each port is a card: its name and «Quitar» on top, its VLAN select below across the whole card, so the VLAN id and
+   name are read in full however narrow the panel is. The column headers stay for screen readers only. */
+.switch-ports__table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.switch-ports__table tbody { display: grid; gap: 6px; }
+.switch-ports__table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "port actions" "vlan vlan"; align-items: center; gap: 6px 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.switch-ports__table td { padding: 0; border: 0; }
+.switch-ports__table td:nth-child(1) { grid-area: port; white-space: normal; overflow-wrap: anywhere; }
+.switch-ports__table td:nth-child(2) { grid-area: vlan; min-width: 0; }
+.switch-ports__table td:nth-child(3) { grid-area: actions; }
 .switch-ports__table select { width: 100%; min-width: 0; }
 .switch-commands p { margin: 0 0 8px; }
 .vlan-swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 25%, transparent); }

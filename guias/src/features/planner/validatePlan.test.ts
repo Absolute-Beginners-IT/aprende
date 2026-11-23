@@ -219,4 +219,21 @@ describe('validatePlan', () => {
       },
     ])
   })
+
+  it('warns about a VLAN with access ports that a trunk on its way to the core does not let through', () => {
+    const plan = twoSwitchPlan()
+    plan.ports.push({ id: 'pt-2', switch: 'sw-2', interface: 'gi1/0/6', vlan: 10 })
+
+    expect(planWarnings(plan, new Map([['ln-1', '20']]))).toEqual([
+      {
+        section: 'links',
+        message:
+          'La VLAN 10 no llega a planta1 (2 puertos de acceso): el campo VLAN del enlace entre nucleo y planta1 en Mi infraestructura no la deja pasar. Añádela a la troncal en el mapa.',
+      },
+    ])
+    // No list, an empty one or one that cannot be read lets every VLAN of the plan through.
+    expect(planWarnings(plan, new Map([['ln-1', '10, 20']]))).toEqual([])
+    expect(planWarnings(plan, new Map([['ln-1', '']]))).toEqual([])
+    expect(planWarnings(plan)).toEqual([])
+  })
 })

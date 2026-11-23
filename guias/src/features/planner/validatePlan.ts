@@ -1,4 +1,4 @@
-import { unknownListedVlans } from '@shared/plan/vlanGaps'
+import { unknownListedVlans, vlanGaps } from '@shared/plan/vlanGaps'
 import { parseVlanList } from '@shared/plan/vlanList'
 import type { Catalog } from '../../domain/buildCatalog'
 import { inSubnet, type NetworkPlan, orderFromCore } from '../../domain/networkPlan'
@@ -30,6 +30,10 @@ function findRepeated<T>(items: T[]): Set<T> {
   return repeated
 }
 
+/** Names as a Spanish list: «A», «A y B», «A, B y C». */
+const listOf = (names: string[]) =>
+  names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}` : (names[0] ?? '')
+
 const switchNames = (plan: NetworkPlan) => {
   const switchName = new Map(plan.switches.map((item) => [item.id, item.name.trim() || 'un switch sin nombre']))
   return { switchName, nameOf: (id: string) => switchName.get(id) ?? 'un switch que ya no existe' }
@@ -37,13 +41,14 @@ const switchNames = (plan: NetworkPlan) => {
 
 /**
  * What the user should know but does not stop the guide: a «VLAN» field on the map of «Mi infraestructura» that
- * cannot be read (the guide then allows every plan VLAN on that trunk, as with no field), or that names VLANs the
- * plan does not have. `linkVlans` holds that field for each link, by link id (see CombinedPlan.mapVlans).
+ * cannot be read (the guide then allows every plan VLAN on that trunk, as with no field), that names VLANs the
+ * plan does not have, or that leaves out a VLAN with access ports beyond that trunk (a gap, as the map flags it).
+ * `linkVlans` holds that field for each link, by link id (see CombinedPlan.mapVlans).
  */
 export function planWarnings(plan: NetworkPlan, linkVlans: ReadonlyMap<string, string> = new Map()): PlanIssue[] {
   const { nameOf } = switchNames(plan)
   const unknown = new Map(unknownListedVlans(plan, linkVlans).map((item) => [item.link, item.vlans]))
-  return plan.links.flatMap((link) => {
+  const listWarnings = plan.links.flatMap((link) => {
     const field = `El campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura`
     const list = parseVlanList(linkVlans.get(link.id) ?? '')
     if (!list.ok)
@@ -56,6 +61,19 @@ export function planWarnings(plan: NetworkPlan, linkVlans: ReadonlyMap<string, s
         : `la VLAN ${vlans[0]}, que no está en el plan: créala o quítala`
     return [{ section: 'links' as const, message: `${field} deja pasar ${named} de la troncal en el mapa.` }]
   })
+  const gapWarnings = vlanGaps(plan, linkVlans).flatMap((gap) => {
+    const link = plan.links.find((item) => item.id === gap.link)
+    if (!link) return []
+    const ports = gap.ports === 1 ? '1 puerto de acceso' : `${gap.ports} puertos de acceso`
+    const field = `el campo VLAN del enlace entre ${nameOf(link.a.switch)} y ${nameOf(link.b.switch)} en Mi infraestructura`
+    return [
+      {
+        section: 'links' as const,
+        message: `La VLAN ${gap.vlan} no llega a ${listOf(gap.switches.map(nameOf))} (${ports}): ${field} no la deja pasar. Añádela a la troncal en el mapa.`,
+      },
+    ]
+  })
+  return [...listWarnings, ...gapWarnings]
 }
 
 /**

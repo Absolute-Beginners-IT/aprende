@@ -135,11 +135,13 @@ export function NewLinkForm({ nameA, nameB, types = {}, linkTypes, onCreate, onC
 /**
  * The ficha of the selected line: its two ends and everything else editable, saved in one write with «Guardar enlace».
  * A trunk or LAG between two switches also shows its native VLAN, kept in the planner document (`plan`); a change to it
- * is saved there by the same button. `onSave` returns why the change cannot be saved, if it cannot; Escape and
- * «Cancelar» close it without saving.
+ * is saved there by the same button, first: `onSave` gets it as `planFirst` and saves the link only once the plan took
+ * it, so a refused plan write leaves everything as it was. `onSave` returns why the change cannot be saved, if it
+ * cannot; Escape and «Cancelar» close it without saving.
  */
 export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onClose, plan }: {
-  link: Link; nameOf: (id: string) => string; types?: EndTypes; onSave: (draft: LinkDraft) => string | null; onRemove: () => void; onClose: () => void;
+  link: Link; nameOf: (id: string) => string; types?: EndTypes; onRemove: () => void; onClose: () => void;
+  onSave: (draft: LinkDraft, planFirst?: { vlan: number; write: () => Promise<boolean> }) => string | null;
   plan: { repository: PlanRepository; revision: unknown; onMessage: (message: string) => void };
 }) {
   const [draft, setDraft] = useState<LinkDraft>(() => draftOf(link));
@@ -159,12 +161,17 @@ export function LinkInspector({ link, nameOf, types = {}, onSave, onRemove, onCl
     e.preventDefault();
     // A VLAN list or a native VLAN that cannot be read is already explained under its field.
     if (vlanListProblem(draft) || nativeError) return;
-    const refused = onSave(draft);
-    setRefusal(refused ?? '');
-    if (refused || locked || !planLink || !nativeShown || native === null || Number(native) === planLink.nativeVlan) return;
+    const nativeChanged = !locked && planLink && nativeShown && native !== null && Number(native) !== planLink.nativeVlan;
     const vlan = Number(native);
-    void change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
-      .then(saved => { if (saved) setNative(null); });
+    // A refusal of the plan is shown by usePlanDocument; the link is then not saved either.
+    const planFirst = nativeChanged
+      ? {
+        vlan,
+        write: () => change(setNativeVlan(link.a.equipo, link.b.equipo, vlan), `VLAN nativa ${vlan} guardada en el plan de red.`)
+          .then(saved => { if (saved) setNative(null); return saved; }),
+      }
+      : undefined;
+    setRefusal(onSave(draft, planFirst) ?? '');
   };
   const nativeField = !carriesVlans(draft.tipo) || !loaded ? null : planLink ? (
     <>

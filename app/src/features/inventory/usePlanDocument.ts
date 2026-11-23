@@ -68,6 +68,8 @@ export function usePlanDocument(planRepository: PlanRepository, revision: unknow
     /** The error of the last read or save, if any; the save error goes first. */
     errors: [saveError, readError].filter(Boolean),
     change,
+    /** Forgets the error of the last save, for a host that moves to another panel; a read error stays until a read works. */
+    clearSaveError: useCallback(() => setSaveError(''), []),
   };
 }
 
