@@ -338,6 +338,36 @@ describe('reading the plan', () => {
     expect((panel().getByRole('button', { name: 'Añadir VLAN' }) as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it('clears a save error once another device or link is selected', async () => {
+    const storage = new MemoryStorage();
+    storage.data.set(TOPOLOGY_KEY, JSON.stringify(topologyDocument(office())));
+    storage.data.set(PLAN_KEY, JSON.stringify(storedPlan()));
+    const real = createLocalStoragePlanRepository(storage);
+    let applies = 0;
+    const full = { load: real.load, apply: (change: Parameters<typeof real.apply>[0]) => (++applies === 1 ? Promise.reject(new Error('QuotaExceededError')) : real.apply(change)) };
+    const { container } = render(<InfraMapPage repository={createLocalStorageInventoryRepository(storage)} planRepository={full} />);
+    fireEvent.click((await vlanTable()).getByRole('button', { name: 'Quitar la VLAN 10' }));
+    expect(await alertText()).toContain('No se ha guardado: QuotaExceededError');
+    expect(planIn(storage)).toEqual(storedPlan());
+
+    fireEvent.click(await screen.findByText('CORE', { selector: '.infra-node__name' }));
+    fireEvent.click(container.querySelector('.react-flow__pane') as HTMLElement);
+    expect(await vlanTable()).toBeTruthy();
+    expect(panel().queryByText(/No se ha guardado/)).toBeNull();
+  });
+
+  it('keeps a read error through a change of selection until a read succeeds', async () => {
+    const storage = new MemoryStorage();
+    storage.data.set(TOPOLOGY_KEY, JSON.stringify(topologyDocument(office())));
+    const failing = { load: () => Promise.reject(new Error('SecurityError')), apply: () => Promise.reject(new Error('SecurityError')) };
+    const { container } = render(<InfraMapPage repository={createLocalStorageInventoryRepository(storage)} planRepository={failing} />);
+    expect(await alertText()).toContain('No se ha podido leer el plan de red: SecurityError');
+
+    fireEvent.click(await screen.findByText('CORE', { selector: '.infra-node__name' }));
+    fireEvent.click(container.querySelector('.react-flow__pane') as HTMLElement);
+    expect(await alertText()).toContain('No se ha podido leer el plan de red: SecurityError');
+  });
+
   it('ignores a read that finishes after a newer one', async () => {
     const storage = new MemoryStorage();
     const loads: ReturnType<typeof deferred<ReturnType<typeof planOf>>>[] = [];
@@ -531,6 +561,50 @@ describe('link selected', () => {
     const { links: before, ...restBefore } = storedPlan();
     expect(links).toEqual([{ ...before[0], nativeVlan: 99 }]);
     expect(rest).toEqual(restBefore);
+  });
+
+  it('saves nothing when the plan refuses the new native VLAN, and says why', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const native = await f.findByLabelText('VLAN nativa') as HTMLInputElement;
+    await waitFor(() => expect(native.value).toBe('1'));
+    // Another tab stored a plan of a newer version after the ficha read it.
+    storage.data.set(PLAN_KEY, '{"version":3}');
+    const topology = storage.data.get(TOPOLOGY_KEY);
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '10' } });
+    fireEvent.change(native, { target: { value: '99' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    expect(await f.findByText(/^No se ha guardado/)).toBeTruthy();
+    await new Promise(r => setTimeout(r, 0));
+    expect(storage.data.get(PLAN_KEY)).toBe('{"version":3}');
+    expect(storage.data.get(TOPOLOGY_KEY)).toBe(topology);
+    expect(screen.queryByText(/actualizado\./)).toBeNull();
+  });
+
+  it('saves the link and then the native VLAN of the plan when both changed', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const native = await f.findByLabelText('VLAN nativa') as HTMLInputElement;
+    await waitFor(() => expect(native.value).toBe('1'));
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '10' } });
+    fireEvent.change(native, { target: { value: '99' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await waitFor(() => expect(topologyIn(storage).enlaces[1].vlans).toBe('10'));
+    expect(planIn(storage).links[0].nativeVlan).toBe(99);
+    expect(JSON.stringify(topologyIn(storage))).not.toMatch(/nativ/i);
+  });
+
+  it('writes only the topology when the native VLAN did not change', async () => {
+    const { storage, container } = setup();
+    const f = await trunkFicha(container);
+    const native = await f.findByLabelText('VLAN nativa') as HTMLInputElement;
+    await waitFor(() => expect(native.value).toBe('1'));
+    const plan = storage.data.get(PLAN_KEY);
+    fireEvent.change(f.getByLabelText('VLAN permitidas'), { target: { value: '10, 99' } });
+    fireEvent.change(native, { target: { value: '1' } });
+    fireEvent.click(f.getByRole('button', { name: 'Guardar enlace' }));
+    await waitFor(() => expect(topologyIn(storage).enlaces[1].vlans).toBe('10, 99'));
+    expect(storage.data.get(PLAN_KEY)).toBe(plan);
   });
 
   it('refuses a native VLAN out of range and saves nothing', async () => {

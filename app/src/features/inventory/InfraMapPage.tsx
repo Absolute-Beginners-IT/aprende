@@ -165,6 +165,10 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
   const selected = selectedDevices.length === 1 ? selectedDevices[0] : undefined;
   const selectedLink = selectedDevices.length === 0 && pickedEdges.size === 1 ? drawnLinks(topology).find(l => pickedEdges.has(l.id)) : undefined;
   const select = (id: string | null) => { setSelectedIds(id ? [id] : []); setPickedEdges(new Set()); };
+  // A save error belongs to the panel it happened in: another selection opens another panel without it.
+  const selectionKey = `${selectedIds.join('\u0000')}\u0001${[...pickedEdges].join('\u0000')}`;
+  const { clearSaveError } = planDocument;
+  useEffect(() => { clearSaveError(); }, [selectionKey, clearSaveError]);
   // «Comprobar red» empties the selection so the panel shows the whole network, open at its warnings.
   const checkNetwork = () => { select(null); setPendingLink(null); setNetworkTab('avisos'); };
   // The «Energía» view is worked out from the power links each time: it is never saved and never moves the «Red» view.
@@ -372,14 +376,21 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     return null;
   };
 
-  /** Saves the ficha of a link in one write, or says why its new type cannot go that way. */
-  const saveLink = (link: Link, draft: LinkDraft): string | null => {
+  /**
+   * Saves the ficha of a link in one write, or says why its new type cannot go that way. `planFirst` (a new native
+   * VLAN) is written before and the link only if the plan took it: a refused plan write leaves both as they were.
+   */
+  const saveLink = (link: Link, draft: LinkDraft, planFirst?: () => Promise<boolean>): string | null => {
     const refusal = linkRefusal(topology, link.a.equipo, link.b.equipo, draft.tipo, link.id);
     if (refusal) return refusalText(refusal, link.a.equipo, link.b.equipo);
-    void persist(async () => {
-      const stored = (await repository.load()).enlaces.find(l => l.id === link.id);
-      if (stored) await repository.apply({ updateLinks: [editLink(stored, draft)] });
-    }, `Enlace entre ${nameOf(link.a.equipo)} y ${nameOf(link.b.equipo)} actualizado.`);
+    const between = `${nameOf(link.a.equipo)} y ${nameOf(link.b.equipo)}`;
+    void (async () => {
+      if (planFirst && !(await planFirst())) return;
+      await persist(async () => {
+        const stored = (await repository.load()).enlaces.find(l => l.id === link.id);
+        if (stored) await repository.apply({ updateLinks: [editLink(stored, draft)] });
+      }, planFirst ? `Enlace entre ${between} actualizado, con su VLAN nativa en el plan de red.` : `Enlace entre ${between} actualizado.`);
+    })();
     return null;
   };
 
@@ -483,7 +494,7 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
     }
     if (selectedLink) {
       return <LinkInspector key={selectedLink.id} link={selectedLink} nameOf={nameOf} plan={planContext}
-        types={{ tipoA: byId.get(selectedLink.a.equipo)?.tipo, tipoB: byId.get(selectedLink.b.equipo)?.tipo }} onSave={draft => saveLink(selectedLink, draft)}
+        types={{ tipoA: byId.get(selectedLink.a.equipo)?.tipo, tipoB: byId.get(selectedLink.b.equipo)?.tipo }} onSave={(draft, planFirst) => saveLink(selectedLink, draft, planFirst)}
         onRemove={() => disconnect([{ id: selectedLink.id, between: [selectedLink.a.equipo, selectedLink.b.equipo] }])} onClose={() => setPickedEdges(new Set())} />;
     }
     if (selectedDevices.length > 1) return <GroupPanel key={selectedIds.join(' ')} devices={selectedDevices} onGroup={group} />;
