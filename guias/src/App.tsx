@@ -41,7 +41,17 @@ function Page({ route, recents, activePlatform }: PageProps) {
   if (route.name === 'not-found') return <NotFound />
   if (route.name === 'fundamentals') return <FundamentalsPage catalog={catalog} />
   if (route.name === 'status') return <StatusPage catalog={catalog} />
-  if (route.name === 'plan') return <PlannerPage catalog={catalog} />
+  if (route.name === 'plan') {
+    // The key opens the planner again on the tab and switch of a new address (#/plan, #/plan/guia?equipo=…).
+    return (
+      <PlannerPage
+        key={`${route.tab ?? ''}?${route.deviceId ?? ''}`}
+        catalog={catalog}
+        openGuide={route.tab === 'guide'}
+        deviceId={route.deviceId}
+      />
+    )
+  }
   if (route.name === 'fundamental') {
     const article = catalog.fundamentals.find((item) => item.id === route.article)
     return article ? (

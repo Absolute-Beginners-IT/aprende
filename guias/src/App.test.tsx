@@ -52,7 +52,7 @@ describe('App', () => {
     }
   })
 
-  it('on the website, shows the planner as a tab of «Mi infraestructura», after the map and the list and before the deployment plan', () => {
+  it('on the website, shows the planner inside «Mi infraestructura» with its tabs, where «Red y VLAN» is no longer one', () => {
     vi.stubEnv(
       'VITE_SITE_NAV',
       JSON.stringify([
@@ -67,13 +67,17 @@ describe('App', () => {
       expect(site.getByRole('link', { name: 'Mi infraestructura' })).toHaveAttribute('aria-current', 'page')
       expect(site.getByRole('link', { name: 'Guías' })).not.toHaveAttribute('aria-current')
       const tabs = within(screen.getByRole('navigation', { name: 'Mi infraestructura' }))
-      expect(tabs.getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
-        ['Mapa', '../#mi-infraestructura'],
-        ['Lista', '../#mi-infraestructura/lista'],
-        ['Red y VLAN', '#/plan'],
-        ['Plan de despliegue', '../#mi-infraestructura/plan'],
+      // The VLAN and the links are edited in the map's «Red y VLAN» panel; the planner stays to get the commands.
+      expect(
+        tabs
+          .getAllByRole('link')
+          .map((link) => [link.textContent, link.getAttribute('href'), link.getAttribute('aria-current')]),
+      ).toEqual([
+        ['Mapa', '../#mi-infraestructura', null],
+        ['Lista', '../#mi-infraestructura/lista', null],
+        ['Plan de despliegue', '../#mi-infraestructura/plan', null],
       ])
-      expect(tabs.getByRole('link', { name: 'Red y VLAN' })).toHaveAttribute('aria-current', 'page')
+      expect(screen.getByRole('heading', { level: 1, name: 'Planificador de red' })).toBeInTheDocument()
       expect(screen.queryByRole('link', { name: 'Planificador de red' })).not.toBeInTheDocument()
       unmount()
 
@@ -88,9 +92,22 @@ describe('App', () => {
   })
 
   it('keeps the planner in its own header when built on its own', () => {
+    for (const hash of ['#/plan', '#/plan/guia']) {
+      const { unmount } = openAt(hash)
+      expect(screen.getByRole('link', { name: 'Planificador de red' }), hash).toHaveAttribute('aria-current', 'page')
+      expect(screen.queryByRole('navigation', { name: 'Mi infraestructura' }), hash).not.toBeInTheDocument()
+      unmount()
+    }
+  })
+
+  it('opens the planner on its «Guía» tab at #/plan/guia, and on «VLAN» at #/plan', () => {
+    const { unmount } = openAt('#/plan/guia?equipo=no-such-device')
+    expect(screen.getByRole('heading', { level: 1, name: 'Planificador de red' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /^Guía/ })).toHaveAttribute('aria-selected', 'true')
+    unmount()
+
     openAt('#/plan')
-    expect(screen.getByRole('link', { name: 'Planificador de red' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.queryByRole('navigation', { name: 'Mi infraestructura' })).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'VLAN' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('ignores a VITE_SITE_NAV that is not a valid list of links', () => {
@@ -597,7 +614,7 @@ describe('inside the website', () => {
     unmount()
 
     openAt('#/plan')
-    expect(document.title).toBe('Red y VLAN · sysadmin junior')
+    expect(document.title).toBe('Planificador de red · sysadmin junior')
   })
 
   it('draws the same top bar as the rest of the website: sections, a folding menu and the theme button', async () => {
@@ -726,7 +743,13 @@ describe('inside the website', () => {
     )
   })
 
-  it('shows «Red y VLAN» as part of «Mi infraestructura», without the library', () => {
+  it('shows the planner as part of «Mi infraestructura», without the library, also at its guide', () => {
+    for (const hash of ['#/plan', '#/plan/guia?equipo=core']) {
+      const { unmount } = openAt(hash)
+      expect(screen.queryByRole('navigation', { name: 'Biblioteca' }), hash).not.toBeInTheDocument()
+      expect(screen.getByRole('navigation', { name: 'Mi infraestructura' }), hash).toBeInTheDocument()
+      unmount()
+    }
     openAt('#/plan')
 
     expect(screen.queryByRole('navigation', { name: 'Biblioteca' })).not.toBeInTheDocument()

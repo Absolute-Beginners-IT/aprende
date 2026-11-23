@@ -1,4 +1,4 @@
-import { parseRoute, runbookHref } from './useHashRoute'
+import { parseRoute, planGuideHref, runbookHref } from './useHashRoute'
 
 describe('parseRoute', () => {
   it('keeps recognising every page of the manual', () => {
@@ -33,6 +33,18 @@ describe('parseRoute', () => {
     expect(parseRoute('#/p/cisco-c1300/mgmt-ip?otra=1')).not.toHaveProperty('deviceId')
   })
 
+  it('opens the planner on its «Guía» tab at #/plan/guia, with the device given in ?equipo=', () => {
+    expect(parseRoute('#/plan/guia')).toEqual({ name: 'plan', tab: 'guide' })
+    expect(parseRoute('#/plan/guia?equipo=sw%20planta%2F1')).toEqual({
+      name: 'plan',
+      tab: 'guide',
+      deviceId: 'sw planta/1',
+    })
+    expect(parseRoute('#/plan/guia?equipo=')).toEqual({ name: 'plan', tab: 'guide' })
+    expect(parseRoute('#/plan/otra')).toEqual({ name: 'not-found' })
+    expect(parseRoute('#/plan/guia/extra')).toEqual({ name: 'not-found' })
+  })
+
   it('ignores any query on the other pages', () => {
     expect(parseRoute('#/plan?equipo=sw-core')).toEqual({ name: 'plan' })
     expect(parseRoute('#/p/aruba-aoscx?equipo=sw-core')).toEqual({ name: 'platform', platform: 'aruba-aoscx' })
@@ -43,6 +55,14 @@ describe('parseRoute', () => {
       platform: 'aruba-aoscx',
       task: 'mgmt-ip',
     })
+  })
+})
+
+describe('planGuideHref', () => {
+  it('links the guide of the planner, at one device when there is one, and round-trips through parseRoute', () => {
+    expect(planGuideHref()).toBe('#/plan/guia')
+    expect(planGuideHref('a&b=c?d')).toBe('#/plan/guia?equipo=a%26b%3Dc%3Fd')
+    expect(parseRoute(planGuideHref('a&b=c?d'))).toEqual({ name: 'plan', tab: 'guide', deviceId: 'a&b=c?d' })
   })
 })
 

@@ -8,10 +8,14 @@ export type Route =
   | { name: 'fundamentals' }
   | { name: 'fundamental'; article: string }
   | { name: 'status' }
-  | { name: 'plan' }
+  /**
+   * The network planner. `#/plan/guia` opens it on its «Guía» tab and, with `?equipo=<id>`, on the part of the guide
+   * of the plan switch that follows that inventory device.
+   */
+  | { name: 'plan'; tab?: 'guide'; deviceId?: string }
   | { name: 'not-found' }
 
-// Only a runbook reads its query; any other query, or an unknown key, is ignored.
+// Only a runbook and the planner's guide read their query; any other query, or an unknown key, is ignored.
 const DEVICE_QUERY_KEY = 'equipo'
 
 export function parseRoute(hash: string): Route {
@@ -23,6 +27,10 @@ export function parseRoute(hash: string): Route {
   if (root === undefined) return { name: 'home' }
   if (root === 'status' && second === undefined) return { name: 'status' }
   if (root === 'plan' && second === undefined) return { name: 'plan' }
+  if (root === 'plan' && second === 'guia' && third === undefined) {
+    const deviceId = new URLSearchParams(query).get(DEVICE_QUERY_KEY)
+    return deviceId ? { name: 'plan', tab: 'guide', deviceId } : { name: 'plan', tab: 'guide' }
+  }
   if (root === 'f' && third === undefined) {
     return second === undefined ? { name: 'fundamentals' } : { name: 'fundamental', article: second }
   }
@@ -39,6 +47,9 @@ export const runbookHref = (platform: string, task: string, deviceId?: string) =
   `#/p/${platform}/${task}${deviceId ? `?${DEVICE_QUERY_KEY}=${encodeURIComponent(deviceId)}` : ''}`
 export const statusHref = '#/status'
 export const planHref = '#/plan'
+/** The planner open on its «Guía» tab, at the part of one inventory device when it is given. */
+export const planGuideHref = (deviceId?: string) =>
+  `#/plan/guia${deviceId ? `?${DEVICE_QUERY_KEY}=${encodeURIComponent(deviceId)}` : ''}`
 export const fundamentalsHref = (article?: string) => (article ? `#/f/${article}` : '#/f')
 
 function subscribe(onChange: () => void) {
