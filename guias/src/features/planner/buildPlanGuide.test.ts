@@ -1,5 +1,5 @@
 import { catalog } from '../../content/catalog'
-import { buildPlanGuide, compressVlanList, PLAN_TASKS } from './buildPlanGuide'
+import { buildPlanGuide, compressVlanList, PLAN_TASKS, type SwitchGuide } from './buildPlanGuide'
 import { twoSwitchPlan } from './planFixtures'
 import { RESOLVED_PARAM_IDS, USER_PARAM_IDS } from './resolveParam'
 
@@ -121,6 +121,66 @@ describe('buildPlanGuide', () => {
     expect(guide?.notes).toContain(
       'En MikroTik CRS317 los enlaces quedan etiquetados al crear cada VLAN, así que no hay pasos de trunk aparte.',
     )
+  })
+
+  describe('VLAN list of the map link', () => {
+    const allowedOf = (guide: SwitchGuide | undefined) =>
+      guide?.steps.filter((step) => step.procedure.task === 'port-trunk').map((step) => step.values.allowedVlans)
+
+    it('allows only the VLANs written on the map link plus its native VLAN', () => {
+      const plan = twoSwitchPlan()
+      const link = plan.links[0]
+      if (!link) throw new Error('fixture')
+      link.nativeVlan = 99
+
+      const [core, floor] = buildPlanGuide(plan, catalog, new Map([['ln-1', '10']]))
+
+      expect(allowedOf(core)).toEqual(['10,99'])
+      expect(allowedOf(floor)).toEqual(['10,99'])
+    })
+
+    it('allows every plan VLAN, as before, when the map link has no list, an empty one or another link has one', () => {
+      const today = buildPlanGuide(twoSwitchPlan(), catalog)
+
+      expect(buildPlanGuide(twoSwitchPlan(), catalog, new Map())).toEqual(today)
+      expect(buildPlanGuide(twoSwitchPlan(), catalog, new Map([['ln-1', ' ']]))).toEqual(today)
+      expect(buildPlanGuide(twoSwitchPlan(), catalog, new Map([['ln-9', '10']]))).toEqual(today)
+      expect(allowedOf(today[0])).toEqual(['1,10,20,99'])
+    })
+
+    it('keeps every plan VLAN on a link whose list cannot be read, so the commands never change silently', () => {
+      const today = buildPlanGuide(twoSwitchPlan(), catalog)
+
+      expect(buildPlanGuide(twoSwitchPlan(), catalog, new Map([['ln-1', '10, voz']]))).toEqual(today)
+    })
+
+    it('tags each link only with the VLANs it carries on brands that tag while creating the VLAN', () => {
+      const plan = twoSwitchPlan()
+      const floor = plan.switches[1]
+      const link = plan.links[0]
+      if (!floor || !link) throw new Error('fixture')
+      floor.platform = 'mikrotik-routeros'
+      floor.bridge = 'bridge1'
+      link.b.interface = 'sfp-sfpplus1'
+      plan.ports = []
+
+      const [, guide] = buildPlanGuide(plan, catalog, new Map([['ln-1', '10,99']]))
+      const trunkPortsOf = (vlanId: string) =>
+        guide?.steps.find((step) => step.values.vlanId === vlanId && step.procedure.task === 'vlan-create')?.values
+          .trunkPorts
+
+      expect(trunkPortsOf('10')).toBe('sfp-sfpplus1')
+      expect(trunkPortsOf('20')).toBeUndefined()
+      expect(trunkPortsOf('99')).toBe('sfp-sfpplus1')
+
+      // The native VLAN travels on the trunk even when the list on the map leaves it out, as on the other brands.
+      link.nativeVlan = 99
+      const [, withoutNative] = buildPlanGuide(plan, catalog, new Map([['ln-1', '10']]))
+      expect(
+        withoutNative?.steps.find((step) => step.values.vlanId === '99' && step.procedure.task === 'vlan-create')
+          ?.values.trunkPorts,
+      ).toBe('sfp-sfpplus1')
+    })
   })
 
   it('never fills a value that the runbook would reject', () => {

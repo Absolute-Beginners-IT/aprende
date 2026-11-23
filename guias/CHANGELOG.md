@@ -8,6 +8,12 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- El campo «VLAN» de un enlace troncal o LAG del mapa de Mi infraestructura decide las VLAN permitidas en la guía del
+  planificador: con VLAN escritas, el enlace permite solo esas y su VLAN nativa; sin ninguna, todas las del plan, como
+  hasta ahora. Si la lista no se entiende (por ejemplo, una VLAN fuera de 1-4094 o un rango al revés), el planificador
+  lo avisa en «Enlaces» y no cambia los comandos.
+- El plan de red guarda los campos que el planificador no conoce (escritos por el mapa, por una versión posterior o a
+  mano) en lugar de descartarlos al guardar.
 - La guía de FortiGate «Recuperar un equipo saturado de memoria» explica paso a paso cómo activar el registro de la
   sesión en PuTTY antes de conectar y cómo saber si el firewall usa VDOM, con `config global` cuando hace falta.
 - Guía de FortiGate «Recuperar un equipo saturado de memoria» reescrita para quien empieza: primero el camino corto

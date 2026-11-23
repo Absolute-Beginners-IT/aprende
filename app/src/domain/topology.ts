@@ -1,3 +1,4 @@
+import { HIERARCHICAL_LINK_TYPES } from '@shared/plan/linkTypes';
 import { GROUP_TYPES, LINK_TYPES, type Device, type DeviceGroup, type GroupType, type Link, type LinkType, type Topology } from './types';
 
 // The topology of «Mi infraestructura»: devices, links of their own between them and groups of devices.
@@ -33,10 +34,8 @@ export interface TopologyChange {
 export const emptyTopology = (): Topology => ({ equipos: [], enlaces: [], grupos: [] });
 
 // For these types `b` is what `a` hangs from: levels and deployment order follow them. The others join peers or carry
-// power and management, with no side above the other.
-const HIERARCHICAL: ReadonlySet<LinkType> = new Set<LinkType>(['datos', 'troncal', 'lag', 'wan', 'almacenamiento']);
-
-export const isHierarchical = (link: Pick<Link, 'tipo'>) => HIERARCHICAL.has(link.tipo);
+// power and management, with no side above the other. The guides' planner joins switches by the same set.
+export const isHierarchical = (link: Pick<Link, 'tipo'>) => HIERARCHICAL_LINK_TYPES.has(link.tipo);
 
 /** Links that join peers working as one, side by side: an HA pair or a stack. */
 export const isPeerLink = (link: Pick<Link, 'tipo'>) => link.tipo === 'ha' || link.tipo === 'stack';

@@ -121,6 +121,26 @@ describe('topologySwitches', () => {
     ])
   })
 
+  it('gives each switch the VLAN list written on the link to what it hangs from, the first link of a pair', () => {
+    const withVlans = {
+      ...topology,
+      enlaces: [
+        // Only trunks and LAGs carry a VLAN list on the map; a list on any other link is ignored.
+        { id: '1', a: { equipo: 'core1' }, b: { equipo: 'fw01' }, tipo: 'datos', vlans: '10' },
+        { id: '2', a: { equipo: 'core2' }, b: { equipo: 'fw01' }, tipo: 'troncal', vlans: '  ' },
+        { id: '3', a: { equipo: 'p1' }, b: { equipo: 'core1' }, tipo: 'troncal', vlans: ' 10, 20 ' },
+        { id: '4', a: { equipo: 'p1' }, b: { equipo: 'core1' }, tipo: 'lag', vlans: '30' },
+        { id: '6', a: { equipo: 'core2' }, b: { equipo: 'fw01' }, tipo: 'wan', vlans: 7 },
+      ],
+    }
+
+    expect(topologySwitches(withVlans).map((d) => [d.id, d.uplinkVlans])).toEqual([
+      ['core1', undefined],
+      ['core2', undefined],
+      ['p1', { core1: '10, 20' }],
+    ])
+  })
+
   it('gives no ports to the switches of the old inventory', () => {
     const [device] = inventorySwitches([
       { id: 'a', nombre: 'A', tipo: 'switch', uplinks: ['b'], uplinkPorts: { b: { own: 'x' } } },
