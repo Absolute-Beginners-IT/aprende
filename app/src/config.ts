@@ -6,6 +6,10 @@ export const GUIDE_URL = import.meta.env.VITE_GUIDE_URL || '../';
 // The switching guides, served at <base>/app/guias/; a device's ficha links to its runbooks there.
 export const GUIDES_URL = './guias/';
 
-// The network planner of the switching guides. On the website it is the second tab of «Mi infraestructura»,
-// so the inventory links straight to it.
+// The network planner of the switching guides. The map's «Red y VLAN» panel edits the same plan; the planner is where
+// its guide with the commands of each switch is generated.
 export const PLANNER_URL = `${GUIDES_URL}#/plan`;
+
+// The planner open on its «Guía» tab and, given an inventory device, at the part of the plan switch that follows it.
+export const plannerGuideUrl = (deviceId?: string) =>
+  `${GUIDES_URL}#/plan/guia${deviceId ? `?equipo=${encodeURIComponent(deviceId)}` : ''}`;

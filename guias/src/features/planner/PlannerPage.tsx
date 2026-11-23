@@ -79,8 +79,16 @@ function syncedWithInventory(stored: NetworkPlan, catalog: Catalog): NetworkPlan
   return combined ? storeCombined(stored, withoutNewSharedNames(stored, combined), combined.mapPorts) : stored
 }
 
+interface PlannerPageProps {
+  catalog: Catalog
+  /** Opens on the «Guía» tab instead of «VLAN» (`#/plan/guia`). */
+  openGuide?: boolean
+  /** An inventory device: the guide shows only the part of the plan switch that follows it, when there is one. */
+  deviceId?: string
+}
+
 /** Describe the network once and get the steps for each switch, in its brand's runbooks. */
-export function PlannerPage({ catalog }: { catalog: Catalog }) {
+export function PlannerPage({ catalog, openGuide = false, deviceId }: PlannerPageProps) {
   const baseId = useId()
   const { plan: stored, refusal, update, replace, conflict } = usePlan()
   // With switches in «Mi infraestructura» (same browser), they and their connections come from there. A stored plan
@@ -107,7 +115,9 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
     if (syncedText !== storedText) update((current) => syncedWithInventory(current, catalog))
   }, [syncedText, storedText, update, catalog])
 
-  const [tab, setTab] = useState<TabKey>('vlans')
+  const [tab, setTab] = useState<TabKey>(openGuide ? 'guide' : 'vlans')
+  // The plan, combined with the inventory when there is one, already says which switch follows each device.
+  const focusSwitch = deviceId ? plan.switches.find((item) => item.deviceId === deviceId)?.id : undefined
   const mapVlans = combined?.mapVlans
   const issues = validatePlan(plan, catalog)
   // A warning never hides the guide: an unreadable VLAN list on the map allows every plan VLAN, as no list does.
@@ -138,7 +148,7 @@ export function PlannerPage({ catalog }: { catalog: Catalog }) {
               <IssueList issues={issues} label="Puntos por corregir" onGo={setTab} />
             </>
           ) : (
-            <PlanGuideView guides={buildPlanGuide(plan, catalog, mapVlans)} />
+            <PlanGuideView guides={buildPlanGuide(plan, catalog, mapVlans)} focusSwitch={focusSwitch} />
           )}
         </>
       )

@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { extractParamIds, renderCommand } from '../../domain/renderCommand'
-import { runbookHref } from '../../lib/useHashRoute'
+import { planGuideHref, runbookHref } from '../../lib/useHashRoute'
 import { Badge } from '../../ui/Badge'
 import { CommandBlock } from '../../ui/CommandBlock'
 import { MANUAL_STEP_LABELS, STATUS_LABELS } from '../labels'
@@ -98,7 +98,9 @@ function SwitchSection({ guide, position }: { guide: SwitchGuide; position: numb
   )
 }
 
-export function PlanGuideView({ guides }: { guides: SwitchGuide[] }) {
+/** The steps of every switch, core first; with `focusSwitch` (a plan switch id), only that switch's part. */
+export function PlanGuideView({ guides, focusSwitch }: { guides: SwitchGuide[]; focusSwitch?: string }) {
+  const focused = guides.find((guide) => guide.plannedSwitch.id === focusSwitch)
   return (
     <>
       <p className="muted">
@@ -106,9 +108,17 @@ export function PlanGuideView({ guides }: { guides: SwitchGuide[] }) {
         enlaces, luego la IP de gestión y al final los puertos de acceso, para no perder nunca el acceso al equipo. La
         guía no cubre el enrutamiento entre VLAN, el DHCP ni el cortafuegos: eso va en el router o en el cortafuegos.
       </p>
-      {guides.map((guide, index) => (
-        <SwitchSection key={guide.plannedSwitch.id} guide={guide} position={index + 1} />
-      ))}
+      {focused && (
+        <p className="notice">
+          Estás viendo solo la parte de {focused.plannedSwitch.name}. Configura antes los switches que van delante de
+          él. <a href={planGuideHref()}>Ver la guía de todos los switches</a>
+        </p>
+      )}
+      {guides.map((guide, index) =>
+        !focused || guide === focused ? (
+          <SwitchSection key={guide.plannedSwitch.id} guide={guide} position={index + 1} />
+        ) : null,
+      )}
     </>
   )
 }

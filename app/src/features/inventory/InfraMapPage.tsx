@@ -7,7 +7,7 @@ import '@xyflow/react/dist/style.css';
 import type { Device, DeviceGroup, GroupType, Link, LinkType, Position } from '../../domain/types';
 import type { InventoryRepository } from '../../ports/InventoryRepository';
 import type { PlanRepository } from '../../ports/PlanRepository';
-import { PLANNER_URL } from '../../config';
+import { plannerGuideUrl } from '../../config';
 import { analyzeInventory } from '../../domain/inventoryAnalysis';
 import { LINK_TYPE_NAMES, groupOf, isPowerSupplier, powerEndRoles, powerFeedersOf } from '../../domain/topology';
 import {
@@ -529,7 +529,7 @@ function InfraMap({ repository, planRepository }: InfraMapProps) {
             Comprobar red <span className="infra-count" aria-hidden="true">{findings.length + vlanWarns.length}</span>
           </button>
           <a className="infra-tool" href="#mi-infraestructura/lista">Exportar o importar</a>
-          <a className="infra-tool infra-tool--primary" href={PLANNER_URL}>Obtener comandos</a>
+          <a className="infra-tool infra-tool--primary" href={plannerGuideUrl(selected?.tipo === 'switch' ? selected.id : undefined)}>Obtener comandos</a>
         </div>
         {toolbarNote && <div className="infra-tools__note">{toolbarNote}</div>}
         <div className="infra-workspace">

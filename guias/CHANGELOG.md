@@ -8,6 +8,17 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 
 ### Añadido
 
+- Nueva dirección `#/plan/guia`, que abre el planificador directamente en su pestaña «Guía»; con `?equipo=<id>` (el
+  identificador de un equipo de Mi infraestructura) muestra solo la parte del switch del plan que corresponde a ese
+  equipo, con un enlace a la guía de todos los switches. Si el equipo no está en el plan, se abre la guía completa.
+  `#/plan` sigue abriendo el planificador como hasta ahora.
+- El mapa de Mi infraestructura es ahora un editor de infraestructura con el plan de red integrado: barra de
+  herramientas, biblioteca de formas con buscador, capas por VLAN y un panel a la derecha que sigue a la selección. Con
+  nada seleccionado, el panel «Red y VLAN» edita las VLAN del plan (con plantillas), el direccionamiento y los avisos;
+  con un switch, sus puertos de acceso y su VLAN; con un enlace, sus VLAN permitidas y su VLAN nativa. Si a una troncal
+  del camino hasta el núcleo le falta una VLAN, el mapa lo marca y ofrece «Añadir N a la troncal». Lee y escribe el
+  mismo plan que el planificador, sin perder nada de lo que este guarda. «Obtener comandos» abre la guía del
+  planificador, en la parte del switch seleccionado si lo hay.
 - El campo «VLAN» de un enlace troncal o LAG del mapa de Mi infraestructura decide las VLAN permitidas en la guía del
   planificador: con VLAN escritas, el enlace permite solo esas y su VLAN nativa; sin ninguna, todas las del plan, como
   hasta ahora. Si la lista no se entiende (por ejemplo, una VLAN fuera de 1-4094 o un rango al revés), el planificador
@@ -23,6 +34,13 @@ Todos los cambios relevantes de este proyecto se documentan aquí. El formato si
 - Las guías pueden enlazar al final, en «Para entenderlo mejor», los artículos de Fundamentos que explican la tarea.
 - Las guías de incidencias, con pasos alternativos en lugar de una secuencia, ya no ofrecen «Copiar todo», para no
   pegar a la vez comandos de caminos distintos.
+
+### Cambiado
+
+- En la web, el planificador deja de ser la pestaña «Red y VLAN» de Mi infraestructura, que queda en «Mapa | Lista |
+  Plan de despliegue»: las VLAN y los enlaces se editan en el panel «Red y VLAN» del mapa. El planificador sigue en la
+  misma dirección, se abre desde «Obtener comandos» del mapa y desde la pestaña «Comandos» de cada switch, y conserva
+  las pestañas de Mi infraestructura. En el archivo independiente sigue en la cabecera, como antes.
 
 ### Corregido
 

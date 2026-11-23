@@ -22,15 +22,16 @@ interface AppShellProps {
 
 const INFRA_SECTION = 'infra'
 
-/** Same tabs as the app's «Mi infraestructura» (map, list, deployment plan), so the planner reads as part of that section. */
+/**
+ * Same tabs as the app's «Mi infraestructura» (map, list, deployment plan), so the planner reads as part of that
+ * section. The planner is no tab of its own: the VLAN and the links are edited in the map's «Red y VLAN» panel, whose
+ * «Obtener comandos» opens the planner at its guide (#/plan/guia).
+ */
 function InfraTabs({ inventoryHref }: { inventoryHref: string }) {
   return (
     <nav className="infra-tabs" aria-label="Mi infraestructura">
       <a href={inventoryHref}>Mapa</a>
       <a href={`${inventoryHref}/lista`}>Lista</a>
-      <a href={planHref} aria-current="page">
-        Red y VLAN
-      </a>
       <a href={`${inventoryHref}/plan`}>Plan de despliegue</a>
     </nav>
   )
@@ -82,16 +83,16 @@ export function AppShell({ catalog, route, activePlatform, recents, children }: 
 
   // Set only when the manual is built inside a larger website; the standalone file has no site to navigate.
   const siteLinks = readSiteNav(import.meta.env.VITE_SITE_NAV)
-  // On the website the planner is the second tab of «Mi infraestructura», next to the app's inventory.
+  // On the website the planner belongs to «Mi infraestructura», next to the app's inventory.
   const inventoryHref = siteLinks.find((link) => link.id === INFRA_SECTION)?.href
   const plannerInSite = inventoryHref !== undefined
 
   const embedded = siteLinks.length > 0
-  // «Red y VLAN» belongs to «Mi infraestructura», not to the library: no tree and no library toolbar there.
+  // The planner belongs to «Mi infraestructura», not to the library: no tree and no library toolbar there.
   const libraryFrame = embedded && route.name !== 'plan'
   // Inside the website the browser tab is named after its section; the offline file keeps the manual's name.
   useEffect(() => {
-    if (embedded) document.title = `${route.name === 'plan' ? 'Red y VLAN' : 'Guías'} · sysadmin junior`
+    if (embedded) document.title = `${route.name === 'plan' ? 'Planificador de red' : 'Guías'} · sysadmin junior`
   }, [embedded, route.name])
 
   const searchButtonElement = (

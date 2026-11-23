@@ -57,7 +57,7 @@ describe('App', () => {
     }
   });
 
-  it('shows «Mi infraestructura» as four tabs: the map, the list, the network planner of the guides and the deployment plan', () => {
+  it('shows «Mi infraestructura» as three tabs: the map, the list and the deployment plan, with no «Red y VLAN» tab', () => {
     for (const [hash, current] of [['#mi-infraestructura', 'Mapa'], ['#mi-infraestructura/lista', 'Lista'], ['#mi-infraestructura/plan', 'Plan de despliegue']] as const) {
       location.hash = hash;
       const { unmount } = render(<App />);
@@ -65,7 +65,6 @@ describe('App', () => {
       expect(tabs.getAllByRole('link').map(a => [a.textContent, a.getAttribute('href'), a.getAttribute('aria-current')]), hash).toEqual([
         ['Mapa', '#mi-infraestructura', current === 'Mapa' ? 'page' : null],
         ['Lista', '#mi-infraestructura/lista', current === 'Lista' ? 'page' : null],
-        ['Red y VLAN', './guias/#/plan', null],
         ['Plan de despliegue', '#mi-infraestructura/plan', current === 'Plan de despliegue' ? 'page' : null],
       ]);
       unmount();

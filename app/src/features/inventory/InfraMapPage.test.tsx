@@ -74,14 +74,14 @@ describe('InfraMapPage', () => {
     expect((f.getByLabelText('Tipo') as HTMLSelectElement).value).toBe('switch');
     expect(f.getByText('FW01')).toBeTruthy();
     expect(f.getByText(/CORE no está monitorizado/)).toBeTruthy();
-    expect(switchTab('Comandos').getByRole('link', { name: 'Planificar VLAN y puertos' }).getAttribute('href')).toBe('./guias/#/plan');
+    expect(switchTab('Comandos').getByRole('link', { name: 'Ver los comandos de CORE' }).getAttribute('href')).toBe('./guias/#/plan/guia?equipo=core');
   });
 
   it('shows the monitoring configuration for the brand of the selected device', async () => {
     render(<InfraMapPage planRepository={plans()} repository={memoryRepository(network())} />);
     const f = await openFicha('FW01');
     expect(f.getByText('FortiGate (FortiOS 7.4, 7.6 y 8.0) · SNMPv3')).toBeTruthy();
-    expect(f.queryByRole('link', { name: 'Planificar VLAN y puertos' })).toBeNull();
+    expect(f.queryByRole('link', { name: /^Ver los comandos de/ })).toBeNull();
   });
 
   it('lists the guides of a covered switch, grouped, opening each one with the device filled in', async () => {
@@ -98,7 +98,7 @@ describe('InfraMapPage', () => {
     const links = section.getAllByRole('link');
     expect(links).toHaveLength(19);
     for (const link of links) expect(link.getAttribute('href')).toMatch(/\?equipo=sw%20acceso%2F1$/);
-    expect(switchTab('Comandos').getByRole('link', { name: 'Planificar VLAN y puertos' })).toBeTruthy();
+    expect(switchTab('Comandos').getByRole('link', { name: 'Ver los comandos de ACCESO' }).getAttribute('href')).toBe('./guias/#/plan/guia?equipo=sw%20acceso%2F1');
   });
 
   it('tells which models the guides cover when the switch has no known brand and model', async () => {

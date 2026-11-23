@@ -59,6 +59,63 @@ describe('PlannerPage', () => {
     expect(within(guide).getByRole('listitem', { name: 'IP de gestión 192.168.99.2/24' })).toBeInTheDocument()
   })
 
+  describe('opened at the guide (#/plan/guia)', () => {
+    const switchHeadings = () => screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
+
+    it('opens on the «Guía» tab with the guide of every switch', () => {
+      seed()
+      render(<PlannerPage catalog={catalog} openGuide />)
+
+      expect(screen.getByRole('tab', { name: 'Guía' })).toHaveAttribute('aria-selected', 'true')
+      expect(switchHeadings()).toEqual(['1. nucleo · Aruba CX 6100', '2. planta1 · Cisco Catalyst 1300'])
+    })
+
+    it('shows only the part of the switch that follows the device given, with a way back to the whole guide', () => {
+      const plan = twoSwitchPlan()
+      plan.switches = plan.switches.map((item, index) => ({ ...item, deviceId: index === 0 ? 'core' : 'p1' }))
+      localStorage.setItem(PLAN_STORAGE_KEY, JSON.stringify(plan))
+      render(<PlannerPage catalog={catalog} openGuide deviceId="p1" />)
+
+      expect(screen.getByRole('tab', { name: 'Guía' })).toHaveAttribute('aria-selected', 'true')
+      expect(switchHeadings()).toEqual(['2. planta1 · Cisco Catalyst 1300'])
+      expect(screen.getByRole('link', { name: 'Ver la guía de todos los switches' })).toHaveAttribute(
+        'href',
+        '#/plan/guia',
+      )
+    })
+
+    it('finds the switch of an inventory device matched by its name, as the planner matches them', () => {
+      seed()
+      localStorage.setItem(
+        INVENTORY_STORAGE_KEY,
+        JSON.stringify(
+          [
+            { id: 'core', nombre: 'nucleo', tipo: 'switch', marca: 'Aruba', modelo: 'CX 6100', ip: '192.168.99.2/24' },
+            { id: 'p1', nombre: 'planta1', tipo: 'switch', ip: '192.168.99.3/24', uplinks: ['core'] },
+          ].map((item) => ({ criticidad: 'Media', monitorizado: false, ...item })),
+        ),
+      )
+      render(<PlannerPage catalog={catalog} openGuide deviceId="core" />)
+
+      expect(switchHeadings()).toEqual(['1. nucleo · Aruba CX 6100'])
+    })
+
+    it('opens the whole guide for a device that is not in the plan', () => {
+      seed()
+      render(<PlannerPage catalog={catalog} openGuide deviceId="no-such-device" />)
+
+      expect(switchHeadings()).toEqual(['1. nucleo · Aruba CX 6100', '2. planta1 · Cisco Catalyst 1300'])
+      expect(screen.queryByRole('link', { name: 'Ver la guía de todos los switches' })).not.toBeInTheDocument()
+    })
+
+    it('still opens on «VLAN» at #/plan', () => {
+      seed()
+      render(<PlannerPage catalog={catalog} />)
+
+      expect(screen.getByRole('tab', { name: 'VLAN' })).toHaveAttribute('aria-selected', 'true')
+    })
+  })
+
   it('keeps the plan after leaving the page', async () => {
     seed()
     const { unmount } = render(<PlannerPage catalog={catalog} />)
